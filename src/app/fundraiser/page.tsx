@@ -47,18 +47,22 @@ export default function Fundraiser() {
             </h2>
             <div className="prose prose-invert">
               <p className="text-blue-100 mb-4">
-                Action in Africa is a nonprofit organization dedicated to empowering communities through education
-                and sustainable development programs in Uganda. Through our partnership, we're supporting their
-                mission to provide quality education and create lasting change.
+                Action in Africa is a nonprofit organization that provides free educaitonal programs and
+                essential resources to the people they support in Uganda. Action in Africa strives to bring
+                access to learning and opportunity for the people of Uganda. They run a university to help 
+                bring education opportunities to the underpriveleged. Currently, 6 of their university scholarship 
+                interns need laptops. These laptops help them complete their studies, participate in other 
+                activites, and bridge the gap to gain more opportunities. Through this partnership, Pillars of Tech
+                wants to help raise these funds to support these 6 students.
               </p>
               <p className="text-blue-100 mb-4">
                 Your donation will help support:
               </p>
               <ul className="list-disc list-inside text-blue-100 space-y-2 mb-4">
-                <li>Educational resources and materials</li>
-                <li>Technology access for students</li>
-                <li>Teacher training and development</li>
-                <li>Community outreach programs</li>
+                <li>Laptops for these students</li>
+                <li>Access to online learning resources</li>
+                <li>Tools for their long-term success</li>
+                <li>Technological skills for the future</li>
               </ul>
             </div>
           </motion.div>
