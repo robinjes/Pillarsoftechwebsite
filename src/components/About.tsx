@@ -77,7 +77,7 @@ export default function About() {
               We're proud to partner with Action in Africa to provide technology resources and support to their student program. Through this collaboration, we're expanding access to technology education and creating opportunities for students in Africa.
             </p>
             <a 
-              href="#contact" 
+              href="/fundraiser" 
               className="inline-block bg-primary/90 hover:bg-primary text-white px-6 py-3 rounded-md font-semibold transition-colors border border-white/20"
             >
               Support Our Partnership
