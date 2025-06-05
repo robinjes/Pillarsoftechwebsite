@@ -7,31 +7,24 @@ import { Fredoka } from 'next/font/google'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 
-// Initialize EmailJS
-const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || ''
-const SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || ''
-const TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || ''
+// Initialize EmailJS with more detailed error checking
+const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
+const SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
+const TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID
 
-// Add detailed logging
-console.log('EmailJS Configuration Details:', {
-  publicKeyLength: PUBLIC_KEY?.length || 0,
-  serviceIdLength: SERVICE_ID?.length || 0,
-  templateIdLength: TEMPLATE_ID?.length || 0,
-  hasPublicKey: Boolean(PUBLIC_KEY),
-  hasServiceId: Boolean(SERVICE_ID),
-  hasTemplateId: Boolean(TEMPLATE_ID),
-  // Log actual values for debugging
-  publicKey: PUBLIC_KEY,
-  serviceId: SERVICE_ID,
-  templateId: TEMPLATE_ID
+// Debug log for environment variables
+console.log('Raw Environment Variables:', {
+  PUBLIC_KEY,
+  SERVICE_ID,
+  TEMPLATE_ID
 })
 
 try {
-  emailjs.init({
-    publicKey: PUBLIC_KEY
-  })
+  if (!PUBLIC_KEY) throw new Error('Public key is missing')
+  emailjs.init(PUBLIC_KEY)
+  console.log('EmailJS initialized successfully')
 } catch (error) {
-  console.error('EmailJS initialization error:', error)
+  console.error('EmailJS initialization failed:', error)
 }
 
 export default function Contact() {
@@ -43,33 +36,15 @@ export default function Contact() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
-  // Debug log on component mount
-  useEffect(() => {
-    console.log('EmailJS Config:', {
-      publicKey: PUBLIC_KEY ? 'Set' : 'Missing',
-      serviceId: SERVICE_ID ? 'Set' : 'Missing',
-      templateId: TEMPLATE_ID ? 'Set' : 'Missing'
-    })
-  }, [])
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setStatus('sending')
     setErrorMessage('')
 
-    if (!PUBLIC_KEY || !SERVICE_ID || !TEMPLATE_ID) {
-      console.error('Missing EmailJS configuration')
-      setErrorMessage('Email service not properly configured')
-      setStatus('error')
-      return
-    }
-
     try {
-      console.log('Sending email with config:', {
-        serviceId: SERVICE_ID,
-        templateId: TEMPLATE_ID,
-        publicKey: PUBLIC_KEY ? 'Set' : 'Missing'
-      })
+      if (!PUBLIC_KEY || !SERVICE_ID || !TEMPLATE_ID) {
+        throw new Error('Missing required EmailJS configuration')
+      }
 
       const templateParams = {
         to_name: 'Pillars of Tech',
@@ -79,7 +54,11 @@ export default function Contact() {
         to_email: 'pillarsoftech@gmail.com'
       }
 
-      console.log('Template params:', templateParams)
+      console.log('Attempting to send email with:', {
+        serviceId: SERVICE_ID,
+        templateId: TEMPLATE_ID,
+        params: templateParams
+      })
 
       const response = await emailjs.send(
         SERVICE_ID,
@@ -87,12 +66,7 @@ export default function Contact() {
         templateParams
       )
 
-      console.log('EmailJS Response:', response)
-
-      if (!response || response.status !== 200) {
-        throw new Error('Failed to send email')
-      }
-
+      console.log('Email sent successfully:', response)
       setStatus('success')
       setFormData({ name: '', email: '', message: '' })
       
@@ -100,7 +74,7 @@ export default function Contact() {
         setStatus('idle')
       }, 3000)
     } catch (error) {
-      console.error('Detailed error:', error)
+      console.error('Detailed send error:', error)
       setErrorMessage(error instanceof Error ? error.message : 'Failed to send email')
       setStatus('error')
       
