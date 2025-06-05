@@ -26,16 +26,21 @@ export default function Contact() {
 
     try {
       const response = await emailjs.send(
-        'service_14ref39',
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || '',
         process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || '',
         {
           to_name: 'Pillars of Tech',
           from_name: formData.name,
           reply_to: formData.email,
-          message: `Message from ${formData.name} (${formData.email}):\n\n${formData.message}`,
+          message: formData.message,
           to_email: 'pillarsoftech@gmail.com'
-        }
+        },
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || ''
       )
+
+      if (!response || response.status !== 200) {
+        throw new Error('Failed to send email')
+      }
 
       console.log('Success:', response)
       setStatus('success')
@@ -99,51 +104,11 @@ export default function Contact() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <h2 className={`${fredoka.className} text-4xl font-bold text-white mb-4`}>Join us to make a difference</h2>
+          <h2 className={`${fredoka.className} text-4xl font-bold text-white mb-4`}>Get in Touch</h2>
           <p className="text-xl text-blue-200 max-w-3xl mx-auto">
-            Get involved and help shape the future of STEM education
+            Have questions or want to get involved? Send us a message!
           </p>
         </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="bg-blue-800/50 backdrop-blur-sm border border-white/20 p-8 rounded-lg"
-          >
-            <h3 className={`${fredoka.className} text-2xl font-semibold text-white mb-4`}>Make a donation</h3>
-            <p className="mb-6 text-blue-200">Support our mission to make STEM education accessible to all students.</p>
-            <a 
-              href="https://hcb.hackclub.com/donations/start/pillars-of-tech" 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-primary/90 hover:bg-primary text-white px-6 py-3 rounded-md font-semibold transition-colors border border-white/20"
-            >
-              Donate Now
-            </a>
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-            className="bg-blue-800/50 backdrop-blur-sm border border-white/20 p-8 rounded-lg"
-          >
-            <h3 className={`${fredoka.className} text-2xl font-semibold text-white mb-4`}>Become a volunteer</h3>
-            <p className="mb-6 text-blue-200">Share your knowledge and experience with the next generation.</p>
-            <a 
-              href="https://docs.google.com/forms/d/e/1FAIpQLSdsNmpS2wpikV77wl1ifpD52a0zAepa-b8DhesqFjPTQVoo7w/viewform?usp=header" 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-primary/90 hover:bg-primary text-white px-6 py-3 rounded-md font-semibold transition-colors border border-white/20"
-            >
-              Join Us
-            </a>
-          </motion.div>
-        </div>
 
         <motion.form
           onSubmit={handleSubmit}
@@ -151,11 +116,10 @@ export default function Contact() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="bg-blue-800/50 backdrop-blur-sm border border-white/20 p-8 rounded-lg"
+          className="max-w-2xl mx-auto bg-blue-800/50 backdrop-blur-sm border border-white/20 p-8 rounded-lg"
         >
-          <h3 className={`${fredoka.className} text-2xl font-semibold text-white mb-6`}>Get in Touch</h3>
           {errorMessage && (
-            <div className="mb-4 p-3 bg-red-500/50 text-white rounded-md">
+            <div className="mb-6 p-4 bg-red-500/50 text-white rounded-md">
               {errorMessage}
             </div>
           )}
