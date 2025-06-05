@@ -25,7 +25,7 @@ export default function Team() {
     {
       name: 'Yashas Jeedi',
       position: 'Vice President',
-      image: '/gorilla.jpg',
+      image: '/yashas.jpg',
       description: 'Focused on developing educational programs and curriculum.',
       details: {
         grade: '11',
