@@ -14,7 +14,7 @@ const nextConfig = {
     unoptimized: true,
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
-    formats: ['image/webp', 'image/avif', 'image/jpeg']
+    formats: ['image/webp', 'image/avif']
   },
 }
 
