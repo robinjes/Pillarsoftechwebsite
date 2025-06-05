@@ -1,14 +1,18 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import emailjs from '@emailjs/browser'
 import { Fredoka } from 'next/font/google'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 
 // Initialize EmailJS
-emailjs.init(process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || '')
+const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || ''
+const SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || ''
+const TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || ''
+
+emailjs.init(PUBLIC_KEY)
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -19,30 +23,57 @@ export default function Contact() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
 
+  // Debug log on component mount
+  useEffect(() => {
+    console.log('EmailJS Config:', {
+      publicKey: PUBLIC_KEY ? 'Set' : 'Missing',
+      serviceId: SERVICE_ID ? 'Set' : 'Missing',
+      templateId: TEMPLATE_ID ? 'Set' : 'Missing'
+    })
+  }, [])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setStatus('sending')
     setErrorMessage('')
 
+    if (!PUBLIC_KEY || !SERVICE_ID || !TEMPLATE_ID) {
+      console.error('Missing EmailJS configuration')
+      setErrorMessage('Email service not properly configured')
+      setStatus('error')
+      return
+    }
+
     try {
+      console.log('Sending email with config:', {
+        serviceId: SERVICE_ID,
+        templateId: TEMPLATE_ID,
+        publicKey: PUBLIC_KEY ? 'Set' : 'Missing'
+      })
+
+      const templateParams = {
+        to_name: 'Pillars of Tech',
+        from_name: formData.name,
+        reply_to: formData.email,
+        message: formData.message,
+        to_email: 'pillarsoftech@gmail.com'
+      }
+
+      console.log('Template params:', templateParams)
+
       const response = await emailjs.send(
-        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || '',
-        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || '',
-        {
-          to_name: 'Pillars of Tech',
-          from_name: formData.name,
-          reply_to: formData.email,
-          message: formData.message,
-          to_email: 'pillarsoftech@gmail.com'
-        },
-        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || ''
+        SERVICE_ID,
+        TEMPLATE_ID,
+        templateParams,
+        PUBLIC_KEY
       )
+
+      console.log('EmailJS Response:', response)
 
       if (!response || response.status !== 200) {
         throw new Error('Failed to send email')
       }
 
-      console.log('Success:', response)
       setStatus('success')
       setFormData({ name: '', email: '', message: '' })
       
@@ -50,7 +81,7 @@ export default function Contact() {
         setStatus('idle')
       }, 3000)
     } catch (error) {
-      console.error('Error sending email:', error)
+      console.error('Detailed error:', error)
       setErrorMessage(error instanceof Error ? error.message : 'Failed to send email')
       setStatus('error')
       
