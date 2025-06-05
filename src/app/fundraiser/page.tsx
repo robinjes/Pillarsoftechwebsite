@@ -73,21 +73,22 @@ export default function Fundraiser() {
             <h2 className={`${fredoka.className} text-2xl font-bold text-white mb-4`}>
               Make a Difference Today
             </h2>
-            <p className="text-blue-100 mb-6">
-              Your contribution, no matter the size, can help create lasting change in the lives of students
-              and communities in Uganda.
-            </p>
-            <div className="space-y-4">
+            <div className="flex justify-center">
+              <iframe 
+                src="https://hcb.hackclub.com/donations/start/pillars-of-tech" 
+                style={{ border: 'none' }}
+                name="donateFrame" 
+                scrolling="yes" 
+                frameBorder="0" 
+                height="512px" 
+                width="512px" 
+                allowFullScreen
+                className="max-w-full rounded-lg"
+              />
+            </div>
+            <div className="mt-6">
               <a
-                href="https://actioninafrica.com/donate" // Replace with actual donation link
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg text-center transition-colors"
-              >
-                Donate Now
-              </a>
-              <a
-                href="https://actioninafrica.com" // Replace with actual website link
+                href="https://actioninafrica.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full bg-transparent border-2 border-blue-500 hover:border-blue-400 text-white font-semibold py-3 px-6 rounded-lg text-center transition-colors"
