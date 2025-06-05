@@ -12,7 +12,27 @@ const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY || ''
 const SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID || ''
 const TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID || ''
 
-emailjs.init(PUBLIC_KEY)
+// Add detailed logging
+console.log('EmailJS Configuration Details:', {
+  publicKeyLength: PUBLIC_KEY?.length || 0,
+  serviceIdLength: SERVICE_ID?.length || 0,
+  templateIdLength: TEMPLATE_ID?.length || 0,
+  hasPublicKey: Boolean(PUBLIC_KEY),
+  hasServiceId: Boolean(SERVICE_ID),
+  hasTemplateId: Boolean(TEMPLATE_ID),
+  // Log actual values for debugging
+  publicKey: PUBLIC_KEY,
+  serviceId: SERVICE_ID,
+  templateId: TEMPLATE_ID
+})
+
+try {
+  emailjs.init({
+    publicKey: PUBLIC_KEY
+  })
+} catch (error) {
+  console.error('EmailJS initialization error:', error)
+}
 
 export default function Contact() {
   const [formData, setFormData] = useState({
@@ -64,8 +84,7 @@ export default function Contact() {
       const response = await emailjs.send(
         SERVICE_ID,
         TEMPLATE_ID,
-        templateParams,
-        PUBLIC_KEY
+        templateParams
       )
 
       console.log('EmailJS Response:', response)
