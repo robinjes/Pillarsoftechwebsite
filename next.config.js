@@ -11,7 +11,10 @@ const nextConfig = {
         hostname: 'ui-avatars.com',
       }
     ],
-    unoptimized: true
+    unoptimized: true,
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    formats: ['image/webp', 'image/avif', 'image/jpeg']
   },
 }
 
