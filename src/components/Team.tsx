@@ -121,12 +121,26 @@ export default function Team() {
               className="bg-blue-800/50 backdrop-blur-sm border border-white/20 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all"
             >
               <div className="relative h-64 bg-blue-800/50">
-                <Image
-                  src={member.image}
-                  alt={member.name}
-                  fill
-                  className="object-cover"
-                />
+                {member.name === 'Yashas Jeedi' ? (
+                  <img 
+                    src="/yashas.jpg"
+                    alt={member.name}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={(e) => {
+                      console.error('Error loading image:', e);
+                    }}
+                  />
+                ) : (
+                  <Image
+                    src={member.image}
+                    alt={member.name}
+                    fill
+                    className="object-cover"
+                    priority={true}
+                    quality={100}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
+                )}
               </div>
               <div className="p-6">
                 <h3 className={`${fredoka.className} text-xl font-semibold text-white mb-1`}>{member.name}</h3>
