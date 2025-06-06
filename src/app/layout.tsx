@@ -11,6 +11,24 @@ export const metadata: Metadata = {
   title: 'Pillars of Tech',
   description: 'Enabling the next generation of tech leaders',
   manifest: '/site.webmanifest',
+  openGraph: {
+    title: 'Pillars of Tech',
+    description: 'Enabling the next generation of tech leaders',
+    images: [
+      {
+        url: '/PillarsOfTechLogo.png',
+        width: 1200,
+        height: 630,
+        alt: 'Pillars of Tech Logo',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Pillars of Tech',
+    description: 'Enabling the next generation of tech leaders',
+    images: ['/PillarsOfTechLogo.png'],
+  },
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },

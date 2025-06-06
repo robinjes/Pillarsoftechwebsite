@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Space_Grotesk } from 'next/font/google'
+import Image from 'next/image'
 
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 
@@ -13,7 +14,17 @@ export default function Navbar() {
     <nav className="sticky top-0 w-full z-50 bg-primary/80 backdrop-blur-sm border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
+          <div className="flex items-center space-x-3">
+            <div className="relative w-8 h-8">
+              <Image
+                src="/PillarsOfTechLogo.png"
+                alt="Pillars of Tech Logo"
+                fill
+                className="object-contain"
+                sizes="32px"
+                priority
+              />
+            </div>
             <a href="#" className={`${spaceGrotesk.className} text-white text-xl font-bold`}>
               Pillars of Tech
             </a>
