@@ -40,7 +40,7 @@ export default function About() {
           className="text-center mb-16"
         >
           <h2 className={`${fredoka.className} text-4xl font-bold text-white mb-4`}>
-            Helping YOU learn, practice and master STEM
+            Our Mission
           </h2>
           <p className="text-xl text-blue-100 max-w-3xl mx-auto">
             We are dedicated to making STEM education accessible and engaging for students of all backgrounds
