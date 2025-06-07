@@ -1,5 +1,6 @@
 'use client'
 
+// Team component - Updated for deployment
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { Fredoka } from 'next/font/google'
@@ -67,7 +68,7 @@ export default function Team() {
     {
       name: 'Nolan Mcclung',
       position: 'Communications Director',
-      image: '/rohan.jpg',
+      image: '/nolan.jpg',
       description: 'Handling social media and external communications.',
       details: {
         grade: '11',
@@ -121,9 +122,9 @@ export default function Team() {
               className="bg-blue-800/50 backdrop-blur-sm border border-white/20 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all"
             >
               <div className="relative h-64 bg-blue-800/50">
-                {member.name === 'Yashas Jeedi' ? (
+                {(member.name === 'Yashas Jeedi' || member.name === 'Nolan Mcclung') ? (
                   <img 
-                    src="/yashas.jpg"
+                    src={member.image}
                     alt={member.name}
                     className="absolute inset-0 w-full h-full object-cover"
                     onError={(e) => {
