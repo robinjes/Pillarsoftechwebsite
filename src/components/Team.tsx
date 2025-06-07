@@ -12,7 +12,7 @@ export default function Team() {
       name: 'Robin Jeshua Deepak',
       position: 'Founder & President',
       image: '/robin.jpg',
-      description: 'High school student passionate about making tech education accessible to all.',
+      description: 'Leading our technical initiatives, partnering with other organizations, and managing our resources and group.',
       details: {
         grade: '11',
         from: 'Livermore, CA',
@@ -24,7 +24,7 @@ export default function Team() {
     },
     {
       name: 'Yashas Jeedi',
-      position: 'Vice President',
+      position: 'Co-Vice President',
       image: '/yashas.jpg',
       description: 'Focused on developing educational programs and curriculum.',
       details: {
@@ -52,7 +52,7 @@ export default function Team() {
     },
     {
       name: 'Rahul Eapen',
-      position: 'Outreach Coordinator',
+      position: 'Co-Vice President',
       image: '/rahul.jpg',
       description: 'Managing partnerships and community engagement.',
       details: {
@@ -65,31 +65,31 @@ export default function Team() {
       }
     },
     {
-      name: 'Rohan Munagapati',
-      position: 'Program Manager',
+      name: 'Nolan Mcclung',
+      position: 'Communications Director',
       image: '/rohan.jpg',
-      description: 'Organizing and coordinating our educational programs.',
+      description: 'Handling social media and external communications.',
       details: {
         grade: '11',
         from: 'Livermore, CA',
-        school: 'Granada High School',
-        hobby: 'Playing basketball and meeting new people',
-        favoriteApp: 'Instagram/Snapchat',
-        major: 'Biotechnology'
+        school: 'Livermore High School',
+        hobby: 'Playing lacrosse',
+        favoriteApp: 'Hudl',
+        major: 'Mechanical Engineering'
       }
     },
     {
       name: 'Arya Rajavelu',
-      position: 'Communications Director',
+      position: 'Program Manager',
       image: '/arya.jpg',
-      description: 'Handling social media and external communications.',
+      description: 'Organizing and coordinating our educational programs. ',
       details: {
         grade: '11',
         from: 'Livermore, CA',
         school: 'Livermore High School',
         hobby: 'Playing volleyball and biking',
         favoriteApp: 'Instagram',
-        major: 'Biomedical Engineering'
+        major: 'Undecided'
       }
     }
   ]
