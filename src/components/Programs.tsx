@@ -16,8 +16,8 @@ export default function Programs() {
       description: 'Student-led STEM clubs in schools, fostering peer learning and collaboration.'
     },
     {
-      title: 'STEMplore',
-      description: 'Interactive online platform for students to explore and learn STEM concepts.'
+      title: 'STEM Competition Hub',
+      description: 'We plan to host different STEM competitions for students to participate in and showcase their projects and skills for prizes!'
     },
     {
       title: 'Mentorship Network',
