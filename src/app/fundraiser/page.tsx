@@ -78,17 +78,8 @@ export default function Fundraiser() {
               Make a Difference Today
             </h2>
             <div className="flex justify-center">
-              <iframe 
-                src="https://hcb.hackclub.com/donations/start/pillars-of-tech" 
-                style={{ border: 'none' }}
-                name="donateFrame" 
-                scrolling="yes" 
-                frameBorder="0" 
-                height="512px" 
-                width="512px" 
-                allowFullScreen
-                className="max-w-full rounded-lg"
-              />
+              <div className="gfm-embed" data-url="https://www.gofundme.com/f/action-in-africa-laptop-fundraiser/widget/large?sharesheet=fundraiser sidebar&attribution_id=sl:d87f8b7b-8b6e-43b4-b625-8d59492f5e02"></div>
+              <script defer src="https://www.gofundme.com/static/js/embed.js"></script>
             </div>
             <div className="mt-6">
               <a
