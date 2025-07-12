@@ -92,6 +92,20 @@ export default function Team() {
         favoriteApp: 'Instagram',
         major: 'Undecided'
       }
+    },
+    {
+      name: 'Rohan',
+      position: 'Vice President of Chapter Integrations',
+      image: '/rohan.jpg',
+      description: 'Leading chapter development and integration initiatives across our organization.',
+      details: {
+        grade: '11',
+        from: 'Livermore, CA',
+        school: 'Granada High School',
+        hobby: 'Playing basketball',
+        favoriteApp: 'Instagram',
+        major: 'Biotechnology'
+      }
     }
   ]
 
@@ -112,14 +126,16 @@ export default function Team() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {teamMembers.slice(0, 6).map((member, index) => (
+          {teamMembers.map((member, index) => (
             <motion.div
               key={member.name}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: index * 0.2 }}
               viewport={{ once: true }}
-              className="bg-blue-800/50 backdrop-blur-sm border border-white/20 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all"
+              className={`bg-blue-800/50 backdrop-blur-sm border border-white/20 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all ${
+                member.name === 'Rohan' ? 'lg:col-start-2 lg:col-span-1' : ''
+              }`}
             >
               <div className="relative h-64 bg-blue-800/50">
                 {(member.name === 'Yashas Jeedi' || member.name === 'Nolan Mcclung') ? (
@@ -160,44 +176,6 @@ export default function Team() {
               </div>
             </motion.div>
           ))}
-          
-          {/* Rohan positioned in center of third row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-8">
-            <div></div> {/* Empty space */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 1.2 }}
-              viewport={{ once: true }}
-              className="bg-blue-800/50 backdrop-blur-sm border border-white/20 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all"
-            >
-              <div className="relative h-64 bg-blue-800/50">
-                <Image
-                  src="/rohan.jpg"
-                  alt="Rohan"
-                  fill
-                  className="object-cover"
-                  priority={true}
-                  quality={100}
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                />
-              </div>
-              <div className="p-6">
-                <h3 className={`${fredoka.className} text-xl font-semibold text-white mb-1`}>Rohan</h3>
-                <p className="text-blue-100 font-medium mb-3">Vice President of Chapter Integrations</p>
-                <p className="text-blue-200 mb-4">Leading chapter development and integration initiatives across our organization.</p>
-                <div className="mt-4 space-y-2 text-blue-100">
-                  <p><span className="font-semibold">Grade:</span> 11</p>
-                  <p><span className="font-semibold">From:</span> Livermore, CA</p>
-                  <p><span className="font-semibold">School:</span> Granada High School</p>
-                  <p><span className="font-semibold">Favorite Hobby:</span> Playing basketball</p>
-                  <p><span className="font-semibold">Favorite App:</span> Instagram</p>
-                  <p><span className="font-semibold">Planned Major:</span> Biotechnology</p>
-                </div>
-              </div>
-            </motion.div>
-            <div></div> {/* Empty space */}
-          </div>
         </div>
       </div>
     </section>
