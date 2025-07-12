@@ -92,6 +92,20 @@ export default function Team() {
         favoriteApp: 'Instagram',
         major: 'Undecided'
       }
+    },
+    {
+      name: 'Rohan',
+      position: 'Vice President of Chapter Integrations',
+      image: '/rohan.jpg',
+      description: 'Leading chapter development and integration initiatives across our organization.',
+      details: {
+        grade: '11',
+        from: 'Livermore, CA',
+        school: 'Livermore High School',
+        hobby: 'Playing sports and reading',
+        favoriteApp: 'Instagram',
+        major: 'Computer Science'
+      }
     }
   ]
 
