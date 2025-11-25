@@ -14,7 +14,7 @@ export default function Hero() {
             className={`${fredoka.className} text-6xl md:text-7xl font-bold text-white mb-4`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.5 }}
           >
             Pillars of Tech
           </motion.h1>
@@ -23,7 +23,7 @@ export default function Hero() {
             className={`${fredoka.className} text-4xl md:text-5xl font-bold text-blue-100 mb-6`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
           >
             Enabling the next generation of tech leaders
           </motion.h2>
@@ -32,7 +32,7 @@ export default function Hero() {
             className="text-xl md:text-2xl text-blue-200 mb-12 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
+            transition={{ duration: 0.5, delay: 0.15 }}
           >
             Join us in making technology education accessible to all students
           </motion.p>
@@ -41,7 +41,7 @@ export default function Hero() {
             className="flex flex-col sm:flex-row gap-4 justify-center"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.4 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
           >
             <a 
               href="https://hcb.hackclub.com/donations/start/pillars-of-tech"
@@ -65,7 +65,7 @@ export default function Hero() {
             className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
+            transition={{ duration: 0.5, delay: 0.25 }}
           >
             <div className="text-center bg-blue-800/50 backdrop-blur-sm border border-white/20 p-6 rounded-lg">
               <h3 className={`${fredoka.className} text-3xl font-bold text-white mb-2`}>Our Vision</h3>
