@@ -90,22 +90,6 @@ export default function About() {
           </div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="mt-8 bg-blue-800/50 backdrop-blur-sm border border-white/20 p-8 rounded-lg"
-        >
-          <div className="text-center">
-            <h3 className={`${fredoka.className} text-2xl font-bold text-white mb-4`}>Make a Difference Today</h3>
-            <p className="text-lg text-blue-100 max-w-3xl mx-auto mb-6">
-              Your support can help us provide technology resources and educational opportunities to students in need. Together, we can make a lasting impact on their future.
-            </p>
-            <div className="gfm-embed" data-url="https://www.gofundme.com/f/action-in-africa-laptop-fundraiser/widget/large?sharesheet=fundraiser sidebar&attribution_id=sl:d87f8b7b-8b6e-43b4-b625-8d59492f5e02"></div>
-            <script defer src="https://www.gofundme.com/static/js/embed.js"></script>
-          </div>
-        </motion.div>
       </div>
     </section>
   )
