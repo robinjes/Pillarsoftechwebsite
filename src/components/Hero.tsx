@@ -73,7 +73,7 @@ export default function Hero() {
             </div>
             <div className="text-center bg-blue-800/50 backdrop-blur-sm border border-white/20 p-6 rounded-lg">
               <h3 className={`${fredoka.className} text-3xl font-bold text-white mb-2`}>Partnership</h3>
-              <p className="text-white">We are collaborating with Action in Africa to expand tech access and are looking for more partners to make our goal possible!</p>
+              <p className="text-white">We have partnered with organizations like the Pedrozzi Foundation, Altamont Creek Elementary, Quest Science Center, and are continuing to look for more partners and host more events for the youth!</p>
             </div>
             <div className="text-center bg-blue-800/50 backdrop-blur-sm border border-white/20 p-6 rounded-lg">
               <h3 className={`${fredoka.className} text-3xl font-bold text-white mb-2`}>Join Us</h3>

@@ -13,11 +13,6 @@ export default function About() {
       icon: '🎓'
     },
     {
-      title: 'Mentorship',
-      description: 'Connecting students with experienced mentors for personalized guidance and support.',
-      icon: '🤝'
-    },
-    {
       title: 'Innovation',
       description: 'Fostering creativity and problem-solving skills through hands-on STEM projects.',
       icon: '💡'
@@ -47,7 +42,7 @@ export default function About() {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
@@ -92,31 +87,6 @@ export default function About() {
             >
               View Our Transparency
             </a>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="mt-8 bg-blue-800/50 backdrop-blur-sm border border-white/20 p-8 rounded-lg"
-        >
-          <div className="text-center">
-            <h3 className={`${fredoka.className} text-2xl font-bold text-white mb-4`}>Current Partnerships</h3>
-            <p className="text-lg text-blue-100 max-w-3xl mx-auto mb-6">
-              We're proud to partner with Action in Africa to provide technology resources and support to their student program. Through this collaboration, we're expanding access to technology education and creating opportunities for students in Africa.
-            </p>
-            <div className="flex flex-col md:flex-row justify-center items-center gap-8">
-              <a 
-                href="/fundraiser" 
-                className="inline-block bg-primary/90 hover:bg-primary text-white px-6 py-3 rounded-md font-semibold transition-colors border border-white/20"
-              >
-                Support Our Partnership
-              </a>
-              <div className="gfm-embed" data-url="https://www.gofundme.com/f/action-in-africa-laptop-fundraiser/widget/large?sharesheet=fundraiser sidebar&attribution_id=sl:d87f8b7b-8b6e-43b4-b625-8d59492f5e02"></div>
-              <script defer src="https://www.gofundme.com/static/js/embed.js"></script>
-            </div>
           </div>
         </motion.div>
 
