@@ -2,12 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-rgb: 255, 255, 255;
+@layer base {
+  :root {
+    --background: 10 20 40; /* matches primary dark blue */
+    --foreground: 248 250 252; /* slate-50 */
+  }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+@layer base {
+  body {
+    @apply bg-[#11265e] text-slate-50;
+  }
 } 

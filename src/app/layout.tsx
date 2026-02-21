@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Inter, Fredoka, Space_Grotesk, Quicksand } from 'next/font/google'
 import './globals.css'
+import Navbar from '@/components/Navbar'
+import Footer from '@/components/Footer'
 
 const inter = Inter({ subsets: ['latin'] })
 const fredoka = Fredoka({ subsets: ['latin'] })
@@ -11,6 +13,7 @@ export const metadata: Metadata = {
   title: 'Pillars of Tech',
   description: 'Enabling the next generation of tech leaders',
   manifest: '/site.webmanifest',
+  metadataBase: new URL('https://pillarsoftech.org'), // Adding reasonable fallback
   openGraph: {
     title: 'Pillars of Tech',
     description: 'Enabling the next generation of tech leaders',
@@ -53,7 +56,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={quicksand.className} suppressHydrationWarning>
+        <Navbar />
         {children}
+        <Footer />
       </body>
     </html>
   )

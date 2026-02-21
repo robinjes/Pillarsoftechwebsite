@@ -25,7 +25,7 @@ export default function Team() {
     },
     {
       name: 'Yashas Jeedi',
-      position: 'Co-Vice President',
+      position: 'Board Member',
       image: '/yashas.jpg',
       description: 'Focused on developing educational programs and curriculum.',
       details: {
@@ -39,7 +39,7 @@ export default function Team() {
     },
     {
       name: 'Nikhil Madineni',
-      position: 'Technology Lead',
+      position: 'Board Member',
       image: '/nikhil.jpg',
       description: 'Leading our technical initiatives and workshop content.',
       details: {
@@ -53,7 +53,7 @@ export default function Team() {
     },
     {
       name: 'Rahul Eapen',
-      position: 'Co-Vice President',
+      position: 'Vice President',
       image: '/rahul.jpg',
       description: 'Managing partnerships and community engagement.',
       details: {
@@ -67,7 +67,7 @@ export default function Team() {
     },
     {
       name: 'Nolan Mcclung',
-      position: 'Communications Director',
+      position: 'Board Member',
       image: '/nolan.jpg',
       description: 'Handling social media and external communications.',
       details: {
@@ -81,7 +81,7 @@ export default function Team() {
     },
     {
       name: 'Arya Rajavelu',
-      position: 'Program Manager',
+      position: 'Board Member',
       image: '/arya.jpg',
       description: 'Organizing and coordinating our educational programs. ',
       details: {
@@ -95,7 +95,7 @@ export default function Team() {
     },
     {
       name: 'Rohan',
-      position: 'Vice President of Chapter Integrations',
+      position: 'Vice President',
       image: '/rohan.jpg',
       description: 'Leading chapter development and integration initiatives across our organization.',
       details: {
@@ -106,7 +106,36 @@ export default function Team() {
         favoriteApp: 'Instagram',
         major: 'Biotechnology'
       }
-    }
+    },
+    {
+      name: 'Shree Manickaraja',
+      position: 'Tech Lead/Board Member',
+      image: '/shree.jpg',
+      description: 'Planning and developing tech related projects and part of the board',
+      details: {
+        grade: '9',
+        from: 'Livermore, CA',
+        school: 'Livermore High School',
+        hobby: 'Playing tennis, flying planes, and coding',
+        favoriteApp: 'Brawl Stars/Youtube',
+        major: 'Computational Engineering/Data Science'
+      }
+    },
+    {
+      name: 'Jaden ',
+      position: 'Board Member',
+      image: '/jaden.jpg',
+      description: 'Marketing, outreach, and overall management of the organization',
+      details: {
+        grade: '11',
+        from: 'Livermore, CA',
+        school: 'Livermore High School',
+        hobby: 'Playing badminton',
+        favoriteApp: 'Instagram',
+        major: 'Mechanical Engineering'
+      }
+    },
+
   ]
 
   return (
@@ -133,9 +162,7 @@ export default function Team() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: index * 0.2 }}
               viewport={{ once: true }}
-              className={`bg-blue-800/50 backdrop-blur-sm border border-white/20 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all ${
-                member.name === 'Rohan' ? 'lg:col-start-2 lg:col-span-1' : ''
-              }`}
+              className={`bg-blue-800/50 backdrop-blur-sm border border-white/20 rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-all`}
             >
               <div className="relative h-64 bg-blue-800/50">
                 {(member.name === 'Yashas Jeedi' || member.name === 'Nolan Mcclung') ? (

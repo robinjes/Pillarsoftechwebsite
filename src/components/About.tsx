@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Fredoka } from 'next/font/google'
+import { GraduationCap, Lightbulb, Users } from 'lucide-react'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 
@@ -10,17 +11,17 @@ export default function About() {
     {
       title: 'Education',
       description: 'Providing accessible STEM education and resources to students across all communities.',
-      icon: '🎓'
+      Icon: GraduationCap
     },
     {
       title: 'Innovation',
       description: 'Fostering creativity and problem-solving skills through hands-on STEM projects.',
-      icon: '💡'
+      Icon: Lightbulb
     },
     {
       title: 'Community',
       description: 'Building a supportive network of students, educators, and industry professionals.',
-      icon: '🌟'
+      Icon: Users
     }
   ]
 
@@ -52,7 +53,9 @@ export default function About() {
               viewport={{ once: true }}
               className="bg-blue-800/50 backdrop-blur-sm border border-white/20 p-8 rounded-lg hover:shadow-lg transition-shadow"
             >
-              <div className="text-4xl mb-4">{feature.icon}</div>
+              <div className="mb-4">
+                <feature.Icon className="w-10 h-10 text-amber-400" />
+              </div>
               <h3 className={`${fredoka.className} text-2xl font-semibold text-white mb-3`}>{feature.title}</h3>
               <p className="text-blue-100">{feature.description}</p>
             </motion.div>
