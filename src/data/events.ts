@@ -21,7 +21,7 @@ export const events: Event[] = [
     date: 'January 29, 2026',
     time: '2:30 PM (Arrival)',
     location: 'Junction Ave K-8',
-    status: 'upcoming',
+    status: 'past',
     description: 'Join us at Junction Ave K-8 for an exhilarating Egg Drop challenge! Participants will learn about fundamental physics concepts—such as gravity, air resistance, and impact forces—by designing and building custom protective containers for a raw egg.\n\nWe will provide all the necessary materials to craft your contraptions. Come ready to engineer, test your designs, and enjoy some sweet treats (candy provided) as we see whose egg survives the drop!',
   },
   {
