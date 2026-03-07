@@ -3,9 +3,9 @@
 import { useParams, useRouter } from 'next/navigation'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
-import { events } from '@/data/events'
+import { Event } from '@/data/events'
 import { ArrowLeft, Calendar, Clock, MapPin, Users, Rocket, Trophy, Target } from 'lucide-react'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
@@ -14,8 +14,33 @@ export default function EventPage() {
   const params = useParams()
   const router = useRouter()
   const id = Array.isArray(params?.id) ? params.id[0] : params?.id
-  const event = events.find(e => e.id === id)
   const containerRef = useRef(null)
+
+  const [event, setEvent] = useState<Event | null>(null)
+  const [hasForm, setHasForm] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (!id) return;
+    Promise.all([
+      fetch('/api/events').then(res => res.json()),
+      fetch('/api/forms').then(res => res.json())
+    ])
+    .then(([eventsData, formsData]) => {
+      const foundEvent = eventsData.find((e: Event) => e.id === id);
+      setEvent(foundEvent || null);
+
+      if (Array.isArray(formsData)) {
+        const activeForm = formsData.find((f: any) => f.eventId === id && f.isActive);
+        setHasForm(!!activeForm);
+      }
+      setLoading(false);
+    })
+    .catch(err => {
+      console.error(err);
+      setLoading(false);
+    });
+  }, [id]);
   
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -24,6 +49,14 @@ export default function EventPage() {
   
   const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"])
   const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-24 pb-20 flex flex-col items-center justify-center bg-primary">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent"></div>
+      </div>
+    )
+  }
 
   if (!event) {
     return (
@@ -169,16 +202,11 @@ export default function EventPage() {
                     <p className="text-blue-800 text-blue-200 font-medium mb-4">
                       Interested in participating, mentoring, or sponsoring this event? We would love to have your support!
                     </p>
-                    {event.registrationLink ? (
+                    {hasForm ? (
                       <div className="flex flex-col gap-3">
-                        <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="w-full py-3 bg-accent hover:bg-opacity-90 text-white font-bold rounded-xl transition-colors shadow-md text-center block">
+                        <button onClick={() => router.push(`/register/${event.id}`)} className="w-full py-3 bg-accent hover:bg-amber-400 text-slate-900 font-bold rounded-xl transition-colors shadow-md text-center block">
                           Register Now
-                        </a>
-                        {event.registrationNote && (
-                          <p className="text-sm text-blue-200/90 font-medium text-center bg-blue-900/60 p-3 rounded-lg border border-blue-500/30 shadow-inner">
-                            {event.registrationNote}
-                          </p>
-                        )}
+                        </button>
                         <button onClick={() => router.push('/contact')} className="w-full py-3 bg-blue-800/50 hover:bg-blue-800 text-white font-bold rounded-xl transition-colors shadow-md text-center inline-block mt-2">
                           Contact Us
                         </button>

@@ -1,10 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
 import Link from 'next/link'
-import { events } from '@/data/events'
+import { Event } from '@/data/events'
 import { Search, Sparkles, MapPin, Clock, Calendar } from 'lucide-react'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
@@ -37,8 +37,34 @@ const itemVariants = {
 }
 
 export default function EventsPage() {
+  const [events, setEvents] = useState<Event[]>([])
+  const [activeForms, setActiveForms] = useState<Set<string>>(new Set())
+  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('all')
+
+  // Fetch events and forms on mount
+  useEffect(() => {
+    Promise.all([
+      fetch('/api/events').then(res => res.json()),
+      fetch('/api/forms').then(res => res.json())
+    ])
+    .then(([eventsData, formsData]) => {
+      setEvents(eventsData)
+      
+      const activeFormEventIds = new Set<string>();
+      if (Array.isArray(formsData)) {
+        formsData.forEach((form: any) => {
+          if (form.isActive) {
+            activeFormEventIds.add(form.eventId);
+          }
+        });
+      }
+      setActiveForms(activeFormEventIds);
+      setLoading(false)
+    })
+    .catch(console.error)
+  }, [])
 
   const filteredEvents = events.filter((event) => {
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -118,8 +144,16 @@ export default function EventsPage() {
           </div>
         </motion.div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="flex justify-center items-center py-20">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent"></div>
+          </div>
+        )}
+
         {/* Events Grid */}
-        <motion.div 
+        {!loading && (
+          <motion.div 
           variants={containerVariants}
           initial="hidden"
           animate="show"
@@ -190,13 +224,21 @@ export default function EventsPage() {
                           {event.description}
                         </p>
                         
-                        <div className="mt-auto">
-                          <div className="inline-flex items-center justify-center w-full px-4 py-3 bg-white text-slate-900 rounded-xl font-bold transition-transform group-hover:scale-105 active:scale-95 shadow-md">
-                            Check it out!
+                        <div className="mt-auto space-y-3">
+                          {event.status === 'upcoming' && activeForms.has(event.id) && (
+                            <Link href={`/register/${event.id}`} className="inline-flex items-center justify-center w-full px-4 py-3 bg-accent text-slate-900 rounded-xl font-bold transition-transform hover:scale-105 active:scale-95 shadow-md shadow-accent/20">
+                              Register Now
+                              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </Link>
+                          )}
+                          <Link href={`/events/${event.id}`} className="inline-flex items-center justify-center w-full px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold transition-all border border-white/10 group">
+                            View Details
                             <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                             </svg>
-                          </div>
+                          </Link>
                         </div>
                       </div>
                     </div>
@@ -220,6 +262,7 @@ export default function EventsPage() {
             </motion.div>
           )}
         </motion.div>
+        )}
       </div>
     </main>
   )

@@ -3,6 +3,7 @@ import { Inter, Fredoka, Space_Grotesk, Quicksand } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import GlobalShortcut from '@/components/GlobalShortcut'
 
 const inter = Inter({ subsets: ['latin'] })
 const fredoka = Fredoka({ subsets: ['latin'] })
@@ -56,6 +57,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={quicksand.className} suppressHydrationWarning>
+        <GlobalShortcut />
         <Navbar />
         {children}
         <Footer />
