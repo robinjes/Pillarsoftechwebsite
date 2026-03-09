@@ -4,6 +4,26 @@
     "eventId": "wildcat-tank-altamont",
     "isActive": false,
     "fields": [],
-    "appsScriptUrl": "\\"
+    "appsScriptUrl": "sdfdffdfd"
+  },
+  {
+    "id": "form-1773019294733",
+    "eventId": "egg-drop-junction",
+    "isActive": true,
+    "appsScriptUrl": "dfdfdfd",
+    "fields": [
+      {
+        "id": "name",
+        "type": "text",
+        "label": "Full Name",
+        "required": true
+      },
+      {
+        "id": "email",
+        "type": "email",
+        "label": "Email Address",
+        "required": true
+      }
+    ]
   }
 ]

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Fredoka, Space_Grotesk } from 'next/font/google';
-import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, X } from 'lucide-react';
+import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Event } from '@/data/events';
 
 const fredoka = Fredoka({ subsets: ['latin'] });
@@ -17,8 +17,9 @@ export default function AdminEvents() {
 
   // Form State
   const [formData, setFormData] = useState<Partial<Event>>({
-    title: '', date: '', time: '', location: '', description: '', status: 'upcoming'
+    title: '', date: '', time: '', location: '', description: '', status: 'upcoming', gallery: []
   });
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchEvents();
@@ -42,9 +43,47 @@ export default function AdminEvents() {
       setFormData(event);
     } else {
       setEditingEvent(null);
-      setFormData({ title: '', date: '', time: '', location: '', description: '', status: 'upcoming' });
+      setFormData({ title: '', date: '', time: '', location: '', description: '', status: 'upcoming', gallery: [] });
     }
     setIsModalOpen(true);
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, isGallery = false) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const fd = new FormData();
+    fd.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: fd
+      });
+      const data = await res.json();
+      if (data.url) {
+        if (isGallery) {
+          setFormData(prev => ({
+            ...prev,
+            gallery: [...(prev.gallery || []), data.url]
+          }));
+        } else {
+          setFormData(prev => ({ ...prev, image: data.url }));
+        }
+      }
+    } catch (err) {
+      console.error('Upload failed', err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      gallery: (prev.gallery || []).filter((_, i) => i !== index)
+    }));
   };
 
   const handleCloseModal = () => {
@@ -274,14 +313,60 @@ export default function AdminEvents() {
                   </div>
                   
                   <div className="space-y-2 col-span-1 md:col-span-2">
-                    <label className="text-sm font-semibold text-slate-300">Image URL (Optional)</label>
-                    <input
-                      type="text"
-                      placeholder="/EggDropBG.png"
-                      className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-accent"
-                      value={formData.image || ''}
-                      onChange={e => setFormData({ ...formData, image: e.target.value })}
-                    />
+                    <label className="text-sm font-semibold text-slate-300">Main Event Image</label>
+                    <div className="flex items-center gap-4">
+                      {formData.image && (
+                        <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10 shrink-0">
+                          <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
+                      )}
+                      <label className="flex-grow">
+                        <div className="flex items-center justify-center w-full h-12 px-4 bg-slate-800 border-2 border-dashed border-white/10 rounded-xl cursor-pointer hover:border-accent/50 transition-colors">
+                          {uploading ? (
+                            <Loader2 className="w-5 h-5 text-accent animate-spin" />
+                          ) : (
+                            <div className="flex items-center text-sm text-slate-400">
+                              <Upload className="w-4 h-4 mr-2" />
+                              {formData.image ? 'Change Image' : 'Upload Image'}
+                            </div>
+                          )}
+                        </div>
+                        <input type="file" className="hidden" accept="image/*" onChange={e => handleFileUpload(e)} />
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4 col-span-1 md:col-span-2 border-t border-white/5 pt-6 mt-2">
+                    <div className="flex justify-between items-center">
+                      <label className="text-sm font-semibold text-slate-300 flex items-center">
+                        <ImageIcon className="w-4 h-4 mr-2 text-accent" />
+                        Event Gallery
+                      </label>
+                      <label className="cursor-pointer px-3 py-1.5 bg-accent/10 border border-accent/20 rounded-lg text-accent text-xs font-bold hover:bg-accent/20 transition-colors">
+                        Add Photos
+                        <input type="file" className="hidden" accept="image/*" onChange={e => handleFileUpload(e, true)} />
+                      </label>
+                    </div>
+                    
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                      {formData.gallery?.map((img, idx) => (
+                        <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-white/10 group">
+                          <img src={img} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => removeGalleryImage(idx)}
+                            className="absolute top-1 right-1 p-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-3 h-3 text-white" />
+                          </button>
+                        </div>
+                      ))}
+                      {(!formData.gallery || formData.gallery.length === 0) && (
+                        <div className="col-span-full py-4 text-center text-xs text-slate-500 bg-slate-800/20 rounded-xl border border-dashed border-white/5">
+                          No gallery images yet.
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
 

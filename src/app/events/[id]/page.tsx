@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
 import { Event } from '@/data/events'
-import { ArrowLeft, Calendar, Clock, MapPin, Users, Rocket, Trophy, Target } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, MapPin, Users, Rocket, Trophy, Target, ImageIcon } from 'lucide-react'
 import { useRef, useState, useEffect } from 'react'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
@@ -220,6 +220,38 @@ export default function EventPage() {
                 )}
               </div>
             </div>
+
+            {/* Gallery Section */}
+            {event.gallery && event.gallery.length > 0 && (
+              <motion.section 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="mt-20 pt-20 border-t border-white/10"
+              >
+                <div className="flex items-center justify-center space-x-3 mb-10">
+                  <ImageIcon className={`w-8 h-8 ${accentColor}`} />
+                  <h2 className={`${fredoka.className} text-4xl font-bold text-white`}>Event Gallery</h2>
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {event.gallery.map((img, idx) => (
+                    <motion.div
+                      key={idx}
+                      whileHover={{ scale: 1.02 }}
+                      className="aspect-video rounded-2xl overflow-hidden border-2 border-white/10 bg-slate-800 shadow-xl"
+                    >
+                      <img 
+                        src={img} 
+                        alt={`Gallery ${idx + 1}`} 
+                        className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                        onClick={() => window.open(img, '_blank')}
+                      />
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.section>
+            )}
 
           </div>
         </motion.div>

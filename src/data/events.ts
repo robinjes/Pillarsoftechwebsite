@@ -7,6 +7,7 @@ export interface Event {
   description: string
   status: 'upcoming' | 'past'
   image?: string
+  gallery?: string[]
   guests?: string[]
   stats?: { label: string; value: string }[]
   registrationLink?: string
