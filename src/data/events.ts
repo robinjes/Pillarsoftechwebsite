@@ -12,4 +12,6 @@ export interface Event {
   stats?: { label: string; value: string }[]
   registrationLink?: string
   registrationNote?: string
+  pdfUrl?: string          // ← ADD THIS
+  youtubeVideos?: string[] // ← ADD THIS
 }
