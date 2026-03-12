@@ -51,7 +51,7 @@ export default function Footer() {
             viewport={{ once: true }}
             className="text-center text-sm text-blue-200/60"
           >
-            © 2024 Pillars of Tech. All rights reserved.
+            © 2026 Pillars of Tech. All rights reserved.
           </motion.div>
         </div>
       </div>
