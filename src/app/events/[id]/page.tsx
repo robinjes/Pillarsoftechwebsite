@@ -19,6 +19,8 @@ export default function EventPage() {
   const [event, setEvent] = useState<Event | null>(null)
   const [hasForm, setHasForm] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [pdfFullscreen, setPdfFullscreen] = useState(false)
+  const [scienceVideoOk, setScienceVideoOk] = useState(true)
 
   useEffect(() => {
     if (!id) return;
@@ -72,13 +74,42 @@ export default function EventPage() {
   const isPast = event.status === 'past'
   const accentColor = isPast ? 'text-emerald-500' : 'text-accent'
   const bgAccent = isPast ? 'bg-emerald-500' : 'bg-accent'
+  const centerContentEvents = new Set([
+    'science-odyssey',
+    'pedrozzi-connect-egg-drop',
+    'foil-boat-stockmens',
+  ])
+  const centerContent = centerContentEvents.has(event.id)
 
   return (
     <main ref={containerRef} className="min-h-screen bg-primary transition-colors duration-300">
       {/* Hero Section */}
       <div className="relative h-[60vh] min-h-[400px] w-full overflow-hidden bg-slate-900 border-b border-white/10">
         <motion.div style={{ y, opacity }} className="absolute inset-0 w-full h-full">
-          {event.image ? (
+          {event.id === 'science-odyssey' ? (
+            <div className="w-full h-full">
+              {scienceVideoOk ? (
+                <video
+                  className="w-full h-full object-cover opacity-60"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="metadata"
+                  poster="/Scienceoddyseycover.jpg"
+                  onError={() => setScienceVideoOk(false)}
+                >
+                  <source src="/PoT%202.26%20Timelapse.mp4" type="video/mp4" />
+                </video>
+              ) : (
+                <img
+                  src="/Scienceoddyseycover.jpg"
+                  alt={event.title}
+                  className="w-full h-full object-cover opacity-60"
+                />
+              )}
+            </div>
+          ) : event.image ? (
             <img 
               src={event.image} 
               alt={event.title} 
@@ -110,7 +141,7 @@ export default function EventPage() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 -mt-20 pb-20">
+      <div className="max-w-[1430px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10 -mt-20 pb-20">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -142,22 +173,34 @@ export default function EventPage() {
             </div>
 
             {/* Two Column Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            <div className={`grid grid-cols-1 gap-10 ${centerContent ? 'lg:grid-cols-1' : 'lg:grid-cols-3'}`}>
               {/* Left Column - Main Details */}
-              <div className="lg:col-span-2 space-y-10">
-                <section>
-                  <h2 className={`${fredoka.className} flex items-center text-3xl font-bold text-white mb-6`}>
+              <div className={`${centerContent ? 'max-w-5xl mx-auto space-y-10' : 'lg:col-span-2 space-y-10'}`}>
+                <section className={centerContent ? 'max-w-3xl mx-auto' : undefined}>
+                  <h2
+                    className={`${fredoka.className} flex items-center text-3xl font-bold text-white mb-6 ${
+                      centerContent ? 'justify-center text-center' : ''
+                    }`}
+                  >
                     <Target className={`w-8 h-8 mr-3 ${accentColor}`} />
                     The Mission
                   </h2>
-                  <div className="prose prose-lg prose-invert max-w-none text-blue-100/90 font-medium leading-relaxed whitespace-pre-wrap">
+                  <div
+                    className={`prose prose-lg prose-invert max-w-none text-blue-100/90 font-medium leading-relaxed whitespace-pre-wrap ${
+                      centerContent ? 'text-center' : ''
+                    }`}
+                  >
                     {event.description}
                   </div>
                 </section>
 
                 {event.stats && (
-                  <section>
-                    <h2 className={`${fredoka.className} flex items-center text-3xl font-bold text-white mb-6`}>
+                  <section className={centerContent ? 'max-w-4xl mx-auto' : undefined}>
+                    <h2
+                      className={`${fredoka.className} flex items-center text-3xl font-bold text-white mb-6 ${
+                        centerContent ? 'justify-center text-center' : ''
+                      }`}
+                    >
                       <Trophy className={`w-8 h-8 mr-3 ${accentColor}`} />
                       Impact & Results
                     </h2>
@@ -174,7 +217,7 @@ export default function EventPage() {
               </div>
 
               {/* Right Column - Logistics & Tasks */}
-              <div className="space-y-6">
+              <div className={`${centerContent ? 'hidden' : 'space-y-6'}`}>
                 {event.guests && event.guests.length > 0 && (
                   <div className="bg-purple-50 bg-purple-900/20 border-2 border-purple-200 border-purple-700/50 rounded-3xl p-6">
                     <h3 className={`${fredoka.className} flex items-center text-xl font-bold text-purple-900 text-purple-400 mb-4`}>
@@ -193,13 +236,13 @@ export default function EventPage() {
 
                 {!isPast && (
                   <div className="bg-blue-900/20 border-2 border-blue-200 border-blue-700/50 rounded-3xl p-6 mt-6">
-                    <h3 className={`${fredoka.className} flex items-center text-xl font-bold text-blue-900 text-blue-400 mb-4`}>
+                    <h3 className={`${fredoka.className} flex items-center text-xl font-bold text-white mb-4`}>
                       <span className="w-8 h-8 rounded-full bg-blue-100 bg-blue-800 flex items-center justify-center mr-3">
                         <Rocket className="w-4 h-4 text-blue-600 text-blue-300" />
                       </span>
                       Get Involved
                     </h3>
-                    <p className="text-blue-800 text-blue-200 font-medium mb-4">
+                    <p className="text-white/90 font-medium mb-4">
                       Interested in participating, mentoring, or sponsoring this event? We would love to have your support!
                     </p>
                     {hasForm ? (
@@ -251,6 +294,107 @@ export default function EventPage() {
                   ))}
                 </div>
               </motion.section>
+            )}
+
+            {/* Wildcat Tank Manual (only for this specific event) */}
+            {event.id === 'wildcat-tank-altamont' && (
+              <section className="mt-20 pt-20 border-t border-white/10">
+                <h2 className={`${fredoka.className} flex items-center text-4xl font-bold text-white mb-6 justify-center`}>
+                  <span className="mr-3">📄</span>
+                  Wildcat Tank Official Manual
+                </h2>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="rounded-2xl overflow-hidden border-2 border-white/10 shadow-xl bg-black/30">
+                    <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between gap-4">
+                      <h3 className={`${fredoka.className} text-2xl font-bold text-white`}>Manual</h3>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => setPdfFullscreen(true)}
+                          className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold transition-colors"
+                        >
+                          Full screen
+                        </button>
+                        <a
+                          href="/Wildcat%20Tank%20Official%20Manual.pdf"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 rounded-xl bg-accent hover:bg-amber-400 text-slate-900 font-bold transition-colors"
+                        >
+                          Open in new tab
+                        </a>
+                      </div>
+                    </div>
+                    <iframe
+                      src="/Wildcat%20Tank%20Official%20Manual.pdf"
+                      className="w-full"
+                      style={{ height: '800px' }}
+                      title="Wildcat Tank Official Manual"
+                    />
+                  </div>
+
+                  <div className="rounded-2xl overflow-hidden border-2 border-white/10 shadow-xl bg-black/30">
+                    <div className="px-5 py-4 border-b border-white/10">
+                      <h3 className={`${fredoka.className} text-2xl font-bold text-white flex items-center`}>
+                        <span className="mr-3 text-red-400">▶</span>
+                        Wildcat Tank Video
+                      </h3>
+                    </div>
+                    <div className="p-4 space-y-4">
+                      <div className="relative w-full rounded-xl overflow-hidden border border-white/10" style={{ paddingBottom: '56.25%', height: 0 }}>
+                        <iframe
+                          src="https://www.youtube-nocookie.com/embed/tvG1YQygTcc"
+                          className="absolute top-0 left-0 w-full h-full"
+                          allowFullScreen
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          title="Wildcat Tank Video"
+                        />
+                      </div>
+
+                      <div className="pt-2 border-t border-white/10">
+                        <h4 className={`${fredoka.className} text-xl font-bold text-white mb-3 flex items-center`}>
+                          <span className="mr-3 text-red-400">≡</span>
+                          Wildcat Tank Playlist
+                        </h4>
+                        <div className="relative w-full rounded-xl overflow-hidden border border-white/10" style={{ paddingBottom: '56.25%', height: 0 }}>
+                          <iframe
+                            src="https://www.youtube-nocookie.com/embed/PCG4Zb7WoUM?list=PLYhV0S6EDHI3vndPYNDoum82bNJtV5rT7&index=2"
+                            className="absolute top-0 left-0 w-full h-full"
+                            allowFullScreen
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            title="Wildcat Tank Playlist"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fullscreen PDF overlay */}
+                {pdfFullscreen && (
+                  <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm p-4 sm:p-6">
+                    <div className="w-full h-full bg-slate-950/70 border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
+                      <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-white/10">
+                        <div className={`${fredoka.className} text-white font-bold text-lg`}>
+                          Wildcat Tank Official Manual
+                        </div>
+                        <button
+                          onClick={() => setPdfFullscreen(false)}
+                          className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold transition-colors"
+                        >
+                          Close
+                        </button>
+                      </div>
+                      <div className="flex-1">
+                        <iframe
+                          src="/Wildcat%20Tank%20Official%20Manual.pdf"
+                          className="w-full h-full"
+                          title="Wildcat Tank Official Manual Fullscreen"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </section>
             )}
 
           </div>

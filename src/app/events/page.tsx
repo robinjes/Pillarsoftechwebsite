@@ -73,10 +73,32 @@ export default function EventsPage() {
     return matchesSearch && matchesFilter
   })
 
-  // Separate and sort for display if needed
+  const parseEventDate = (dateStr: string): number => {
+    // Supports "M/D/YY", "M/D/YYYY", and falls back to Date.parse for other formats.
+    const mdy = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(dateStr.trim())
+    if (mdy) {
+      const month = Number(mdy[1])
+      const day = Number(mdy[2])
+      const yearRaw = mdy[3]
+      const year = yearRaw.length === 2 ? 2000 + Number(yearRaw) : Number(yearRaw)
+      const d = new Date(year, month - 1, day)
+      const t = d.getTime()
+      return Number.isFinite(t) ? t : 0
+    }
+
+    const t = Date.parse(dateStr)
+    return Number.isFinite(t) ? t : 0
+  }
+
+  // Sort: upcoming first; past events at the bottom (most recent -> oldest)
   const displayEvents = filteredEvents.sort((a, b) => {
     if (a.status === 'upcoming' && b.status === 'past') return -1
     if (a.status === 'past' && b.status === 'upcoming') return 1
+
+    if (a.status === 'past' && b.status === 'past') {
+      return parseEventDate(b.date) - parseEventDate(a.date)
+    }
+
     return 0
   })
 
