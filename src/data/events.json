@@ -1,25 +1,27 @@
 [
   {
-    "id": "egg-drop-junction",
-    "title": "Egg Drop - Junction",
-    "date": "January 29, 2026",
-    "time": "2:30 PM (Arrival)",
-    "location": "Junction Ave K-8",
-    "status": "past",
-    "description": "Join us at Junction Ave K-8 for an exhilarating Egg Drop challenge! Participants will learn about fundamental physics concepts—such as gravity, air resistance, and impact forces—by designing and building custom protective containers for a raw egg.\n\nWe will provide all the necessary materials to craft your contraptions. Come ready to engineer, test your designs, and enjoy some sweet treats (candy provided) as we see whose egg survives the drop!",
-    "image": "/uploads/1773019246087-EggDropBG.png",
-    "gallery": [
-      "/uploads/1773019260535-1773019255302-1773019246087-EggDropBG.png"
-    ]
-  },
-  {
     "id": "science-odyssey",
-    "title": "Science Odyssey",
-    "date": "February 26, 2026",
+    "title": "Science Oddysey Marshmallow Challenge",
+    "date": "2/26/26",
     "time": "5:00 PM - 7:30 PM",
     "location": "TBD",
-    "status": "upcoming",
-    "description": "Get ready for an evening of discovery at the annual Science Odyssey! Our team will be showcasing cutting-edge STEM projects and interactive demonstrations. \n\nIt's an incredible opportunity for students, parents, and the community to engage with science hands-on and learn more about our robotics and tech initiatives. Don't miss out on exploring the future of STEM with us."
+    "status": "past",
+    "image": "/Scienceoddyseycover.jpg",
+    "description": "At this year’s Science Odyssey, Pillars of Tech hosted an interactive engineering booth designed to introduce participants to the concepts of structural strength and material efficiency.\n\nStudents took part in a marshmallow structural challenge, where they were given materials to design and build a structure capable of supporting as many pennies as possible. The activity encouraged participants to think like engineers, balancing strength, stability, and efficiency.\n\nOnce the structures were built, we tested them by gradually adding pennies to measure how much weight they could support. Participants quickly learned that the strongest structure wasn’t always the one that used the most materials. In engineering, efficiency matters just as much as strength; a design that holds significant weight while using fewer materials is often the most impressive.\n\nThe challenge sparked creativity, problem-solving, and collaboration among students of all ages. One standout design successfully supported 85 pennies, the highest weight achieved during the event.\n\nThrough activities like this, Pillars of Tech aims to make STEM concepts tangible, engaging, and fun, helping inspire the next generation of engineers and innovators.",
+    "stats": [
+      {
+        "label": "Participants",
+        "value": "100+"
+      },
+      {
+        "label": "Total Event Attendees",
+        "value": "300+"
+      },
+      {
+        "label": "Hours of Engagement",
+        "value": "2.5"
+      }
+    ]
   },
   {
     "id": "wildcat-tank-altamont",
@@ -65,7 +67,7 @@
   {
     "id": "foil-boat-stockmens",
     "title": "Science At Stockmens Park",
-    "date": "Past Event",
+    "date": "10/4/25",
     "time": "3 Hours",
     "location": "Stockmens Park",
     "status": "past",
@@ -89,7 +91,7 @@
   {
     "id": "pedrozzi-connect-egg-drop",
     "title": "The Pedrozzi CONNECT Youth Egg Drop",
-    "date": "Past Event",
+    "date": "1/29/26",
     "time": "1 Hour",
     "location": "Pedrozzi CONNECT",
     "status": "past",
