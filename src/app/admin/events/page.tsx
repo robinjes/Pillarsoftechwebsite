@@ -43,8 +43,7 @@ export default function AdminEvents() {
       setFormData(event);
     } else {
       setEditingEvent(null);
-      setFormData({ title: '', date: '', time: '', location: '', description: '', status: 'upcoming', gallery: [] });
-    }
+setFormData({ title: '', date: '', time: '', location: '', description: '', status: 'upcoming', gallery: [], pdfUrl: '', youtubeVideos: [] });    }
     setIsModalOpen(true);
   };
 
@@ -79,6 +78,23 @@ export default function AdminEvents() {
     }
   };
 
+const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  setUploading(true);
+  const fd = new FormData();
+  fd.append('file', file);
+  try {
+    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.url) setFormData(prev => ({ ...prev, pdfUrl: data.url }));
+  } catch (err) {
+    console.error('PDF upload failed', err);
+  } finally {
+    setUploading(false);
+  }
+};
+  
   const removeGalleryImage = (index: number) => {
     setFormData(prev => ({
       ...prev,
@@ -370,6 +386,68 @@ export default function AdminEvents() {
                   </div>
                 </div>
 
+              {/* PDF Upload */}
+<div className="space-y-2 col-span-1 md:col-span-2">
+  <label className="text-sm font-semibold text-slate-300">📄 Event PDF Document</label>
+  <div className="flex items-center gap-4">
+    {formData.pdfUrl && (
+      <span className="text-xs text-green-400 font-semibold truncate max-w-xs">
+        ✓ {formData.pdfUrl}
+      </span>
+    )}
+    <label className="flex-grow">
+      <div className="flex items-center justify-center w-full h-12 px-4 bg-slate-800 border-2 border-dashed border-white/10 rounded-xl cursor-pointer hover:border-accent/50 transition-colors">
+        {uploading ? (
+          <Loader2 className="w-5 h-5 text-accent animate-spin" />
+        ) : (
+          <div className="flex items-center text-sm text-slate-400">
+            <Upload className="w-4 h-4 mr-2" />
+            {formData.pdfUrl ? 'Replace PDF' : 'Upload PDF'}
+          </div>
+        )}
+      </div>
+      <input type="file" className="hidden" accept="application/pdf" onChange={handlePdfUpload} />
+    </label>
+  </div>
+</div>
+
+{/* YouTube Videos */}
+<div className="space-y-3 col-span-1 md:col-span-2">
+  <label className="text-sm font-semibold text-slate-300">▶ YouTube Videos</label>
+  {(formData.youtubeVideos || []).map((url: string, idx: number) => (
+    <div key={idx} className="flex gap-2">
+      <input
+        type="url"
+        placeholder="https://youtube.com/watch?v=..."
+        className="flex-1 bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-accent"
+        value={url}
+        onChange={e => {
+          const videos = [...(formData.youtubeVideos || [])];
+          videos[idx] = e.target.value;
+          setFormData({ ...formData, youtubeVideos: videos });
+        }}
+      />
+      <button
+        type="button"
+        onClick={() => {
+          const videos = (formData.youtubeVideos || []).filter((_: string, i: number) => i !== idx);
+          setFormData({ ...formData, youtubeVideos: videos });
+        }}
+        className="p-3 rounded-xl bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
+      >
+        <X className="w-5 h-5" />
+      </button>
+    </div>
+  ))}
+  <button
+    type="button"
+    onClick={() => setFormData({ ...formData, youtubeVideos: [...(formData.youtubeVideos || []), ''] })}
+    className="flex items-center gap-2 px-4 py-2 border border-white/20 text-slate-300 hover:text-white hover:border-white/40 rounded-xl transition-colors text-sm font-semibold"
+  >
+    <Plus className="w-4 h-4" /> Add YouTube Video
+  </button>
+</div>
+                
                 <div className="pt-6 flex justify-end gap-4 border-t border-white/10 mt-8">
                   <button
                     type="button"
