@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     description: 'Enabling the next generation of tech leaders',
     images: [
       {
-        url: '/PillarsOfTechLogo.png',
+        url: '/potofficiallogo.png',
         width: 1200,
         height: 630,
         alt: 'Pillars of Tech Logo',
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Pillars of Tech',
     description: 'Enabling the next generation of tech leaders',
-    images: ['/PillarsOfTechLogo.png'],
+    images: ['/potofficiallogo.png'],
   },
   icons: {
     icon: [
