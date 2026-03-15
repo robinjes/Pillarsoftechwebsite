@@ -35,13 +35,13 @@ export default function Navbar() {
               </button>
 
               <Link href="/" className="flex items-center space-x-3 group">
-                <div className="relative w-10 h-10 transition-transform group-hover:scale-110">
+                <div className="relative w-[60px] h-[60px] transition-transform group-hover:scale-110">
                   <Image
-                    src="/PillarsOfTechLogo.png"
+                    src="/logonotext.png"
                     alt="Pillars of Tech Logo"
                     fill
                     className="object-contain"
-                    sizes="40px"
+                    sizes="60px"
                     priority
                   />
                 </div>
@@ -95,7 +95,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between mb-10">
             <div className="flex items-center space-x-2">
               <div className="relative w-8 h-8">
-                <Image src="/PillarsOfTechLogo.png" alt="Logo" fill className="object-contain" />
+                <Image src="/logonotext.png" alt="Logo" fill className="object-contain" />
               </div>
               <span className={`${spaceGrotesk.className} text-white font-black text-lg`}>Navigation</span>
             </div>
