@@ -74,6 +74,7 @@ export default function EventPage() {
   const isPast = event.status === 'past'
   const accentColor = isPast ? 'text-emerald-500' : 'text-accent'
   const bgAccent = isPast ? 'bg-emerald-500' : 'bg-accent'
+  const registrationStatus = isPast ? 'Completed' : hasForm ? 'Register Now!' : 'Registration Ended'
   const centerContentEvents = new Set([
     'science-odyssey',
     'pedrozzi-connect-egg-drop',
@@ -162,7 +163,7 @@ export default function EventPage() {
                 { icon: Calendar, label: "Date", value: event.date },
                 { icon: Clock, label: "Time", value: event.time },
                 { icon: MapPin, label: "Location", value: event.location },
-                { icon: Rocket, label: "Status", value: isPast ? "Completed" : "Register Now!" }
+                { icon: Rocket, label: "Status", value: registrationStatus }
               ].map((info, idx) => (
                 <div key={idx} className="bg-black/20 rounded-2xl p-4 flex flex-col items-center justify-center text-center border border-white/5 hover:scale-105 transition-transform">
                   <info.icon className={`w-8 h-8 ${accentColor} mb-2`} />
