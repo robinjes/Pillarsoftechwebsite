@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import emailjs from '@emailjs/browser'
 import { Fredoka } from 'next/font/google'
 
@@ -11,20 +11,10 @@ const fredoka = Fredoka({ subsets: ['latin'] })
 const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
 const SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
 const TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID
+const EMAILJS_READY = Boolean(PUBLIC_KEY && SERVICE_ID && TEMPLATE_ID)
 
-// Debug log for environment variables
-console.log('Raw Environment Variables:', {
-  PUBLIC_KEY,
-  SERVICE_ID,
-  TEMPLATE_ID
-})
-
-try {
-  if (!PUBLIC_KEY) throw new Error('Public key is missing')
+if (PUBLIC_KEY) {
   emailjs.init(PUBLIC_KEY)
-  console.log('EmailJS initialized successfully')
-} catch (error) {
-  console.error('EmailJS initialization failed:', error)
 }
 
 export default function Contact() {
@@ -156,6 +146,11 @@ export default function Contact() {
               {errorMessage}
             </div>
           )}
+          {!EMAILJS_READY && (
+            <div className="mb-6 p-4 bg-amber-500/30 text-white rounded-md border border-amber-300/30">
+              The contact form is temporarily unavailable. Please email us directly at pillarsoftech@gmail.com.
+            </div>
+          )}
           <div className="space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-blue-200 mb-1">
@@ -207,7 +202,7 @@ export default function Contact() {
 
             <button
               type="submit"
-              disabled={status === 'sending'}
+              disabled={status === 'sending' || !EMAILJS_READY}
               className={`w-full ${getSubmitButtonStyle()} text-white px-6 py-3 rounded-md font-semibold transition-colors border border-white/20`}
             >
               {getSubmitButtonText()}
