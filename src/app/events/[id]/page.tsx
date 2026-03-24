@@ -84,7 +84,7 @@ export default function EventPage() {
   return (
     <main ref={containerRef} className="min-h-screen bg-primary transition-colors duration-300">
       {/* Hero Section */}
-      <div className="relative h-[60vh] min-h-[400px] w-full overflow-hidden bg-slate-900 border-b border-white/10">
+      <div className="relative h-[68vh] min-h-[520px] w-full overflow-hidden bg-slate-900 border-b border-white/10">
         <motion.div style={{ y, opacity }} className="absolute inset-0 w-full h-full">
           {event.id === 'science-odyssey' ? (
             <div className="w-full h-full">
@@ -123,7 +123,7 @@ export default function EventPage() {
         {/* Decorative Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-slate-50 from-primary via-transparent to-transparent" />
         
-        <div className="absolute inset-0 flex items-center justify-center pt-16">
+        <div className="absolute inset-0 flex items-center justify-center px-4 pt-24 pb-28">
           <div className="max-w-5xl mx-auto px-4 w-full text-center">
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -133,7 +133,7 @@ export default function EventPage() {
               <span className={`inline-block px-4 py-1.5 rounded-full font-bold text-sm tracking-wider uppercase mb-6 shadow-lg ${isPast ? 'bg-emerald-500 text-white' : 'bg-accent text-white'}`}>
                 {isPast ? 'Past Event' : 'Upcoming Event'}
               </span>
-              <h1 className={`${fredoka.className} text-5xl sm:text-7xl md:text-8xl font-black text-white drop-shadow-2xl mb-6`}>
+              <h1 className={`${fredoka.className} mx-auto max-w-6xl text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white drop-shadow-2xl mb-6`}>
                 {event.title}
               </h1>
             </motion.div>
@@ -141,7 +141,7 @@ export default function EventPage() {
         </div>
       </div>
 
-      <div className="max-w-[1430px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10 -mt-20 pb-20">
+      <div className="max-w-[1430px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10 -mt-10 sm:-mt-12 lg:-mt-14 pb-20">
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}

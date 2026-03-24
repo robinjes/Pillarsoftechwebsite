@@ -196,15 +196,15 @@ export default function EventsPage() {
                   whileHover={{ y: -10, scale: 1.02, rotate: index % 2 === 0 ? 1 : -1 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Link href={`/events/${event.id}`} className="block h-full">
-                    <div className={`h-full border-2 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col relative group ${colorClass}`}>
-                      
-                      {/* Status Ribbon */}
-                      <div className="absolute top-4 right-[-35px] bg-white text-slate-900 font-bold py-1 px-10 transform rotate-45 text-xs shadow-md z-20 shadow-black/20">
-                        {event.status === 'upcoming' ? 'UPCOMING' : 'PAST'}
-                      </div>
+                  <div className={`h-full border-2 rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 flex flex-col relative group ${colorClass}`}>
+                    
+                    {/* Status Ribbon */}
+                    <div className="absolute top-4 right-[-35px] bg-white text-slate-900 font-bold py-1 px-10 transform rotate-45 text-xs shadow-md z-20 shadow-black/20">
+                      {event.status === 'upcoming' ? 'UPCOMING' : 'PAST'}
+                    </div>
 
-                      {/* Optional Image */}
+                    {/* Optional Image */}
+                    <Link href={`/events/${event.id}`} className="block">
                       {event.image ? (
                         <div className="h-48 w-full relative overflow-hidden bg-slate-200">
                           <img 
@@ -215,56 +215,57 @@ export default function EventsPage() {
                         </div>
                       ) : (
                         <div className="h-24 w-full opacity-30 group-hover:opacity-50 transition-opacity flex items-center justify-center">
-                          {/* Pattern placeholder if no image */}
                           <div className="w-full h-full bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900/20 via-transparent to-transparent"></div>
                         </div>
                       )}
+                    </Link>
 
-                      <div className="p-8 flex flex-col flex-grow relative z-10 bg-black/20 backdrop-blur-sm -mt-4 rounded-t-3xl border-t border-white/10 h-full">
-                        <div className="mb-4">
-                          <h3 className={`${fredoka.className} text-2xl font-bold text-white mb-4 line-clamp-2 drop-shadow-sm`}>
+                    <div className="p-8 flex flex-col flex-grow relative z-10 bg-black/20 backdrop-blur-sm -mt-4 rounded-t-3xl border-t border-white/10 h-full">
+                      <div className="mb-4">
+                        <h3 className={`${fredoka.className} text-2xl font-bold text-white mb-4 line-clamp-2 drop-shadow-sm`}>
+                          <Link href={`/events/${event.id}`} className="hover:text-blue-100 transition-colors">
                             {event.title}
-                          </h3>
-                          
-                          <div className="space-y-2 mb-4">
-                            <div className="flex items-center text-sm font-semibold text-blue-100">
-                              <Calendar className="w-4 h-4 mr-2 opacity-75" />
-                              {event.date}
-                            </div>
-                            <div className="flex items-center text-sm font-semibold text-blue-100">
-                              <Clock className="w-4 h-4 mr-2 opacity-75" />
-                              {event.time}
-                            </div>
-                            <div className="flex items-center text-sm font-semibold text-blue-100">
-                              <MapPin className="w-4 h-4 mr-2 opacity-75" />
-                              <span className="truncate">{event.location}</span>
-                            </div>
+                          </Link>
+                        </h3>
+                        
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center text-sm font-semibold text-blue-100">
+                            <Calendar className="w-4 h-4 mr-2 opacity-75" />
+                            {event.date}
+                          </div>
+                          <div className="flex items-center text-sm font-semibold text-blue-100">
+                            <Clock className="w-4 h-4 mr-2 opacity-75" />
+                            {event.time}
+                          </div>
+                          <div className="flex items-center text-sm font-semibold text-blue-100">
+                            <MapPin className="w-4 h-4 mr-2 opacity-75" />
+                            <span className="truncate">{event.location}</span>
                           </div>
                         </div>
-                        
-                        <p className="text-blue-100/90 font-medium line-clamp-3 mb-6 flex-grow drop-shadow-sm truncate">
-                          {event.description}
-                        </p>
-                        
-                        <div className="mt-auto space-y-3">
-                          {event.status === 'upcoming' && activeForms.has(event.id) && (
-                            <Link href={`/register/${event.id}`} className="inline-flex items-center justify-center w-full px-4 py-3 bg-accent text-slate-900 rounded-xl font-bold transition-transform hover:scale-105 active:scale-95 shadow-md shadow-accent/20">
-                              Register Now
-                              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                            </Link>
-                          )}
-                          <Link href={`/events/${event.id}`} className="inline-flex items-center justify-center w-full px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold transition-all border border-white/10 group">
-                            View Details
-                            <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </div>
+                      
+                      <p className="text-blue-100/90 font-medium line-clamp-3 mb-6 flex-grow drop-shadow-sm truncate">
+                        {event.description}
+                      </p>
+                      
+                      <div className="mt-auto space-y-3">
+                        {event.status === 'upcoming' && activeForms.has(event.id) && (
+                          <Link href={`/register/${event.id}`} className="inline-flex items-center justify-center w-full px-4 py-3 bg-accent text-slate-900 rounded-xl font-bold transition-transform hover:scale-105 active:scale-95 shadow-md shadow-accent/20">
+                            Register Now
+                            <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
                           </Link>
-                        </div>
+                        )}
+                        <Link href={`/events/${event.id}`} className="inline-flex items-center justify-center w-full px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold transition-all border border-white/10 group">
+                          View Details
+                          <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                          </svg>
+                        </Link>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 </motion.div>
               )
             })}

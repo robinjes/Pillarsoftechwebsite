@@ -132,6 +132,15 @@ export default function Contact() {
           <p className="text-xl text-blue-200 max-w-3xl mx-auto">
             Have questions or want to get involved? Send us a message!
           </p>
+          <p className="text-lg text-blue-100 mt-4">
+            Email us directly at{' '}
+            <a
+              href="mailto:pillarsoftech@gmail.com"
+              className="font-semibold text-white underline underline-offset-4 hover:text-blue-200 transition-colors"
+            >
+              pillarsoftech@gmail.com
+            </a>
+          </p>
         </motion.div>
 
         <motion.form
