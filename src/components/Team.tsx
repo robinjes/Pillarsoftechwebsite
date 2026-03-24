@@ -25,30 +25,16 @@ export default function Team() {
     },
     {
       name: 'Yashas Jeedi',
-      position: 'Board Member',
+      position: 'Vice President',
       image: '/yashas.jpg',
-      description: 'Focused on developing educational programs and curriculum.',
+      description: 'Helping lead the organization and supporting future initiatives.',
       details: {
         grade: '11',
         from: 'Livermore, CA',
         school: 'Livermore High School',
         hobby: 'Playing Basketball and video games',
         favoriteApp: 'Youtube/Instagram',
-        major: 'Undecided'
-      }
-    },
-    {
-      name: 'Nikhil Madineni',
-      position: 'Board Member',
-      image: '/nikhil.jpg',
-      description: 'Leading our technical initiatives and workshop content.',
-      details: {
-        grade: '11',
-        from: 'Livermore, CA',
-        school: 'Livermore High School',
-        hobby: 'Watching Sports and Playing Basketball',
-        favoriteApp: 'Instagram',
-        major: 'Data Science'
+        major: 'Applied Math'
       }
     },
     {
@@ -63,6 +49,48 @@ export default function Team() {
         hobby: 'Playing video games and going on hikes',
         favoriteApp: 'Tiktok',
         major: 'Biology'
+      }
+    },
+    {
+      name: 'Jaden Jirasevijinda',
+      position: 'Vice President',
+      image: '/jaden.jpg',
+      description: 'Overseeing the organization as a whole and guiding future initiatives.',
+      details: {
+        grade: '11',
+        from: 'Livermore, CA',
+        school: 'Livermore High School',
+        hobby: 'Playing badminton',
+        favoriteApp: 'Instagram',
+        major: 'Mechanical Engineering'
+      }
+    },
+    {
+      name: 'Rohan Munagapati',
+      position: 'Vice President',
+      image: '/rohan.jpg',
+      description: 'Leading chapter development and integration initiatives across our organization.',
+      details: {
+        grade: '11',
+        from: 'Livermore, CA',
+        school: 'Granada High School',
+        hobby: 'Playing basketball',
+        favoriteApp: 'Instagram',
+        major: 'Biotechnology'
+      }
+    },
+    {
+      name: 'Nikhil Madineni',
+      position: 'Board Member',
+      image: '/nikhil.jpg',
+      description: 'Leading our technical initiatives and workshop content.',
+      details: {
+        grade: '11',
+        from: 'Livermore, CA',
+        school: 'Livermore High School',
+        hobby: 'Watching Sports and Playing Basketball',
+        favoriteApp: 'Instagram',
+        major: 'Data Science'
       }
     },
     {
@@ -94,24 +122,10 @@ export default function Team() {
       }
     },
     {
-      name: 'Rohan',
-      position: 'Vice President',
-      image: '/rohan.jpg',
-      description: 'Leading chapter development and integration initiatives across our organization.',
-      details: {
-        grade: '11',
-        from: 'Livermore, CA',
-        school: 'Granada High School',
-        hobby: 'Playing basketball',
-        favoriteApp: 'Instagram',
-        major: 'Biotechnology'
-      }
-    },
-    {
       name: 'Shree Manickaraja',
-      position: 'Tech Lead/Board Member',
+      position: 'Website Developer',
       image: '/shree.jpg',
-      description: 'Planning and developing tech related projects and part of the board',
+      description: 'Planning next updates and helping build the website.',
       details: {
         grade: '9',
         from: 'Livermore, CA',
@@ -119,20 +133,6 @@ export default function Team() {
         hobby: 'Playing tennis, flying planes, and coding',
         favoriteApp: 'Brawl Stars/Youtube',
         major: 'Computational Engineering/Data Science'
-      }
-    },
-    {
-      name: 'Jaden ',
-      position: 'Board Member',
-      image: '/jaden.jpg',
-      description: 'Marketing, outreach, and overall management of the organization',
-      details: {
-        grade: '11',
-        from: 'Livermore, CA',
-        school: 'Livermore High School',
-        hobby: 'Playing badminton',
-        favoriteApp: 'Instagram',
-        major: 'Mechanical Engineering'
       }
     },
 
