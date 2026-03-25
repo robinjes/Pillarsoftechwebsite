@@ -13,4 +13,14 @@
   body {
     @apply bg-[#11265e] text-slate-50;
   }
-} 
+}
+
+@keyframes shine {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -20% 0;
+  }
+}

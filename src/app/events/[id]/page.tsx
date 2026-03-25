@@ -251,14 +251,32 @@ export default function EventPage() {
                         <button onClick={() => router.push(`/register/${event.id}`)} className="w-full py-3 bg-accent hover:bg-amber-400 text-slate-900 font-bold rounded-xl transition-colors shadow-md text-center block">
                           Register Now
                         </button>
+                        {event.id === 'wildcat-tank-altamont' && (
+                          <button
+                            onClick={() => router.push('/wildcat-tank')}
+                            className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors shadow-md text-center block border border-white/10"
+                          >
+                            Learn More About Presentation Day
+                          </button>
+                        )}
                         <button onClick={() => router.push('/contact')} className="w-full py-3 bg-blue-800/50 hover:bg-blue-800 text-white font-bold rounded-xl transition-colors shadow-md text-center inline-block mt-2">
                           Contact Us
                         </button>
                       </div>
                     ) : (
-                      <button onClick={() => router.push('/contact')} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-md text-center inline-block">
-                        Contact Us
-                      </button>
+                      <div className="flex flex-col gap-3">
+                        {event.id === 'wildcat-tank-altamont' && (
+                          <button
+                            onClick={() => router.push('/wildcat-tank')}
+                            className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors shadow-md text-center block border border-white/10"
+                          >
+                            Learn More About Presentation Day
+                          </button>
+                        )}
+                        <button onClick={() => router.push('/contact')} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-md text-center inline-block">
+                          Contact Us
+                        </button>
+                      </div>
                     )}
                   </div>
                 )}

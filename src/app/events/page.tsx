@@ -258,7 +258,7 @@ export default function EventsPage() {
                           </Link>
                         )}
                         <Link href={`/events/${event.id}`} className="inline-flex items-center justify-center w-full px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold transition-all border border-white/10 group">
-                          View Details
+                          More Details
                           <svg className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                           </svg>
