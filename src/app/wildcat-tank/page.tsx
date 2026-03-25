@@ -80,7 +80,7 @@ const reminders = [
   },
   {
     label: 'STEM Activity',
-    value: 'Students will also complete a marshmallow structural strength and efficiency activity.',
+    value: 'Students can choose to do a marshmallow structural strength and efficiency activity while they pass the time.',
   },
   {
     label: 'Food & Drinks',
