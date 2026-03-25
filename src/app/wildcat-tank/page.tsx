@@ -84,7 +84,7 @@ const reminders = [
   },
   {
     label: 'Food & Drinks',
-    value: 'Snacks will be sold at a low cost, and water will be complimentary.',
+    value: 'Chips will be sold for $2, and water will be sold for $1.',
   },
 ]
 
