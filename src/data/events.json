@@ -7,6 +7,7 @@
     "location": "Joe Michell K-8",
     "status": "past",
     "image": "/Scienceoddyseycover.jpg",
+    "heroVideo": "/PoT%202.26%20Timelapse.mp4",
     "description": "At this year’s Science Odyssey, Pillars of Tech hosted an interactive engineering booth designed to introduce participants to the concepts of structural strength and material efficiency.\n\nStudents took part in a marshmallow structural challenge, where they were given materials to design and build a structure capable of supporting as many pennies as possible. The activity encouraged participants to think like engineers, balancing strength, stability, and efficiency.\n\nOnce the structures were built, we tested them by gradually adding pennies to measure how much weight they could support. Participants quickly learned that the strongest structure wasn’t always the one that used the most materials. In engineering, efficiency matters just as much as strength; a design that holds significant weight while using fewer materials is often the most impressive.\n\nThe challenge sparked creativity, problem-solving, and collaboration among students of all ages. One standout design successfully supported 85 pennies, the highest weight achieved during the event.\n\nThrough activities like this, Pillars of Tech aims to make STEM concepts tangible, engaging, and fun, helping inspire the next generation of engineers and innovators.",
     "stats": [
       {
@@ -29,10 +30,19 @@
     "date": "March 25, 2026",
     "time": "6:00 PM - 8:00 PM",
     "location": "Altamont Elementary School (MPR)",
-    "status": "upcoming",
-    "description": "Welcome to Wildcat Tank! Inspired by the show \"Shark Tank,\" this exciting event encourages elementary students to express their creativity, entrepreneurship, and public speaking skills. Students will brainstorm, design, and pitch an original product designed to improve everyday life using STEM.\n\nParticipants will present a multi-view drawing of their product along with its features and purpose to a panel of guest judges (including industry mentors). Winners will receive gift cards, and food will be available for parents and visitors to create a vibrant, community-focused environment.",
-    "registrationLink": "https://docs.google.com/forms/d/e/1FAIpQLSdLMcocgTGDRURdTnlY_SGyVXdfmPKi8zTAaTXltXdynhVGoA/viewform",
-    "registrationNote": "⚠️ THE FORM MUST BE ACCESSED FROM AN LVJUSD STUDENT ACCOUNT!"
+    "status": "past",
+    "image": "/images/events/wildcat-tank/Outdoor1.JPG",
+    "heroVideo": "/videos/events/wildcat-tank/Wildcat%20Tank%20Timelapse.mov",
+    "youtubeVideos": [
+      "https://www.youtube.com/watch?v=tvG1YQygTcc",
+      "https://www.youtube.com/watch?v=ZT57W8NaZeU"
+    ],
+    "gallery": [
+      "/images/events/wildcat-tank/Outdoor1.JPG",
+      "/images/events/wildcat-tank/Outdoor2.JPG",
+      "/images/events/wildcat-tank/Judges+Gatty.JPG"
+    ],
+    "description": "Wildcat Tank brought Altamont students together for an evening of creativity, entrepreneurship, and confident public speaking. Inspired by \"Shark Tank,\" students developed original STEM-based product ideas and presented them to a panel of guest judges, explaining their designs, features, and real-world purpose.\n\nThe event highlighted impressive innovation, problem-solving, and presentation skills from every participant. Families, judges, and supporters helped create an encouraging, high-energy atmosphere that made the night a memorable celebration of student ideas."
   },
   {
     "id": "junk-box-wars-cms",

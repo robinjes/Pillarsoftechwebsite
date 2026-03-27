@@ -42,6 +42,7 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('all')
+  const [cardCarouselTick, setCardCarouselTick] = useState(0)
 
   // Fetch events and forms on mount
   useEffect(() => {
@@ -65,6 +66,24 @@ export default function EventsPage() {
     })
     .catch(console.error)
   }, [])
+
+  useEffect(() => {
+    const hasMultiPhotoCards = events.some((event) => {
+      const previewSlides = Array.from(
+        new Set([event.image, ...(event.gallery || [])].filter((image): image is string => Boolean(image)))
+      )
+
+      return previewSlides.length > 1
+    })
+
+    if (!hasMultiPhotoCards) return
+
+    const intervalId = window.setInterval(() => {
+      setCardCarouselTick((current) => current + 1)
+    }, 3200)
+
+    return () => window.clearInterval(intervalId)
+  }, [events])
 
   const filteredEvents = events.filter((event) => {
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -184,6 +203,12 @@ export default function EventsPage() {
           <AnimatePresence mode="popLayout">
             {displayEvents.map((event, index) => {
               const colorClass = cardColors[index % cardColors.length];
+              const previewSlides = Array.from(
+                new Set([event.image, ...(event.gallery || [])].filter((image): image is string => Boolean(image)))
+              )
+              const previewImage = previewSlides.length > 0
+                ? previewSlides[cardCarouselTick % previewSlides.length]
+                : undefined
               
               return (
                 <motion.div
@@ -205,13 +230,39 @@ export default function EventsPage() {
 
                     {/* Optional Image */}
                     <Link href={`/events/${event.id}`} className="block">
-                      {event.image ? (
+                      {previewImage ? (
                         <div className="h-48 w-full relative overflow-hidden bg-slate-200">
-                          <img 
-                            src={event.image} 
-                            alt={event.title} 
-                            className="w-full h-full object-cover mix-blend-multiply opacity-90 group-hover:scale-110 transition-transform duration-700"
-                          />
+                          <AnimatePresence initial={false} mode="wait">
+                            <motion.img
+                              key={`${event.id}-${previewImage}`}
+                              src={previewImage}
+                              alt={event.title}
+                              className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-90"
+                              initial={{ opacity: 0, scale: 1.06 }}
+                              animate={{ opacity: 0.9, scale: 1 }}
+                              exit={{ opacity: 0, scale: 1.03 }}
+                              transition={{ duration: 0.55, ease: 'easeOut' }}
+                            />
+                          </AnimatePresence>
+
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent" />
+
+                          {previewSlides.length > 1 && (
+                            <div className="absolute inset-x-0 bottom-3 flex items-center justify-center gap-1.5">
+                              {previewSlides.map((slide, slideIndex) => {
+                                const isActive = slide === previewImage
+
+                                return (
+                                  <span
+                                    key={`${event.id}-dot-${slideIndex}`}
+                                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                                      isActive ? 'w-6 bg-white shadow-[0_0_12px_rgba(255,255,255,0.7)]' : 'w-1.5 bg-white/55'
+                                    }`}
+                                  />
+                                )
+                              })}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <div className="h-24 w-full opacity-30 group-hover:opacity-50 transition-opacity flex items-center justify-center">

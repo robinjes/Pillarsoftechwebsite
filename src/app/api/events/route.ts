@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { dataStore } from '@/lib/data-store';
 import { Event } from '@/data/events';
+import { normalizeEvent } from '@/lib/event-utils';
 
 export async function GET() {
   const events = dataStore.getEvents();
@@ -9,7 +10,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const newEvent: Event = await request.json();
+    const newEvent: Event = normalizeEvent(await request.json());
     const events = dataStore.getEvents();
     
     // Auto-generate id if not provided
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
-    const updatedEvent: Event = await request.json();
+    const updatedEvent: Event = normalizeEvent(await request.json());
     const events = dataStore.getEvents();
     
     const index = events.findIndex(e => e.id === updatedEvent.id);

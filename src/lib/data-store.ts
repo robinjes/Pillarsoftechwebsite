@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { Event } from '@/data/events';
+import { normalizeEvents } from '@/lib/event-utils';
 
 export interface FormField {
   id: string;
@@ -44,13 +45,13 @@ export const dataStore = {
   getEvents: (): Event[] => {
     try {
       const data = fs.readFileSync(EVENTS_PATH, 'utf-8');
-      return JSON.parse(data);
+      return normalizeEvents(JSON.parse(data));
     } catch {
       return [];
     }
   },
   saveEvents: (events: Event[]) => {
-    fs.writeFileSync(EVENTS_PATH, JSON.stringify(events, null, 2), 'utf-8');
+    fs.writeFileSync(EVENTS_PATH, JSON.stringify(normalizeEvents(events), null, 2), 'utf-8');
   },
 
   // Forms

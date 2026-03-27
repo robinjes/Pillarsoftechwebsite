@@ -17,7 +17,7 @@ export default function AdminEvents() {
 
   // Form State
   const [formData, setFormData] = useState<Partial<Event>>({
-    title: '', date: '', time: '', location: '', description: '', status: 'upcoming', gallery: []
+    title: '', date: '', time: '', location: '', description: '', status: 'upcoming', gallery: [], heroVideo: ''
   });
   const [uploading, setUploading] = useState(false);
 
@@ -43,7 +43,7 @@ export default function AdminEvents() {
       setFormData(event);
     } else {
       setEditingEvent(null);
-setFormData({ title: '', date: '', time: '', location: '', description: '', status: 'upcoming', gallery: [], pdfUrl: '', youtubeVideos: [] });    }
+setFormData({ title: '', date: '', time: '', location: '', description: '', status: 'upcoming', gallery: [], heroVideo: '', pdfUrl: '', youtubeVideos: [] });    }
     setIsModalOpen(true);
   };
 
@@ -90,6 +90,30 @@ const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (data.url) setFormData(prev => ({ ...prev, pdfUrl: data.url }));
   } catch (err) {
     console.error('PDF upload failed', err);
+  } finally {
+    setUploading(false);
+  }
+};
+
+const handleHeroVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  setUploading(true);
+  const fd = new FormData();
+  fd.append('file', file);
+
+  try {
+    const res = await fetch('/api/upload', {
+      method: 'POST',
+      body: fd
+    });
+    const data = await res.json();
+    if (data.url) {
+      setFormData(prev => ({ ...prev, heroVideo: data.url }));
+    }
+  } catch (err) {
+    console.error('Hero video upload failed', err);
   } finally {
     setUploading(false);
   }
@@ -350,6 +374,40 @@ const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
                         <input type="file" className="hidden" accept="image/*" onChange={e => handleFileUpload(e)} />
                       </label>
                     </div>
+                  </div>
+
+                  <div className="space-y-3 col-span-1 md:col-span-2">
+                    <label className="text-sm font-semibold text-slate-300">Hero Timelapse Video</label>
+                    <div className="flex items-center gap-4">
+                      {formData.heroVideo && (
+                        <span className="text-xs text-green-400 font-semibold truncate max-w-xs">
+                          ✓ {formData.heroVideo}
+                        </span>
+                      )}
+                      <label className="flex-grow">
+                        <div className="flex items-center justify-center w-full h-12 px-4 bg-slate-800 border-2 border-dashed border-white/10 rounded-xl cursor-pointer hover:border-accent/50 transition-colors">
+                          {uploading ? (
+                            <Loader2 className="w-5 h-5 text-accent animate-spin" />
+                          ) : (
+                            <div className="flex items-center text-sm text-slate-400">
+                              <Upload className="w-4 h-4 mr-2" />
+                              {formData.heroVideo ? 'Replace Timelapse Video' : 'Upload Timelapse Video'}
+                            </div>
+                          )}
+                        </div>
+                        <input type="file" className="hidden" accept="video/*" onChange={handleHeroVideoUpload} />
+                      </label>
+                    </div>
+                    <input
+                      type="url"
+                      placeholder="/videos/events/your-event/timelapse.mp4"
+                      className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-accent"
+                      value={formData.heroVideo || ''}
+                      onChange={e => setFormData({ ...formData, heroVideo: e.target.value })}
+                    />
+                    <p className="text-xs text-slate-500">
+                      If set, the event details page hero will use this video instead of the photo carousel.
+                    </p>
                   </div>
 
                   <div className="space-y-4 col-span-1 md:col-span-2 border-t border-white/5 pt-6 mt-2">

@@ -26,6 +26,12 @@ const carouselItems = [
     src: '/SSPResultBG.png',
     label: 'Stockmen’s Park',
     href: '/events/foil-boat-stockmens'
+  },
+  {
+    type: 'video',
+    src: '/videos/events/wildcat-tank/Wildcat%20Tank%20Timelapse.mov',
+    label: 'Wildcat Tank Timelapse',
+    href: '/wildcat-tank'
   }
 ]
 
@@ -203,7 +209,7 @@ export default function Hero() {
               />
             ) : (
               <video
-                ref={videoRef}
+                ref={index === activeSlide ? videoRef : undefined}
                 className="h-full w-full object-cover"
                 muted
                 playsInline
