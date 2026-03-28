@@ -5,6 +5,7 @@ import { Fredoka } from 'next/font/google'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
+import { newsletterCardDescription } from '@/data/newsletter'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 const carouselItems = [
@@ -139,6 +140,12 @@ export default function Hero() {
       description:
         'Work with us to bring STEM opportunities to more students. Visit our contact page to reach us directly at pillarsoftech@gmail.com.',
       href: '/contact'
+    },
+    {
+      title: 'Sign Up for Our Newsletter',
+      description: newsletterCardDescription,
+      href: '/newsletter',
+      accent: 'from-sky-300/25 to-cyan-500/10'
     }
   ]
 
@@ -269,7 +276,7 @@ export default function Hero() {
             </div>
 
             <div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
                 {secondaryCards.map((card) => renderCard(card))}
               </div>
             </div>

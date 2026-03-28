@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { Fredoka } from 'next/font/google'
-import { ArrowDown, GraduationCap, MapPin, Sparkles, Users } from 'lucide-react'
+import { ArrowDown, ArrowUpRight, GraduationCap, MapPin, Sparkles, Users } from 'lucide-react'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 
@@ -160,6 +160,8 @@ const teamMembers: TeamMember[] = [
     }
   }
 ]
+
+const teamJoinUrl = 'https://forms.gle/XqeKkMF4cj5W62yL9'
 
 const statCards = [
   {
@@ -319,6 +321,37 @@ export default function Team() {
               <MemberCard key={member.name} member={member} index={index} />
             ))}
           </div>
+
+          <motion.a
+            href={teamJoinUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 0.08 }}
+            viewport={{ once: true, amount: 0.3 }}
+            className="group mt-8 block overflow-hidden rounded-[28px] border border-white/12 bg-[linear-gradient(135deg,rgba(19,49,111,0.95),rgba(9,24,53,0.95))] p-7 shadow-[0_18px_60px_rgba(6,18,49,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-200/30 hover:shadow-[0_22px_70px_rgba(34,211,238,0.18)] sm:p-8"
+          >
+            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="max-w-3xl">
+                <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">
+                  <Sparkles className="h-4 w-4" />
+                  Join Pillars of Tech
+                </div>
+                <h3 className={`${fredoka.className} mt-4 text-3xl font-bold text-white sm:text-4xl`}>
+                  Want to join our team? Sign up here.
+                </h3>
+                <p className="mt-3 text-base leading-7 text-blue-100/90 sm:text-lg">
+                  We are always excited to meet students who want to help with events, outreach, programs, and new ideas across Pillars of Tech.
+                </p>
+              </div>
+
+              <div className="inline-flex items-center gap-3 self-start rounded-full border border-white/15 bg-white px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-blue-900 transition-colors group-hover:bg-cyan-50">
+                Apply To Join
+                <ArrowUpRight className="h-4 w-4" />
+              </div>
+            </div>
+          </motion.a>
         </motion.div>
       </div>
     </section>

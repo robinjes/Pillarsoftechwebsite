@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Space_Grotesk } from 'next/font/google'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Menu, X, Home, Info, Calendar, Users, Mail } from 'lucide-react'
+import { Menu, X, Home, Info, Calendar, Users, Mail, Newspaper } from 'lucide-react'
 
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 
@@ -18,6 +18,7 @@ export default function Navbar() {
     { name: 'Team', href: '/team', icon: Users },
     { name: 'Contact', href: '/contact', icon: Mail },
   ]
+  const newsletterLink = { name: 'Newsletter', href: '/newsletter', icon: Newspaper }
 
   return (
     <>
@@ -52,16 +53,25 @@ export default function Navbar() {
             </div>
             
             {/* Desktop Navigation Links */}
-            <div className="hidden md:flex items-center space-x-1">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`${spaceGrotesk.className} text-blue-100 hover:text-white hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200`}
-                >
-                  {link.name}
-                </Link>
-              ))}
+            <div className="hidden md:flex items-center gap-2">
+              <div className="flex items-center space-x-1">
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className={`${spaceGrotesk.className} text-blue-100 hover:text-white hover:bg-white/10 px-4 py-2 rounded-xl text-sm font-bold transition-all duration-200`}
+                  >
+                    {link.name}
+                  </Link>
+                ))}
+              </div>
+              <Link
+                href={newsletterLink.href}
+                className={`${spaceGrotesk.className} inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-bold text-blue-900 transition-all duration-200 hover:-translate-y-0.5 hover:bg-blue-50`}
+              >
+                <newsletterLink.icon className="h-4 w-4" />
+                {newsletterLink.name}
+              </Link>
             </div>
           </div>
         </div>
@@ -124,6 +134,14 @@ export default function Navbar() {
                 {link.name}
               </Link>
             ))}
+            <Link
+              href={newsletterLink.href}
+              onClick={() => setIsOpen(false)}
+              className="mt-2 flex items-center px-4 py-3 rounded-2xl bg-white text-blue-900 hover:bg-blue-50 transition-all font-bold group"
+            >
+              <newsletterLink.icon className="w-5 h-5 mr-4 text-blue-700 group-hover:scale-110 transition-transform" />
+              {newsletterLink.name}
+            </Link>
           </nav>
 
           <div className="mt-auto pt-6 border-t border-white/5 text-center">
