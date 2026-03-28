@@ -1,6 +1,3 @@
-'use client'
-
-import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { Fredoka } from 'next/font/google'
 import { ArrowDown, ArrowUpRight, GraduationCap, MapPin, Sparkles, Users } from 'lucide-react'
@@ -193,11 +190,7 @@ function MemberCard({ member, index }: { member: TeamMember; index: number }) {
   const useUnoptimizedImage = member.name === 'Yashas Jeedi' || member.name === 'Nolan Mcclung'
 
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.65, delay: index * 0.08 }}
-      viewport={{ once: true, amount: 0.2 }}
+    <article
       className="group relative overflow-hidden rounded-[28px] border border-white/12 bg-[#10285f]/88 shadow-[0_18px_60px_rgba(6,18,49,0.35)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#14316f]/92"
     >
       <div className={`absolute inset-x-0 top-0 h-28 bg-gradient-to-r ${member.accent}`} />
@@ -246,7 +239,7 @@ function MemberCard({ member, index }: { member: TeamMember; index: number }) {
           ))}
         </div>
       </div>
-    </motion.article>
+    </article>
   )
 }
 
@@ -260,13 +253,7 @@ export default function Team() {
       <div className="absolute inset-x-0 top-0 h-px bg-white/10" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="mb-14 grid gap-8 lg:grid-cols-[1.4fr_0.9fr]"
-        >
+        <div className="mb-14 grid gap-8 lg:grid-cols-[1.4fr_0.9fr]">
           <div className="rounded-[32px] border border-white/12 bg-[#143270]/88 p-8 shadow-[0_20px_80px_rgba(4,11,32,0.35)] backdrop-blur-xl sm:p-10">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/6 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-cyan-100">
               <Users className="h-4 w-4" />
@@ -292,28 +279,20 @@ export default function Team() {
 
           <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
             {statCards.map((stat, index) => (
-              <motion.div
+              <div
                 key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.65, delay: index * 0.12 }}
-                viewport={{ once: true }}
                 className="rounded-[28px] border border-white/12 bg-[#0f2454]/90 p-6 shadow-[0_14px_50px_rgba(4,11,32,0.28)] backdrop-blur-xl"
               >
                 <stat.Icon className="h-8 w-8 text-amber-300" />
                 <p className={`${fredoka.className} mt-5 text-3xl text-white`}>{stat.value}</p>
                 <p className="mt-2 text-sm uppercase tracking-[0.16em] text-blue-100/70">{stat.label}</p>
-              </motion.div>
+              </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div
+        <div
           id="team-groups"
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7 }}
-          viewport={{ once: true, amount: 0.15 }}
           className="rounded-[32px] border border-white/12 bg-[#0e2353]/84 p-6 shadow-[0_18px_70px_rgba(4,11,32,0.28)] backdrop-blur-xl sm:p-8"
         >
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
@@ -322,14 +301,10 @@ export default function Team() {
             ))}
           </div>
 
-          <motion.a
+          <a
             href={teamJoinUrl}
             target="_blank"
             rel="noopener noreferrer"
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, delay: 0.08 }}
-            viewport={{ once: true, amount: 0.3 }}
             className="group mt-8 block overflow-hidden rounded-[28px] border border-white/12 bg-[linear-gradient(135deg,rgba(19,49,111,0.95),rgba(9,24,53,0.95))] p-7 shadow-[0_18px_60px_rgba(6,18,49,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-200/30 hover:shadow-[0_22px_70px_rgba(34,211,238,0.18)] sm:p-8"
           >
             <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
@@ -351,8 +326,8 @@ export default function Team() {
                 <ArrowUpRight className="h-4 w-4" />
               </div>
             </div>
-          </motion.a>
-        </motion.div>
+          </a>
+        </div>
       </div>
     </section>
   )
