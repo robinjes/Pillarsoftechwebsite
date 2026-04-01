@@ -46,6 +46,7 @@
     "time": "2:45 PM - 3:45 PM",
     "location": "Christensen Middle School (CMS)",
     "status": "upcoming",
+    "registrationNote": "TBD",
     "description": "Put your innovation skills to the test at Junk Box Wars! Teams will be presented with a box of assorted recycled materials—like plastic bottle caps, rubber bands, and popsicle sticks—and challenged to build a product that solves a real-world issue.\n\nAfter constructing their prototype, teams will pitch their invention \"Shark Tank\" style to our panel of judges. Can you think on your feet and defend your design during the Q&A? The team with the highest total score wins a special prize!"
   },
   {
@@ -55,6 +56,7 @@
     "time": "TBD",
     "location": "Altamont Elementary",
     "status": "upcoming",
+    "registrationNote": "TBD",
     "description": "Pillars of Tech is thrilled to partner with the Pedrozzi Foundation for Altamont's Family Science Night! We will be hosting our own interactive engineering table where kids can dive into a hands-on STEM activity. \n\nBring the whole family to explore the wonders of science, tackle fun engineering challenges, and build something amazing together."
   },
   {
@@ -64,6 +66,7 @@
     "time": "TBD",
     "location": "Granada High",
     "status": "upcoming",
+    "registrationNote": "TBD",
     "description": "Explore the limitless possibilities of STEM careers at our exclusive Career Panel! We've invited distinguished scientists and professionals from local laboratories to share their journeys, insights, and advice with students interested in science and technology fields.\n\nThe event will feature a structured panel presentation followed by an open Q&A session. Complimentary drinks and food will be provided. Come get inspired and network with industry experts!",
     "guests": [
       "Distinguished Scientists from local laboratories"

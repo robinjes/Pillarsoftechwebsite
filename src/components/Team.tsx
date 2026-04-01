@@ -62,7 +62,7 @@ const teamMembers: TeamMember[] = [
       from: 'Livermore, CA',
       school: 'Livermore High School',
       hobby: 'Playing video games and going on hikes',
-      favoriteApp: 'Tiktok',
+      favoriteApp: 'Crossy Road',
       major: 'Biology'
     }
   },
@@ -97,25 +97,10 @@ const teamMembers: TeamMember[] = [
     }
   },
   {
-    name: 'Nikhil Madineni',
-    position: 'Board Member',
-    image: '/nikhil.jpg',
-    description: 'Helping shape our technical workshops and the learning experience behind our programs.',
-    accent: 'from-blue-300/14 via-cyan-200/8 to-transparent',
-    details: {
-      grade: '11',
-      from: 'Livermore, CA',
-      school: 'Livermore High School',
-      hobby: 'Watching Sports and Playing Basketball',
-      favoriteApp: 'Instagram',
-      major: 'Data Science'
-    }
-  },
-  {
-    name: 'Nolan Mcclung',
-    position: 'Board Member',
+    name: 'Michael Nolan McClung',
+    position: 'Graphics Design Lead',
     image: '/nolan.jpg',
-    description: 'Handling social media and helping our outreach stay active, clear, and community-facing.',
+    description: 'Leading graphic design for club materials and helping our visuals stay polished, clear, and recognizable.',
     accent: 'from-slate-200/14 via-blue-200/8 to-transparent',
     details: {
       grade: '11',
@@ -127,10 +112,25 @@ const teamMembers: TeamMember[] = [
     }
   },
   {
+    name: 'Nikhil Madineni',
+    position: 'Member',
+    image: '/nikhil.jpg',
+    description: 'Supporting chapter initiatives and contributing across events and programs wherever the team needs help.',
+    accent: 'from-blue-300/14 via-cyan-200/8 to-transparent',
+    details: {
+      grade: '11',
+      from: 'Livermore, CA',
+      school: 'Livermore High School',
+      hobby: 'Watching Sports and Playing Basketball',
+      favoriteApp: 'Instagram',
+      major: 'Data Science'
+    }
+  },
+  {
     name: 'Arya Rajavelu',
-    position: 'Board Member',
+    position: 'Member',
     image: '/arya.jpg',
-    description: 'Organizing educational programming and keeping student experiences engaging and well coordinated.',
+    description: 'Helping support team projects and contributing to events and chapter efforts wherever needed.',
     accent: 'from-cyan-200/14 via-teal-200/8 to-transparent',
     details: {
       grade: '11',
@@ -187,7 +187,7 @@ function MemberCard({ member, index }: { member: TeamMember; index: number }) {
     { label: 'Planned Major', value: member.details.major }
   ]
 
-  const useUnoptimizedImage = member.name === 'Yashas Jeedi' || member.name === 'Nolan Mcclung'
+  const useUnoptimizedImage = member.name === 'Yashas Jeedi' || member.name === 'Michael Nolan McClung'
 
   return (
     <article

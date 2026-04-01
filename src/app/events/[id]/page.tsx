@@ -102,7 +102,15 @@ export default function EventPage() {
 
   const isPast = event.status === 'past'
   const accentColor = isPast ? 'text-emerald-500' : 'text-accent'
-  const registrationStatus = isPast ? 'Completed' : hasForm ? 'Register Now!' : 'Registration Ended'
+  const registrationNote = event.registrationNote?.trim()
+  const showRegistrationTbd = registrationNote === 'TBD'
+  const registrationStatus = isPast
+    ? 'Completed'
+    : hasForm
+    ? 'Register Now!'
+    : showRegistrationTbd
+    ? 'TBD'
+    : 'Registration Ended'
   const heroImage = heroSlides[heroSlideIndex] || heroSlides[0]
   const heroVideo = event.heroVideo
   const embedVideos = (event.youtubeVideos || [])
@@ -334,14 +342,14 @@ export default function EventPage() {
                 )}
 
                 {event.guests && event.guests.length > 0 && (
-                  <div className="bg-purple-50 bg-purple-900/20 border-2 border-purple-200 border-purple-700/50 rounded-3xl p-6">
-                    <h3 className={`${fredoka.className} flex items-center text-xl font-bold text-purple-900 text-purple-400 mb-4`}>
+                  <div className="rounded-3xl border-2 border-fuchsia-300/30 bg-fuchsia-950/45 p-6 shadow-[0_18px_45px_rgba(76,29,149,0.22)] backdrop-blur-sm">
+                    <h3 className={`${fredoka.className} mb-4 flex items-center text-xl font-bold text-fuchsia-100`}>
                       <Users className="w-5 h-5 mr-2 flex-shrink-0" /> Special Guests
                     </h3>
                     <ul className="space-y-2">
                       {event.guests.map((g, i) => (
-                        <li key={i} className="text-purple-800 text-purple-200 font-bold flex items-center">
-                          <span className="w-1.5 h-1.5 rounded-full bg-purple-500 mr-2" />
+                        <li key={i} className="flex items-center font-semibold text-fuchsia-50">
+                          <span className="mr-2 h-1.5 w-1.5 rounded-full bg-fuchsia-300" />
                           {g}
                         </li>
                       ))}
@@ -378,9 +386,9 @@ export default function EventPage() {
                         <button onClick={() => router.push('/contact')} className="w-full py-3 bg-blue-800/50 hover:bg-blue-800 text-white font-bold rounded-xl transition-colors shadow-md text-center inline-block mt-2">
                           Contact Us
                         </button>
-                        {event.registrationNote && (
+                        {registrationNote && !showRegistrationTbd && (
                           <p className="rounded-2xl border border-amber-300/20 bg-amber-400/10 px-4 py-3 text-sm font-medium text-amber-100">
-                            {event.registrationNote}
+                            {registrationNote}
                           </p>
                         )}
                       </div>
@@ -399,9 +407,9 @@ export default function EventPage() {
                         <button onClick={() => router.push('/contact')} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-md text-center inline-block">
                           Contact Us
                         </button>
-                        {event.registrationNote && (
+                        {registrationNote && !showRegistrationTbd && (
                           <p className="rounded-2xl border border-amber-300/20 bg-amber-400/10 px-4 py-3 text-sm font-medium text-amber-100">
-                            {event.registrationNote}
+                            {registrationNote}
                           </p>
                         )}
                       </div>
