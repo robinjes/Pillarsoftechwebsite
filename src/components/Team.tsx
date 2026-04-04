@@ -140,21 +140,6 @@ const teamMembers: TeamMember[] = [
       favoriteApp: 'Instagram',
       major: 'Undecided'
     }
-  },
-  {
-    name: 'Shree Manickaraja',
-    position: 'Website Developer',
-    image: '/shree.jpg',
-    description: 'Planning the next website improvements and helping turn ideas into polished updates online.',
-    accent: 'from-sky-300/16 via-indigo-200/8 to-transparent',
-    details: {
-      grade: '9',
-      from: 'Livermore, CA',
-      school: 'Livermore High School',
-      hobby: 'Playing tennis, flying planes, and coding',
-      favoriteApp: 'Brawl Stars/Youtube',
-      major: 'Computational Engineering/Data Science'
-    }
   }
 ]
 
