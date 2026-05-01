@@ -41,8 +41,7 @@ export default function EventsPage() {
   const [activeForms, setActiveForms] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [filter, setFilter] = useState<'all' | 'upcoming' | 'past'>('all')
-  const [cardCarouselTick, setCardCarouselTick] = useState(0)
+  const [filter, setFilter] = useState<'all' | 'upcoming' | 'completed'>('all')
 
   // Fetch events and forms on mount
   useEffect(() => {
@@ -67,28 +66,11 @@ export default function EventsPage() {
     .catch(console.error)
   }, [])
 
-  useEffect(() => {
-    const hasMultiPhotoCards = events.some((event) => {
-      const previewSlides = Array.from(
-        new Set([event.image, ...(event.gallery || [])].filter((image): image is string => Boolean(image)))
-      )
-
-      return previewSlides.length > 1
-    })
-
-    if (!hasMultiPhotoCards) return
-
-    const intervalId = window.setInterval(() => {
-      setCardCarouselTick((current) => current + 1)
-    }, 3200)
-
-    return () => window.clearInterval(intervalId)
-  }, [events])
-
   const filteredEvents = events.filter((event) => {
+    const normalizedStatus = event.status === 'past' ? 'completed' : event.status
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           event.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesFilter = filter === 'all' ? true : event.status === filter
+    const matchesFilter = filter === 'all' ? true : normalizedStatus === filter
     return matchesSearch && matchesFilter
   })
 
@@ -111,10 +93,13 @@ export default function EventsPage() {
 
   // Sort: upcoming first; past events at the bottom (most recent -> oldest)
   const displayEvents = filteredEvents.sort((a, b) => {
-    if (a.status === 'upcoming' && b.status === 'past') return -1
-    if (a.status === 'past' && b.status === 'upcoming') return 1
+    const aStatus = a.status === 'past' ? 'completed' : a.status
+    const bStatus = b.status === 'past' ? 'completed' : b.status
 
-    if (a.status === 'past' && b.status === 'past') {
+    if (aStatus === 'upcoming' && bStatus === 'completed') return -1
+    if (aStatus === 'completed' && bStatus === 'upcoming') return 1
+
+    if (aStatus === 'completed' && bStatus === 'completed') {
       return parseEventDate(b.date) - parseEventDate(a.date)
     }
 
@@ -161,7 +146,7 @@ export default function EventsPage() {
             </div>
             
             <div className="flex bg-dark/80 backdrop-blur-md p-1.5 rounded-2xl border-2 border-white/20 shadow-xl shadow-accent/5 w-full md:w-auto">
-              {(['all', 'upcoming', 'past'] as const).map((tab) => (
+              {(['all', 'upcoming', 'completed'] as const).map((tab) => (
                 <button
                   key={tab}
                   onClick={() => setFilter(tab)}
@@ -178,7 +163,7 @@ export default function EventsPage() {
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
                     />
                   )}
-                  {tab}
+                  {tab === 'completed' ? 'completed' : tab}
                 </button>
               ))}
             </div>
@@ -203,12 +188,7 @@ export default function EventsPage() {
           <AnimatePresence mode="popLayout">
             {displayEvents.map((event, index) => {
               const colorClass = cardColors[index % cardColors.length];
-              const previewSlides = Array.from(
-                new Set([event.image, ...(event.gallery || [])].filter((image): image is string => Boolean(image)))
-              )
-              const previewImage = previewSlides.length > 0
-                ? previewSlides[cardCarouselTick % previewSlides.length]
-                : undefined
+              const previewImage = event.image
               
               return (
                 <motion.div
@@ -225,7 +205,7 @@ export default function EventsPage() {
                     
                     {/* Status Ribbon */}
                     <div className="absolute top-4 right-[-35px] bg-white text-slate-900 font-bold py-1 px-10 transform rotate-45 text-xs shadow-md z-20 shadow-black/20">
-                      {event.status === 'upcoming' ? 'UPCOMING' : 'PAST'}
+                      {event.status === 'upcoming' ? 'UPCOMING' : 'COMPLETED'}
                     </div>
 
                     {/* Optional Image */}
@@ -234,7 +214,7 @@ export default function EventsPage() {
                         <div className="h-48 w-full relative overflow-hidden bg-slate-200">
                           <AnimatePresence initial={false} mode="wait">
                             <motion.img
-                              key={`${event.id}-${previewImage}`}
+                              key={event.id}
                               src={previewImage}
                               alt={event.title}
                               className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-90"
@@ -246,23 +226,6 @@ export default function EventsPage() {
                           </AnimatePresence>
 
                           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent" />
-
-                          {previewSlides.length > 1 && (
-                            <div className="absolute inset-x-0 bottom-3 flex items-center justify-center gap-1.5">
-                              {previewSlides.map((slide, slideIndex) => {
-                                const isActive = slide === previewImage
-
-                                return (
-                                  <span
-                                    key={`${event.id}-dot-${slideIndex}`}
-                                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                                      isActive ? 'w-6 bg-white shadow-[0_0_12px_rgba(255,255,255,0.7)]' : 'w-1.5 bg-white/55'
-                                    }`}
-                                  />
-                                )
-                              })}
-                            </div>
-                          )}
                         </div>
                       ) : (
                         <div className="h-24 w-full opacity-30 group-hover:opacity-50 transition-opacity flex items-center justify-center">

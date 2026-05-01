@@ -5,7 +5,7 @@ export interface Event {
   time: string
   location: string
   description: string
-  status: 'upcoming' | 'past'
+  status: 'upcoming' | 'completed' | 'past'
   image?: string
   heroVideo?: string
   gallery?: string[]

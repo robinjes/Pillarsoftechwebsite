@@ -40,24 +40,32 @@
     "description": "Wildcat Tank brought Altamont students together for an evening of creativity, entrepreneurship, and confident public speaking. Inspired by \"Shark Tank,\" students developed original STEM-based product ideas and presented them to a panel of guest judges, explaining their designs, features, and real-world purpose.\n\nThe event highlighted impressive innovation, problem-solving, and presentation skills from every participant. Families, judges, and supporters helped create an encouraging, high-energy atmosphere that made the night a memorable celebration of student ideas."
   },
   {
-    "id": "junk-box-wars-cms",
-    "title": "Junk Box Wars - CMS",
-    "date": "April 20, 2026",
-    "time": "2:45 PM - 3:45 PM",
-    "location": "Christensen Middle School (CMS)",
-    "status": "upcoming",
-    "registrationNote": "TBD",
-    "description": "Put your innovation skills to the test at Junk Box Wars! Teams will be presented with a box of assorted recycled materials—like plastic bottle caps, rubber bands, and popsicle sticks—and challenged to build a product that solves a real-world issue.\n\nAfter constructing their prototype, teams will pitch their invention \"Shark Tank\" style to our panel of judges. Can you think on your feet and defend your design during the Q&A? The team with the highest total score wins a special prize!"
-  },
-  {
     "id": "family-science-night-altamont",
     "title": "Family Science Night Event - Altamont",
     "date": "April 28, 2026",
-    "time": "TBD",
+    "time": "6:00-7:30PM",
     "location": "Altamont Elementary",
-    "status": "upcoming",
+    "status": "completed",
+    "image": "/images/events/family-science-night/IMG_5880.jpg",
+    "gallery": [
+      "/images/events/family-science-night/IMG_5880.jpg",
+      "/images/events/family-science-night/IMG_0547.jpg",
+      "/images/events/family-science-night/IMG_0551.jpg",
+      "/images/events/family-science-night/IMG_5898.jpg",
+      "/images/events/family-science-night/IMG_5905.jpg",
+      "/images/events/family-science-night/IMG_5914.jpg",
+      "/images/events/family-science-night/IMG_5928.jpg",
+      "/images/events/family-science-night/IMG_5940.jpg",
+      "/images/events/family-science-night/IMG_5967.jpg",
+      "/images/events/family-science-night/IMG_6049.jpg",
+      "/images/events/family-science-night/IMG_6105.jpg",
+      "/images/events/family-science-night/IMG_8330.JPG",
+      "/images/events/family-science-night/IMG_8331.JPG",
+      "/images/events/family-science-night/IMG_8332.JPG",
+      "/images/events/family-science-night/IMG_8333.JPG"
+    ],
     "registrationNote": "TBD",
-    "description": "Pillars of Tech is thrilled to partner with the Pedrozzi Foundation for Altamont's Family Science Night! We will be hosting our own interactive engineering table where kids can dive into a hands-on STEM activity. \n\nBring the whole family to explore the wonders of science, tackle fun engineering challenges, and build something amazing together."
+    "description": "For Family Science Night at Altamont Creek Elementary School, Pillars of Tech partnered with Livermore High School’s Green Engineering Academy (GEA) to showcase student-built VEX robots.\n\nStudents put the robots to the test by driving through a maze, collecting cubes, and completing a precision “narrow path” challenge to transport blocks across the table. These hands-on activities helped students explore how robots work—from coding and motors to wiring and control systems.\n\nWe’re grateful to the Green Engineering Academy for sharing their incredible robots and helping us bring a memorable robotics experience to families.\n\nWhat is the GEA?\n\nThe Green Engineering Academy is a four-year engineering pathway at Livermore High School (founded in 2010) that combines rigorous academics with hands-on, industry-relevant engineering experiences. The program follows the Project Lead the Way (PLTW) curriculum and gives students experience with tools like Onshape, Fusion 360, and Revit—preparing them for college engineering programs, apprenticeships, and technical careers through real-world projects and partnerships."
   },
   {
     "id": "career-panel-granada",

@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
 import { Event } from '@/data/events'
-import { ArrowLeft, Calendar, Clock, MapPin, Users, Rocket, Trophy, Target, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowLeft, Calendar, Clock, MapPin, Users, Rocket, Trophy, Target, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useRef, useState, useEffect } from 'react'
 import { toYouTubeEmbedUrl } from '@/lib/event-utils'
 
@@ -23,6 +23,7 @@ export default function EventPage() {
   const [pdfFullscreen, setPdfFullscreen] = useState(false)
   const [heroVideoOk, setHeroVideoOk] = useState(true)
   const [heroSlideIndex, setHeroSlideIndex] = useState(0)
+  const [galleryActiveImage, setGalleryActiveImage] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return;
@@ -48,12 +49,17 @@ export default function EventPage() {
 
   const heroSlides = Array.from(
     new Set(
+      [event?.image].filter((image): image is string => Boolean(image))
+    )
+  )
+  const hasHeroCarousel = !event?.heroVideo && heroSlides.length > 1
+  const galleryImages = Array.from(
+    new Set(
       [event?.image, ...(event?.gallery || [])].filter(
         (image): image is string => Boolean(image)
       )
     )
   )
-  const hasHeroCarousel = !event?.heroVideo && heroSlides.length > 1
 
   useEffect(() => {
     setHeroSlideIndex(0)
@@ -62,6 +68,23 @@ export default function EventPage() {
   useEffect(() => {
     setHeroVideoOk(true)
   }, [event?.id, event?.heroVideo])
+
+  useEffect(() => {
+    setGalleryActiveImage(null)
+  }, [event?.id])
+
+  useEffect(() => {
+    if (!galleryActiveImage) return
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setGalleryActiveImage(null)
+      }
+    }
+
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [galleryActiveImage])
 
   useEffect(() => {
     if (!hasHeroCarousel) return
@@ -100,19 +123,32 @@ export default function EventPage() {
     )
   }
 
-  const isPast = event.status === 'past'
-  const accentColor = isPast ? 'text-emerald-500' : 'text-accent'
+  const isCompleted = event.status === 'completed' || event.status === 'past'
+  const accentColor = isCompleted ? 'text-emerald-500' : 'text-accent'
   const registrationNote = event.registrationNote?.trim()
   const showRegistrationTbd = registrationNote === 'TBD'
-  const registrationStatus = isPast
+  const registrationStatus = isCompleted
     ? 'Completed'
     : hasForm
     ? 'Register Now!'
     : showRegistrationTbd
     ? 'TBD'
     : 'Registration Ended'
-  const heroImage = heroSlides[heroSlideIndex] || heroSlides[0]
+  const heroImage = heroSlides[heroSlideIndex] || heroSlides[0] || event.gallery?.[0]
   const heroVideo = event.heroVideo
+  const activeGalleryIndex = galleryActiveImage ? galleryImages.indexOf(galleryActiveImage) : -1
+  const galleryCaption =
+    event.id === 'family-science-night-altamont' &&
+    galleryActiveImage === '/images/events/family-science-night/IMG_0551.jpg'
+      ? [
+          'Left to right:',
+          'Yashas Jeedi (VP of PoT)',
+          'Jaden Jirasevijinda (VP of PoT)',
+          'Robin Deepak (President of PoT)',
+          'Christina Rocha (Science Teacher at Altamont Creek)',
+          'Fenna Gatty (Science Teacher at Altamont Creek)',
+        ].join('\n')
+      : null
   const embedVideos = (event.youtubeVideos || [])
     .map((url) => ({
       original: url,
@@ -139,6 +175,15 @@ export default function EventPage() {
   ])
   const centerContent = centerContentEvents.has(event.id)
   const showPresentationDayLink = event.id === 'wildcat-tank-altamont'
+  const missionBlocks = event.description
+    .split('\n\n')
+    .map((block) => block.trim())
+    .filter(Boolean)
+
+  const isMissionHeading = (block: string) =>
+    /^what is (the )?.+\?$/i.test(block) || /^what is the gea\?$/i.test(block)
+  const geaUrl =
+    'https://livermorehigh.livermoreschools.org/academics/green-engineering-academy/about-gea'
 
   return (
     <main ref={containerRef} className="min-h-screen bg-primary transition-colors duration-300">
@@ -235,8 +280,8 @@ export default function EventPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, type: "spring" }}
             >
-              <span className={`inline-block px-4 py-1.5 rounded-full font-bold text-sm tracking-wider uppercase mb-6 shadow-lg ${isPast ? 'bg-emerald-500 text-white' : 'bg-accent text-white'}`}>
-                {isPast ? 'Past Event' : 'Upcoming Event'}
+              <span className={`inline-block px-4 py-1.5 rounded-full font-bold text-sm tracking-wider uppercase mb-6 shadow-lg ${isCompleted ? 'bg-emerald-500 text-white' : 'bg-accent text-white'}`}>
+                {isCompleted ? 'Completed Event' : 'Upcoming Event'}
               </span>
               <h1 className={`${fredoka.className} mx-auto max-w-6xl text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white drop-shadow-2xl mb-6`}>
                 {event.title}
@@ -291,11 +336,53 @@ export default function EventPage() {
                     The Mission
                   </h2>
                   <div
-                    className={`prose prose-lg prose-invert max-w-none text-blue-100/90 font-medium leading-relaxed whitespace-pre-wrap ${
+                    className={`max-w-none text-blue-100/90 font-medium leading-relaxed ${
                       centerContent ? 'text-center' : ''
                     }`}
                   >
-                    {event.description}
+                    <div className="space-y-6">
+                      {missionBlocks.map((block, index) => {
+                        const isHeading = isMissionHeading(block)
+                        const isGeaHeading =
+                          event.id === 'family-science-night-altamont' && /^what is the gea\?$/i.test(block)
+                        const previousBlock = missionBlocks[index - 1]
+                        const afterGeaHeading =
+                          event.id === 'family-science-night-altamont' &&
+                          typeof previousBlock === 'string' &&
+                          /^what is the gea\?$/i.test(previousBlock)
+
+                        if (isHeading) {
+                          return (
+                            <h3
+                              key={`${block}-${index}`}
+                              className={`${fredoka.className} text-2xl sm:text-3xl font-bold ${
+                                isGeaHeading ? accentColor : 'text-white'
+                              } pt-6`}
+                            >
+                              <strong>{block}</strong>
+                            </h3>
+                          )
+                        }
+
+                        return (
+                          <div key={`${block}-${index}`} className="space-y-3">
+                            <p className="text-lg leading-relaxed">{block}</p>
+                            {afterGeaHeading && (
+                              <p className="text-base font-semibold">
+                                <a
+                                  href={geaUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-white underline underline-offset-4 hover:opacity-90"
+                                >
+                                  Click here to learn more about the GEA!
+                                </a>
+                              </p>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 </section>
 
@@ -357,7 +444,7 @@ export default function EventPage() {
                   </div>
                 )}
 
-                {!isPast && (
+                {!isCompleted && (
                   <div className="bg-blue-900/20 border-2 border-blue-200 border-blue-700/50 rounded-3xl p-6 mt-6">
                     <h3 className={`${fredoka.className} flex items-center text-xl font-bold text-white mb-4`}>
                       <span className="w-8 h-8 rounded-full bg-blue-100 bg-blue-800 flex items-center justify-center mr-3">
@@ -394,7 +481,7 @@ export default function EventPage() {
                       </div>
                     ) : (
                       <div className="flex flex-col gap-3">
-                        {event.registrationLink && !isPast && (
+                        {event.registrationLink && !isCompleted && (
                           <a
                             href={event.registrationLink}
                             target="_blank"
@@ -419,6 +506,109 @@ export default function EventPage() {
               </div>
             </div>
             {/* Event documents and videos */}
+            {(event.gallery?.length || 0) > 0 && (
+              <section className="mt-20 pt-20 border-t border-white/10">
+                <h2 className={`${fredoka.className} flex items-center text-4xl font-bold text-white mb-6 justify-center`}>
+                  <span className="mr-3">📸</span>
+                  Photo Gallery
+                </h2>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {galleryImages.map((img) => (
+                    <button
+                      key={img}
+                      type="button"
+                      onClick={() => setGalleryActiveImage(img)}
+                      className="group relative aspect-square overflow-hidden rounded-2xl border-2 border-white/10 bg-black/30 shadow-lg transition-transform hover:scale-[1.02]"
+                    >
+                      <img
+                        src={img}
+                        alt={`${event.title} photo`}
+                        className="h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
+                        loading="lazy"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent" />
+                    </button>
+                  ))}
+                </div>
+
+                <AnimatePresence>
+                  {galleryActiveImage && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+                      onClick={() => setGalleryActiveImage(null)}
+                    >
+                      <motion.div
+                        initial={{ scale: 0.98, opacity: 0, y: 10 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.98, opacity: 0, y: 10 }}
+                        transition={{ type: 'spring', stiffness: 260, damping: 24 }}
+                        className="relative w-full max-w-5xl overflow-hidden rounded-3xl border border-white/15 bg-slate-950/70 shadow-2xl"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <button
+                          type="button"
+                          onClick={() => setGalleryActiveImage(null)}
+                          className="absolute right-4 top-4 z-10 rounded-full border border-white/15 bg-slate-950/60 p-2 text-white backdrop-blur-md hover:bg-slate-950/80"
+                          aria-label="Close photo viewer"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+
+                        <div className="relative flex items-center justify-center bg-black/40">
+                          {galleryImages.length > 1 && (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (activeGalleryIndex < 0) return
+                                  const nextIndex = (activeGalleryIndex - 1 + galleryImages.length) % galleryImages.length
+                                  setGalleryActiveImage(galleryImages[nextIndex])
+                                }}
+                                className="absolute left-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-slate-950/55 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-slate-950/75"
+                                aria-label="Previous photo"
+                              >
+                                <ChevronLeft className="h-6 w-6" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (activeGalleryIndex < 0) return
+                                  const nextIndex = (activeGalleryIndex + 1) % galleryImages.length
+                                  setGalleryActiveImage(galleryImages[nextIndex])
+                                }}
+                                className="absolute right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-slate-950/55 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-slate-950/75"
+                                aria-label="Next photo"
+                              >
+                                <ChevronRight className="h-6 w-6" />
+                              </button>
+                            </>
+                          )}
+
+                          <img
+                            src={galleryActiveImage}
+                            alt={`${event.title} full photo`}
+                            className="max-h-[80vh] w-full object-contain"
+                          />
+                        </div>
+
+                        {galleryCaption && (
+                          <div className="border-t border-white/10 bg-slate-950/40 px-6 py-4">
+                            <p className="whitespace-pre-line text-sm font-semibold text-white/90">
+                              {galleryCaption}
+                            </p>
+                          </div>
+                        )}
+                      </motion.div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </section>
+            )}
+
             {(event.pdfUrl || resourceVideos.length > 0 || event.id === 'wildcat-tank-altamont') && (
               <section className="mt-20 pt-20 border-t border-white/10">
                 <h2 className={`${fredoka.className} flex items-center text-4xl font-bold text-white mb-6 justify-center`}>

@@ -40,7 +40,7 @@ export default function AdminEvents() {
   const handleOpenModal = (event?: Event) => {
     if (event) {
       setEditingEvent(event);
-      setFormData(event);
+      setFormData(event.status === 'past' ? { ...event, status: 'completed' } : event);
     } else {
       setEditingEvent(null);
 setFormData({ title: '', date: '', time: '', location: '', description: '', status: 'upcoming', gallery: [], heroVideo: '', pdfUrl: '', youtubeVideos: [] });    }
@@ -334,10 +334,13 @@ const handleHeroVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => 
                     <select
                       className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-accent"
                       value={formData.status}
-                      onChange={e => setFormData({ ...formData, status: e.target.value as 'upcoming' | 'past' })}
+                      onChange={e =>
+                        setFormData({ ...formData, status: e.target.value as 'upcoming' | 'completed' | 'past' })
+                      }
                     >
                       <option value="upcoming">Upcoming</option>
-                      <option value="past">Past</option>
+                      <option value="completed">Completed</option>
+                      <option value="past">Past (legacy)</option>
                     </select>
                   </div>
 
