@@ -85,7 +85,7 @@ const teamMembers: TeamMember[] = [
     name: 'Rohan Munagapati',
     position: 'Vice President',
     image: '/rohan.jpg',
-    description: 'Leading chapter development and helping new efforts feel cohesive across the organization.',
+    description: 'Bringing new partnerships to Pillars of Tech and innovating ideas to create stronger relationships and efficient nonprofit work',
     accent: 'from-teal-300/16 via-cyan-200/8 to-transparent',
     details: {
       grade: '11',
