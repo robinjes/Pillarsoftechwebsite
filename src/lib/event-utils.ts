@@ -45,6 +45,7 @@ export function normalizeEvent(event: Event): Event {
     .map((asset) => normalizeAssetPath(asset))
     .filter((asset): asset is string => Boolean(asset));
   const image = normalizeAssetPath(event.image) || gallery[0];
+  const heroImage = normalizeAssetPath(event.heroImage) || image;
   const heroVideo = normalizeAssetPath(event.heroVideo);
   const pdfUrl =
     normalizeAssetPath(event.pdfUrl) ||
@@ -56,6 +57,7 @@ export function normalizeEvent(event: Event): Event {
   return {
     ...event,
     image,
+    heroImage,
     heroVideo,
     gallery: gallery.length > 0 ? gallery : undefined,
     pdfUrl,

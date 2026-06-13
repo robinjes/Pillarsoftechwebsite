@@ -29,7 +29,7 @@
     "title": "Wildcat Tank - Altamont",
     "date": "March 25, 2026",
     "time": "6:00 PM - 8:00 PM",
-    "location": "Altamont Elementary School (MPR)",
+    "location": "Altamont Creek Elementary School (MPR)",
     "status": "past",
     "image": "/images/events/wildcat-tank/Wildcat%20Tank%20Timelapse.mov.png",
     "heroVideo": "/videos/events/wildcat-tank/Wildcat%20Tank%20Timelapse.mov",
@@ -44,7 +44,7 @@
     "title": "Family Science Night Event - Altamont",
     "date": "April 28, 2026",
     "time": "6:00-7:30PM",
-    "location": "Altamont Elementary",
+    "location": "Altamont Creek Elementary School",
     "status": "completed",
     "image": "/images/events/family-science-night/IMG_5880.jpg",
     "gallery": [
@@ -78,6 +78,56 @@
     "description": "Explore the limitless possibilities of STEM careers at our exclusive Career Panel! We've invited distinguished scientists and professionals from local laboratories to share their journeys, insights, and advice with students interested in science and technology fields.\n\nThe event will feature a structured panel presentation followed by an open Q&A session. Complimentary drinks and food will be provided. Come get inspired and network with industry experts!",
     "guests": [
       "Distinguished Scientists from local laboratories"
+    ]
+  },
+  {
+    "id": "altamont-creek-open-house",
+    "title": "Altamont Creek Elementary Open House",
+    "date": "May 13, 2026",
+    "time": "6:00 PM - 7:00 PM",
+    "location": "Altamont Creek Elementary School",
+    "status": "completed",
+    "image": "/images/events/altamont-creek-open-house/cover.png",
+    "heroImage": "/images/events/altamont-creek-open-house/hero.png",
+    "description": "The Altamont Creek Open House brought our students together for an exciting day of hands-on exploration and scientific discovery! Designed to spark curiosity and a love for STEM, the interactive activity gave students a front-row seat to the wonders of physics and engineering.\n\nThe event featured one major highlight that captured the imagination of our young scientists:\n\n• DIY Paper Helicopters: A crowd-favorite build-and-fly activity where students crafted their own spinning helicopters from a simple strip of paper and a paperclip. By folding, adjusting, and launching their creations, they explored the concepts of aerodynamics, drag, and gravity — discovering firsthand how angled blades interact with air to create lift and rotation, just like a real helicopter.\n\nThe event highlighted impressive curiosity, critical thinking, and a joy for learning from every participant. Thank you to the families, volunteers, and supporters who helped create an encouraging, high-energy atmosphere that made the day a memorable celebration of student discovery!",
+    "stats": [
+      {
+        "label": "Participants",
+        "value": "85+"
+      },
+      {
+        "label": "Total Event Attendees",
+        "value": "300+"
+      },
+      {
+        "label": "Hours of Engagement",
+        "value": "1"
+      }
+    ]
+  },
+  {
+    "id": "wildcat-carnival",
+    "title": "Wildcat Carnival",
+    "date": "May 15, 2026",
+    "time": "5:00 PM - 7:30 PM",
+    "location": "Altamont Creek Elementary School",
+    "status": "completed",
+    "image": "/images/events/wildcat-carnival/cover.png",
+    "heroVideo": "/videos/events/wildcat-tank/TiemLapseCarnivalV2.MOV",
+    "description": "The Wildcat Carnival brought our Altamont elementary students together for an exciting day of hands-on exploration and scientific discovery! Designed to spark curiosity and a love for STEM, the interactive science stations gave students a front-row seat to the wonders of chemistry and physics.\n\nThe event featured two major highlights that captured the imagination of our young scientists:\n\n• Elephant's Toothpaste: A crowd-favorite demonstration where students witnessed a rapid, foaming exothermic reaction, illustrating the concepts of chemical energy and heat release in a spectacular display.\n\n• Oobleck Exploration: A dynamic sensory station where students interacted with a fascinating non-Newtonian fluid. By pushing, pulling, and pouring the mixture, they explored how some materials defy standard laws of physics by acting as both a solid and a liquid.\n\nThe event highlighted impressive curiosity, critical thinking, and a joy for learning from every participant. Thank you to the families, volunteers, and supporters who helped create an encouraging, high-energy atmosphere that made the day a memorable celebration of student discovery!",
+    "stats": [
+      {
+        "label": "Participants",
+        "value": "100+"
+      },
+      {
+        "label": "Total Event Attendees",
+        "value": "350+"
+      },
+      {
+        "label": "Hours of Engagement",
+        "value": "2.5"
+      }
     ]
   },
   {

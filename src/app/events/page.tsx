@@ -75,8 +75,13 @@ export default function EventsPage() {
   })
 
   const parseEventDate = (dateStr: string): number => {
-    // Supports "M/D/YY", "M/D/YYYY", and falls back to Date.parse for other formats.
-    const mdy = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(dateStr.trim())
+    const trimmed = dateStr.trim()
+    if (!trimmed || /^tbd$/i.test(trimmed)) {
+      return 0
+    }
+
+    // Supports "M/D/YY", "M/D/YYYY"
+    const mdy = /^(\d{1,2})\/(\d{1,2})\/(\d{2}|\d{4})$/.exec(trimmed)
     if (mdy) {
       const month = Number(mdy[1])
       const day = Number(mdy[2])
@@ -87,23 +92,33 @@ export default function EventsPage() {
       return Number.isFinite(t) ? t : 0
     }
 
-    const t = Date.parse(dateStr)
+    // Supports "May 13th, 2026", "March 25, 2026", etc.
+    const withoutOrdinal = trimmed.replace(/(\d+)(st|nd|rd|th)/i, '$1')
+    const t = Date.parse(withoutOrdinal)
     return Number.isFinite(t) ? t : 0
   }
 
-  // Sort: upcoming first; past events at the bottom (most recent -> oldest)
+  const getEventSortDate = (event: Event, treatMissingAsLatest: boolean): number => {
+    const parsed = parseEventDate(event.date)
+    if (parsed === 0) {
+      return treatMissingAsLatest ? Number.MAX_SAFE_INTEGER : 0
+    }
+    return parsed
+  }
+
+  // Upcoming first; then sort by date with the most recent (or next upcoming) at the top
   const displayEvents = filteredEvents.sort((a, b) => {
     const aStatus = a.status === 'past' ? 'completed' : a.status
     const bStatus = b.status === 'past' ? 'completed' : b.status
 
-    if (aStatus === 'upcoming' && bStatus === 'completed') return -1
-    if (aStatus === 'completed' && bStatus === 'upcoming') return 1
+    if (aStatus === 'upcoming' && bStatus !== 'upcoming') return -1
+    if (bStatus === 'upcoming' && aStatus !== 'upcoming') return 1
 
-    if (aStatus === 'completed' && bStatus === 'completed') {
-      return parseEventDate(b.date) - parseEventDate(a.date)
-    }
+    const aIsUpcoming = aStatus === 'upcoming'
+    const aDate = getEventSortDate(a, aIsUpcoming)
+    const bDate = getEventSortDate(b, bStatus === 'upcoming')
 
-    return 0
+    return bDate - aDate
   })
 
   return (

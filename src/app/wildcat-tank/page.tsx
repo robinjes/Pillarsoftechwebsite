@@ -4,7 +4,7 @@ import WildcatTankPodium from '@/components/WildcatTankPodium'
 
 export const metadata: Metadata = {
   title: 'Wildcat Tank | Pillars of Tech',
-  description: 'Judges, timeline, and event details for Wildcat Tank at Altamont Elementary.',
+  description: 'Judges, timeline, and event details for Wildcat Tank at Altamont Creek Elementary School.',
 }
 
 const judges = [
@@ -68,7 +68,7 @@ const reminders = [
   },
   {
     label: 'Location',
-    value: 'Altamont Elementary School (MPR)',
+    value: 'Altamont Creek Elementary School (MPR)',
   },
   {
     label: 'Presentation Ready',

@@ -49,7 +49,7 @@ export default function EventPage() {
 
   const heroSlides = Array.from(
     new Set(
-      [event?.image].filter((image): image is string => Boolean(image))
+      [event?.heroImage, event?.image].filter((image): image is string => Boolean(image))
     )
   )
   const hasHeroCarousel = !event?.heroVideo && heroSlides.length > 1
@@ -172,6 +172,8 @@ export default function EventPage() {
     'science-odyssey',
     'pedrozzi-connect-egg-drop',
     'foil-boat-stockmens',
+    'wildcat-carnival',
+    'altamont-creek-open-house',
   ])
   const centerContent = centerContentEvents.has(event.id)
   const showPresentationDayLink = event.id === 'wildcat-tank-altamont'
