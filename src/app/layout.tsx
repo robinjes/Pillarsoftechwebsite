@@ -12,12 +12,12 @@ const quicksand = Quicksand({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Pillars of Tech',
-  description: 'Enabling the next generation of tech leaders',
+  description: 'Enabling the next generation of STEM leaders',
   manifest: '/site.webmanifest',
   metadataBase: new URL('https://pillarsoftech.org'), // Adding reasonable fallback
   openGraph: {
     title: 'Pillars of Tech',
-    description: 'Enabling the next generation of tech leaders',
+    description: 'Enabling the next generation of STEM leaders',
     images: [
       {
         url: '/potofficiallogo.png',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Pillars of Tech',
-    description: 'Enabling the next generation of tech leaders',
+    description: 'Enabling the next generation of STEM leaders',
     images: ['/potofficiallogo.png'],
   },
   icons: {

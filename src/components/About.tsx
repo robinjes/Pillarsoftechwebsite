@@ -2,98 +2,367 @@
 
 import { motion } from 'framer-motion'
 import { Fredoka } from 'next/font/google'
-import { GraduationCap, Lightbulb, Users } from 'lucide-react'
+import { GraduationCap, Lightbulb, Users, Target, Heart, Zap, Code, Rocket } from 'lucide-react'
+import Link from 'next/link'
+import { useState, useEffect } from 'react'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 
+const partnerNames = [
+  'Pedrozzi Youth Foundation',
+  'QUEST Science Center',
+  'Altamont Creek Elementary'
+]
+
+function RotatingPartners() {
+  const [current, setCurrent] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % partnerNames.length)
+    }, 3000)
+    return () => clearInterval(interval)
+  }, [])
+
+  return (
+    <motion.p
+      key={current}
+      className="text-cyan-300 text-sm md:text-base"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.5 }}
+    >
+      {partnerNames[current]}
+    </motion.p>
+  )
+}
+
 export default function About() {
-  const features = [
+  const coreValues = [
     {
-      title: 'Education',
-      description: 'Providing accessible STEM education and resources to students across all communities.',
-      Icon: GraduationCap
+      title: 'Accessibility',
+      description: 'Technology education should be available to everyone, regardless of background or financial status.',
+      Icon: Users,
+      color: 'from-cyan-400 to-blue-400'
     },
     {
       title: 'Innovation',
-      description: 'Fostering creativity and problem-solving skills through hands-on STEM projects.',
-      Icon: Lightbulb
+      description: 'We foster creativity and problem-solving through hands-on projects and real-world applications.',
+      Icon: Lightbulb,
+      color: 'from-amber-400 to-orange-400'
     },
     {
       title: 'Community',
-      description: 'Building a supportive network of students, educators, and industry professionals.',
+      description: 'Building a supportive network of students, mentors, and industry professionals who lift each other up.',
+      Icon: Heart,
+      color: 'from-rose-400 to-pink-400'
+    },
+    {
+      title: 'Excellence',
+      description: 'We strive for quality in everything we do, from our events to our mentorship programs.',
+      Icon: Rocket,
+      color: 'from-purple-400 to-indigo-400'
+    }
+  ]
+
+  const achievements = [
+    { number: '1000+', label: 'Students Empowered' },
+    { number: '100+', label: 'Volunteer Hours' },
+    { number: '3', label: 'Partner Organizations' },
+    { number: '∞', label: 'Potential Unlocked' }
+  ]
+
+  const pillars = [
+    {
+      title: 'Hands-On Events',
+      description: 'From robotics challenges to coding competitions, we create engaging experiences that spark passion for STEM.',
+      Icon: Code
+    },
+    {
+      title: 'Mentorship Programs',
+      description: 'Connect with experienced professionals and student leaders who guide your journey in tech.',
+      Icon: GraduationCap
+    },
+    {
+      title: 'Community Focus',
+      description: 'We prioritize underserved communities and ensure technology education reaches those who need it most.',
       Icon: Users
     }
   ]
 
   return (
-    <section id="about" className="py-20 bg-gradient-to-br from-blue-800 via-blue-850 to-blue-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="text-center mb-16"
-        >
-          <h2 className={`${fredoka.className} text-4xl font-bold text-white mb-4`}>
-            Our Mission
-          </h2>
-          <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-            We are dedicated to making STEM education accessible and engaging for students of all backgrounds
-          </p>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: index * 0.2 }}
-              viewport={{ once: true }}
-              className="bg-blue-800/50 backdrop-blur-sm border border-white/20 p-8 rounded-lg hover:shadow-lg transition-shadow"
-            >
-              <div className="mb-4">
-                <feature.Icon className="w-10 h-10 text-amber-400" />
-              </div>
-              <h3 className={`${fredoka.className} text-2xl font-semibold text-white mb-3`}>{feature.title}</h3>
-              <p className="text-blue-100">{feature.description}</p>
-            </motion.div>
-          ))}
+    <>
+      {/* Hero Section */}
+      <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500 pt-20">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-950/50 via-blue-900/45 to-blue-700/50" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_35%),radial-gradient(circle_at_bottom,rgba(59,130,246,0.12),transparent_45%)]" />
+        
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+          <motion.h1
+            className={`${fredoka.className} text-5xl md:text-6xl font-bold text-white mb-6`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            About Pillars of Tech
+          </motion.h1>
+          
+          <motion.p
+            className="text-xl md:text-2xl text-blue-100 mb-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            Empowering students to become the STEM leaders of tomorrow
+          </motion.p>
         </div>
+      </section>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          viewport={{ once: true }}
-          className="mt-20 bg-blue-800/50 backdrop-blur-sm border border-white/20 p-8 rounded-lg"
-        >
-          <div className="text-center">
-            <h3 className={`${fredoka.className} text-2xl font-bold text-white mb-4`}>Who We Are</h3>
-            <div className="text-lg text-blue-100 max-w-3xl mx-auto mb-6 space-y-4">
+      {/* Mission & Vision Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-800/20 via-blue-750/20 to-blue-800/20 backdrop-blur-sm border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            {/* Mission */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="group relative overflow-hidden rounded-2xl border border-blue-400/20 bg-gradient-to-br from-blue-700/20 to-blue-900/20 p-10 backdrop-blur-md hover:border-blue-300/40 transition-all duration-300"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
+                <Target className="w-12 h-12 text-cyan-400 mb-4" />
+                <h3 className={`${fredoka.className} text-3xl font-bold text-white mb-4`}>Our Mission</h3>
+                <p className="text-lg text-blue-100 leading-relaxed">
+                  To make technology education accessible and engaging for all students, particularly those in underserved communities. We believe every student has the potential to excel in STEM, and we're committed to providing the opportunities, mentorship, and resources to help them succeed.
+                </p>
+              </div>
+            </motion.div>
+
+            {/* Vision */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+              className="group relative overflow-hidden rounded-2xl border border-blue-400/20 bg-gradient-to-br from-blue-700/20 to-blue-900/20 p-10 backdrop-blur-md hover:border-blue-300/40 transition-all duration-300"
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative z-10">
+                <Rocket className="w-12 h-12 text-purple-400 mb-4" />
+                <h3 className={`${fredoka.className} text-3xl font-bold text-white mb-4`}>Our Vision</h3>
+                <p className="text-lg text-blue-100 leading-relaxed">
+                  By 2026, we envision a world where 1000+ students have been empowered through our programs, equipped with the skills, confidence, and networks to pursue careers in technology. We're building a generation of innovators, leaders, and changemakers who will shape the future.
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Achievements Section */}
+      <section className="py-16 bg-gradient-to-r from-blue-900/30 to-blue-800/30 backdrop-blur-md border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            {achievements.map((achievement, index) => (
+              <div key={achievement.label} className="text-center">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  viewport={{ once: true }}
+                  className={`${fredoka.className} text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-300 mb-2`}
+                >
+                  {achievement.number}
+                </motion.div>
+                <p className="text-blue-100 text-lg">{achievement.label}</p>
+                {achievement.label === 'Partner Organizations' && (
+                  <div className="mt-2 h-6">
+                    <RotatingPartners />
+                  </div>
+                )}
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Core Values Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-800/20 via-blue-750/20 to-blue-800/20 backdrop-blur-sm border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className={`${fredoka.className} text-4xl md:text-5xl font-bold text-white mb-4`}>
+              Our Core Values
+            </h2>
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+              These principles guide everything we do and define who we are as an organization
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {coreValues.map((value, index) => (
+              <motion.div
+                key={value.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="group relative overflow-hidden rounded-xl border border-blue-400/20 bg-gradient-to-br from-blue-700/20 to-blue-900/20 p-8 backdrop-blur-md hover:border-blue-300/40 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <value.Icon className="w-10 h-10 text-cyan-400 mb-4" />
+                  <h3 className={`${fredoka.className} text-2xl font-bold text-white mb-3`}>
+                    {value.title}
+                  </h3>
+                  <p className="text-blue-100 leading-relaxed">
+                    {value.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Three Pillars Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-900/30 via-blue-800/30 to-blue-900/30 backdrop-blur-md border-t border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center mb-16"
+          >
+            <h2 className={`${fredoka.className} text-4xl md:text-5xl font-bold text-white mb-4`}>
+              How We Make an Impact
+            </h2>
+            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+              Our work is built on three pillars designed to create lasting change in STEM education
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {pillars.map((pillar, index) => (
+              <motion.div
+                key={pillar.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: index * 0.15 }}
+                viewport={{ once: true }}
+                className="group relative overflow-hidden rounded-xl border border-blue-400/20 bg-gradient-to-br from-blue-700/30 to-blue-900/30 p-8 backdrop-blur-md hover:border-blue-300/40 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <div className="relative z-10">
+                  <pillar.Icon className="w-12 h-12 text-cyan-400 mb-4" />
+                  <h3 className={`${fredoka.className} text-2xl font-bold text-white mb-3`}>
+                    {pillar.title}
+                  </h3>
+                  <p className="text-blue-100 leading-relaxed">
+                    {pillar.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Who We Are Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-800/20 via-blue-750/20 to-blue-800/20 backdrop-blur-sm border-t border-white/10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <h2 className={`${fredoka.className} text-4xl font-bold text-white mb-6`}>
+              Who We Are
+            </h2>
+            <div className="space-y-6 text-lg text-blue-100 leading-relaxed">
               <p>
-                We are a passionate group of high school students dedicated to spreading STEM education and technology access to communities that need it most. Our team believes that every student deserves the opportunity to explore and excel in technology, regardless of their background.
+                We are a passionate collective of high school students, mentors, and volunteers united by a single mission: to democratize access to technology education. Our team comes from diverse backgrounds, but we share a common belief that every student deserves the opportunity to discover their potential in STEM.
               </p>
               <p>
-                As a fiscally sponsored project of Hack Club, we operate under their 501(c)(3) status, ensuring that all donations are tax-deductible and every dollar goes directly to our mission. This partnership allows us to focus entirely on what matters most: making technology education accessible to all.
+                <span className="text-cyan-300 font-semibold">Fiscally sponsored by Hack Club</span>, a nonprofit organization supporting student technologists worldwide, we operate under their 501(c)(3) status. This partnership means every donation is tax-deductible and goes directly to our programs — no overhead, no bureaucracy, just impact.
               </p>
               <p>
-                Our commitment goes beyond just teaching - we're building a community where students can discover their passion for technology, develop crucial skills for the future, and become leaders in their own right.
+                What sets us apart is our student-led approach. We don't just teach STEM; we create experiences that inspire. Through engaging events, meaningful mentorship, and genuine community support, we're building the next generation of STEM leaders, innovators, and changemakers.
+              </p>
+              <p>
+                Our commitment extends beyond the classroom. We're actively working to bridge the digital divide, ensure equitable access to technology education, and create pathways for students from underrepresented communities to succeed in tech careers.
               </p>
             </div>
-            <a 
-              href="https://hcb.hackclub.com/pillars-of-tech/transparency"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block bg-primary/90 hover:bg-primary text-white px-6 py-3 rounded-md font-semibold transition-colors border border-white/20"
-            >
-              View Our Transparency
-            </a>
-          </div>
-        </motion.div>
 
-      </div>
-    </section>
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+              <a 
+                href="https://hcb.hackclub.com/pillars-of-tech/transparency"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-block bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+              >
+                View Our Transparency Report
+              </a>
+              <Link
+                href="/contact"
+                className="inline-block border-2 border-cyan-400 text-cyan-300 hover:bg-cyan-400/10 px-8 py-3 rounded-lg font-semibold transition-all duration-300"
+              >
+                Get in Touch
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-700 via-blue-600 to-blue-700 border-t border-white/10">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <h2 className={`${fredoka.className} text-4xl font-bold text-white mb-6`}>
+              Join Our Mission
+            </h2>
+            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+              Whether you're a student looking to learn, an educator wanting to volunteer, or a company interested in supporting tech education, there's a place for you in our community.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="https://docs.google.com/forms/d/e/1FAIpQLSdsNmpS2wpikV77wl1ifpD52a0zAepa-b8DhesqFjPTQVoo7w/viewform"
+                className="inline-block bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+              >
+                Join Our Team
+              </Link>
+              <Link
+                href="https://hcb.hackclub.com/donations/start/pillars-of-tech"
+                className="inline-block border-2 border-white text-white hover:bg-white/10 px-8 py-3 rounded-lg font-semibold transition-all duration-300"
+              >
+                Support Our Work
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+    </>
   )
 } 

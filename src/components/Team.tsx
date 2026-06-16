@@ -1,6 +1,9 @@
+'use client'
+
 import Image from 'next/image'
+import { motion } from 'framer-motion'
 import { Fredoka } from 'next/font/google'
-import { ArrowDown, ArrowUpRight, GraduationCap, MapPin, Sparkles, Users } from 'lucide-react'
+import { ArrowUpRight, GraduationCap, MapPin, Sparkles, Users } from 'lucide-react'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 
@@ -164,155 +167,167 @@ const statCards = [
 ]
 
 function MemberCard({ member, index }: { member: TeamMember; index: number }) {
-  const profileItems = [
-    { label: 'Grade', value: member.details.grade },
-    { label: 'School', value: member.details.school },
-    { label: 'Hobby', value: member.details.hobby },
-    { label: 'Favorite App', value: member.details.favoriteApp },
-    { label: 'Planned Major', value: member.details.major }
-  ]
-
   const useUnoptimizedImage = member.name === 'Yashas Jeedi' || member.name === 'Michael Nolan McClung'
 
   return (
-    <article
-      className="group relative overflow-hidden rounded-[28px] border border-white/12 bg-[#10285f]/88 shadow-[0_18px_60px_rgba(6,18,49,0.35)] backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-[#14316f]/92"
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      viewport={{ once: true }}
+      className="group relative overflow-hidden rounded-2xl border border-blue-400/20 bg-gradient-to-br from-blue-700/20 to-blue-900/20 backdrop-blur-md hover:border-cyan-400/40 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/20"
     >
-      <div className={`absolute inset-x-0 top-0 h-28 bg-gradient-to-r ${member.accent}`} />
-      <div className="absolute inset-x-0 top-0 h-24 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),transparent)]" />
-
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      
       <div className="relative p-6">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-          <div className="relative h-28 w-28 overflow-hidden rounded-3xl border border-white/20 bg-slate-900/40 shadow-lg">
+        {/* Image - Square */}
+        <div className="mb-5 overflow-hidden rounded-xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/20 to-blue-600/20">
+          <div className="relative w-full pb-[100%]">
             <Image
               src={member.image}
               alt={member.name}
               fill
-              className="object-cover"
+              className="absolute inset-0 h-full w-full object-cover"
               priority={index < 3}
               quality={100}
-              sizes="(max-width: 768px) 112px, 112px"
               unoptimized={useUnoptimizedImage}
             />
           </div>
+        </div>
 
-          <div className="flex-1">
-            <div className="mb-3 flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-blue-100">
-                {member.position}
-              </span>
-              <span className="inline-flex items-center gap-1 text-sm text-blue-100/80">
-                <MapPin className="h-4 w-4" />
-                {member.details.from}
-              </span>
+        {/* Info */}
+        <div>
+          <h3 className={`${fredoka.className} text-xl font-bold text-white mb-1`}>{member.name}</h3>
+          <p className="text-sm font-semibold text-cyan-300 mb-4">{member.position}</p>
+          
+          {/* Details Grid */}
+          <div className="space-y-3 text-sm">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs font-semibold text-blue-300 uppercase tracking-wide">Grade</p>
+                <p className="text-blue-100 mt-1">{member.details.grade}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-blue-300 uppercase tracking-wide">From</p>
+                <p className="text-blue-100 mt-1">{member.details.from}</p>
+              </div>
             </div>
-
-            <h3 className={`${fredoka.className} text-2xl font-semibold text-white`}>{member.name}</h3>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-blue-100/90">{member.description}</p>
+            
+            <div>
+              <p className="text-xs font-semibold text-blue-300 uppercase tracking-wide">School</p>
+              <p className="text-blue-100 mt-1">{member.details.school}</p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <p className="text-xs font-semibold text-blue-300 uppercase tracking-wide">Hobby</p>
+                <p className="text-blue-100 mt-1">{member.details.hobby}</p>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-blue-300 uppercase tracking-wide">Favorite App</p>
+                <p className="text-blue-100 mt-1">{member.details.favoriteApp}</p>
+              </div>
+            </div>
+            
+            <div>
+              <p className="text-xs font-semibold text-blue-300 uppercase tracking-wide">Planned Major</p>
+              <p className="text-blue-100 mt-1">{member.details.major}</p>
+            </div>
           </div>
         </div>
-
-        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {profileItems.map((item) => (
-            <div
-              key={`${member.name}-${item.label}`}
-              className="rounded-2xl border border-white/10 bg-[#091835]/55 px-4 py-3"
-            >
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-200/70">{item.label}</p>
-              <p className="mt-1 text-sm text-white">{item.value}</p>
-            </div>
-          ))}
-        </div>
       </div>
-    </article>
+    </motion.div>
   )
 }
 
 export default function Team() {
   return (
-    <section
-      id="team"
-      className="relative overflow-hidden bg-[linear-gradient(180deg,#10265f_0%,#0c1f4c_48%,#091735_100%)] pb-20 pt-6"
-    >
-      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),transparent_18%,transparent_82%,rgba(255,255,255,0.03))]" />
-      <div className="absolute inset-x-0 top-0 h-px bg-white/10" />
+    <section id="team" className="relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500 pt-20 pb-20">
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-950/50 via-blue-900/45 to-blue-700/50" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_35%),radial-gradient(circle_at_bottom,rgba(59,130,246,0.12),transparent_45%)]" />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-14 grid gap-8 lg:grid-cols-[1.4fr_0.9fr]">
-          <div className="rounded-[32px] border border-white/12 bg-[#143270]/88 p-8 shadow-[0_20px_80px_rgba(4,11,32,0.35)] backdrop-blur-xl sm:p-10">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/6 px-4 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-cyan-100">
-              <Users className="h-4 w-4" />
-              Meet The People Behind Pillars of Tech
-            </div>
-
-            <h2 className={`${fredoka.className} max-w-3xl text-4xl font-bold leading-tight text-white sm:text-5xl`}>
-              A student-led team building welcoming pathways into STEM.
-            </h2>
-
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-blue-100/90">
-              Our team brings together organizers, program builders, and student developers who care deeply about making technology education more accessible, practical, and inspiring.
-            </p>
-
+        {/* Subtle Join Banner */}
+        <motion.div
+          className="mb-12 rounded-lg border border-cyan-400/20 bg-gradient-to-r from-cyan-500/10 to-blue-500/10 px-6 py-3 backdrop-blur-sm"
+          initial={{ opacity: 0, y: -10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+        >
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <p className="text-sm text-cyan-100">Want to join us? We're always looking for passionate students!</p>
             <a
-              href="#team-groups"
-              className="mt-8 inline-flex items-center gap-3 rounded-full border border-white/12 bg-[#0d214f]/70 px-5 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-blue-50 transition-colors hover:bg-[#13306d]"
+              href={teamJoinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold text-cyan-300 hover:text-cyan-200 transition-colors"
             >
-              <ArrowDown className="h-4 w-4" />
-              Scroll Down
+              Apply Now →
             </a>
           </div>
+        </motion.div>
 
-          <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-            {statCards.map((stat, index) => (
-              <div
-                key={stat.label}
-                className="rounded-[28px] border border-white/12 bg-[#0f2454]/90 p-6 shadow-[0_14px_50px_rgba(4,11,32,0.28)] backdrop-blur-xl"
-              >
-                <stat.Icon className="h-8 w-8 text-amber-300" />
-                <p className={`${fredoka.className} mt-5 text-3xl text-white`}>{stat.value}</p>
-                <p className="mt-2 text-sm uppercase tracking-[0.16em] text-blue-100/70">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div
-          id="team-groups"
-          className="rounded-[32px] border border-white/12 bg-[#0e2353]/84 p-6 shadow-[0_18px_70px_rgba(4,11,32,0.28)] backdrop-blur-xl sm:p-8"
+        {/* Header */}
+        <motion.div
+          className="mb-16 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
         >
-          <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+          <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/40 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-200 mb-6">
+            <Users className="h-4 w-4" />
+            Meet Our Team
+          </div>
+          <h1 className={`${fredoka.className} text-5xl md:text-6xl font-bold text-white mb-4`}>
+            The People Behind Pillars of Tech
+          </h1>
+          <p className="text-xl text-blue-100 max-w-3xl mx-auto">
+            Meet the passionate students dedicated to making STEM education accessible to everyone.
+          </p>
+        </motion.div>
+
+        {/* Team Grid */}
+        <div className="mb-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {teamMembers.map((member, index) => (
               <MemberCard key={member.name} member={member} index={index} />
             ))}
           </div>
-
-          <a
-            href={teamJoinUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group mt-8 block overflow-hidden rounded-[28px] border border-white/12 bg-[linear-gradient(135deg,rgba(19,49,111,0.95),rgba(9,24,53,0.95))] p-7 shadow-[0_18px_60px_rgba(6,18,49,0.35)] transition-all duration-300 hover:-translate-y-1 hover:border-cyan-200/30 hover:shadow-[0_22px_70px_rgba(34,211,238,0.18)] sm:p-8"
-          >
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <div className="max-w-3xl">
-                <div className="inline-flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-100">
-                  <Sparkles className="h-4 w-4" />
-                  Join Pillars of Tech
-                </div>
-                <h3 className={`${fredoka.className} mt-4 text-3xl font-bold text-white sm:text-4xl`}>
-                  Want to join our team? Sign up here.
-                </h3>
-                <p className="mt-3 text-base leading-7 text-blue-100/90 sm:text-lg">
-                  We are always excited to meet students who want to help with events, outreach, programs, and new ideas across Pillars of Tech.
-                </p>
-              </div>
-
-              <div className="inline-flex items-center gap-3 self-start rounded-full border border-white/15 bg-white px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-blue-900 transition-colors group-hover:bg-cyan-50">
-                Apply To Join
-                <ArrowUpRight className="h-4 w-4" />
-              </div>
-            </div>
-          </a>
         </div>
+
+        {/* Join CTA */}
+        <motion.div
+          className="group relative overflow-hidden rounded-2xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/20 to-blue-600/20 p-8 md:p-12 backdrop-blur-md hover:border-cyan-400/50 transition-all duration-300 text-center"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          viewport={{ once: true }}
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 rounded-full border border-cyan-400/40 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-200 mb-4">
+              <Sparkles className="h-4 w-4" />
+              Join Us
+            </div>
+            <h2 className={`${fredoka.className} text-3xl md:text-4xl font-bold text-white mb-3`}>
+              Interested in Joining?
+            </h2>
+            <p className="text-lg text-blue-100 max-w-2xl mx-auto mb-6">
+              We're always looking for passionate students who want to help grow STEM education in our community.
+            </p>
+            <a
+              href={teamJoinUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
+            >
+              Apply Now
+              <ArrowUpRight className="h-5 w-5" />
+            </a>
+          </div>
+        </motion.div>
       </div>
     </section>
   )
