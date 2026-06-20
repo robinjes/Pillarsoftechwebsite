@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { Space_Grotesk } from 'next/font/google'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Menu, X, Home, Info, Calendar, Users, Mail, Newspaper } from 'lucide-react'
+import { Menu, X, Home, Info, Calendar, Users, Mail, Newspaper, Heart } from 'lucide-react'
 
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 
@@ -15,6 +15,7 @@ export default function Navbar() {
   const navLinks = [
     { name: 'About', href: '/about', icon: Info },
     { name: 'Programs & Events', href: '/events', icon: Calendar },
+    { name: 'Volunteer', href: '/volunteer', icon: Heart },
     { name: 'Team', href: '/team', icon: Users },
     { name: 'Contact', href: '/contact', icon: Mail },
   ]
