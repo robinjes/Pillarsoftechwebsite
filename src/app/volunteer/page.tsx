@@ -210,7 +210,7 @@ export default function VolunteerPortalPage() {
     return (
       <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-6">
         <Loader2 className="w-12 h-12 text-accent animate-spin mb-4" />
-        <p className={`${spaceGrotesk.className} text-blue-200 text-lg`}>Loading Volunteer Portal...</p>
+        <p className={`${spaceGrotesk.className} text-blue-200 text-lg`}>Loading Volunteer Portal... (If it does not load within 10 seconds, please refresh the page.)</p>
       </div>
     )
   }
