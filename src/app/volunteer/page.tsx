@@ -33,7 +33,7 @@ import {
   HandshakeIcon,
   Users,
   Download,
-  Print as PrintIcon,
+  Printer as PrintIcon,
   Hourglass,
   X,
 } from 'lucide-react'
