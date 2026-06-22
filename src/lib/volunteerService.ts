@@ -220,8 +220,8 @@ export const volunteerService = {
     }
 
     // Add timeout to prevent hanging - 8 second limit for profile creation
-    let data: any = null
-    let dbError: any = null
+    let data: Record<string, unknown> | null = null
+    let dbError: Record<string, unknown> | null = null
     let timedOut = false
 
     try {
@@ -240,8 +240,8 @@ export const volunteerService = {
       clearTimeout(timeoutId)
       data = result.data
       dbError = result.error
-    } catch (err: any) {
-      dbError = err
+    } catch (err: unknown) {
+      dbError = err as Record<string, unknown> | null
     }
 
     // If profile creation timed out or had permission error, return temporary profile
@@ -635,6 +635,10 @@ updateUserRole: async (
       }
     }
 
+    if (!supabase) {
+      throw new Error('Supabase client is not available')
+    }
+
     const { data: profileData, error: profileErr } = await supabase
       .from('profiles')
       .select('*')
@@ -657,7 +661,7 @@ updateUserRole: async (
       console.error('Error checking active session:', activeSessionErr)
     }
 
-    const { data: signupData, error: signupErr } = await supabase
+    const { data: signupData } = await supabase
       .from('event_volunteers')
       .select('*')
       .eq('user_id', profileData.id)

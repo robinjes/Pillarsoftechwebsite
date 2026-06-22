@@ -160,7 +160,11 @@ export default function VolunteerPortalPage() {
   const handleToggleExpand = (id: string) => {
     setExpandedEvents((prev) => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
       return next
     })
   }
@@ -676,8 +680,8 @@ export default function VolunteerPortalPage() {
           </p>
 
           <p className={`${spaceGrotesk.className} text-blue-100 leading-relaxed mb-8`}>
-            By filling this out, you're joining our go-to list of extra hands for upcoming workshops, panels, and community events.{' '}
-            <strong className="text-white">There is no long-term commitment required</strong>—whenever an event is coming up, we will reach out to this network with the specific dates and times so you can pitch in whenever your schedule allows.
+            By filling this out, you&apos;re joining our go-to list of extra hands for upcoming workshops, panels, and community events.{' '}
+            <strong className="text-white">There is no long-term commitment required</strong>&mdash;whenever an event is coming up, we will reach out to this network with the specific dates and times so you can pitch in whenever your schedule allows.
           </p>
 
           {/* Callouts */}
