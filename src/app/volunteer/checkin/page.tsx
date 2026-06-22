@@ -40,9 +40,23 @@ export default function CheckinPage() {
   const [scannerInstance, setScannerInstance] = useState<Html5Qrcode | null>(null)
 
   // Scan result state
-  const [recentScan, setRecentScan] = useState<{ profile: VolunteerProfile, signup: VolunteerSignup } | null>(null)
+  const [recentScan, setRecentScan] = useState<{
+    profile: VolunteerProfile
+    signup: VolunteerSignup
+    action: 'checkedIn' | 'checkedOut'
+    hoursLogged: number
+    checkInTime: string
+    checkOutTime?: string
+  } | null>(null)
   const [checkinLoading, setCheckinLoading] = useState(false)
   const [checkinError, setCheckinError] = useState('')
+  const [activeCheckIns, setActiveCheckIns] = useState<Array<{
+    profile: VolunteerProfile
+    eventId: string
+    checkInTime: string
+    sessionId: string
+    hoursLogged: number
+  }>>([])
 
   // Manual code input state
   const [manualCode, setManualCode] = useState('')
@@ -107,7 +121,10 @@ export default function CheckinPage() {
         console.error('Failed to fetch events:', err)
       }
 
-      if (mounted) setLoading(false)
+      if (mounted) {
+        setLoading(false)
+        loadActiveCheckIns()
+      }
     }
 
     init()
@@ -193,6 +210,7 @@ export default function CheckinPage() {
       const result = await volunteerService.checkInVolunteer(code, selectedEventId)
       playSuccessBeep()
       setRecentScan(result)
+      await loadActiveCheckIns()
       
       // Auto-clear result after 4 seconds to enable continuous scanning
       if (beepPlayTimeoutRef.current) clearTimeout(beepPlayTimeoutRef.current)
@@ -219,6 +237,11 @@ export default function CheckinPage() {
     const profiles = await volunteerService.getAllProfiles()
     setAllProfiles(profiles)
     setSettingsLoading(false)
+  }
+
+  const loadActiveCheckIns = async () => {
+    const sessions = await volunteerService.getActiveCheckInSessions()
+    setActiveCheckIns(sessions)
   }
 
   const handleUpdateRole = async (userId: string, newRole: 'volunteer' | 'staff') => {
@@ -295,7 +318,7 @@ export default function CheckinPage() {
             Webcam Attendance Check-In
           </h1>
           <p className={`${spaceGrotesk.className} text-blue-200`}>
-            Scan volunteer QR codes or enter member codes to log arrival and assign hours.
+            Scan volunteer QR codes or enter member codes to record arrival and departure for accurate hours.
           </p>
         </div>
 <AnimatePresence>
@@ -527,9 +550,40 @@ export default function CheckinPage() {
                   disabled={checkinLoading || !selectedEventId}
                   className="w-full py-2.5 bg-white/10 hover:bg-white text-white hover:text-slate-900 border border-white/10 rounded-xl font-bold text-sm transition-all disabled:opacity-50"
                 >
-                  Submit Check-In
+                  Submit Code
                 </button>
               </form>
+            </div>
+
+            {/* CURRENTLY CHECKED-IN VOLUNTEERS */}
+            <div className="bg-slate-900/60 border border-white/10 rounded-3xl p-6">
+              <h2 className={`${fredoka.className} text-xl font-bold mb-4 flex items-center gap-2`}>
+                <UserCheck className="w-5 h-5 text-accent" /> Currently Checked In
+              </h2>
+              {activeCheckIns.length > 0 ? (
+                <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
+                  {activeCheckIns.map((session) => (
+                    <div key={session.sessionId} className="border border-white/10 rounded-2xl p-4 bg-black/20">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className={`${spaceGrotesk.className} text-sm text-blue-200 font-semibold`}>{session.profile.fullName}</p>
+                          <p className={`${spaceGrotesk.className} text-xs text-slate-400`}>{session.profile.memberCode}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className={`${spaceGrotesk.className} text-xs text-slate-400`}>Event</p>
+                          <p className={`${spaceGrotesk.className} text-sm text-white`}>{events.find((e) => e.id === session.eventId)?.title ?? session.eventId}</p>
+                        </div>
+                      </div>
+                      <div className="mt-3 flex items-center justify-between text-xs text-blue-200">
+                        <span>Checked in at {new Date(session.checkInTime).toLocaleTimeString()}</span>
+                        <span>{session.hoursLogged.toFixed(2)}h logged</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className={`${spaceGrotesk.className} text-sm text-blue-200`}>No volunteers are currently checked in.</p>
+              )}
             </div>
 
             {/* STATUS / SCAN RESULTS OVERLAY CONTAINER */}
@@ -550,7 +604,7 @@ export default function CheckinPage() {
                       </div>
                       <div>
                         <span className={`${spaceGrotesk.className} text-[10px] text-emerald-400 font-bold uppercase tracking-wider`}>
-                          Check-in Successful!
+                          {recentScan.action === 'checkedIn' ? 'Checked In' : 'Checked Out'} Successfully!
                         </span>
                         <h3 className={`${fredoka.className} text-xl font-bold mt-1 text-white`}>
                           {recentScan.profile.fullName}
@@ -559,7 +613,9 @@ export default function CheckinPage() {
                           Member: <strong>{recentScan.profile.memberCode}</strong>
                         </p>
                         <p className={`${spaceGrotesk.className} text-xs text-blue-200 mt-1`}>
-                          Checked in at: {new Date().toLocaleTimeString()}
+                          {recentScan.action === 'checkedIn'
+                            ? `Checked in at ${new Date(recentScan.checkInTime).toLocaleTimeString()}`
+                            : `Checked out at ${new Date(recentScan.checkOutTime || '').toLocaleTimeString()}, ${recentScan.hoursLogged.toFixed(2)}h logged`}
                         </p>
                       </div>
                     </div>

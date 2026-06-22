@@ -543,10 +543,9 @@ updateUserRole: async (
     }
   },
 
-  // Staff check-in function via scanned memberCode
-  checkInVolunteer: async (memberCode: string, eventId: string): Promise<{ profile: VolunteerProfile, signup: VolunteerSignup }> => {
+  // Staff check-in/check-out function via scanned memberCode
+  checkInVolunteer: async (memberCode: string, eventId: string): Promise<{ profile: VolunteerProfile, signup: VolunteerSignup, action: 'checkedIn' | 'checkedOut', hoursLogged: number, checkInTime: string, checkOutTime?: string }> => {
     if (!supabase) {
-      // Mock Mode
       const allProfilesJson = localStorage.getItem(LOCAL_PROFILES_LIST_KEY)
       const allProfiles: VolunteerProfile[] = allProfilesJson ? JSON.parse(allProfilesJson) : []
       const profile = allProfiles.find(p => p.memberCode === memberCode)
@@ -557,12 +556,53 @@ updateUserRole: async (
 
       const signupsJson = localStorage.getItem(LOCAL_SIGNUPS_KEY)
       const signups: VolunteerSignup[] = signupsJson ? JSON.parse(signupsJson) : []
-
-      // Find registration for the event, or create an on-the-spot registration
       let signup = signups.find(s => s.userId === profile.id && s.eventId === eventId)
+      const activeSessionJson = sessionStorage.getItem(`checkin-${profile.id}`)
+      const activeSession = activeSessionJson ? JSON.parse(activeSessionJson) as CheckInSession : null
+
+      if (activeSession && !activeSession.checkOutTime) {
+        if (activeSession.eventId !== eventId) {
+          throw new Error('Volunteer is already checked in for another event.')
+        }
+
+        const checkOutTime = new Date()
+        const checkInTime = new Date(activeSession.checkInTime)
+        const durationMinutes = Math.floor((checkOutTime.getTime() - checkInTime.getTime()) / (1000 * 60))
+        const hours = Math.round((durationMinutes / 60) * 100) / 100
+
+        sessionStorage.removeItem(`checkin-${profile.id}`)
+
+        if (!signup) {
+          signup = {
+            id: 'mock-signup-' + Math.random().toString(36).substr(2, 9),
+            userId: profile.id,
+            eventId,
+            eventTitle: 'Event Check-in',
+            status: 'attended',
+            hours,
+            createdAt: new Date().toISOString(),
+            checkedInAt: activeSession.checkInTime
+          }
+          signups.push(signup)
+        } else {
+          signup.status = 'attended'
+          signup.hours = hours
+          signup.checkedInAt = activeSession.checkInTime
+        }
+
+        localStorage.setItem(LOCAL_SIGNUPS_KEY, JSON.stringify(signups))
+
+        return {
+          profile,
+          signup,
+          action: 'checkedOut',
+          hoursLogged: hours,
+          checkInTime: activeSession.checkInTime,
+          checkOutTime: checkOutTime.toISOString()
+        }
+      }
 
       if (!signup) {
-        // Auto-register them on spot
         signup = {
           id: 'mock-signup-' + Math.random().toString(36).substr(2, 9),
           userId: profile.id,
@@ -575,17 +615,26 @@ updateUserRole: async (
         signups.push(signup)
       }
 
-      // Mark as attended
-      signup.status = 'attended'
-      signup.checkedInAt = new Date().toISOString()
-      signup.hours = 3.5 // Assign default event volunteer hours
-
+      const newSession: CheckInSession = {
+        id: 'session-' + Math.random().toString(36).substr(2, 9),
+        userId: profile.id,
+        eventId,
+        checkInTime: new Date().toISOString(),
+        duration: 0,
+        hoursLogged: 0,
+      }
+      sessionStorage.setItem(`checkin-${profile.id}`, JSON.stringify(newSession))
       localStorage.setItem(LOCAL_SIGNUPS_KEY, JSON.stringify(signups))
-      return { profile, signup }
+
+      return {
+        profile,
+        signup,
+        action: 'checkedIn',
+        hoursLogged: 0,
+        checkInTime: newSession.checkInTime
+      }
     }
 
-    // Supabase Mode
-    // 1. Fetch profile matching member_code
     const { data: profileData, error: profileErr } = await supabase
       .from('profiles')
       .select('*')
@@ -596,74 +645,178 @@ updateUserRole: async (
       throw new Error('Volunteer profile not found for code ' + memberCode)
     }
 
-    // 2. Look up event signup
-    let { data: signupData, error: signupErr } = await supabase
+    const { data: activeSession, error: activeSessionErr } = await supabase
+      .from('check_in_sessions')
+      .select('*')
+      .eq('user_id', profileData.id)
+      .eq('event_id', eventId)
+      .is('check_out_time', null)
+      .maybeSingle()
+
+    if (activeSessionErr) {
+      console.error('Error checking active session:', activeSessionErr)
+    }
+
+    const { data: signupData, error: signupErr } = await supabase
       .from('event_volunteers')
       .select('*')
       .eq('user_id', profileData.id)
       .eq('event_id', eventId)
       .maybeSingle()
 
-    // 3. Check-in or insert new on-the-spot signup
-    if (!signupData) {
+    const mappedProfile: VolunteerProfile = {
+      id: profileData.id,
+      fullName: profileData.full_name,
+      email: profileData.email,
+      memberCode: profileData.member_code,
+      role: profileData.role,
+      createdAt: profileData.created_at,
+    }
+
+    const ensureSignup = async () => {
+      if (signupData) return signupData
       const { data: newSignup, error: insertErr } = await supabase
         .from('event_volunteers')
         .insert({
           user_id: profileData.id,
           event_id: eventId,
           event_title: 'Event Check-in',
-          status: 'attended',
-          hours: 3.5 // Default volunteer session hours
+          status: 'registered',
+          hours: 0,
+          checked_in_at: null
         })
         .select()
         .single()
 
       if (insertErr || !newSignup) {
-        throw new Error('Failed to register volunteer at check-in')
+        throw new Error('Failed to create event registration for volunteer')
       }
-      signupData = newSignup
-    } else {
-      const { data: updatedSignup, error: updateErr } = await supabase
+      return newSignup
+    }
+
+    if (!activeSession) {
+      const signupRow = await ensureSignup()
+      const { data: newSession, error: insertSessionErr } = await supabase
+        .from('check_in_sessions')
+        .insert({
+          user_id: profileData.id,
+          event_id: eventId,
+          check_in_time: new Date().toISOString(),
+          hours_logged: 0
+        })
+        .select()
+        .single()
+
+      if (insertSessionErr || !newSession) {
+        throw new Error('Failed to start volunteer check-in session')
+      }
+
+      await supabase.from('attendance_logs').insert({
+        volunteer_id: profileData.id,
+        event_id: eventId,
+        checked_in_at: newSession.check_in_time
+      })
+
+      return {
+        profile: mappedProfile,
+        signup: {
+          id: signupRow.id,
+          userId: signupRow.user_id,
+          eventId: signupRow.event_id,
+          eventTitle: signupRow.event_title,
+          status: signupRow.status,
+          hours: signupRow.hours || 0,
+          createdAt: signupRow.created_at,
+          checkedInAt: signupRow.checked_in_at || newSession.check_in_time
+        },
+        action: 'checkedIn',
+        hoursLogged: 0,
+        checkInTime: newSession.check_in_time
+      }
+    }
+
+    if (activeSession.event_id !== eventId) {
+      throw new Error('Volunteer is already checked in for another event.')
+    }
+
+    const checkOutTime = new Date().toISOString()
+    const checkInTime = new Date(activeSession.check_in_time)
+    const durationMinutes = Math.floor((new Date(checkOutTime).getTime() - checkInTime.getTime()) / (1000 * 60))
+    const hours = Math.round((durationMinutes / 60) * 100) / 100
+
+    const { data: updatedSession, error: updateSessionErr } = await supabase
+      .from('check_in_sessions')
+      .update({
+        check_out_time: checkOutTime,
+        hours_logged: hours
+      })
+      .eq('id', activeSession.id)
+      .select()
+      .single()
+
+    if (updateSessionErr || !updatedSession) {
+      throw new Error('Failed to complete volunteer check-out')
+    }
+
+    await supabase
+      .from('attendance_logs')
+      .update({ checked_out_at: checkOutTime })
+      .eq('volunteer_id', profileData.id)
+      .eq('event_id', eventId)
+      .is('checked_out_at', null)
+
+    let finalSignup = signupData
+    if (signupData) {
+      const { data: updatedSignup, error: updateSignupErr } = await supabase
         .from('event_volunteers')
         .update({
           status: 'attended',
-          hours: 3.5
+          hours,
+          checked_in_at: activeSession.check_in_time
         })
         .eq('id', signupData.id)
         .select()
         .single()
 
-      if (updateErr || !updatedSignup) {
-        throw new Error('Failed to update volunteer check-in status')
+      if (!updateSignupErr && updatedSignup) {
+        finalSignup = updatedSignup
       }
-      signupData = updatedSignup
+    } else {
+      const { data: newSignup, error: insertSignupErr } = await supabase
+        .from('event_volunteers')
+        .insert({
+          user_id: profileData.id,
+          event_id: eventId,
+          event_title: 'Event Check-in',
+          status: 'attended',
+          hours,
+          checked_in_at: activeSession.check_in_time
+        })
+        .select()
+        .single()
+
+      if (insertSignupErr || !newSignup) {
+        throw new Error('Failed to create attended signup record')
+      }
+      finalSignup = newSignup
     }
 
-    // 4. Log checkin
-    await supabase.from('attendance_logs').insert({
-      volunteer_id: profileData.id,
-      event_id: eventId
-    })
-
     return {
-      profile: {
-        id: profileData.id,
-        fullName: profileData.full_name,
-        email: profileData.email,
-        memberCode: profileData.member_code,
-        role: profileData.role,
-        createdAt: profileData.created_at
-      },
+      profile: mappedProfile,
       signup: {
-        id: signupData.id,
-        userId: signupData.user_id,
-        eventId: signupData.event_id,
-        eventTitle: signupData.event_title,
-        status: signupData.status,
-        hours: signupData.hours || 0,
-        createdAt: signupData.created_at,
-        checkedInAt: new Date().toISOString()
-      }
+        id: finalSignup.id,
+        userId: finalSignup.user_id,
+        eventId: finalSignup.event_id,
+        eventTitle: finalSignup.event_title,
+        status: finalSignup.status,
+        hours: finalSignup.hours || 0,
+        createdAt: finalSignup.created_at,
+        checkedInAt: finalSignup.checked_in_at || activeSession.check_in_time
+      },
+      action: 'checkedOut',
+      hoursLogged: hours,
+      checkInTime: activeSession.check_in_time,
+      checkOutTime: checkOutTime
     }
   },
 
@@ -795,6 +948,80 @@ updateUserRole: async (
         hoursLogged,
       },
       hoursAdded: hoursLogged,
+    }
+  },
+
+  getActiveCheckInSessions: async (): Promise<Array<{
+    profile: VolunteerProfile
+    eventId: string
+    checkInTime: string
+    sessionId: string
+    hoursLogged: number
+  }>> => {
+    if (!supabase) {
+      const allProfilesJson = localStorage.getItem(LOCAL_PROFILES_LIST_KEY)
+      const allProfiles: VolunteerProfile[] = allProfilesJson ? JSON.parse(allProfilesJson) : []
+      const activeSessions: Array<{
+        profile: VolunteerProfile
+        eventId: string
+        checkInTime: string
+        sessionId: string
+        hoursLogged: number
+      }> = []
+
+      for (let i = 0; i < sessionStorage.length; i += 1) {
+        const key = sessionStorage.key(i)
+        if (!key || !key.startsWith('checkin-')) continue
+        const sessionJson = sessionStorage.getItem(key)
+        if (!sessionJson) continue
+        const session: CheckInSession = JSON.parse(sessionJson)
+        const profile = allProfiles.find((p) => p.id === session.userId)
+        if (!profile) continue
+
+        activeSessions.push({
+          profile,
+          eventId: session.eventId,
+          checkInTime: session.checkInTime,
+          sessionId: session.id,
+          hoursLogged: session.hoursLogged || 0,
+        })
+      }
+
+      return activeSessions
+    }
+
+    try {
+      const { data: sessions, error: sessionErr } = await supabase
+        .from('check_in_sessions')
+        .select('*')
+        .is('check_out_time', null)
+
+      if (sessionErr || !sessions) return []
+      if (sessions.length === 0) return []
+
+      const profileIds = Array.from(new Set(sessions.map((session) => session.user_id)))
+      const { data: profiles, error: profileErr } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', profileIds)
+
+      if (profileErr || !profiles) return []
+
+      const profileMap = new Map<string, VolunteerProfile>()
+      profiles.forEach((profileRow) => {
+        profileMap.set(profileRow.id, mapProfileRow(profileRow))
+      })
+
+      return sessions.map((session) => ({
+        profile: profileMap.get(session.user_id)!,
+        eventId: session.event_id,
+        checkInTime: session.check_in_time,
+        sessionId: session.id,
+        hoursLogged: session.hours_logged || 0,
+      }))
+    } catch (e) {
+      console.error('Error loading active check-in sessions:', e)
+      return []
     }
   },
 

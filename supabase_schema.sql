@@ -42,6 +42,7 @@ create table if not exists public.event_volunteers (
   event_title text not null,
   status text default 'registered' check (status in ('registered', 'attended', 'absent')),
   hours numeric default 0 not null,
+  checked_in_at timestamp with time zone,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   unique(user_id, event_id)
 );
@@ -90,6 +91,47 @@ create table if not exists public.attendance_logs (
   checked_in_at timestamp with time zone default timezone('utc'::text, now()) not null,
   checked_out_at timestamp with time zone
 );
+
+-- 4. CHECK-IN SESSIONS TABLE
+-- Stores active check-in sessions until checkout.
+create table if not exists public.check_in_sessions (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  event_id text not null,
+  check_in_time timestamp with time zone default timezone('utc'::text, now()) not null,
+  check_out_time timestamp with time zone,
+  hours_logged numeric default 0 not null,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.check_in_sessions enable row level security;
+
+create policy "Users can view their own check-in sessions" on public.check_in_sessions
+  for select using (auth.uid() = user_id);
+
+create policy "Staff can view all check-in sessions" on public.check_in_sessions
+  for select using (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role = 'staff'
+    )
+  );
+
+create policy "Staff can insert check-in sessions" on public.check_in_sessions
+  for insert with check (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role = 'staff'
+    )
+  );
+
+create policy "Staff can update check-in sessions" on public.check_in_sessions
+  for update using (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role = 'staff'
+    )
+  );
 
 -- Enable Row Level Security (RLS)
 alter table public.attendance_logs enable row level security;

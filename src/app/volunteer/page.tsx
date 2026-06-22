@@ -9,7 +9,6 @@ import { Event } from '@/data/events'
 import { volunteerService, VolunteerProfile, VolunteerSignup } from '@/lib/volunteerService'
 import { supabase } from '@/lib/supabaseClient'
 import { MemberCardContent } from '@/components/MemberCard'
-import CheckInWidget from '@/components/CheckInWidget'
 import {
   Heart,
   Sparkles,
@@ -385,11 +384,11 @@ export default function VolunteerPortalPage() {
                 </div>
               </div>
 
-              {/* Quick Check In/Out Widget */}
-              {user && <CheckInWidget user={user} onHoursUpdated={(hours) => {
-                // Refresh user profile to update totalHours
-                loadUser()
-              }} />}
+              {/* Volunteer hours are recorded by staff check-in only */}
+              <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl">
+                <h3 className={`${fredoka.className} text-lg font-bold mb-4`}>Volunteer Hours</h3>
+                <p className={`${spaceGrotesk.className} text-sm text-blue-300 leading-6`}>For accuracy and fraud prevention, hours are logged through the staff check-in portal only. Please show your QR code at the event entrance.</p>
+              </div>
 
               {/* History */}
               <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl">
