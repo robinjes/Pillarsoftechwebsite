@@ -8,6 +8,8 @@ import Link from 'next/link'
 import { Event } from '@/data/events'
 import { volunteerService, VolunteerProfile, VolunteerSignup } from '@/lib/volunteerService'
 import { supabase } from '@/lib/supabaseClient'
+import { MemberCardContent } from '@/components/MemberCard'
+import CheckInWidget from '@/components/CheckInWidget'
 import {
   Heart,
   Sparkles,
@@ -30,6 +32,10 @@ import {
   Wrench,
   HandshakeIcon,
   Users,
+  Download,
+  Print as PrintIcon,
+  Hourglass,
+  X,
 } from 'lucide-react'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
@@ -69,6 +75,10 @@ export default function VolunteerPortalPage() {
 
   // Event signup
   const [signingUpEventId, setSigningUpEventId] = useState<string | null>(null)
+  
+  // Track if user just signed up to avoid auth state callback interference
+  const [skipAuthCallback, setSkipAuthCallback] = useState(false)
+  const [showMemberCard, setShowMemberCard] = useState(false)
 
   const formRef = useRef<HTMLDivElement>(null)
 
@@ -119,6 +129,11 @@ export default function VolunteerPortalPage() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
       if (!mounted || event !== 'SIGNED_IN') return
+      // Skip if user was just set by signup form to avoid race conditions
+      if (skipAuthCallback) {
+        setSkipAuthCallback(false)
+        return
+      }
       await loadVolunteerSession()
     })
 
@@ -165,6 +180,8 @@ export default function VolunteerPortalPage() {
         const profile = await volunteerService.signUpWithEmail(email, password, fullName)
         setUser(profile)
         setSignups([])
+        // Skip auth callback since we just set the user
+        setSkipAuthCallback(true)
       }
     } catch (err: any) {
       setAuthError(err.message || 'Authentication failed.')
@@ -189,6 +206,71 @@ export default function VolunteerPortalPage() {
     setUser(null)
     setSignups([])
   }
+
+  const handlePrintCard = () => {
+    const printWindow = window.open('', '', 'width=600,height=800')
+    if (printWindow && user) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>POT Member Card - ${user.fullName}</title>
+          <style>
+            body { margin: 0; padding: 20px; background: #0f172a; font-family: Arial, sans-serif; }
+            @media print { body { padding: 0; } }
+            .print-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+          </style>
+        </head>
+        <body>
+          <div class="print-container">
+            <div style="width: 100%; max-width: 500px; background: linear-gradient(to bottom right, #2563eb, #9333ea); border-radius: 24px; padding: 32px; text-align: center; color: white; box-shadow: 0 20px 25px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.2);">
+              <div style="font-size: 28px; font-weight: bold; margin-bottom: 8px;">POT</div>
+              <div style="font-size: 12px; letter-spacing: 2px; opacity: 0.9; margin-bottom: 20px;">Pillars of Tech - Volunteer Member Card</div>
+              
+              <div style="background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 16px; padding: 24px; margin-bottom: 24px;">
+                <div style="font-size: 12px; opacity: 0.75; margin-bottom: 4px;">NAME</div>
+                <div style="font-size: 20px; font-weight: bold; margin-bottom: 24px;">${user.fullName}</div>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+                  <div>
+                    <div style="font-size: 12px; opacity: 0.75; margin-bottom: 4px;">MEMBER CODE</div>
+                    <div style="font-size: 18px; font-weight: bold; letter-spacing: 2px;">${user.memberCode}</div>
+                  </div>
+                  <div style="text-align: right;">
+                    <div style="font-size: 12px; opacity: 0.75; margin-bottom: 4px;">STATUS</div>
+                    <div style="font-size: 16px; font-weight: bold;">🟢 Active</div>
+                  </div>
+                </div>
+                
+                <div style="font-size: 12px; opacity: 0.6; word-break: break-all;">${user.email}</div>
+              </div>
+              
+              <div style="background: white; padding: 16px; border-radius: 16px; display: flex; justify-content: center; margin-bottom: 24px;">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(user.memberCode)}" alt="QR Code" width="160" height="160" style="display: block;" />
+              </div>
+              
+              <div style="font-size: 12px; opacity: 0.75; line-height: 1.5;">Show this card at event check-in to log your volunteer hours and earn badges!</div>
+            </div>
+          </div>
+          <script>window.print();</script>
+        </body>
+        </html>
+      `)
+      printWindow.document.close()
+    }
+  }
+
+  const calculateTimeUntilEvent = (eventDate: string): { days: number; hours: number; minutes: number } => {
+    const event = new Date(eventDate)
+    const now = new Date()
+    const diff = event.getTime() - now.getTime()
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+    return { days: Math.max(0, days), hours: Math.max(0, hours), minutes: Math.max(0, minutes) }
+  }
+
+  const upcomingSignups = signups.filter(s => s.status === 'registered')
 
   const handleRegisterForEvent = async (event: Event) => {
     if (!user) {
@@ -283,16 +365,31 @@ export default function VolunteerPortalPage() {
                   </span>
                 </div>
 
-                {user.role === 'staff' && (
-                  <Link
-                    href="/volunteer/checkin"
-                    className={`${spaceGrotesk.className} flex items-center justify-center gap-2 w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-500/10 hover:scale-[1.01]`}
+                <div className="space-y-3">
+                  {user.role === 'staff' && (
+                    <Link
+                      href="/volunteer/checkin"
+                      className={`${spaceGrotesk.className} flex items-center justify-center gap-2 w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl font-bold transition-all shadow-lg shadow-emerald-500/10 hover:scale-[1.01]`}
+                    >
+                      <Camera className="w-5 h-5 animate-pulse" />
+                      Open Staff Scan Portal
+                    </Link>
+                  )}
+                  <button
+                    onClick={() => setShowMemberCard(true)}
+                    className={`${spaceGrotesk.className} flex items-center justify-center gap-2 w-full py-3 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border border-blue-500/30 rounded-2xl font-bold transition-all`}
                   >
-                    <Camera className="w-5 h-5 animate-pulse" />
-                    Open Staff Scan Portal
-                  </Link>
-                )}
+                    <Download className="w-4 h-4" />
+                    Print Member Card
+                  </button>
+                </div>
               </div>
+
+              {/* Quick Check In/Out Widget */}
+              {user && <CheckInWidget user={user} onHoursUpdated={(hours) => {
+                // Refresh user profile to update totalHours
+                loadUser()
+              }} />}
 
               {/* History */}
               <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-2xl">
@@ -335,9 +432,57 @@ export default function VolunteerPortalPage() {
 
             {/* RIGHT: Events */}
             <div className="lg:col-span-2 space-y-8">
+              {/* Upcoming Registered Events Countdown */}
+              {upcomingSignups.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gradient-to-br from-emerald-500/10 to-green-500/10 border border-emerald-500/20 rounded-3xl p-6 md:p-8"
+                >
+                  <h3 className={`${fredoka.className} text-2xl font-bold mb-4 flex items-center gap-2`}>
+                    <Hourglass className="w-6 h-6 text-emerald-400" />
+                    Your Upcoming Volunteering
+                  </h3>
+                  <div className="space-y-3">
+                    {upcomingSignups.slice(0, 3).map(signup => {
+                      const event = events.find(e => e.id === signup.eventId)
+                      if (!event) return null
+                      const timeLeft = calculateTimeUntilEvent(event.date)
+                      return (
+                        <div key={signup.id} className="bg-white/5 border border-white/10 rounded-xl p-4">
+                          <div className="flex items-start justify-between mb-3">
+                            <h4 className={`${spaceGrotesk.className} font-bold text-white`}>{event.title}</h4>
+                            <span className="text-xs font-bold bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30">
+                              Registered ✓
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-blue-200 mb-3">
+                            <Calendar className="w-4 h-4" />
+                            {event.date} • {event.time}
+                          </div>
+                          <div className="grid grid-cols-3 gap-2">
+                            <div className="bg-black/30 rounded-lg p-2 text-center">
+                              <div className={`${fredoka.className} text-xl font-bold text-emerald-400`}>{timeLeft.days}</div>
+                              <div className={`${spaceGrotesk.className} text-xs text-blue-300`}>Days</div>
+                            </div>
+                            <div className="bg-black/30 rounded-lg p-2 text-center">
+                              <div className={`${fredoka.className} text-xl font-bold text-emerald-400`}>{timeLeft.hours}</div>
+                              <div className={`${spaceGrotesk.className} text-xs text-blue-300`}>Hours</div>
+                            </div>
+                            <div className="bg-black/30 rounded-lg p-2 text-center">
+                              <div className={`${fredoka.className} text-xl font-bold text-emerald-400`}>{timeLeft.minutes}</div>
+                              <div className={`${spaceGrotesk.className} text-xs text-blue-300`}>Mins</div>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </motion.div>
+              )}
+
               <div>
-                <h2 className={`${fredoka.className} text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200`}>
-                  Upcoming Events to Volunteer For
+                <h2 className={`${fredoka.className} text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200`}>\n                  Upcoming Events to Volunteer For
                 </h2>
                 <p className={`${spaceGrotesk.className} text-blue-200 mt-2`}>
                   Click "Sign Up to Volunteer" on any event below to add it to your roster!
@@ -427,6 +572,62 @@ export default function VolunteerPortalPage() {
             </div>
           </motion.div>
         </div>
+
+        {/* Member Card Modal */}
+        <AnimatePresence>
+          {showMemberCard && user && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMemberCard(false)}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                onClick={(e) => e.stopPropagation()}
+                className="max-w-md w-full"
+              >
+                <div className="relative">
+                  <button
+                    onClick={() => setShowMemberCard(false)}
+                    className="absolute -top-4 -right-4 z-10 p-2 bg-white/10 hover:bg-white/20 rounded-full border border-white/10 transition-all"
+                  >
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                  <MemberCardContent profile={user} />
+                  <div className="mt-6 flex gap-3">
+                    <button
+                      onClick={handlePrintCard}
+                      className={`${spaceGrotesk.className} flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all`}
+                    >
+                      <PrintIcon className="w-4 h-4" />
+                      Print
+                    </button>
+                    <button
+                      onClick={() => {
+                        const html = document.getElementById('member-card')?.innerHTML
+                        if (html) {
+                          const link = document.createElement('a')
+                          const blob = new Blob([`<html><body style="margin:0; padding:20px; background:#0f172a;">${html}</body></html>`], { type: 'text/html' })
+                          link.href = URL.createObjectURL(blob)
+                          link.download = `POT-MemberCard-${user.fullName}.html`
+                          link.click()
+                        }
+                      }}
+                      className={`${spaceGrotesk.className} flex-1 py-3 bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all`}
+                    >
+                      <Download className="w-4 h-4" />
+                      Download
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     )
   }

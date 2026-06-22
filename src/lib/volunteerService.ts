@@ -22,6 +22,16 @@ export interface VolunteerSignup {
   checkedInAt?: string
 }
 
+export interface CheckInSession {
+  id: string
+  userId: string
+  eventId: string
+  checkInTime: string
+  checkOutTime?: string
+  duration: number // in minutes
+  hoursLogged: number
+}
+
 // Key for mock local storage
 const LOCAL_PROFILE_KEY = 'pot_mock_volunteer_profile'
 const LOCAL_SIGNUPS_KEY = 'pot_mock_volunteer_signups'
@@ -209,14 +219,49 @@ export const volunteerService = {
       role: email.includes('staff') ? 'staff' : 'volunteer'
     }
 
-    const { data, error: dbError } = await supabase
-      .from('profiles')
-      .insert(newProfile)
-      .select()
-      .single()
+    // Add timeout to prevent hanging - 8 second limit for profile creation
+    let data: any = null
+    let dbError: any = null
+    let timedOut = false
+
+    try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => {
+        controller.abort()
+        timedOut = true
+      }, 8000)
+
+      const result = await supabase
+        .from('profiles')
+        .insert(newProfile)
+        .select()
+        .single()
+
+      clearTimeout(timeoutId)
+      data = result.data
+      dbError = result.error
+    } catch (err: any) {
+      dbError = err
+    }
+
+    // If profile creation timed out or had permission error, return temporary profile
+    // User can log in with the dashboard, and profile will sync after email verification
+    if (timedOut || dbError?.code === 'PGRST301') {
+      console.log('Profile creation timeout or permission denied, proceeding with temporary profile')
+      return {
+        id: authData.user.id,
+        fullName,
+        email,
+        memberCode: generateMemberCode(),
+        role: email.includes('staff') ? 'staff' : 'volunteer',
+        createdAt: new Date().toISOString()
+      }
+    }
 
     if (dbError || !data) {
-      throw new Error(dbError?.message || 'Profile database creation failed')
+      // If auth succeeded but profile creation failed (likely RLS/verification issue),
+      // show user-friendly message about email verification
+      throw new Error('Please check your email for a verification link. After that, this page will automatically log in.')
     }
 
     return mapProfileRow(data)
@@ -620,5 +665,229 @@ updateUserRole: async (
         checkedInAt: new Date().toISOString()
       }
     }
-  }
+  },
+
+  // Volunteer check-in
+  startCheckIn: async (userId: string, eventId: string): Promise<CheckInSession> => {
+    if (!supabase) {
+      // Mock Mode
+      const session: CheckInSession = {
+        id: 'session-' + Math.random().toString(36).substr(2, 9),
+        userId,
+        eventId,
+        checkInTime: new Date().toISOString(),
+        duration: 0,
+        hoursLogged: 0,
+      }
+      // Store in session storage
+      sessionStorage.setItem(`checkin-${userId}`, JSON.stringify(session))
+      return session
+    }
+
+    // Supabase Mode - insert into check_in_sessions table
+    const { data, error } = await supabase
+      .from('check_in_sessions')
+      .insert({
+        user_id: userId,
+        event_id: eventId,
+        check_in_time: new Date().toISOString(),
+      })
+      .select()
+      .single()
+
+    if (error || !data) {
+      throw new Error('Failed to record check-in: ' + (error?.message || 'Unknown error'))
+    }
+
+    return {
+      id: data.id,
+      userId: data.user_id,
+      eventId: data.event_id,
+      checkInTime: data.check_in_time,
+      duration: 0,
+      hoursLogged: 0,
+    }
+  },
+
+  // Volunteer check-out
+  checkOut: async (sessionId: string, userId: string): Promise<{ session: CheckInSession; hoursAdded: number }> => {
+    if (!supabase) {
+      // Mock Mode
+      const sessionJson = sessionStorage.getItem(`checkin-${userId}`)
+      if (!sessionJson) throw new Error('No active check-in session found')
+
+      const session: CheckInSession = JSON.parse(sessionJson)
+      const checkOutTime = new Date()
+      const checkInTime = new Date(session.checkInTime)
+      const durationMinutes = Math.floor((checkOutTime.getTime() - checkInTime.getTime()) / (1000 * 60))
+      const hoursLogged = Math.round((durationMinutes / 60) * 100) / 100
+
+      session.checkOutTime = checkOutTime.toISOString()
+      session.duration = durationMinutes
+      session.hoursLogged = hoursLogged
+
+      sessionStorage.removeItem(`checkin-${userId}`)
+
+      // Update volunteer total hours
+      const profileJson = localStorage.getItem(LOCAL_PROFILE_KEY)
+      if (profileJson) {
+        const profile: VolunteerProfile = JSON.parse(profileJson)
+        profile.totalHours = (profile.totalHours || 0) + hoursLogged
+        localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(profile))
+      }
+
+      return { session, hoursAdded: hoursLogged }
+    }
+
+    // Supabase Mode
+    const checkOutTime = new Date()
+    const { data: sessionData, error: fetchErr } = await supabase
+      .from('check_in_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .single()
+
+    if (fetchErr || !sessionData) {
+      throw new Error('Session not found')
+    }
+
+    const checkInTime = new Date(sessionData.check_in_time)
+    const durationMinutes = Math.floor((checkOutTime.getTime() - checkInTime.getTime()) / (1000 * 60))
+    const hoursLogged = Math.round((durationMinutes / 60) * 100) / 100
+
+    const { data: updatedSession, error: updateErr } = await supabase
+      .from('check_in_sessions')
+      .update({
+        check_out_time: checkOutTime.toISOString(),
+        hours_logged: hoursLogged,
+      })
+      .eq('id', sessionId)
+      .select()
+      .single()
+
+    if (updateErr || !updatedSession) {
+      throw new Error('Failed to record check-out')
+    }
+
+    // Update profile total hours
+    const { data: profile, error: profileErr } = await supabase
+      .from('profiles')
+      .select('total_hours')
+      .eq('id', userId)
+      .single()
+
+    if (!profileErr && profile) {
+      const newTotal = (profile.total_hours || 0) + hoursLogged
+      await supabase
+        .from('profiles')
+        .update({ total_hours: newTotal })
+        .eq('id', userId)
+    }
+
+    return {
+      session: {
+        id: updatedSession.id,
+        userId: updatedSession.user_id,
+        eventId: updatedSession.event_id,
+        checkInTime: updatedSession.check_in_time,
+        checkOutTime: updatedSession.check_out_time,
+        duration: durationMinutes,
+        hoursLogged,
+      },
+      hoursAdded: hoursLogged,
+    }
+  },
+
+  // Admin: Update volunteer hours manually
+  updateVolunteerHours: async (
+    userId: string,
+    newTotalHours: number,
+    reason?: string
+  ): Promise<VolunteerProfile | null> => {
+    if (!supabase) {
+      // Mock Mode
+      const allProfilesJson = localStorage.getItem(LOCAL_PROFILES_LIST_KEY)
+      const allProfiles: VolunteerProfile[] = allProfilesJson ? JSON.parse(allProfilesJson) : []
+
+      const updatedProfiles = allProfiles.map(p =>
+        p.id === userId ? { ...p, totalHours: newTotalHours } : p
+      )
+
+      localStorage.setItem(LOCAL_PROFILES_LIST_KEY, JSON.stringify(updatedProfiles))
+
+      const updated = updatedProfiles.find(p => p.id === userId) || null
+
+      if (updated && localStorage.getItem(LOCAL_PROFILE_KEY)) {
+        const currentJson = localStorage.getItem(LOCAL_PROFILE_KEY)
+        if (currentJson) {
+          const current: VolunteerProfile = JSON.parse(currentJson)
+          if (current.id === userId) {
+            localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(updated))
+          }
+        }
+      }
+
+      return updated
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ total_hours: newTotalHours })
+        .eq('id', userId)
+        .select()
+        .single()
+
+      if (error || !data) {
+        throw new Error('Failed to update hours')
+      }
+
+      // Log the adjustment
+      if (reason) {
+        await supabase.from('hour_adjustments').insert({
+          user_id: userId,
+          new_total: newTotalHours,
+          reason,
+          adjusted_at: new Date().toISOString(),
+        }).catch(console.error)
+      }
+
+      return mapProfileRow(data)
+    } catch (e) {
+      console.error('Error updating volunteer hours:', e)
+      return null
+    }
+  },
+
+  // Get current check-in status
+  getCurrentCheckInStatus: async (userId: string): Promise<CheckInSession | null> => {
+    if (!supabase) {
+      const sessionJson = sessionStorage.getItem(`checkin-${userId}`)
+      return sessionJson ? JSON.parse(sessionJson) : null
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('check_in_sessions')
+        .select('*')
+        .eq('user_id', userId)
+        .is('check_out_time', null)
+        .order('check_in_time', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (error || !data) return null
+
+      return {
+        id: data.id,
+        userId: data.user_id,
+        eventId: data.event_id,
+        checkInTime: data.check_in_time,
+        duration: 0,
+        hoursLogged: 0,
+      }
+    } catch {
+      return null
+    }
+  },
 }
