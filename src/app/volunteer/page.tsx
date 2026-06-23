@@ -79,6 +79,7 @@ export default function VolunteerPortalPage() {
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
   const [authNotice, setAuthNotice] = useState('')
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false)
 
   // Event signup
   const [signingUpEventId, setSigningUpEventId] = useState<string | null>(null)
@@ -90,15 +91,20 @@ export default function VolunteerPortalPage() {
 
   const formRef = useRef<HTMLDivElement>(null)
 
+  const applyAuthenticatedProfile = async (profile: VolunteerProfile) => {
+    if (profile.role === 'staff') {
+      router.replace('/volunteer/checkin')
+      return
+    }
+
+    setUser(profile)
+    setSignups(await volunteerService.getMySignups(profile.id))
+  }
+
   const loadVolunteerSession = async () => {
     const profile = await volunteerService.getCurrentUser()
     if (profile) {
-      if (profile.role === 'staff') {
-        router.replace('/volunteer/checkin')
-        return profile
-      }
-      setUser(profile)
-      setSignups(await volunteerService.getMySignups(profile.id))
+      await applyAuthenticatedProfile(profile)
       return profile
     }
     setUser(null)
@@ -115,6 +121,15 @@ export default function VolunteerPortalPage() {
       }
 
       await volunteerService.handleAuthCallback()
+
+      if (typeof window !== 'undefined') {
+        const url = new URL(window.location.href)
+        const authType = url.searchParams.get('type') || url.hash
+        if (authType.includes('recovery')) {
+          setIsPasswordRecovery(true)
+          setAuthNotice('Enter a new password below to finish resetting your account.')
+        }
+      }
 
       if (!mounted) return
 
@@ -136,7 +151,13 @@ export default function VolunteerPortalPage() {
     if (!supabase) return () => { mounted = false }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-      if (!mounted || event !== 'SIGNED_IN') return
+      if (!mounted) return
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsPasswordRecovery(true)
+        setAuthNotice('Enter a new password below to finish resetting your account.')
+        return
+      }
+      if (!['SIGNED_IN', 'TOKEN_REFRESHED', 'USER_UPDATED', 'INITIAL_SESSION'].includes(event)) return
       // Skip if user was just set by signup form to avoid race conditions
       if (skipAuthCallback) {
         setSkipAuthCallback(false)
@@ -196,15 +217,22 @@ export default function VolunteerPortalPage() {
     setAuthError('')
     setAuthNotice('')
     try {
-      if (authTab === 'signin') {
+      if (isPasswordRecovery) {
+        if (!password || password.length < 6) {
+          throw new Error('Please enter a new password with at least 6 characters.')
+        }
+        await volunteerService.updatePassword(password)
+        setIsPasswordRecovery(false)
+        setPassword('')
+        setAuthNotice('Password updated. You are signed in now.')
+        await loadVolunteerSession()
+      } else if (authTab === 'signin') {
         const profile = await volunteerService.signInWithEmail(email, password)
-        setUser(profile)
-        setSignups(await volunteerService.getMySignups(profile.id))
+        await applyAuthenticatedProfile(profile)
       } else {
         if (!fullName) throw new Error('Please enter your full name.')
         const profile = await volunteerService.signUpWithEmail(email, password, fullName)
-        setUser(profile)
-        setSignups([])
+        await applyAuthenticatedProfile(profile)
         // Skip auth callback since we just set the user
         setSkipAuthCallback(true)
       }
@@ -217,6 +245,24 @@ export default function VolunteerPortalPage() {
       } else {
         setAuthError(message)
       }
+    } finally {
+      setAuthLoading(false)
+    }
+  }
+
+  const handleForgotPassword = async () => {
+    setAuthLoading(true)
+    setAuthError('')
+    setAuthNotice('')
+    try {
+      if (!email) {
+        throw new Error('Enter your email address first, then click forgot password.')
+      }
+
+      await volunteerService.sendPasswordReset(email)
+      setAuthNotice('Password reset email sent. Open the link in your email, then enter a new password here.')
+    } catch (err: any) {
+      setAuthError(err.message || 'Could not send password reset email.')
     } finally {
       setAuthLoading(false)
     }
@@ -379,14 +425,14 @@ export default function VolunteerPortalPage() {
             <div className="lg:col-span-1 space-y-8">
               {/* Profile Card */}
               <div className="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
-                <div className="flex justify-between items-start mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-accent/20 rounded-2xl flex items-center justify-center border border-accent/30">
+                <div className="flex justify-between items-start gap-3 mb-6">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="w-12 h-12 bg-accent/20 rounded-2xl flex items-center justify-center border border-accent/30 flex-shrink-0">
                       <User className="w-6 h-6 text-accent" />
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <h2 className={`${fredoka.className} text-xl font-bold`}>{user.fullName}</h2>
-                      <span className={`${spaceGrotesk.className} text-xs text-blue-300`}>{user.email}</span>
+                      <span className={`${spaceGrotesk.className} block break-all text-xs text-blue-300`}>{user.email}</span>
                     </div>
                   </div>
                   <button
@@ -416,7 +462,7 @@ export default function VolunteerPortalPage() {
                     <span className={`${spaceGrotesk.className} text-xs font-bold uppercase tracking-wider text-blue-300`}>
                       Badge Progress
                     </span>
-                    <span className={`${spaceGrotesk.className} text-xs text-blue-200`}>
+                    <span className={`${spaceGrotesk.className} text-right text-xs text-blue-200`}>
                       {nextBadge
                         ? `${Math.max(0, nextBadge.hours - totalHours).toFixed(1)}h to ${nextBadge.name}`
                         : 'Top tier reached'}
@@ -482,16 +528,16 @@ export default function VolunteerPortalPage() {
                       const isAttended = signup.status === 'attended'
                       const isRegistered = signup.status === 'registered'
                       return (
-                        <div key={signup.id} className="bg-black/35 border border-white/5 rounded-2xl p-4 flex justify-between items-center">
-                          <div className="max-w-[70%]">
-                            <h4 className={`${spaceGrotesk.className} text-sm font-bold text-white truncate`}>{signup.eventTitle}</h4>
+                        <div key={signup.id} className="bg-black/35 border border-white/5 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <h4 className={`${spaceGrotesk.className} text-sm font-bold text-white break-words`}>{signup.eventTitle}</h4>
                             {isAttended && signup.checkedInAt && (
                               <span className={`${spaceGrotesk.className} text-[10px] text-blue-300 block mt-1`}>
                                 Checked in {new Date(signup.checkedInAt).toLocaleDateString()}
                               </span>
                             )}
                           </div>
-                          <div className="text-right">
+                          <div className="sm:text-right">
                             <span className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${isAttended ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : isRegistered ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}`}>
                               {signup.status}
                             </span>
@@ -597,7 +643,7 @@ export default function VolunteerPortalPage() {
               )}
 
               <div>
-                <h2 className={`${fredoka.className} text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200`}>
+                <h2 className={`${fredoka.className} text-3xl sm:text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200`}>
                   More Volunteer Opportunities
                 </h2>
                 <p className={`${spaceGrotesk.className} text-blue-200 mt-2`}>
@@ -614,7 +660,7 @@ export default function VolunteerPortalPage() {
                     const isAttended = signups.some((s) => s.eventId === event.id && s.status === 'attended')
 
                     return (
-                      <div key={event.id} className={`border-2 rounded-3xl p-7 shadow-lg flex flex-col gap-5 transition-all duration-300 ${colorClass}`}>
+                      <div key={event.id} className={`border-2 rounded-3xl p-5 sm:p-7 shadow-lg flex flex-col gap-5 transition-all duration-300 ${colorClass}`}>
                         <div>
                           <span className="inline-block bg-accent/20 border border-accent/30 text-blue-300 font-bold px-3 py-1 rounded-full text-xs mb-4 uppercase tracking-wider">
                             Upcoming Event
@@ -711,14 +757,14 @@ export default function VolunteerPortalPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setShowMemberCard(false)}
-              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center overflow-y-auto p-4"
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 onClick={(e) => e.stopPropagation()}
-                className="max-w-md w-full"
+                className="max-w-md w-full my-6"
               >
                 <div className="relative">
                   <button
@@ -728,7 +774,7 @@ export default function VolunteerPortalPage() {
                     <X className="w-5 h-5 text-white" />
                   </button>
                   <MemberCardContent profile={user} />
-                  <div className="mt-6 flex gap-3">
+                  <div className="mt-6 flex flex-col sm:flex-row gap-3">
                     <button
                       onClick={handlePrintCard}
                       className={`${spaceGrotesk.className} flex-1 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all`}
@@ -784,7 +830,7 @@ export default function VolunteerPortalPage() {
             <span className={`${spaceGrotesk.className} text-sm font-bold text-blue-200 tracking-wide uppercase`}>Event Volunteering</span>
           </div>
 
-          <h1 className={`${fredoka.className} text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-accent to-purple-400 pb-4`}>
+          <h1 className={`${fredoka.className} text-4xl sm:text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-accent to-purple-400 pb-4`}>
             Volunteer with Pillars of Tech
           </h1>
           <p className={`${spaceGrotesk.className} text-xl text-blue-100 max-w-2xl mx-auto opacity-90 leading-relaxed`}>
@@ -845,7 +891,7 @@ export default function VolunteerPortalPage() {
           </div>
 
           <div className="bg-white/5 border border-white/10 rounded-2xl p-5">
-            <div className="flex gap-3 items-start">
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-start">
               <HandshakeIcon className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
               <p className={`${spaceGrotesk.className} text-sm text-blue-100 leading-relaxed`}>
                 <strong className="text-white">Be a flexible team player:</strong>{' '}
@@ -861,7 +907,7 @@ export default function VolunteerPortalPage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <h2 className={`${fredoka.className} text-4xl font-bold text-white mb-3`}>Upcoming Events</h2>
+          <h2 className={`${fredoka.className} text-3xl sm:text-4xl font-bold text-white mb-3`}>Upcoming Events</h2>
           <p className={`${spaceGrotesk.className} text-blue-200 mb-8`}>
             Sign up below to be added to the volunteer roster for any of these events.
           </p>
@@ -876,7 +922,7 @@ export default function VolunteerPortalPage() {
                   <motion.div
                     key={event.id}
                     whileHover={{ y: -6, transition: { duration: 0.2 } }}
-                    className={`border-2 rounded-3xl p-7 shadow-lg flex flex-col gap-5 transition-all duration-300 ${colorClass}`}
+                    className={`border-2 rounded-3xl p-5 sm:p-7 shadow-lg flex flex-col gap-5 transition-all duration-300 ${colorClass}`}
                   >
                     <div>
                       <span className="inline-block bg-accent/20 border border-accent/30 text-blue-300 font-bold px-3 py-1 rounded-full text-xs mb-4 uppercase tracking-wider">
@@ -961,50 +1007,64 @@ export default function VolunteerPortalPage() {
 
             <div className="text-center mb-8">
               <Heart className="w-10 h-10 text-rose-500 fill-rose-500 mx-auto mb-4 animate-pulse" />
-              <h2 className={`${fredoka.className} text-3xl font-bold`}>Join the Roster</h2>
+              <h2 className={`${fredoka.className} text-3xl font-bold`}>
+                {isPasswordRecovery ? 'Reset Your Password' : 'Join the Roster'}
+              </h2>
               <p className={`${spaceGrotesk.className} text-blue-200 mt-2 text-sm`}>
-                Create an account to get added to our volunteer list and receive a QR check-in code.
+                {isPasswordRecovery
+                  ? 'Choose a new password for your volunteer account.'
+                  : 'Create an account to get added to our volunteer list and receive a QR check-in code.'}
               </p>
             </div>
 
             {/* Tabs */}
-            <div className="flex bg-black/40 border border-white/10 p-1 rounded-xl mb-6">
-              {(['signin', 'signup'] as const).map((tab) => (
-                <button
-                  key={tab}
-                  type="button"
-                  onClick={() => setAuthTab(tab)}
-                  className={`${spaceGrotesk.className} flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${authTab === tab ? 'bg-accent text-white' : 'text-blue-200 hover:text-white'}`}
-                >
-                  {tab === 'signin' ? 'Sign In' : 'Sign Up'}
-                </button>
-              ))}
-            </div>
+            {!isPasswordRecovery && (
+              <div className="flex bg-black/40 border border-white/10 p-1 rounded-xl mb-6">
+                {(['signin', 'signup'] as const).map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => {
+                      setAuthTab(tab)
+                      setAuthError('')
+                      setAuthNotice('')
+                    }}
+                    className={`${spaceGrotesk.className} flex-1 py-2.5 rounded-lg text-sm font-bold transition-all ${authTab === tab ? 'bg-accent text-white' : 'text-blue-200 hover:text-white'}`}
+                  >
+                    {tab === 'signin' ? 'Sign In' : 'Sign Up'}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Google SSO */}
-            <button
-              type="button"
-              onClick={handleGoogleSSO}
-              disabled={authLoading}
-              className={`${spaceGrotesk.className} w-full py-3 bg-white hover:bg-slate-100 text-slate-900 rounded-xl font-bold flex items-center justify-center gap-2.5 mb-6 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50`}
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-              </svg>
-              Sign in with Google
-            </button>
+            {!isPasswordRecovery && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleGoogleSSO}
+                  disabled={authLoading}
+                  className={`${spaceGrotesk.className} w-full py-3 bg-white hover:bg-slate-100 text-slate-900 rounded-xl font-bold flex items-center justify-center gap-2.5 mb-6 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50`}
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                  </svg>
+                  Sign in with Google
+                </button>
 
-            <div className="flex items-center gap-3 mb-6">
-              <div className="h-[1px] bg-white/10 flex-grow" />
-              <span className={`${spaceGrotesk.className} text-xs text-blue-300 font-bold uppercase tracking-wider`}>or email</span>
-              <div className="h-[1px] bg-white/10 flex-grow" />
-            </div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="h-[1px] bg-white/10 flex-grow" />
+                  <span className={`${spaceGrotesk.className} text-xs text-blue-300 font-bold uppercase tracking-wider`}>or email</span>
+                  <div className="h-[1px] bg-white/10 flex-grow" />
+                </div>
+              </>
+            )}
 
             <form onSubmit={handleAuthSubmit} className={`space-y-4 ${spaceGrotesk.className}`}>
-              {authTab === 'signup' && (
+              {authTab === 'signup' && !isPasswordRecovery && (
                 <div className="space-y-1.5">
                   <label htmlFor="auth-name" className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                     <User className="w-3.5 h-3.5 text-accent" /> Full Name
@@ -1031,12 +1091,13 @@ export default function VolunteerPortalPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-slate-800/80 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-1 focus:ring-accent"
-                  required
+                  required={!isPasswordRecovery}
+                  disabled={isPasswordRecovery}
                 />
               </div>
               <div className="space-y-1.5">
                 <label htmlFor="auth-pw" className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                  <Lock className="w-3.5 h-3.5 text-accent" /> Password
+                  <Lock className="w-3.5 h-3.5 text-accent" /> {isPasswordRecovery ? 'New Password' : 'Password'}
                 </label>
                 <input
                   id="auth-pw"
@@ -1047,6 +1108,16 @@ export default function VolunteerPortalPage() {
                   className="w-full bg-slate-800/80 border border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-1 focus:ring-accent"
                   required
                 />
+                {authTab === 'signin' && !isPasswordRecovery && (
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    disabled={authLoading}
+                    className="text-xs font-bold text-blue-300 hover:text-white transition-colors disabled:opacity-50"
+                  >
+                    Forgot password?
+                  </button>
+                )}
               </div>
 
               {authError && (
@@ -1068,6 +1139,8 @@ export default function VolunteerPortalPage() {
               >
                 {authLoading ? (
                   <Loader2 className="w-5 h-5 animate-spin" />
+                ) : isPasswordRecovery ? (
+                  'Update Password'
                 ) : authTab === 'signin' ? (
                   'Sign In'
                 ) : (

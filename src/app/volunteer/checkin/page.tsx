@@ -363,7 +363,7 @@ export default function CheckinPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
         
         {/* Header navigation */}
-        <div className="flex items-center justify-between mb-10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
           <Link
             href="/volunteer"
             onClick={() => setCameraActive(false)}
@@ -372,7 +372,7 @@ export default function CheckinPage() {
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Volunteer Portal
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
   <button
     onClick={() => {
       setShowSettings(!showSettings)
@@ -400,7 +400,7 @@ export default function CheckinPage() {
         </div>
 
         <div className="text-center mb-8">
-          <h1 className={`${fredoka.className} text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-accent to-purple-400 pb-2`}>
+          <h1 className={`${fredoka.className} text-3xl sm:text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-accent to-purple-400 pb-2`}>
             Webcam Attendance Check-In
           </h1>
           <p className={`${spaceGrotesk.className} text-blue-200`}>
@@ -551,7 +551,7 @@ export default function CheckinPage() {
                   {selectedEvent.title}
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => loadEventRoster()}
                   disabled={rosterLoading}

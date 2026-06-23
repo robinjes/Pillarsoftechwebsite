@@ -287,18 +287,23 @@ async function fetchOrCreateProfile(user: User): Promise<VolunteerProfile | null
 
   const client = supabase
 
-  const { data: existing, error: fetchError } = await client
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .maybeSingle()
+  const fetchExistingProfile = async (): Promise<VolunteerProfile | null> => {
+    const { data: existing, error: fetchError } = await client
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle()
 
-  if (fetchError) {
-    console.error('Failed to fetch volunteer profile:', fetchError)
+    if (fetchError) {
+      console.error('Failed to fetch volunteer profile:', fetchError)
+    }
+
+    return existing ? mapProfileRow(existing as ProfileRow) : null
   }
 
+  const existing = await fetchExistingProfile()
   if (existing) {
-    return mapProfileRow(existing as ProfileRow)
+    return existing
   }
 
   const fullName = getUserFullName(user)
@@ -319,17 +324,31 @@ async function fetchOrCreateProfile(user: User): Promise<VolunteerProfile | null
   if (insertError) {
     console.error('Failed to create volunteer profile:', insertError)
 
-    const { data: retry } = await client
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .maybeSingle()
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      await new Promise((resolve) => window.setTimeout(resolve, 350))
+      const retry = await fetchExistingProfile()
+      if (retry) return retry
+    }
 
-    if (retry) return mapProfileRow(retry as ProfileRow)
     return null
   }
 
   return inserted ? mapProfileRow(inserted as ProfileRow) : null
+}
+
+async function waitForCurrentSession() {
+  if (!supabase) return null
+
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    if (session?.user) return session
+    await new Promise((resolve) => window.setTimeout(resolve, 250))
+  }
+
+  return null
 }
 
 export const volunteerService = {
@@ -344,16 +363,33 @@ export const volunteerService = {
     const code = url.searchParams.get('code')
     if (!code) return false
 
+    const cleanAuthUrl = () => {
+      url.searchParams.delete('code')
+      url.searchParams.delete('state')
+      window.history.replaceState({}, '', url.pathname + (url.search || ''))
+    }
+
+    const {
+      data: { session: existingSession },
+    } = await supabase.auth.getSession()
+
+    if (existingSession?.user) {
+      cleanAuthUrl()
+      return true
+    }
+
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (error) {
+      if (error.name === 'AuthPKCECodeVerifierMissingError') {
+        cleanAuthUrl()
+        return false
+      }
+
       console.error('OAuth callback failed:', error)
       return false
     }
 
-    url.searchParams.delete('code')
-    url.searchParams.delete('state')
-    const cleanPath = url.pathname + (url.search || '')
-    window.history.replaceState({}, '', cleanPath)
+    cleanAuthUrl()
 
     return true
   },
@@ -408,13 +444,12 @@ export const volunteerService = {
       throw new Error(authError?.message || 'Authentication signup failed')
     }
 
-    if (!authData.session) {
-      throw new Error(
-        'Account created. Please confirm your email, then come back and sign in to finish your volunteer profile.'
-      )
+    const session = authData.session || (await waitForCurrentSession())
+    if (!session?.user) {
+      throw new Error('Account created. You can sign in now to finish your volunteer profile.')
     }
 
-    const profile = await fetchOrCreateProfile(authData.user)
+    const profile = await fetchOrCreateProfile(session.user)
     if (!profile) {
       throw new Error(
         'Account created, but the volunteer profile could not be created. Check Supabase RLS policies for the profiles table.'
@@ -422,6 +457,24 @@ export const volunteerService = {
     }
 
     return profile
+  },
+
+  sendPasswordReset: async (email: string): Promise<void> => {
+    if (!supabase) return
+    if (typeof window === 'undefined') return
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/volunteer`,
+    })
+
+    if (error) throw error
+  },
+
+  updatePassword: async (password: string): Promise<void> => {
+    if (!supabase) return
+
+    const { error } = await supabase.auth.updateUser({ password })
+    if (error) throw error
   },
 
   signInWithEmail: async (email: string, password: string): Promise<VolunteerProfile> => {

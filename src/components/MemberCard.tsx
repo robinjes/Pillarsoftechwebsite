@@ -7,7 +7,7 @@ const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 export const MemberCardContent = ({ profile }: { profile: VolunteerProfile }) => (
   <div
     id="member-card"
-    className="w-full max-w-md mx-auto bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl p-8 text-white shadow-2xl border border-white/20 print:shadow-none"
+    className="w-full max-w-md mx-auto bg-gradient-to-br from-blue-600 to-purple-600 rounded-3xl p-5 sm:p-8 text-white shadow-2xl border border-white/20 print:shadow-none"
   >
     {/* Header */}
     <div className="text-center mb-8">
@@ -21,18 +21,18 @@ export const MemberCardContent = ({ profile }: { profile: VolunteerProfile }) =>
     </div>
 
     {/* Member Info */}
-    <div className="bg-white/10 backdrop-blur rounded-2xl p-6 mb-6">
+    <div className="bg-white/10 backdrop-blur rounded-2xl p-4 sm:p-6 mb-6">
       <p className={`${spaceGrotesk.className} text-xs opacity-75 mb-1`}>Name</p>
-      <h3 className={`${fredoka.className} text-2xl font-bold mb-6`}>{profile.fullName}</h3>
+      <h3 className={`${fredoka.className} text-xl sm:text-2xl font-bold mb-6 break-words`}>{profile.fullName}</h3>
 
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
         <div>
           <p className={`${spaceGrotesk.className} text-xs opacity-75 mb-1`}>Member Code</p>
-          <p className={`${fredoka.className} text-xl font-bold tracking-wider`}>
+          <p className={`${fredoka.className} text-lg sm:text-xl font-bold tracking-wider`}>
             {profile.memberCode}
           </p>
         </div>
-        <div className="text-right">
+        <div className="sm:text-right">
           <p className={`${spaceGrotesk.className} text-xs opacity-75 mb-1`}>Status</p>
           <p className={`${fredoka.className} text-lg font-bold`}>🟢 Active</p>
         </div>
