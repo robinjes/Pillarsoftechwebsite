@@ -11,21 +11,37 @@ create table if not exists public.profiles (
   email text not null,
   member_code text unique not null,
   role text default 'volunteer' check (role in ('volunteer', 'staff')),
+  total_hours numeric default 0 not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+alter table public.profiles
+  add column if not exists total_hours numeric default 0 not null;
 
 -- Enable Row Level Security (RLS)
 alter table public.profiles enable row level security;
 
 -- Policies for profiles
+drop policy if exists "Users can view their own profile" on public.profiles;
 create policy "Users can view their own profile" on public.profiles
   for select using (auth.uid() = id);
 
+drop policy if exists "Users can insert their own profile" on public.profiles;
 create policy "Users can insert their own profile" on public.profiles
   for insert with check (auth.uid() = id);
 
+drop policy if exists "Staff can view all profiles" on public.profiles;
 create policy "Staff can view all profiles" on public.profiles
   for select using (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role = 'staff'
+    )
+  );
+
+drop policy if exists "Staff can update profiles" on public.profiles;
+create policy "Staff can update profiles" on public.profiles
+  for update using (
     exists (
       select 1 from public.profiles
       where id = auth.uid() and role = 'staff'
@@ -51,12 +67,19 @@ create table if not exists public.event_volunteers (
 alter table public.event_volunteers enable row level security;
 
 -- Policies for event_volunteers
+drop policy if exists "Users can view their own signups" on public.event_volunteers;
 create policy "Users can view their own signups" on public.event_volunteers
   for select using (auth.uid() = user_id);
 
+drop policy if exists "Users can register themselves" on public.event_volunteers;
 create policy "Users can register themselves" on public.event_volunteers
   for insert with check (auth.uid() = user_id);
 
+drop policy if exists "Users can delete their own pending signups" on public.event_volunteers;
+create policy "Users can delete their own pending signups" on public.event_volunteers
+  for delete using (auth.uid() = user_id and status = 'registered');
+
+drop policy if exists "Staff can view all signups" on public.event_volunteers;
 create policy "Staff can view all signups" on public.event_volunteers
   for select using (
     exists (
@@ -65,6 +88,7 @@ create policy "Staff can view all signups" on public.event_volunteers
     )
   );
 
+drop policy if exists "Staff can update signups (for check-in)" on public.event_volunteers;
 create policy "Staff can update signups (for check-in)" on public.event_volunteers
   for update using (
     exists (
@@ -73,6 +97,7 @@ create policy "Staff can update signups (for check-in)" on public.event_voluntee
     )
   );
 
+drop policy if exists "Staff can insert signups (for on-the-spot check-in)" on public.event_volunteers;
 create policy "Staff can insert signups (for on-the-spot check-in)" on public.event_volunteers
   for insert with check (
     exists (
@@ -106,9 +131,19 @@ create table if not exists public.check_in_sessions (
 
 alter table public.check_in_sessions enable row level security;
 
+drop policy if exists "Users can view their own check-in sessions" on public.check_in_sessions;
 create policy "Users can view their own check-in sessions" on public.check_in_sessions
   for select using (auth.uid() = user_id);
 
+drop policy if exists "Users can insert their own check-in sessions" on public.check_in_sessions;
+create policy "Users can insert their own check-in sessions" on public.check_in_sessions
+  for insert with check (auth.uid() = user_id);
+
+drop policy if exists "Users can update their own check-in sessions" on public.check_in_sessions;
+create policy "Users can update their own check-in sessions" on public.check_in_sessions
+  for update using (auth.uid() = user_id);
+
+drop policy if exists "Staff can view all check-in sessions" on public.check_in_sessions;
 create policy "Staff can view all check-in sessions" on public.check_in_sessions
   for select using (
     exists (
@@ -117,6 +152,7 @@ create policy "Staff can view all check-in sessions" on public.check_in_sessions
     )
   );
 
+drop policy if exists "Staff can insert check-in sessions" on public.check_in_sessions;
 create policy "Staff can insert check-in sessions" on public.check_in_sessions
   for insert with check (
     exists (
@@ -125,6 +161,7 @@ create policy "Staff can insert check-in sessions" on public.check_in_sessions
     )
   );
 
+drop policy if exists "Staff can update check-in sessions" on public.check_in_sessions;
 create policy "Staff can update check-in sessions" on public.check_in_sessions
   for update using (
     exists (
@@ -137,9 +174,11 @@ create policy "Staff can update check-in sessions" on public.check_in_sessions
 alter table public.attendance_logs enable row level security;
 
 -- Policies for attendance_logs
+drop policy if exists "Users can view their own attendance logs" on public.attendance_logs;
 create policy "Users can view their own attendance logs" on public.attendance_logs
   for select using (auth.uid() = volunteer_id);
 
+drop policy if exists "Staff can view all attendance logs" on public.attendance_logs;
 create policy "Staff can view all attendance logs" on public.attendance_logs
   for select using (
     exists (
@@ -148,6 +187,7 @@ create policy "Staff can view all attendance logs" on public.attendance_logs
     )
   );
 
+drop policy if exists "Staff can insert attendance logs" on public.attendance_logs;
 create policy "Staff can insert attendance logs" on public.attendance_logs
   for insert with check (
     exists (
@@ -156,8 +196,49 @@ create policy "Staff can insert attendance logs" on public.attendance_logs
     )
   );
 
+drop policy if exists "Staff can update attendance logs" on public.attendance_logs;
+create policy "Staff can update attendance logs" on public.attendance_logs
+  for update using (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role = 'staff'
+    )
+  );
 
--- 4. HELPER TRIGGERS (OPTIONAL)
+
+-- 5. VOLUNTEER HOUR ADJUSTMENTS TABLE
+-- Optional audit log for manual hour changes made by staff.
+create table if not exists public.volunteer_hour_adjustments (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles(id) on delete cascade not null,
+  adjusted_by uuid references public.profiles(id) on delete set null,
+  hours numeric not null,
+  reason text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table public.volunteer_hour_adjustments enable row level security;
+
+drop policy if exists "Staff can view hour adjustments" on public.volunteer_hour_adjustments;
+create policy "Staff can view hour adjustments" on public.volunteer_hour_adjustments
+  for select using (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role = 'staff'
+    )
+  );
+
+drop policy if exists "Staff can insert hour adjustments" on public.volunteer_hour_adjustments;
+create policy "Staff can insert hour adjustments" on public.volunteer_hour_adjustments
+  for insert with check (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and role = 'staff'
+    )
+  );
+
+
+-- 6. HELPER TRIGGERS (OPTIONAL)
 -- Automatically creates a profile record when a new user signs up via Auth (SSO or Email).
 -- Note: This requires extracting fullName/member_code. If skipped, profiles are inserted
 -- directly by the client code during email signup, but this is a useful fallback.

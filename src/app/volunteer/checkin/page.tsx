@@ -6,7 +6,12 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
 import Link from 'next/link'
 import { Html5Qrcode } from 'html5-qrcode'
-import { volunteerService, VolunteerProfile, VolunteerSignup } from '@/lib/volunteerService'
+import {
+  volunteerService,
+  EventRosterEntry,
+  VolunteerProfile,
+  VolunteerSignup,
+} from '@/lib/volunteerService'
 import { Event } from '@/data/events'
 import { 
   Camera, 
@@ -22,7 +27,9 @@ import {
   LogOut,
   Settings,
   Shield,
-  User
+  User,
+  Users,
+  Download
 } from 'lucide-react'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
@@ -57,9 +64,14 @@ export default function CheckinPage() {
     sessionId: string
     hoursLogged: number
   }>>([])
+  const [eventRoster, setEventRoster] = useState<EventRosterEntry[]>([])
+  const [rosterLoading, setRosterLoading] = useState(false)
 
   // Manual code input state
   const [manualCode, setManualCode] = useState('')
+  const [manualSearch, setManualSearch] = useState('')
+  const [manualSearchResults, setManualSearchResults] = useState<VolunteerProfile[]>([])
+  const [manualSearchLoading, setManualSearchLoading] = useState(false)
 
   // Role management state
   const [allProfiles, setAllProfiles] = useState<VolunteerProfile[]>([])
@@ -199,6 +211,39 @@ export default function CheckinPage() {
     }
   }, [scannerInstance])
 
+  useEffect(() => {
+    if (!selectedEventId) {
+      setEventRoster([])
+      return
+    }
+
+    loadEventRoster(selectedEventId)
+  }, [selectedEventId])
+
+  useEffect(() => {
+    let mounted = true
+    const query = manualSearch.trim()
+
+    if (query.length < 2) {
+      setManualSearchResults([])
+      return
+    }
+
+    setManualSearchLoading(true)
+    const timer = window.setTimeout(async () => {
+      const results = await volunteerService.searchProfiles(query)
+      if (mounted) {
+        setManualSearchResults(results)
+        setManualSearchLoading(false)
+      }
+    }, 250)
+
+    return () => {
+      mounted = false
+      window.clearTimeout(timer)
+    }
+  }, [manualSearch])
+
   const handleCodeScan = async (code: string) => {
     // Prevent double triggers during active checkin or shown result
     if (checkinLoading || recentScan) return
@@ -211,6 +256,7 @@ export default function CheckinPage() {
       playSuccessBeep()
       setRecentScan(result)
       await loadActiveCheckIns()
+      await loadEventRoster()
       
       // Auto-clear result after 4 seconds to enable continuous scanning
       if (beepPlayTimeoutRef.current) clearTimeout(beepPlayTimeoutRef.current)
@@ -242,6 +288,46 @@ export default function CheckinPage() {
   const loadActiveCheckIns = async () => {
     const sessions = await volunteerService.getActiveCheckInSessions()
     setActiveCheckIns(sessions)
+  }
+
+  const loadEventRoster = async (eventId = selectedEventId) => {
+    if (!eventId) return
+    setRosterLoading(true)
+    const roster = await volunteerService.getEventRoster(eventId)
+    setEventRoster(roster)
+    setRosterLoading(false)
+  }
+
+  const exportRosterCsv = () => {
+    if (!selectedEvent) return
+
+    const rows = [
+      ['Name', 'Email', 'Member Code', 'Status', 'Hours', 'Checked In At'],
+      ...eventRoster.map(({ signup, profile }) => [
+        profile?.fullName || 'Unknown volunteer',
+        profile?.email || '',
+        profile?.memberCode || '',
+        signup.status,
+        signup.hours.toString(),
+        signup.checkedInAt || '',
+      ]),
+    ]
+
+    const csv = rows
+      .map((row) => row.map((value) => `"${value.replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = `${selectedEvent.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-volunteer-roster.csv`
+    link.click()
+    URL.revokeObjectURL(link.href)
+  }
+
+  const handleManualProfileSelect = (profile: VolunteerProfile) => {
+    setManualCode(profile.memberCode)
+    setManualSearch('')
+    setManualSearchResults([])
   }
 
   const handleUpdateRole = async (userId: string, newRole: 'volunteer' | 'staff') => {
@@ -453,6 +539,81 @@ export default function CheckinPage() {
           )}
         </div>
 
+        {selectedEvent && (
+          <div className="bg-slate-900/60 border border-white/10 rounded-3xl p-6 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+              <div>
+                <h2 className={`${fredoka.className} text-2xl font-bold flex items-center gap-2`}>
+                  <Users className="w-5 h-5 text-accent" />
+                  Event Volunteer Roster
+                </h2>
+                <p className={`${spaceGrotesk.className} text-sm text-blue-200`}>
+                  {selectedEvent.title}
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => loadEventRoster()}
+                  disabled={rosterLoading}
+                  className={`${spaceGrotesk.className} px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-2`}
+                >
+                  <RefreshCw className={`w-4 h-4 ${rosterLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </button>
+                <button
+                  onClick={exportRosterCsv}
+                  disabled={eventRoster.length === 0}
+                  className={`${spaceGrotesk.className} px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-xl text-xs font-bold text-emerald-300 transition-colors disabled:opacity-50 flex items-center gap-2`}
+                >
+                  <Download className="w-4 h-4" />
+                  Export CSV
+                </button>
+              </div>
+            </div>
+
+            {eventRoster.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1">
+                {eventRoster.map(({ signup, profile }) => (
+                  <div key={signup.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className={`${spaceGrotesk.className} font-bold text-white`}>
+                          {profile?.fullName || 'Unknown volunteer'}
+                        </p>
+                        <p className={`${spaceGrotesk.className} text-xs text-blue-200`}>
+                          {profile?.email || 'No email available'}
+                        </p>
+                        <p className={`${spaceGrotesk.className} text-[10px] text-slate-400 mt-1`}>
+                          {profile?.memberCode || 'No member code'}
+                        </p>
+                      </div>
+                      <span
+                        className={`${spaceGrotesk.className} px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
+                          signup.status === 'attended'
+                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                            : signup.status === 'registered'
+                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+                              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                        }`}
+                      >
+                        {signup.status}
+                      </span>
+                    </div>
+                    <div className={`${spaceGrotesk.className} mt-3 flex items-center justify-between text-xs text-blue-200`}>
+                      <span>{signup.hours.toFixed(2)}h logged</span>
+                      {signup.checkedInAt && <span>{new Date(signup.checkedInAt).toLocaleTimeString()}</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className={`${spaceGrotesk.className} py-8 text-center text-blue-200 border border-dashed border-white/10 rounded-2xl`}>
+                No volunteers are registered for this event yet.
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           
           {/* WEBCAM SCANNER CARD */}
@@ -528,6 +689,39 @@ export default function CheckinPage() {
               <h2 className={`${fredoka.className} text-xl font-bold mb-4 flex items-center gap-2`}>
                 <Search className="w-5 h-5 text-accent" /> Manual Override
               </h2>
+
+              <div className={`space-y-2 mb-4 ${spaceGrotesk.className}`}>
+                <label htmlFor="volunteer-search" className="text-xs font-semibold text-slate-300">
+                  Search Volunteer
+                </label>
+                <input
+                  id="volunteer-search"
+                  type="text"
+                  placeholder="Name, email, or member code"
+                  value={manualSearch}
+                  onChange={(e) => setManualSearch(e.target.value)}
+                  className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-accent"
+                />
+                {manualSearchLoading && (
+                  <p className="text-xs text-blue-200">Searching volunteers...</p>
+                )}
+                {manualSearchResults.length > 0 && (
+                  <div className="space-y-2 max-h-44 overflow-y-auto">
+                    {manualSearchResults.map((profile) => (
+                      <button
+                        key={profile.id}
+                        type="button"
+                        onClick={() => handleManualProfileSelect(profile)}
+                        className="w-full text-left rounded-xl border border-white/10 bg-black/20 hover:bg-white/10 p-3 transition-colors"
+                      >
+                        <span className="block text-sm font-bold text-white">{profile.fullName}</span>
+                        <span className="block text-xs text-blue-200">{profile.email}</span>
+                        <span className="block text-[10px] text-slate-400 mt-1">{profile.memberCode}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               
               <form onSubmit={handleManualCheckIn} className={`space-y-4 ${spaceGrotesk.className}`}>
                 <div className="space-y-1.5">
@@ -587,7 +781,7 @@ export default function CheckinPage() {
             </div>
 
             {/* STATUS / SCAN RESULTS OVERLAY CONTAINER */}
-            <div className="flex-grow min-h-[150px] relative">
+            <div className="flex-grow min-h-[260px] relative">
               <AnimatePresence mode="wait">
                 {recentScan ? (
                   /* SUCCESS OVERLAY */
@@ -617,6 +811,12 @@ export default function CheckinPage() {
                             ? `Checked in at ${new Date(recentScan.checkInTime).toLocaleTimeString()}`
                             : `Checked out at ${new Date(recentScan.checkOutTime || '').toLocaleTimeString()}, ${recentScan.hoursLogged.toFixed(2)}h logged`}
                         </p>
+                        {recentScan.action === 'checkedOut' && (
+                          <div className={`${spaceGrotesk.className} mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-100`}>
+                            This checkout added <strong>{recentScan.hoursLogged.toFixed(2)} hours</strong> to the event record.
+                            Admins can adjust total hours later from the hours dashboard if anything looks off.
+                          </div>
+                        )}
                       </div>
                     </div>
 

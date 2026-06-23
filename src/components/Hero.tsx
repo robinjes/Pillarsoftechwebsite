@@ -1,13 +1,12 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Fredoka } from 'next/font/google'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { newsletterCardDescription } from '@/data/newsletter'
+import { fredoka } from '@/lib/fonts'
 
-const fredoka = Fredoka({ subsets: ['latin'] })
 const carouselItems = [
   {
     type: 'image',
@@ -34,6 +33,17 @@ const carouselItems = [
     label: 'Wildcat Tank Timelapse',
     href: '/wildcat-tank'
   }
+]
+
+const heroCtas = [
+  { label: 'Volunteer with us', href: '/volunteer' },
+  {
+    label: 'Donate',
+    href: 'https://hcb.hackclub.com/donations/start/pillars-of-tech',
+    external: true
+  },
+  { label: 'About us', href: '/about' },
+  { label: 'Contact', href: '/contact' }
 ]
 
 export default function Hero() {
@@ -261,7 +271,7 @@ export default function Hero() {
           <div className="relative z-10 text-center">
             <motion.h1 
               className={`${fredoka.className} text-6xl md:text-7xl font-bold text-white mb-4`}
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
@@ -270,7 +280,7 @@ export default function Hero() {
             
             <motion.h2 
               className={`${fredoka.className} text-3xl md:text-4xl font-bold text-blue-100 mb-6`}
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
@@ -279,17 +289,54 @@ export default function Hero() {
             
             <motion.p 
               className="text-lg md:text-xl text-blue-100 mb-8 max-w-3xl mx-auto leading-relaxed"
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.15 }}
             >
               We're a student-led organization dedicated to making STEM education accessible to all. Through hands-on events, mentorship, and community programs, we're building the next generation of STEM leaders.
             </motion.p>
+
+            <motion.div
+              className="flex flex-wrap items-center justify-center gap-2.5"
+              initial={false}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              {heroCtas.map((cta, index) =>
+                cta.external ? (
+                  <a
+                    key={cta.label}
+                    href={cta.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 hover:-translate-y-0.5 ${
+                      index === 0
+                        ? 'border-white/80 bg-white text-blue-900 hover:bg-blue-50'
+                        : 'border-white/25 bg-white/10 text-blue-50 hover:border-white/45 hover:bg-white/15'
+                    }`}
+                  >
+                    {cta.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={cta.label}
+                    href={cta.href}
+                    className={`rounded-full border px-4 py-2 text-sm font-bold transition-all duration-200 hover:-translate-y-0.5 ${
+                      index === 0
+                        ? 'border-white/80 bg-white text-blue-900 hover:bg-blue-50'
+                        : 'border-white/25 bg-white/10 text-blue-50 hover:border-white/45 hover:bg-white/15'
+                    }`}
+                  >
+                    {cta.label}
+                  </Link>
+                )
+              )}
+            </motion.div>
             
             {/* Scroll Indicator */}
             <motion.div
-              className="mt-16 flex flex-col items-center gap-2"
-              initial={{ opacity: 0 }}
+              className="mt-12 flex flex-col items-center gap-2"
+              initial={false}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.5, delay: 0.5 }}
             >
@@ -311,7 +358,7 @@ export default function Hero() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             className="grid grid-cols-1 md:grid-cols-3 gap-8"
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
@@ -319,7 +366,7 @@ export default function Hero() {
             {impactStats.map((stat, index) => (
               <div key={stat.label} className="text-center">
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.5 }}
+                  initial={false}
                   whileInView={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5, delay: index * 0.1 }}
                   viewport={{ once: true }}
@@ -338,7 +385,7 @@ export default function Hero() {
       <section className="py-20 bg-gradient-to-br from-blue-800/20 via-blue-750/20 to-blue-800/20 backdrop-blur-sm border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
@@ -356,7 +403,7 @@ export default function Hero() {
             {whatWeDo.map((item, index) => (
               <motion.div
                 key={item.title}
-                initial={{ opacity: 0, y: 20 }}
+                initial={false}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.15 }}
                 viewport={{ once: true }}
@@ -381,7 +428,7 @@ export default function Hero() {
       <section className="py-20 bg-gradient-to-br from-blue-900/30 via-blue-800/30 to-blue-900/30 backdrop-blur-md border-t border-white/10">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
@@ -410,7 +457,7 @@ export default function Hero() {
       <section className="py-20 bg-gradient-to-br from-blue-700 via-blue-600 to-blue-700 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
@@ -423,7 +470,7 @@ export default function Hero() {
           
           <motion.div
             className="space-y-6"
-            initial={{ opacity: 0 }}
+            initial={false}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.1 }}
             viewport={{ once: true }}

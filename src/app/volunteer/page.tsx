@@ -52,9 +52,16 @@ const volunteerDescriptions: Record<string, string> = {
     'Help us manage people and keep the event running smoothly, such as checking people in, directing attendees, and assisting Pillars of Tech staff with whatever they need to ensure a successful panel.',
 }
 
+const volunteerRoleNotes: Record<string, string[]> = {
+  default: ['Setup and cleanup', 'Welcome table support', 'Activity helper', 'Floating event support'],
+  'career-panel-granada': ['Check-in table', 'Direct attendees', 'Speaker support', 'Cleanup help'],
+}
+
 const getVolunteerDescription = (event: Event) =>
   volunteerDescriptions[event.id] ??
   `Help us run the ${event.title} event! Volunteers assist with setup, greeting attendees, managing activity booths, and supporting the Pillars of Tech team throughout the program.`
+
+const getVolunteerRoleNotes = (event: Event) => volunteerRoleNotes[event.id] ?? volunteerRoleNotes.default
 
 export default function VolunteerPortalPage() {
   const router = useRouter()
@@ -74,6 +81,7 @@ export default function VolunteerPortalPage() {
 
   // Event signup
   const [signingUpEventId, setSigningUpEventId] = useState<string | null>(null)
+  const [withdrawingEventId, setWithdrawingEventId] = useState<string | null>(null)
   
   // Track if user just signed up to avoid auth state callback interference
   const [skipAuthCallback, setSkipAuthCallback] = useState(false)
@@ -145,9 +153,11 @@ export default function VolunteerPortalPage() {
 
   const upcomingEvents = events.filter((e) => e.status === 'upcoming')
 
-  const totalHours = signups
+  const attendedSignupHours = signups
     .filter((s) => s.status === 'attended')
     .reduce((sum, s) => sum + s.hours, 0)
+
+  const totalHours = typeof user?.totalHours === 'number' ? user.totalHours : attendedSignupHours
 
   const getBadgeTier = (hours: number) => {
     if (hours >= 30) return { name: 'Gold Champion', color: 'text-amber-400 border-amber-400 bg-amber-400/10' }
@@ -155,7 +165,17 @@ export default function VolunteerPortalPage() {
     return { name: 'Bronze Helper', color: 'text-orange-400 border-orange-400 bg-orange-400/10' }
   }
 
+  const getNextBadgeTarget = (hours: number) => {
+    if (hours < 10) return { name: 'Silver Leader', hours: 10 }
+    if (hours < 30) return { name: 'Gold Champion', hours: 30 }
+    return null
+  }
+
   const badge = getBadgeTier(totalHours)
+  const nextBadge = getNextBadgeTarget(totalHours)
+  const badgeProgress = nextBadge
+    ? Math.min(100, Math.round((totalHours / nextBadge.hours) * 100))
+    : 100
 
   const handleToggleExpand = (id: string) => {
     setExpandedEvents((prev) => {
@@ -263,8 +283,12 @@ export default function VolunteerPortalPage() {
     }
   }
 
-  const calculateTimeUntilEvent = (eventDate: string): { days: number; hours: number; minutes: number } => {
+  const calculateTimeUntilEvent = (
+    eventDate: string
+  ): { days: number; hours: number; minutes: number } | null => {
     const event = new Date(eventDate)
+    if (Number.isNaN(event.getTime())) return null
+
     const now = new Date()
     const diff = event.getTime() - now.getTime()
     const days = Math.floor(diff / (1000 * 60 * 60 * 24))
@@ -274,6 +298,14 @@ export default function VolunteerPortalPage() {
   }
 
   const upcomingSignups = signups.filter(s => s.status === 'registered')
+  const registeredEventIds = new Set(upcomingSignups.map((signup) => signup.eventId))
+  const registeredUpcomingEvents = upcomingSignups
+    .map((signup) => ({
+      signup,
+      event: events.find((event) => event.id === signup.eventId),
+    }))
+    .filter((entry): entry is { signup: VolunteerSignup; event: Event } => Boolean(entry.event))
+  const availableUpcomingEvents = upcomingEvents.filter((event) => !registeredEventIds.has(event.id))
 
   const handleRegisterForEvent = async (event: Event) => {
     if (!user) {
@@ -288,6 +320,24 @@ export default function VolunteerPortalPage() {
       console.error('Error signing up for event:', err)
     } finally {
       setSigningUpEventId(null)
+    }
+  }
+
+  const handleWithdrawFromEvent = async (eventId: string) => {
+    if (!user) return
+    const confirmed = window.confirm('Remove this event from your volunteer roster?')
+    if (!confirmed) return
+
+    setWithdrawingEventId(eventId)
+    try {
+      await volunteerService.withdrawFromEvent(user.id, eventId)
+      setSignups((prev) =>
+        prev.filter((signup) => !(signup.eventId === eventId && signup.status === 'registered'))
+      )
+    } catch (err) {
+      console.error('Error withdrawing from event:', err)
+    } finally {
+      setWithdrawingEventId(null)
     }
   }
 
@@ -348,6 +398,25 @@ export default function VolunteerPortalPage() {
                     <Award className="w-5 h-5 mb-2" />
                     <span className={`${spaceGrotesk.className} text-xs font-black`}>{badge.name}</span>
                     <span className={`${spaceGrotesk.className} text-[10px] opacity-75 font-bold uppercase tracking-wider mt-2.5`}>Badge Tier</span>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 border border-white/5 rounded-2xl p-4 mb-8">
+                  <div className="flex items-center justify-between gap-3 mb-2">
+                    <span className={`${spaceGrotesk.className} text-xs font-bold uppercase tracking-wider text-blue-300`}>
+                      Badge Progress
+                    </span>
+                    <span className={`${spaceGrotesk.className} text-xs text-blue-200`}>
+                      {nextBadge
+                        ? `${Math.max(0, nextBadge.hours - totalHours).toFixed(1)}h to ${nextBadge.name}`
+                        : 'Top tier reached'}
+                    </span>
+                  </div>
+                  <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-accent to-emerald-400 rounded-full"
+                      style={{ width: `${badgeProgress}%` }}
+                    />
                   </div>
                 </div>
 
@@ -435,8 +504,8 @@ export default function VolunteerPortalPage() {
 
             {/* RIGHT: Events */}
             <div className="lg:col-span-2 space-y-8">
-              {/* Upcoming Registered Events Countdown */}
-              {upcomingSignups.length > 0 && (
+              {/* Upcoming Registered Events */}
+              {registeredUpcomingEvents.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -444,37 +513,70 @@ export default function VolunteerPortalPage() {
                 >
                   <h3 className={`${fredoka.className} text-2xl font-bold mb-4 flex items-center gap-2`}>
                     <Hourglass className="w-6 h-6 text-emerald-400" />
-                    Your Upcoming Volunteering
+                    Your Upcoming Volunteer Events
                   </h3>
                   <div className="space-y-3">
-                    {upcomingSignups.slice(0, 3).map(signup => {
-                      const event = events.find(e => e.id === signup.eventId)
-                      if (!event) return null
+                    {registeredUpcomingEvents.map(({ signup, event }) => {
                       const timeLeft = calculateTimeUntilEvent(event.date)
                       return (
                         <div key={signup.id} className="bg-white/5 border border-white/10 rounded-xl p-4">
-                          <div className="flex items-start justify-between mb-3">
-                            <h4 className={`${spaceGrotesk.className} font-bold text-white`}>{event.title}</h4>
-                            <span className="text-xs font-bold bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30">
-                              Registered ✓
-                            </span>
+                          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
+                            <div>
+                              <h4 className={`${spaceGrotesk.className} font-bold text-white`}>{event.title}</h4>
+                              <p className={`${spaceGrotesk.className} text-xs text-blue-300 mt-1`}>
+                                {event.location}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-xs font-bold bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-full border border-emerald-500/30">
+                                Registered
+                              </span>
+                              <button
+                                onClick={() => handleWithdrawFromEvent(event.id)}
+                                disabled={withdrawingEventId === event.id}
+                                className={`${spaceGrotesk.className} px-2.5 py-1 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 rounded-full text-xs font-bold text-rose-300 transition-colors disabled:opacity-50`}
+                              >
+                                {withdrawingEventId === event.id ? 'Removing...' : 'Withdraw'}
+                              </button>
+                            </div>
                           </div>
                           <div className="flex items-center gap-2 text-sm text-blue-200 mb-3">
                             <Calendar className="w-4 h-4" />
                             {event.date} • {event.time}
                           </div>
-                          <div className="grid grid-cols-3 gap-2">
-                            <div className="bg-black/30 rounded-lg p-2 text-center">
-                              <div className={`${fredoka.className} text-xl font-bold text-emerald-400`}>{timeLeft.days}</div>
-                              <div className={`${spaceGrotesk.className} text-xs text-blue-300`}>Days</div>
+                          {timeLeft ? (
+                            <div className="grid grid-cols-3 gap-2">
+                              <div className="bg-black/30 rounded-lg p-2 text-center">
+                                <div className={`${fredoka.className} text-xl font-bold text-emerald-400`}>{timeLeft.days}</div>
+                                <div className={`${spaceGrotesk.className} text-xs text-blue-300`}>Days</div>
+                              </div>
+                              <div className="bg-black/30 rounded-lg p-2 text-center">
+                                <div className={`${fredoka.className} text-xl font-bold text-emerald-400`}>{timeLeft.hours}</div>
+                                <div className={`${spaceGrotesk.className} text-xs text-blue-300`}>Hours</div>
+                              </div>
+                              <div className="bg-black/30 rounded-lg p-2 text-center">
+                                <div className={`${fredoka.className} text-xl font-bold text-emerald-400`}>{timeLeft.minutes}</div>
+                                <div className={`${spaceGrotesk.className} text-xs text-blue-300`}>Mins</div>
+                              </div>
                             </div>
-                            <div className="bg-black/30 rounded-lg p-2 text-center">
-                              <div className={`${fredoka.className} text-xl font-bold text-emerald-400`}>{timeLeft.hours}</div>
-                              <div className={`${spaceGrotesk.className} text-xs text-blue-300`}>Hours</div>
+                          ) : (
+                            <div className={`${spaceGrotesk.className} rounded-xl border border-dashed border-emerald-500/25 bg-black/20 p-3 text-sm text-emerald-100`}>
+                              Event date is still TBD. We will update this countdown once the date is announced.
                             </div>
-                            <div className="bg-black/30 rounded-lg p-2 text-center">
-                              <div className={`${fredoka.className} text-xl font-bold text-emerald-400`}>{timeLeft.minutes}</div>
-                              <div className={`${spaceGrotesk.className} text-xs text-blue-300`}>Mins</div>
+                          )}
+                          <div className="mt-4 pt-4 border-t border-white/10">
+                            <p className={`${spaceGrotesk.className} text-xs font-bold text-blue-200 mb-2`}>
+                              Possible volunteer roles:
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {getVolunteerRoleNotes(event).map((role) => (
+                                <span
+                                  key={role}
+                                  className={`${spaceGrotesk.className} px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-xs text-blue-100`}
+                                >
+                                  {role}
+                                </span>
+                              ))}
                             </div>
                           </div>
                         </div>
@@ -485,16 +587,17 @@ export default function VolunteerPortalPage() {
               )}
 
               <div>
-                <h2 className={`${fredoka.className} text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200`}>\n                  Upcoming Events to Volunteer For
+                <h2 className={`${fredoka.className} text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-blue-200`}>
+                  More Volunteer Opportunities
                 </h2>
                 <p className={`${spaceGrotesk.className} text-blue-200 mt-2`}>
-                  Click "Sign Up to Volunteer" on any event below to add it to your roster!
+                  Choose another upcoming event below to join its volunteer roster and keep it saved in your dashboard.
                 </p>
               </div>
 
-              {upcomingEvents.length > 0 ? (
+              {availableUpcomingEvents.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {upcomingEvents.map((event, idx) => {
+                  {availableUpcomingEvents.map((event, idx) => {
                     const colorClass = cardColorsTailwind[idx % cardColorsTailwind.length]
                     const isExpanded = expandedEvents.has(event.id)
                     const isRegistered = signups.some((s) => s.eventId === event.id)
@@ -538,6 +641,16 @@ export default function VolunteerPortalPage() {
                                   {event.description && (
                                     <div className="pt-2.5 border-t border-white/5 mt-2 text-blue-100/80 leading-relaxed">{event.description}</div>
                                   )}
+                                  <div className="pt-2.5 border-t border-white/5 mt-2">
+                                    <strong className="text-blue-100">Volunteer roles:</strong>
+                                    <div className="flex flex-wrap gap-1.5 mt-2">
+                                      {getVolunteerRoleNotes(event).map((role) => (
+                                        <span key={role} className="px-2 py-1 rounded-full bg-white/5 border border-white/10 text-blue-100">
+                                          {role}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
                                 </div>
                               </motion.div>
                             )}
@@ -550,7 +663,7 @@ export default function VolunteerPortalPage() {
                           </button>
                         ) : isRegistered ? (
                           <button disabled className={`${spaceGrotesk.className} w-full py-3 bg-accent/20 text-blue-300 border border-accent/30 rounded-xl font-bold flex items-center justify-center gap-2`}>
-                            <CheckCircle2 className="w-4 h-4" /> Registered ✓
+                            <CheckCircle2 className="w-4 h-4" /> Registered
                           </button>
                         ) : (
                           <button
@@ -569,7 +682,11 @@ export default function VolunteerPortalPage() {
                 <div className="text-center py-16 bg-white/5 border border-dashed border-white/10 rounded-3xl">
                   <Sparkles className="w-12 h-12 text-amber-400 mx-auto mb-4 animate-pulse" />
                   <h3 className={`${fredoka.className} text-2xl font-bold text-white mb-2`}>No Events Scheduled Yet</h3>
-                  <p className={`${spaceGrotesk.className} text-blue-200 max-w-md mx-auto px-4`}>Check back soon for upcoming volunteer opportunities!</p>
+                  <p className={`${spaceGrotesk.className} text-blue-200 max-w-md mx-auto px-4`}>
+                    {registeredUpcomingEvents.length > 0
+                      ? 'You are already signed up for every upcoming volunteer opportunity.'
+                      : 'Check back soon for upcoming volunteer opportunities!'}
+                  </p>
                 </div>
               )}
             </div>

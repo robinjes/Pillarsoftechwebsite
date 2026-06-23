@@ -1,12 +1,10 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Space_Grotesk } from 'next/font/google'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Instagram, Mail, Youtube } from 'lucide-react'
-
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
+import { spaceGrotesk } from '@/lib/fonts'
 
 export default function Footer() {
   const footerLinks = [
@@ -35,7 +33,7 @@ export default function Footer() {
         <div className="flex flex-col items-center justify-center space-y-8">
           <div className="flex flex-col items-center space-y-2">
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
               viewport={{ once: true }}
@@ -51,7 +49,7 @@ export default function Footer() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0 }}
+              initial={false}
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
               viewport={{ once: true }}
@@ -68,7 +66,7 @@ export default function Footer() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 12 }}
+              initial={false}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.25 }}
               viewport={{ once: true }}
@@ -106,7 +104,7 @@ export default function Footer() {
           </div>
 
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={false}
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.3 }}
             viewport={{ once: true }}

@@ -2,12 +2,10 @@
 
 import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Space_Grotesk } from 'next/font/google'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Menu, X, Home, Info, Calendar, Users, Mail, Newspaper, Heart } from 'lucide-react'
-
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
+import { spaceGrotesk } from '@/lib/fonts'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)

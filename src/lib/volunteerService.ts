@@ -32,466 +32,739 @@ export interface CheckInSession {
   hoursLogged: number
 }
 
-// Key for mock local storage
+export interface ActiveCheckInSession {
+  profile: VolunteerProfile
+  eventId: string
+  checkInTime: string
+  sessionId: string
+  hoursLogged: number
+}
+
+export interface EventRosterEntry {
+  signup: VolunteerSignup
+  profile: VolunteerProfile | null
+}
+
+type ProfileRow = {
+  id: string
+  full_name: string | null
+  email: string | null
+  member_code: string | null
+  role: 'volunteer' | 'staff' | string | null
+  created_at: string | null
+  total_hours?: number | null
+}
+
+type EventVolunteerRow = {
+  id: string
+  user_id: string
+  event_id: string
+  event_title: string | null
+  status: 'registered' | 'attended' | 'absent' | string | null
+  hours: number | null
+  created_at: string | null
+  checked_in_at?: string | null
+  profiles?: ProfileRow | ProfileRow[] | null
+}
+
+type CheckInSessionRow = {
+  id: string
+  user_id: string
+  event_id: string
+  check_in_time: string
+  check_out_time?: string | null
+  hours_logged?: number | null
+  profiles?: ProfileRow | ProfileRow[] | null
+}
+
 const LOCAL_PROFILE_KEY = 'pot_mock_volunteer_profile'
 const LOCAL_SIGNUPS_KEY = 'pot_mock_volunteer_signups'
 const LOCAL_PROFILES_LIST_KEY = 'pot_mock_all_profiles'
 
-// Helper to generate a unique member code: POT-XXXXXX where X is a digit
 function generateMemberCode(): string {
   const digits = Math.floor(100000 + Math.random() * 900000).toString()
   return `POT-${digits}`
 }
 
-function mapProfileRow(data: {
-  id: string
-  full_name: string
-  email: string
-  member_code: string
-  role: 'volunteer' | 'staff'
-  created_at: string
-}): VolunteerProfile {
+function parseJson<T>(value: string | null, fallback: T): T {
+  if (!value) return fallback
+
+  try {
+    return JSON.parse(value) as T
+  } catch {
+    return fallback
+  }
+}
+
+function getLocalStorageItem(key: string): string | null {
+  if (typeof window === 'undefined') return null
+  return window.localStorage.getItem(key)
+}
+
+function setLocalStorageItem(key: string, value: string): void {
+  if (typeof window === 'undefined') return
+  window.localStorage.setItem(key, value)
+}
+
+function getSessionStorageItem(key: string): string | null {
+  if (typeof window === 'undefined') return null
+  return window.sessionStorage.getItem(key)
+}
+
+function setSessionStorageItem(key: string, value: string): void {
+  if (typeof window === 'undefined') return
+  window.sessionStorage.setItem(key, value)
+}
+
+function removeSessionStorageItem(key: string): void {
+  if (typeof window === 'undefined') return
+  window.sessionStorage.removeItem(key)
+}
+
+function clearVolunteerSessionStorage(): void {
+  if (typeof window === 'undefined') return
+
+  const localKeysToRemove = new Set([
+    LOCAL_PROFILE_KEY,
+    LOCAL_SIGNUPS_KEY,
+    'supabase.auth.token',
+  ])
+
+  for (let index = 0; index < window.localStorage.length; index += 1) {
+    const key = window.localStorage.key(index)
+    if (!key) continue
+
+    if (key.startsWith('sb-') && key.includes('auth-token')) {
+      localKeysToRemove.add(key)
+    }
+  }
+
+  localKeysToRemove.forEach((key) => window.localStorage.removeItem(key))
+
+  const sessionKeysToRemove: string[] = []
+  for (let index = 0; index < window.sessionStorage.length; index += 1) {
+    const key = window.sessionStorage.key(index)
+    if (!key) continue
+
+    if (key.startsWith('checkin-') || key.startsWith('sb-')) {
+      sessionKeysToRemove.push(key)
+    }
+  }
+
+  sessionKeysToRemove.forEach((key) => window.sessionStorage.removeItem(key))
+}
+
+function redirectTo(path: string): void {
+  if (typeof window === 'undefined') return
+  window.location.href = path
+}
+
+function reloadPage(): void {
+  if (typeof window === 'undefined') return
+  window.location.reload()
+}
+
+function titleCaseEmailName(email: string): string {
+  const generatedName = email.split('@')[0].replace(/[^a-zA-Z]+/g, ' ').trim()
+  return generatedName.replace(/\b\w/g, (c) => c.toUpperCase()) || email.split('@')[0]
+}
+
+function getUserFullName(user: User): string {
+  const fullName = user.user_metadata?.full_name
+  const name = user.user_metadata?.name
+
+  if (typeof fullName === 'string' && fullName.trim()) return fullName
+  if (typeof name === 'string' && name.trim()) return name
+  if (user.email) return titleCaseEmailName(user.email)
+
+  return 'POT Volunteer'
+}
+
+function normalizeRole(role: unknown): 'volunteer' | 'staff' {
+  return role === 'staff' ? 'staff' : 'volunteer'
+}
+
+function normalizeStatus(status: unknown): 'registered' | 'attended' | 'absent' {
+  if (status === 'attended' || status === 'absent') return status
+  return 'registered'
+}
+
+function mapProfileRow(data: ProfileRow): VolunteerProfile {
   return {
     id: data.id,
-    fullName: data.full_name,
-    email: data.email,
-    memberCode: data.member_code,
-    role: data.role,
-    createdAt: data.created_at,
+    fullName: data.full_name || 'POT Volunteer',
+    email: data.email || '',
+    memberCode: data.member_code || generateMemberCode(),
+    role: normalizeRole(data.role),
+    createdAt: data.created_at || new Date().toISOString(),
+    totalHours: typeof data.total_hours === 'number' ? data.total_hours : undefined,
   }
+}
+
+function mapSignupRow(data: EventVolunteerRow): VolunteerSignup {
+  return {
+    id: data.id,
+    userId: data.user_id,
+    eventId: data.event_id,
+    eventTitle: data.event_title || 'Event Check-in',
+    status: normalizeStatus(data.status),
+    hours: data.hours || 0,
+    createdAt: data.created_at || new Date().toISOString(),
+    checkedInAt: data.checked_in_at || undefined,
+  }
+}
+
+function mapCheckInSessionRow(data: CheckInSessionRow): CheckInSession {
+  const checkOutTime = data.check_out_time || undefined
+  const durationMinutes = checkOutTime
+    ? Math.max(
+        0,
+        Math.floor(
+          (new Date(checkOutTime).getTime() - new Date(data.check_in_time).getTime()) /
+            (1000 * 60)
+        )
+      )
+    : 0
+
+  return {
+    id: data.id,
+    userId: data.user_id,
+    eventId: data.event_id,
+    checkInTime: data.check_in_time,
+    checkOutTime,
+    duration: durationMinutes,
+    hoursLogged:
+      typeof data.hours_logged === 'number'
+        ? data.hours_logged
+        : Math.round((durationMinutes / 60) * 100) / 100,
+  }
+}
+
+function getNestedProfile(row: { profiles?: ProfileRow | ProfileRow[] | null }): ProfileRow | null {
+  if (!row.profiles) return null
+  return Array.isArray(row.profiles) ? row.profiles[0] || null : row.profiles
+}
+
+function getMockProfile(): VolunteerProfile | null {
+  return parseJson<VolunteerProfile | null>(getLocalStorageItem(LOCAL_PROFILE_KEY), null)
+}
+
+function setMockProfile(profile: VolunteerProfile): void {
+  setLocalStorageItem(LOCAL_PROFILE_KEY, JSON.stringify(profile))
+}
+
+function getMockProfiles(): VolunteerProfile[] {
+  return parseJson<VolunteerProfile[]>(getLocalStorageItem(LOCAL_PROFILES_LIST_KEY), [])
+}
+
+function setMockProfiles(profiles: VolunteerProfile[]): void {
+  setLocalStorageItem(LOCAL_PROFILES_LIST_KEY, JSON.stringify(profiles))
+}
+
+function getMockSignups(): VolunteerSignup[] {
+  return parseJson<VolunteerSignup[]>(getLocalStorageItem(LOCAL_SIGNUPS_KEY), [])
+}
+
+function setMockSignups(signups: VolunteerSignup[]): void {
+  setLocalStorageItem(LOCAL_SIGNUPS_KEY, JSON.stringify(signups))
+}
+
+function saveMockProfileToList(profile: VolunteerProfile): void {
+  const allProfiles = getMockProfiles()
+  const existingIndex = allProfiles.findIndex((p) => p.id === profile.id)
+
+  if (existingIndex >= 0) {
+    allProfiles[existingIndex] = profile
+  } else {
+    allProfiles.push(profile)
+  }
+
+  setMockProfiles(allProfiles)
 }
 
 async function fetchOrCreateProfile(user: User): Promise<VolunteerProfile | null> {
   if (!supabase) return null
 
-  const { data: existing } = await supabase
+  const client = supabase
+
+  const { data: existing, error: fetchError } = await client
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .maybeSingle()
 
+  if (fetchError) {
+    console.error('Failed to fetch volunteer profile:', fetchError)
+  }
+
   if (existing) {
-    console.log('fetchOrCreateProfile: found existing profile', existing)
-    return mapProfileRow(existing)
+    return mapProfileRow(existing as ProfileRow)
   }
 
-  console.log('fetchOrCreateProfile: creating new profile for user', user.id, user.email)
+  const fullName = getUserFullName(user)
+  const email = user.email || ''
 
-  const fullName =
-    user.user_metadata?.full_name ||
-    user.user_metadata?.name ||
-    (user.email ? user.email.split('@')[0].replace(/[^a-zA-Z]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'POT Volunteer')
-
-  const insertPayload = {
-    id: user.id,
-    full_name: fullName,
-    email: user.email!,
-    member_code: generateMemberCode(),
-    role: user.email?.includes('staff') ? 'staff' : 'volunteer',
-  }
-  console.log('fetchOrCreateProfile: inserting payload', insertPayload)
-
-  const { data: inserted, error: insertError } = await supabase
+  const { data: inserted, error: insertError } = await client
     .from('profiles')
-    .insert(insertPayload)
+    .insert({
+      id: user.id,
+      full_name: fullName,
+      email,
+      member_code: generateMemberCode(),
+      role: email.includes('staff') ? 'staff' : 'volunteer',
+    })
     .select()
     .single()
 
-  if (inserted) {
-    console.log('fetchOrCreateProfile: profile created successfully', inserted)
-    return mapProfileRow(inserted)
-  }
-
   if (insertError) {
-    console.error('fetchOrCreateProfile: insert error details:', insertError.message, insertError.code, insertError.details, JSON.stringify(insertError))
-    const { data: retry } = await supabase.from('profiles').select('*').eq('id', user.id).maybeSingle()
-    if (retry) {
-      console.log('fetchOrCreateProfile: retry found profile', retry)
-      return mapProfileRow(retry)
-    }
     console.error('Failed to create volunteer profile:', insertError)
+
+    const { data: retry } = await client
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    if (retry) return mapProfileRow(retry as ProfileRow)
+    return null
   }
 
-  return null
+  return inserted ? mapProfileRow(inserted as ProfileRow) : null
 }
 
 export const volunteerService = {
-  // Check if we are running in mock mode (no Supabase config)
   isMockMode: (): boolean => {
     return !supabase
   },
 
-  // Exchange OAuth PKCE code after Google redirect (must run before getCurrentUser)
   handleAuthCallback: async (): Promise<boolean> => {
-    if (!supabase || typeof window === 'undefined') {
-      console.log('handleAuthCallback: no supabase or window')
-      return false
-    }
+    if (!supabase || typeof window === 'undefined') return false
 
     const url = new URL(window.location.href)
     const code = url.searchParams.get('code')
-    console.log('handleAuthCallback: code=', code)
-    if (!code) {
-      console.log('handleAuthCallback: no code found')
-      return false
-    }
+    if (!code) return false
 
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    console.log('handleAuthCallback: exchange result, error=', error)
-
     if (error) {
       console.error('OAuth callback failed:', error)
       return false
     }
-
-    const { data: { session } } = await supabase.auth.getSession()
-    console.log('handleAuthCallback: after exchange, session=', session)
 
     url.searchParams.delete('code')
     url.searchParams.delete('state')
     const cleanPath = url.pathname + (url.search || '')
     window.history.replaceState({}, '', cleanPath)
 
-    console.log('handleAuthCallback: success')
     return true
   },
 
-  // Get current logged-in profile
   getCurrentUser: async (): Promise<VolunteerProfile | null> => {
-    if (!supabase) {
-      // Mock Mode: read from localStorage
-      const profileJson = localStorage.getItem(LOCAL_PROFILE_KEY)
-      return profileJson ? JSON.parse(profileJson) : null
-    }
+    if (!supabase) return getMockProfile()
 
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const user = session?.user
-      if (!user) return null
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
 
-      return fetchOrCreateProfile(user)
-    } catch (e) {
-      console.error('Error fetching current user:', e)
+      if (!session?.user) return null
+      return fetchOrCreateProfile(session.user)
+    } catch (error) {
+      console.error('Error fetching current user:', error)
       return null
     }
   },
 
-  // Sign up with Email/Password
-  signUpWithEmail: async (email: string, password: string, fullName: string): Promise<VolunteerProfile> => {
+  signUpWithEmail: async (
+    email: string,
+    password: string,
+    fullName: string
+  ): Promise<VolunteerProfile> => {
     if (!supabase) {
-      // Mock Mode: Register user in localStorage
       const mockProfile: VolunteerProfile = {
-        id: 'mock-uid-' + Math.random().toString(36).substr(2, 9),
+        id: 'mock-uid-' + Math.random().toString(36).slice(2, 11),
         fullName,
         email,
         memberCode: generateMemberCode(),
         role: email.includes('staff') ? 'staff' : 'volunteer',
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       }
-      
-      // Save current logged in user
-      localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(mockProfile))
 
-      // Save to global list of mock profiles (for staff checkin lookup)
-      const allProfilesJson = localStorage.getItem(LOCAL_PROFILES_LIST_KEY)
-      const allProfiles: VolunteerProfile[] = allProfilesJson ? JSON.parse(allProfilesJson) : []
-      allProfiles.push(mockProfile)
-      localStorage.setItem(LOCAL_PROFILES_LIST_KEY, JSON.stringify(allProfiles))
-
+      setMockProfile(mockProfile)
+      saveMockProfileToList(mockProfile)
       return mockProfile
     }
 
-    // Supabase Mode
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          full_name: fullName,
+        },
+      },
     })
 
     if (authError || !authData.user) {
       throw new Error(authError?.message || 'Authentication signup failed')
     }
 
-    const newProfile = {
-      id: authData.user.id,
-      full_name: fullName,
-      email: email,
-      member_code: generateMemberCode(),
-      role: email.includes('staff') ? 'staff' : 'volunteer'
+    const profile = await fetchOrCreateProfile(authData.user)
+    if (!profile) {
+      throw new Error(
+        'Account created, but the volunteer profile could not be created. Check Supabase RLS policies for the profiles table.'
+      )
     }
 
-    // Add timeout to prevent hanging - 8 second limit for profile creation
-    let data: Record<string, unknown> | null = null
-    let dbError: Record<string, unknown> | null = null
-    let timedOut = false
-
-    try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => {
-        controller.abort()
-        timedOut = true
-      }, 8000)
-
-      const result = await supabase
-        .from('profiles')
-        .insert(newProfile)
-        .select()
-        .single()
-
-      clearTimeout(timeoutId)
-      data = result.data
-      dbError = result.error
-    } catch (err: unknown) {
-      dbError = err as Record<string, unknown> | null
-    }
-
-    // If profile creation timed out or had permission error, return temporary profile
-    // User can log in with the dashboard, and profile will sync after email verification
-    if (timedOut || dbError?.code === 'PGRST301') {
-      console.log('Profile creation timeout or permission denied, proceeding with temporary profile')
-      return {
-        id: authData.user.id,
-        fullName,
-        email,
-        memberCode: generateMemberCode(),
-        role: email.includes('staff') ? 'staff' : 'volunteer',
-        createdAt: new Date().toISOString()
-      }
-    }
-
-    if (dbError || !data) {
-      // If auth succeeded but profile creation failed (likely RLS/verification issue),
-      // show user-friendly message about email verification
-      throw new Error('Please check your email for a verification link. After that, this page will automatically log in.')
-    }
-
-    return mapProfileRow(data)
+    return profile
   },
 
-  // Sign in with Email/Password
   signInWithEmail: async (email: string, password: string): Promise<VolunteerProfile> => {
     if (!supabase) {
-      // Mock Mode: Search for profile in mock list
-      const allProfilesJson = localStorage.getItem(LOCAL_PROFILES_LIST_KEY)
-      const allProfiles: VolunteerProfile[] = allProfilesJson ? JSON.parse(allProfilesJson) : []
-      
-      let foundProfile = allProfiles.find(p => p.email.toLowerCase() === email.toLowerCase())
-      
+      const allProfiles = getMockProfiles()
+      let foundProfile = allProfiles.find((p) => p.email.toLowerCase() === email.toLowerCase())
+
       if (!foundProfile) {
-        // Auto-create a mock user if they don't exist to make dev testing extremely easy!
-        const generatedName = email.split('@')[0].replace(/[^a-zA-Z]+/g, ' ')
-        const titleCaseName = generatedName.replace(/\b\w/g, c => c.toUpperCase())
         foundProfile = {
-          id: 'mock-uid-' + Math.random().toString(36).substr(2, 9),
-          fullName: titleCaseName || 'Tester User',
+          id: 'mock-uid-' + Math.random().toString(36).slice(2, 11),
+          fullName: titleCaseEmailName(email) || 'Tester User',
           email,
           memberCode: generateMemberCode(),
           role: email.includes('staff') ? 'staff' : 'volunteer',
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
         }
-        allProfiles.push(foundProfile)
-        localStorage.setItem(LOCAL_PROFILES_LIST_KEY, JSON.stringify(allProfiles))
+        saveMockProfileToList(foundProfile)
       }
 
-      localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(foundProfile))
+      setMockProfile(foundProfile)
       return foundProfile
     }
 
-    // Supabase Mode
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
-      password
+      password,
     })
 
     if (authError || !authData.user) {
       throw new Error(authError?.message || 'Login failed')
     }
 
-    const { data, error: dbError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', authData.user.id)
-      .single()
-
-    if (dbError || !data) {
-      throw new Error(dbError?.message || 'Volunteer profile not found')
+    const profile = await fetchOrCreateProfile(authData.user)
+    if (!profile) {
+      throw new Error('Volunteer profile not found')
     }
 
-    return mapProfileRow(data)
+    return profile
   },
 
-  // Google SSO Sign-in
   signInWithGoogle: async (): Promise<void> => {
     if (!supabase) {
-      // Mock Mode: Simulate Google SSO redirection and auto-login after a short delay
       return new Promise((resolve) => {
-        setTimeout(() => {
+        window.setTimeout(() => {
           const ssoProfile: VolunteerProfile = {
             id: 'mock-google-uid-12345',
             fullName: 'Alex Morgan (Google SSO)',
             email: 'alex.morgan@gmail.com',
             memberCode: 'POT-582931',
             role: 'volunteer',
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
           }
-          localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(ssoProfile))
-          
-          // Ensure it's in all profiles
-          const allProfilesJson = localStorage.getItem(LOCAL_PROFILES_LIST_KEY)
-          const allProfiles: VolunteerProfile[] = allProfilesJson ? JSON.parse(allProfilesJson) : []
-          if (!allProfiles.find(p => p.id === ssoProfile.id)) {
-            allProfiles.push(ssoProfile)
-            localStorage.setItem(LOCAL_PROFILES_LIST_KEY, JSON.stringify(allProfiles))
-          }
-          
-          window.location.reload()
+
+          setMockProfile(ssoProfile)
+          saveMockProfileToList(ssoProfile)
+          reloadPage()
           resolve()
         }, 1000)
       })
     }
 
-    // Supabase Mode
+    if (typeof window === 'undefined') return
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/volunteer/checkin`
-      }
+        redirectTo: `${window.location.origin}/volunteer/checkin`,
+        queryParams: {
+          prompt: 'select_account',
+        },
+      },
     })
 
     if (error) throw error
   },
 
-  // Sign Out
   signOut: async (): Promise<void> => {
     if (!supabase) {
-      localStorage.removeItem(LOCAL_PROFILE_KEY)
-      localStorage.removeItem(LOCAL_SIGNUPS_KEY)
-      window.location.href = '/volunteer'
+      clearVolunteerSessionStorage()
+      redirectTo('/volunteer')
       return
     }
 
-    await supabase.auth.signOut()
-    window.location.href = '/volunteer'
+    const { error } = await supabase.auth.signOut({ scope: 'local' })
+    if (error) {
+      console.error('Supabase sign-out failed:', error)
+    }
+
+    clearVolunteerSessionStorage()
+    redirectTo('/volunteer')
   },
 
-  // Get all volunteer profiles (staff only)
-getAllProfiles: async (): Promise<VolunteerProfile[]> => {
-  if (!supabase) {
-    const allProfilesJson = localStorage.getItem(LOCAL_PROFILES_LIST_KEY)
-    const allProfiles: VolunteerProfile[] = allProfilesJson ? JSON.parse(allProfilesJson) : []
-
-    return allProfiles.sort((a, b) => {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    })
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error || !data) return []
-    return data.map(mapProfileRow)
-  } catch (e) {
-    console.error('Error fetching all profiles:', e)
-    return []
-  }
-},
-
-// Update user role (staff only)
-updateUserRole: async (
-  userId: string,
-  newRole: 'volunteer' | 'staff'
-): Promise<VolunteerProfile | null> => {
-  if (!supabase) {
-    const currentProfileJson = localStorage.getItem(LOCAL_PROFILE_KEY)
-    const currentProfile: VolunteerProfile | null = currentProfileJson
-      ? JSON.parse(currentProfileJson)
-      : null
-
-    if (!currentProfile || currentProfile.role !== 'staff') {
-      throw new Error('Only staff can update user roles.')
+  getAllProfiles: async (): Promise<VolunteerProfile[]> => {
+    if (!supabase) {
+      return getMockProfiles().sort(
+        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      )
     }
 
-    const allProfilesJson = localStorage.getItem(LOCAL_PROFILES_LIST_KEY)
-    const allProfiles: VolunteerProfile[] = allProfilesJson ? JSON.parse(allProfilesJson) : []
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .order('created_at', { ascending: false })
 
-    const updatedProfiles = allProfiles.map(profile =>
-      profile.id === userId ? { ...profile, role: newRole } : profile
-    )
+      if (error || !data) {
+        if (error) console.error('Failed to fetch profiles:', error)
+        return []
+      }
 
-    localStorage.setItem(LOCAL_PROFILES_LIST_KEY, JSON.stringify(updatedProfiles))
+      return (data as ProfileRow[]).map(mapProfileRow)
+    } catch (error) {
+      console.error('Error fetching all profiles:', error)
+      return []
+    }
+  },
 
-    const updatedProfile = updatedProfiles.find(profile => profile.id === userId) || null
+  updateUserRole: async (
+    userId: string,
+    newRole: 'volunteer' | 'staff'
+  ): Promise<VolunteerProfile | null> => {
+    if (!supabase) {
+      const currentProfile = getMockProfile()
 
-    // If the current user changed their own role, update current profile too
-    if (updatedProfile && currentProfile.id === userId) {
-      localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(updatedProfile))
+      if (!currentProfile || currentProfile.role !== 'staff') {
+        throw new Error('Only staff can update user roles.')
+      }
+
+      const updatedProfiles = getMockProfiles().map((profile) =>
+        profile.id === userId ? { ...profile, role: newRole } : profile
+      )
+
+      setMockProfiles(updatedProfiles)
+
+      const updatedProfile = updatedProfiles.find((profile) => profile.id === userId) || null
+
+      if (updatedProfile && currentProfile.id === userId) {
+        setMockProfile(updatedProfile)
+      }
+
+      return updatedProfile
     }
 
-    return updatedProfile
-  }
+    try {
+      const currentUser = await volunteerService.getCurrentUser()
 
-  try {
-    const currentUser = await volunteerService.getCurrentUser()
+      if (!currentUser || currentUser.role !== 'staff') {
+        throw new Error('Only staff can update user roles.')
+      }
 
-    if (!currentUser || currentUser.role !== 'staff') {
-      throw new Error('Only staff can update user roles.')
-    }
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ role: newRole })
+        .eq('id', userId)
+        .select()
+        .single()
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .update({ role: newRole })
-      .eq('id', userId)
-      .select()
-      .single()
+      if (error || !data) {
+        console.error('Failed to update user role:', error)
+        return null
+      }
 
-    if (error || !data) {
-      console.error('Failed to update user role:', error)
+      return mapProfileRow(data as ProfileRow)
+    } catch (error) {
+      console.error('Error updating user role:', error)
       return null
     }
+  },
 
-    return mapProfileRow(data)
-  } catch (e) {
-    console.error('Error updating user role:', e)
-    return null
-  }
-},
-
-  // Register for an upcoming event
-  registerForEvent: async (userId: string, eventId: string, eventTitle: string): Promise<VolunteerSignup> => {
+  // Update volunteer total hours manually
+  updateVolunteerHours: async (
+    userId: string,
+    hours: number,
+    reason?: string
+  ): Promise<VolunteerProfile | null> => {
     if (!supabase) {
-      // Mock Mode
-      const signupsJson = localStorage.getItem(LOCAL_SIGNUPS_KEY)
-      const signups: VolunteerSignup[] = signupsJson ? JSON.parse(signupsJson) : []
+      const currentProfile = getMockProfile()
 
-      // Prevent duplicate registration
-      const existing = signups.find(s => s.userId === userId && s.eventId === eventId)
+      if (!currentProfile || currentProfile.role !== 'staff') {
+        throw new Error('Only staff can update volunteer hours.')
+      }
+
+      const updatedProfiles = getMockProfiles().map((profile) =>
+        profile.id === userId
+          ? {
+              ...profile,
+              totalHours: hours,
+            }
+          : profile
+      )
+
+      setMockProfiles(updatedProfiles)
+
+      const updatedProfile = updatedProfiles.find((profile) => profile.id === userId) || null
+
+      if (updatedProfile && currentProfile.id === userId) {
+        setMockProfile(updatedProfile)
+      }
+
+      return updatedProfile
+    }
+
+    const client = supabase
+
+    try {
+      const currentUser = await volunteerService.getCurrentUser()
+
+      if (!currentUser || currentUser.role !== 'staff') {
+        throw new Error('Only staff can update volunteer hours.')
+      }
+
+      const { data, error } = await client
+        .from('profiles')
+        .update({ total_hours: hours })
+        .eq('id', userId)
+        .select()
+        .single()
+
+      if (error || !data) {
+        console.error('Failed to update volunteer hours:', error)
+        return null
+      }
+
+      // Optional audit log. This will not block the hour update if the table does not exist.
+      const { error: auditError } = await client.from('volunteer_hour_adjustments').insert({
+        user_id: userId,
+        adjusted_by: currentUser.id,
+        hours,
+        reason: reason || 'Manual adjustment by admin',
+      })
+
+      if (auditError) {
+        console.error('Failed to write volunteer hour adjustment audit log:', auditError)
+      }
+
+      return mapProfileRow(data as ProfileRow)
+    } catch (error) {
+      console.error('Error updating volunteer hours:', error)
+      return null
+    }
+  },
+
+  getActiveCheckInSessions: async (): Promise<ActiveCheckInSession[]> => {
+    if (!supabase) {
+      if (typeof window === 'undefined') return []
+
+      const profilesById = new Map(getMockProfiles().map((profile) => [profile.id, profile]))
+      const sessions: ActiveCheckInSession[] = []
+
+      for (let index = 0; index < window.sessionStorage.length; index += 1) {
+        const key = window.sessionStorage.key(index)
+        if (!key?.startsWith('checkin-')) continue
+
+        const session = parseJson<CheckInSession | null>(getSessionStorageItem(key), null)
+        if (!session || session.checkOutTime) continue
+
+        const profile = profilesById.get(session.userId)
+        if (!profile) continue
+
+        const durationMinutes = Math.max(
+          0,
+          Math.floor((Date.now() - new Date(session.checkInTime).getTime()) / (1000 * 60))
+        )
+
+        sessions.push({
+          profile,
+          eventId: session.eventId,
+          checkInTime: session.checkInTime,
+          sessionId: session.id,
+          hoursLogged: Math.round((durationMinutes / 60) * 100) / 100,
+        })
+      }
+
+      return sessions.sort(
+        (a, b) => new Date(b.checkInTime).getTime() - new Date(a.checkInTime).getTime()
+      )
+    }
+
+    const { data, error } = await supabase
+      .from('check_in_sessions')
+      .select('id, user_id, event_id, check_in_time, hours_logged, profiles(*)')
+      .is('check_out_time', null)
+      .order('check_in_time', { ascending: false })
+
+    if (error || !data) {
+      if (error) console.error('Failed to fetch active check-in sessions:', error)
+      return []
+    }
+
+    return (data as CheckInSessionRow[])
+      .map((session) => {
+        const profileRow = Array.isArray(session.profiles)
+          ? session.profiles[0]
+          : session.profiles
+
+        if (!profileRow) return null
+
+        const durationMinutes = Math.max(
+          0,
+          Math.floor((Date.now() - new Date(session.check_in_time).getTime()) / (1000 * 60))
+        )
+
+        return {
+          profile: mapProfileRow(profileRow),
+          eventId: session.event_id,
+          checkInTime: session.check_in_time,
+          sessionId: session.id,
+          hoursLogged:
+            typeof session.hours_logged === 'number'
+              ? session.hours_logged
+              : Math.round((durationMinutes / 60) * 100) / 100,
+        }
+      })
+      .filter((session): session is ActiveCheckInSession => session !== null)
+  },
+
+  registerForEvent: async (
+    userId: string,
+    eventId: string,
+    eventTitle: string
+  ): Promise<VolunteerSignup> => {
+    if (!supabase) {
+      const signups = getMockSignups()
+      const existing = signups.find((s) => s.userId === userId && s.eventId === eventId)
       if (existing) return existing
 
       const newSignup: VolunteerSignup = {
-        id: 'mock-signup-' + Math.random().toString(36).substr(2, 9),
+        id: 'mock-signup-' + Math.random().toString(36).slice(2, 11),
         userId,
         eventId,
         eventTitle,
         status: 'registered',
         hours: 0,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       }
 
       signups.push(newSignup)
-      localStorage.setItem(LOCAL_SIGNUPS_KEY, JSON.stringify(signups))
+      setMockSignups(signups)
       return newSignup
     }
 
-    // Supabase Mode
     const { data, error } = await supabase
       .from('event_volunteers')
       .insert({
         user_id: userId,
         event_id: eventId,
         event_title: eventTitle,
-        status: 'registered'
+        status: 'registered',
+        hours: 0,
       })
       .select()
       .single()
@@ -500,24 +773,38 @@ updateUserRole: async (
       throw new Error(error?.message || 'Failed to register for event')
     }
 
-    return {
-      id: data.id,
-      userId: data.user_id,
-      eventId: data.event_id,
-      eventTitle: data.event_title,
-      status: data.status,
-      hours: data.hours || 0,
-      createdAt: data.created_at
+    return mapSignupRow(data as EventVolunteerRow)
+  },
+
+  withdrawFromEvent: async (userId: string, eventId: string): Promise<void> => {
+    if (!supabase) {
+      const updatedSignups = getMockSignups().filter(
+        (signup) =>
+          !(
+            signup.userId === userId &&
+            signup.eventId === eventId &&
+            signup.status === 'registered'
+          )
+      )
+      setMockSignups(updatedSignups)
+      return
+    }
+
+    const { error } = await supabase
+      .from('event_volunteers')
+      .delete()
+      .eq('user_id', userId)
+      .eq('event_id', eventId)
+      .eq('status', 'registered')
+
+    if (error) {
+      throw new Error(error.message || 'Failed to withdraw from event')
     }
   },
 
-  // Get signups for current user
   getMySignups: async (userId: string): Promise<VolunteerSignup[]> => {
     if (!supabase) {
-      // Mock Mode
-      const signupsJson = localStorage.getItem(LOCAL_SIGNUPS_KEY)
-      const signups: VolunteerSignup[] = signupsJson ? JSON.parse(signupsJson) : []
-      return signups.filter(s => s.userId === userId)
+      return getMockSignups().filter((s) => s.userId === userId)
     }
 
     try {
@@ -526,575 +813,93 @@ updateUserRole: async (
         .select('*')
         .eq('user_id', userId)
 
-      if (error || !data) return []
+      if (error || !data) {
+        if (error) console.error('Failed to fetch signups:', error)
+        return []
+      }
 
-      return data.map(item => ({
-        id: item.id,
-        userId: item.user_id,
-        eventId: item.event_id,
-        eventTitle: item.event_title,
-        status: item.status,
-        hours: item.hours || 0,
-        createdAt: item.created_at,
-        checkedInAt: item.checked_in_at
-      }))
-    } catch {
+      return (data as EventVolunteerRow[]).map(mapSignupRow)
+    } catch (error) {
+      console.error('Error fetching my signups:', error)
       return []
     }
   },
 
-  // Staff check-in/check-out function via scanned memberCode
-  checkInVolunteer: async (memberCode: string, eventId: string): Promise<{ profile: VolunteerProfile, signup: VolunteerSignup, action: 'checkedIn' | 'checkedOut', hoursLogged: number, checkInTime: string, checkOutTime?: string }> => {
+  getEventRoster: async (eventId: string): Promise<EventRosterEntry[]> => {
     if (!supabase) {
-      const allProfilesJson = localStorage.getItem(LOCAL_PROFILES_LIST_KEY)
-      const allProfiles: VolunteerProfile[] = allProfilesJson ? JSON.parse(allProfilesJson) : []
-      const profile = allProfiles.find(p => p.memberCode === memberCode)
-
-      if (!profile) {
-        throw new Error('No volunteer profile matches member code ' + memberCode)
-      }
-
-      const signupsJson = localStorage.getItem(LOCAL_SIGNUPS_KEY)
-      const signups: VolunteerSignup[] = signupsJson ? JSON.parse(signupsJson) : []
-      let signup = signups.find(s => s.userId === profile.id && s.eventId === eventId)
-      const activeSessionJson = sessionStorage.getItem(`checkin-${profile.id}`)
-      const activeSession = activeSessionJson ? JSON.parse(activeSessionJson) as CheckInSession : null
-
-      if (activeSession && !activeSession.checkOutTime) {
-        if (activeSession.eventId !== eventId) {
-          throw new Error('Volunteer is already checked in for another event.')
-        }
-
-        const checkOutTime = new Date()
-        const checkInTime = new Date(activeSession.checkInTime)
-        const durationMinutes = Math.floor((checkOutTime.getTime() - checkInTime.getTime()) / (1000 * 60))
-        const hours = Math.round((durationMinutes / 60) * 100) / 100
-
-        sessionStorage.removeItem(`checkin-${profile.id}`)
-
-        if (!signup) {
-          signup = {
-            id: 'mock-signup-' + Math.random().toString(36).substr(2, 9),
-            userId: profile.id,
-            eventId,
-            eventTitle: 'Event Check-in',
-            status: 'attended',
-            hours,
-            createdAt: new Date().toISOString(),
-            checkedInAt: activeSession.checkInTime
-          }
-          signups.push(signup)
-        } else {
-          signup.status = 'attended'
-          signup.hours = hours
-          signup.checkedInAt = activeSession.checkInTime
-        }
-
-        localStorage.setItem(LOCAL_SIGNUPS_KEY, JSON.stringify(signups))
-
-        return {
-          profile,
+      const profilesById = new Map(getMockProfiles().map((profile) => [profile.id, profile]))
+      return getMockSignups()
+        .filter((signup) => signup.eventId === eventId)
+        .map((signup) => ({
           signup,
-          action: 'checkedOut',
-          hoursLogged: hours,
-          checkInTime: activeSession.checkInTime,
-          checkOutTime: checkOutTime.toISOString()
-        }
-      }
-
-      if (!signup) {
-        signup = {
-          id: 'mock-signup-' + Math.random().toString(36).substr(2, 9),
-          userId: profile.id,
-          eventId,
-          eventTitle: 'Event Check-in',
-          status: 'registered',
-          hours: 0,
-          createdAt: new Date().toISOString()
-        }
-        signups.push(signup)
-      }
-
-      const newSession: CheckInSession = {
-        id: 'session-' + Math.random().toString(36).substr(2, 9),
-        userId: profile.id,
-        eventId,
-        checkInTime: new Date().toISOString(),
-        duration: 0,
-        hoursLogged: 0,
-      }
-      sessionStorage.setItem(`checkin-${profile.id}`, JSON.stringify(newSession))
-      localStorage.setItem(LOCAL_SIGNUPS_KEY, JSON.stringify(signups))
-
-      return {
-        profile,
-        signup,
-        action: 'checkedIn',
-        hoursLogged: 0,
-        checkInTime: newSession.checkInTime
-      }
-    }
-
-    if (!supabase) {
-      throw new Error('Supabase client is not available')
-    }
-
-    const { data: profileData, error: profileErr } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('member_code', memberCode)
-      .single()
-
-    if (profileErr || !profileData) {
-      throw new Error('Volunteer profile not found for code ' + memberCode)
-    }
-
-    const { data: activeSession, error: activeSessionErr } = await supabase
-      .from('check_in_sessions')
-      .select('*')
-      .eq('user_id', profileData.id)
-      .eq('event_id', eventId)
-      .is('check_out_time', null)
-      .maybeSingle()
-
-    if (activeSessionErr) {
-      console.error('Error checking active session:', activeSessionErr)
-    }
-
-    const { data: signupData } = await supabase
-      .from('event_volunteers')
-      .select('*')
-      .eq('user_id', profileData.id)
-      .eq('event_id', eventId)
-      .maybeSingle()
-
-    const mappedProfile: VolunteerProfile = {
-      id: profileData.id,
-      fullName: profileData.full_name,
-      email: profileData.email,
-      memberCode: profileData.member_code,
-      role: profileData.role,
-      createdAt: profileData.created_at,
-    }
-
-    const ensureSignup = async () => {
-      if (signupData) return signupData
-      const { data: newSignup, error: insertErr } = await supabase
-        .from('event_volunteers')
-        .insert({
-          user_id: profileData.id,
-          event_id: eventId,
-          event_title: 'Event Check-in',
-          status: 'registered',
-          hours: 0,
-          checked_in_at: null
-        })
-        .select()
-        .single()
-
-      if (insertErr || !newSignup) {
-        throw new Error('Failed to create event registration for volunteer')
-      }
-      return newSignup
-    }
-
-    if (!activeSession) {
-      const signupRow = await ensureSignup()
-      const { data: newSession, error: insertSessionErr } = await supabase
-        .from('check_in_sessions')
-        .insert({
-          user_id: profileData.id,
-          event_id: eventId,
-          check_in_time: new Date().toISOString(),
-          hours_logged: 0
-        })
-        .select()
-        .single()
-
-      if (insertSessionErr || !newSession) {
-        throw new Error('Failed to start volunteer check-in session')
-      }
-
-      await supabase.from('attendance_logs').insert({
-        volunteer_id: profileData.id,
-        event_id: eventId,
-        checked_in_at: newSession.check_in_time
-      })
-
-      return {
-        profile: mappedProfile,
-        signup: {
-          id: signupRow.id,
-          userId: signupRow.user_id,
-          eventId: signupRow.event_id,
-          eventTitle: signupRow.event_title,
-          status: signupRow.status,
-          hours: signupRow.hours || 0,
-          createdAt: signupRow.created_at,
-          checkedInAt: signupRow.checked_in_at || newSession.check_in_time
-        },
-        action: 'checkedIn',
-        hoursLogged: 0,
-        checkInTime: newSession.check_in_time
-      }
-    }
-
-    if (activeSession.event_id !== eventId) {
-      throw new Error('Volunteer is already checked in for another event.')
-    }
-
-    const checkOutTime = new Date().toISOString()
-    const checkInTime = new Date(activeSession.check_in_time)
-    const durationMinutes = Math.floor((new Date(checkOutTime).getTime() - checkInTime.getTime()) / (1000 * 60))
-    const hours = Math.round((durationMinutes / 60) * 100) / 100
-
-    const { data: updatedSession, error: updateSessionErr } = await supabase
-      .from('check_in_sessions')
-      .update({
-        check_out_time: checkOutTime,
-        hours_logged: hours
-      })
-      .eq('id', activeSession.id)
-      .select()
-      .single()
-
-    if (updateSessionErr || !updatedSession) {
-      throw new Error('Failed to complete volunteer check-out')
-    }
-
-    await supabase
-      .from('attendance_logs')
-      .update({ checked_out_at: checkOutTime })
-      .eq('volunteer_id', profileData.id)
-      .eq('event_id', eventId)
-      .is('checked_out_at', null)
-
-    let finalSignup = signupData
-    if (signupData) {
-      const { data: updatedSignup, error: updateSignupErr } = await supabase
-        .from('event_volunteers')
-        .update({
-          status: 'attended',
-          hours,
-          checked_in_at: activeSession.check_in_time
-        })
-        .eq('id', signupData.id)
-        .select()
-        .single()
-
-      if (!updateSignupErr && updatedSignup) {
-        finalSignup = updatedSignup
-      }
-    } else {
-      const { data: newSignup, error: insertSignupErr } = await supabase
-        .from('event_volunteers')
-        .insert({
-          user_id: profileData.id,
-          event_id: eventId,
-          event_title: 'Event Check-in',
-          status: 'attended',
-          hours,
-          checked_in_at: activeSession.check_in_time
-        })
-        .select()
-        .single()
-
-      if (insertSignupErr || !newSignup) {
-        throw new Error('Failed to create attended signup record')
-      }
-      finalSignup = newSignup
-    }
-
-    return {
-      profile: mappedProfile,
-      signup: {
-        id: finalSignup.id,
-        userId: finalSignup.user_id,
-        eventId: finalSignup.event_id,
-        eventTitle: finalSignup.event_title,
-        status: finalSignup.status,
-        hours: finalSignup.hours || 0,
-        createdAt: finalSignup.created_at,
-        checkedInAt: finalSignup.checked_in_at || activeSession.check_in_time
-      },
-      action: 'checkedOut',
-      hoursLogged: hours,
-      checkInTime: activeSession.check_in_time,
-      checkOutTime: checkOutTime
-    }
-  },
-
-  // Volunteer check-in
-  startCheckIn: async (userId: string, eventId: string): Promise<CheckInSession> => {
-    if (!supabase) {
-      // Mock Mode
-      const session: CheckInSession = {
-        id: 'session-' + Math.random().toString(36).substr(2, 9),
-        userId,
-        eventId,
-        checkInTime: new Date().toISOString(),
-        duration: 0,
-        hoursLogged: 0,
-      }
-      // Store in session storage
-      sessionStorage.setItem(`checkin-${userId}`, JSON.stringify(session))
-      return session
-    }
-
-    // Supabase Mode - insert into check_in_sessions table
-    const { data, error } = await supabase
-      .from('check_in_sessions')
-      .insert({
-        user_id: userId,
-        event_id: eventId,
-        check_in_time: new Date().toISOString(),
-      })
-      .select()
-      .single()
-
-    if (error || !data) {
-      throw new Error('Failed to record check-in: ' + (error?.message || 'Unknown error'))
-    }
-
-    return {
-      id: data.id,
-      userId: data.user_id,
-      eventId: data.event_id,
-      checkInTime: data.check_in_time,
-      duration: 0,
-      hoursLogged: 0,
-    }
-  },
-
-  // Volunteer check-out
-  checkOut: async (sessionId: string, userId: string): Promise<{ session: CheckInSession; hoursAdded: number }> => {
-    if (!supabase) {
-      // Mock Mode
-      const sessionJson = sessionStorage.getItem(`checkin-${userId}`)
-      if (!sessionJson) throw new Error('No active check-in session found')
-
-      const session: CheckInSession = JSON.parse(sessionJson)
-      const checkOutTime = new Date()
-      const checkInTime = new Date(session.checkInTime)
-      const durationMinutes = Math.floor((checkOutTime.getTime() - checkInTime.getTime()) / (1000 * 60))
-      const hoursLogged = Math.round((durationMinutes / 60) * 100) / 100
-
-      session.checkOutTime = checkOutTime.toISOString()
-      session.duration = durationMinutes
-      session.hoursLogged = hoursLogged
-
-      sessionStorage.removeItem(`checkin-${userId}`)
-
-      // Update volunteer total hours
-      const profileJson = localStorage.getItem(LOCAL_PROFILE_KEY)
-      if (profileJson) {
-        const profile: VolunteerProfile = JSON.parse(profileJson)
-        profile.totalHours = (profile.totalHours || 0) + hoursLogged
-        localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(profile))
-      }
-
-      return { session, hoursAdded: hoursLogged }
-    }
-
-    // Supabase Mode
-    const checkOutTime = new Date()
-    const { data: sessionData, error: fetchErr } = await supabase
-      .from('check_in_sessions')
-      .select('*')
-      .eq('id', sessionId)
-      .single()
-
-    if (fetchErr || !sessionData) {
-      throw new Error('Session not found')
-    }
-
-    const checkInTime = new Date(sessionData.check_in_time)
-    const durationMinutes = Math.floor((checkOutTime.getTime() - checkInTime.getTime()) / (1000 * 60))
-    const hoursLogged = Math.round((durationMinutes / 60) * 100) / 100
-
-    const { data: updatedSession, error: updateErr } = await supabase
-      .from('check_in_sessions')
-      .update({
-        check_out_time: checkOutTime.toISOString(),
-        hours_logged: hoursLogged,
-      })
-      .eq('id', sessionId)
-      .select()
-      .single()
-
-    if (updateErr || !updatedSession) {
-      throw new Error('Failed to record check-out')
-    }
-
-    // Update profile total hours
-    const { data: profile, error: profileErr } = await supabase
-      .from('profiles')
-      .select('total_hours')
-      .eq('id', userId)
-      .single()
-
-    if (!profileErr && profile) {
-      const newTotal = (profile.total_hours || 0) + hoursLogged
-      await supabase
-        .from('profiles')
-        .update({ total_hours: newTotal })
-        .eq('id', userId)
-    }
-
-    return {
-      session: {
-        id: updatedSession.id,
-        userId: updatedSession.user_id,
-        eventId: updatedSession.event_id,
-        checkInTime: updatedSession.check_in_time,
-        checkOutTime: updatedSession.check_out_time,
-        duration: durationMinutes,
-        hoursLogged,
-      },
-      hoursAdded: hoursLogged,
-    }
-  },
-
-  getActiveCheckInSessions: async (): Promise<Array<{
-    profile: VolunteerProfile
-    eventId: string
-    checkInTime: string
-    sessionId: string
-    hoursLogged: number
-  }>> => {
-    if (!supabase) {
-      const allProfilesJson = localStorage.getItem(LOCAL_PROFILES_LIST_KEY)
-      const allProfiles: VolunteerProfile[] = allProfilesJson ? JSON.parse(allProfilesJson) : []
-      const activeSessions: Array<{
-        profile: VolunteerProfile
-        eventId: string
-        checkInTime: string
-        sessionId: string
-        hoursLogged: number
-      }> = []
-
-      for (let i = 0; i < sessionStorage.length; i += 1) {
-        const key = sessionStorage.key(i)
-        if (!key || !key.startsWith('checkin-')) continue
-        const sessionJson = sessionStorage.getItem(key)
-        if (!sessionJson) continue
-        const session: CheckInSession = JSON.parse(sessionJson)
-        const profile = allProfiles.find((p) => p.id === session.userId)
-        if (!profile) continue
-
-        activeSessions.push({
-          profile,
-          eventId: session.eventId,
-          checkInTime: session.checkInTime,
-          sessionId: session.id,
-          hoursLogged: session.hoursLogged || 0,
-        })
-      }
-
-      return activeSessions
+          profile: profilesById.get(signup.userId) || null,
+        }))
     }
 
     try {
-      const { data: sessions, error: sessionErr } = await supabase
-        .from('check_in_sessions')
-        .select('*')
-        .is('check_out_time', null)
+      const { data, error } = await supabase
+        .from('event_volunteers')
+        .select('*, profiles(*)')
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: true })
 
-      if (sessionErr || !sessions) return []
-      if (sessions.length === 0) return []
+      if (error || !data) {
+        if (error) console.error('Failed to fetch event roster:', error)
+        return []
+      }
 
-      const profileIds = Array.from(new Set(sessions.map((session) => session.user_id)))
-      const { data: profiles, error: profileErr } = await supabase
-        .from('profiles')
-        .select('*')
-        .in('id', profileIds)
-
-      if (profileErr || !profiles) return []
-
-      const profileMap = new Map<string, VolunteerProfile>()
-      profiles.forEach((profileRow) => {
-        profileMap.set(profileRow.id, mapProfileRow(profileRow))
-      })
-
-      return sessions.map((session) => ({
-        profile: profileMap.get(session.user_id)!,
-        eventId: session.event_id,
-        checkInTime: session.check_in_time,
-        sessionId: session.id,
-        hoursLogged: session.hours_logged || 0,
+      return (data as EventVolunteerRow[]).map((row) => ({
+        signup: mapSignupRow(row),
+        profile: getNestedProfile(row) ? mapProfileRow(getNestedProfile(row) as ProfileRow) : null,
       }))
-    } catch (e) {
-      console.error('Error loading active check-in sessions:', e)
+    } catch (error) {
+      console.error('Error fetching event roster:', error)
       return []
     }
   },
 
-  // Admin: Update volunteer hours manually
-  updateVolunteerHours: async (
-    userId: string,
-    newTotalHours: number,
-    reason?: string
-  ): Promise<VolunteerProfile | null> => {
+  searchProfiles: async (query: string): Promise<VolunteerProfile[]> => {
+    const normalizedQuery = query.trim().toLowerCase()
+    if (!normalizedQuery) return []
+
+    const matchesQuery = (profile: VolunteerProfile) =>
+      profile.fullName.toLowerCase().includes(normalizedQuery) ||
+      profile.email.toLowerCase().includes(normalizedQuery) ||
+      profile.memberCode.toLowerCase().includes(normalizedQuery)
+
     if (!supabase) {
-      // Mock Mode
-      const allProfilesJson = localStorage.getItem(LOCAL_PROFILES_LIST_KEY)
-      const allProfiles: VolunteerProfile[] = allProfilesJson ? JSON.parse(allProfilesJson) : []
-
-      const updatedProfiles = allProfiles.map(p =>
-        p.id === userId ? { ...p, totalHours: newTotalHours } : p
-      )
-
-      localStorage.setItem(LOCAL_PROFILES_LIST_KEY, JSON.stringify(updatedProfiles))
-
-      const updated = updatedProfiles.find(p => p.id === userId) || null
-
-      if (updated && localStorage.getItem(LOCAL_PROFILE_KEY)) {
-        const currentJson = localStorage.getItem(LOCAL_PROFILE_KEY)
-        if (currentJson) {
-          const current: VolunteerProfile = JSON.parse(currentJson)
-          if (current.id === userId) {
-            localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(updated))
-          }
-        }
-      }
-
-      return updated
+      return getMockProfiles().filter(matchesQuery).slice(0, 8)
     }
 
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .update({ total_hours: newTotalHours })
-        .eq('id', userId)
-        .select()
-        .single()
+        .select('*')
+        .or(
+          `full_name.ilike.%${normalizedQuery}%,email.ilike.%${normalizedQuery}%,member_code.ilike.%${normalizedQuery}%`
+        )
+        .limit(8)
 
       if (error || !data) {
-        throw new Error('Failed to update hours')
+        if (error) console.error('Failed to search profiles:', error)
+        return []
       }
 
-      // Log the adjustment
-      if (reason) {
-        await supabase.from('hour_adjustments').insert({
-          user_id: userId,
-          new_total: newTotalHours,
-          reason,
-          adjusted_at: new Date().toISOString(),
-        }).catch(console.error)
-      }
-
-      return mapProfileRow(data)
-    } catch (e) {
-      console.error('Error updating volunteer hours:', e)
-      return null
+      return (data as ProfileRow[]).map(mapProfileRow)
+    } catch (error) {
+      console.error('Error searching profiles:', error)
+      return []
     }
   },
 
-  // Get current check-in status
   getCurrentCheckInStatus: async (userId: string): Promise<CheckInSession | null> => {
     if (!supabase) {
-      const sessionJson = sessionStorage.getItem(`checkin-${userId}`)
-      return sessionJson ? JSON.parse(sessionJson) : null
+      const session = parseJson<CheckInSession | null>(
+        getSessionStorageItem(`checkin-${userId}`),
+        null
+      )
+
+      return session && !session.checkOutTime ? session : null
     }
 
     try {
@@ -1107,18 +912,471 @@ updateUserRole: async (
         .limit(1)
         .maybeSingle()
 
-      if (error || !data) return null
+      if (error || !data) {
+        if (error) console.error('Failed to fetch current check-in status:', error)
+        return null
+      }
 
-      return {
-        id: data.id,
-        userId: data.user_id,
-        eventId: data.event_id,
-        checkInTime: data.check_in_time,
+      return mapCheckInSessionRow(data as CheckInSessionRow)
+    } catch (error) {
+      console.error('Error fetching current check-in status:', error)
+      return null
+    }
+  },
+
+  startCheckIn: async (userId: string, eventId: string): Promise<CheckInSession> => {
+    if (!supabase) {
+      const sessionKey = `checkin-${userId}`
+      const activeSession = parseJson<CheckInSession | null>(
+        getSessionStorageItem(sessionKey),
+        null
+      )
+
+      if (activeSession && !activeSession.checkOutTime) return activeSession
+
+      const newSession: CheckInSession = {
+        id: 'session-' + Math.random().toString(36).slice(2, 11),
+        userId,
+        eventId,
+        checkInTime: new Date().toISOString(),
         duration: 0,
         hoursLogged: 0,
       }
-    } catch {
-      return null
+
+      setSessionStorageItem(sessionKey, JSON.stringify(newSession))
+      return newSession
+    }
+
+    const existing = await volunteerService.getCurrentCheckInStatus(userId)
+    if (existing) return existing
+
+    const { data, error } = await supabase
+      .from('check_in_sessions')
+      .insert({
+        user_id: userId,
+        event_id: eventId,
+        check_in_time: new Date().toISOString(),
+        hours_logged: 0,
+      })
+      .select()
+      .single()
+
+    if (error || !data) {
+      throw new Error(error?.message || 'Failed to start check-in session')
+    }
+
+    return mapCheckInSessionRow(data as CheckInSessionRow)
+  },
+
+  checkOut: async (
+    sessionId: string,
+    userId: string
+  ): Promise<{ session: CheckInSession; hoursAdded: number }> => {
+    if (!supabase) {
+      const sessionKey = `checkin-${userId}`
+      const activeSession = parseJson<CheckInSession | null>(
+        getSessionStorageItem(sessionKey),
+        null
+      )
+
+      if (!activeSession || activeSession.id !== sessionId) {
+        throw new Error('No active check-in session found.')
+      }
+
+      const checkOutTime = new Date().toISOString()
+      const durationMinutes = Math.max(
+        0,
+        Math.floor(
+          (new Date(checkOutTime).getTime() - new Date(activeSession.checkInTime).getTime()) /
+            (1000 * 60)
+        )
+      )
+      const hoursAdded = Math.round((durationMinutes / 60) * 100) / 100
+      const completedSession: CheckInSession = {
+        ...activeSession,
+        checkOutTime,
+        duration: durationMinutes,
+        hoursLogged: hoursAdded,
+      }
+
+      removeSessionStorageItem(sessionKey)
+
+      const profiles = getMockProfiles().map((profile) =>
+        profile.id === userId
+          ? { ...profile, totalHours: (profile.totalHours || 0) + hoursAdded }
+          : profile
+      )
+      setMockProfiles(profiles)
+
+      const currentProfile = getMockProfile()
+      const updatedCurrentProfile = profiles.find((profile) => profile.id === currentProfile?.id)
+      if (updatedCurrentProfile) setMockProfile(updatedCurrentProfile)
+
+      return { session: completedSession, hoursAdded }
+    }
+
+    const { data: currentSession, error: fetchError } = await supabase
+      .from('check_in_sessions')
+      .select('*')
+      .eq('id', sessionId)
+      .eq('user_id', userId)
+      .is('check_out_time', null)
+      .single()
+
+    if (fetchError || !currentSession) {
+      throw new Error(fetchError?.message || 'No active check-in session found.')
+    }
+
+    const sessionRow = currentSession as CheckInSessionRow
+    const checkOutTime = new Date().toISOString()
+    const durationMinutes = Math.max(
+      0,
+      Math.floor(
+        (new Date(checkOutTime).getTime() - new Date(sessionRow.check_in_time).getTime()) /
+          (1000 * 60)
+      )
+    )
+    const hoursAdded = Math.round((durationMinutes / 60) * 100) / 100
+
+    const { data: updatedSession, error: updateError } = await supabase
+      .from('check_in_sessions')
+      .update({
+        check_out_time: checkOutTime,
+        hours_logged: hoursAdded,
+      })
+      .eq('id', sessionId)
+      .eq('user_id', userId)
+      .select()
+      .single()
+
+    if (updateError || !updatedSession) {
+      throw new Error(updateError?.message || 'Failed to check out.')
+    }
+
+    return {
+      session: mapCheckInSessionRow(updatedSession as CheckInSessionRow),
+      hoursAdded,
+    }
+  },
+
+  checkInVolunteer: async (
+    memberCode: string,
+    eventId: string
+  ): Promise<{
+    profile: VolunteerProfile
+    signup: VolunteerSignup
+    action: 'checkedIn' | 'checkedOut'
+    hoursLogged: number
+    checkInTime: string
+    checkOutTime?: string
+  }> => {
+    if (!supabase) {
+      const profile = getMockProfiles().find((p) => p.memberCode === memberCode)
+
+      if (!profile) {
+        throw new Error('No volunteer profile matches member code ' + memberCode)
+      }
+
+      const signups = getMockSignups()
+      let signup = signups.find((s) => s.userId === profile.id && s.eventId === eventId)
+      const sessionKey = `checkin-${profile.id}`
+      const activeSession = parseJson<CheckInSession | null>(getSessionStorageItem(sessionKey), null)
+
+      if (activeSession && !activeSession.checkOutTime) {
+        if (activeSession.eventId !== eventId) {
+          throw new Error('Volunteer is already checked in for another event.')
+        }
+
+        const checkOutTime = new Date()
+        const checkInTime = new Date(activeSession.checkInTime)
+        const durationMinutes = Math.floor(
+          (checkOutTime.getTime() - checkInTime.getTime()) / (1000 * 60)
+        )
+        const hours = Math.round((durationMinutes / 60) * 100) / 100
+
+        removeSessionStorageItem(sessionKey)
+
+        if (!signup) {
+          signup = {
+            id: 'mock-signup-' + Math.random().toString(36).slice(2, 11),
+            userId: profile.id,
+            eventId,
+            eventTitle: 'Event Check-in',
+            status: 'attended',
+            hours,
+            createdAt: new Date().toISOString(),
+            checkedInAt: activeSession.checkInTime,
+          }
+          signups.push(signup)
+        } else {
+          signup.status = 'attended'
+          signup.hours = hours
+          signup.checkedInAt = activeSession.checkInTime
+        }
+
+        setMockSignups(signups)
+
+        const updatedProfiles = getMockProfiles().map((mockProfile) =>
+          mockProfile.id === profile.id
+            ? { ...mockProfile, totalHours: (mockProfile.totalHours || 0) + hours }
+            : mockProfile
+        )
+        setMockProfiles(updatedProfiles)
+
+        return {
+          profile,
+          signup,
+          action: 'checkedOut',
+          hoursLogged: hours,
+          checkInTime: activeSession.checkInTime,
+          checkOutTime: checkOutTime.toISOString(),
+        }
+      }
+
+      if (!signup) {
+        signup = {
+          id: 'mock-signup-' + Math.random().toString(36).slice(2, 11),
+          userId: profile.id,
+          eventId,
+          eventTitle: 'Event Check-in',
+          status: 'registered',
+          hours: 0,
+          createdAt: new Date().toISOString(),
+        }
+        signups.push(signup)
+      }
+
+      const newSession: CheckInSession = {
+        id: 'session-' + Math.random().toString(36).slice(2, 11),
+        userId: profile.id,
+        eventId,
+        checkInTime: new Date().toISOString(),
+        duration: 0,
+        hoursLogged: 0,
+      }
+
+      setSessionStorageItem(sessionKey, JSON.stringify(newSession))
+      setMockSignups(signups)
+
+      return {
+        profile,
+        signup,
+        action: 'checkedIn',
+        hoursLogged: 0,
+        checkInTime: newSession.checkInTime,
+      }
+    }
+
+    const client = supabase
+
+    const { data: profileData, error: profileError } = await client
+      .from('profiles')
+      .select('*')
+      .eq('member_code', memberCode)
+      .single()
+
+    if (profileError || !profileData) {
+      throw new Error('Volunteer profile not found for code ' + memberCode)
+    }
+
+    const profileRow = profileData as ProfileRow
+    const mappedProfile = mapProfileRow(profileRow)
+
+    const { data: activeSession, error: activeSessionError } = await client
+      .from('check_in_sessions')
+      .select('*')
+      .eq('user_id', profileRow.id)
+      .eq('event_id', eventId)
+      .is('check_out_time', null)
+      .maybeSingle()
+
+    if (activeSessionError) {
+      console.error('Error checking active session:', activeSessionError)
+    }
+
+    const { data: signupData, error: signupFetchError } = await client
+      .from('event_volunteers')
+      .select('*')
+      .eq('user_id', profileRow.id)
+      .eq('event_id', eventId)
+      .maybeSingle()
+
+    if (signupFetchError) {
+      console.error('Error checking event registration:', signupFetchError)
+    }
+
+    const ensureSignup = async (): Promise<EventVolunteerRow> => {
+      if (signupData) return signupData as EventVolunteerRow
+
+      const { data: newSignup, error: insertError } = await client
+        .from('event_volunteers')
+        .insert({
+          user_id: profileRow.id,
+          event_id: eventId,
+          event_title: 'Event Check-in',
+          status: 'registered',
+          hours: 0,
+          checked_in_at: null,
+        })
+        .select()
+        .single()
+
+      if (insertError || !newSignup) {
+        throw new Error(insertError?.message || 'Failed to create event registration for volunteer')
+      }
+
+      return newSignup as EventVolunteerRow
+    }
+
+    if (!activeSession) {
+      const signupRow = await ensureSignup()
+
+      const { data: newSession, error: insertSessionError } = await client
+        .from('check_in_sessions')
+        .insert({
+          user_id: profileRow.id,
+          event_id: eventId,
+          check_in_time: new Date().toISOString(),
+          hours_logged: 0,
+        })
+        .select()
+        .single()
+
+      if (insertSessionError || !newSession) {
+        throw new Error(insertSessionError?.message || 'Failed to start volunteer check-in session')
+      }
+
+      const sessionRow = newSession as CheckInSessionRow
+
+      const { error: attendanceInsertError } = await client.from('attendance_logs').insert({
+        volunteer_id: profileRow.id,
+        event_id: eventId,
+        checked_in_at: sessionRow.check_in_time,
+      })
+
+      if (attendanceInsertError) {
+        console.error('Failed to write attendance log:', attendanceInsertError)
+      }
+
+      return {
+        profile: mappedProfile,
+        signup: {
+          ...mapSignupRow(signupRow),
+          checkedInAt: signupRow.checked_in_at || sessionRow.check_in_time,
+        },
+        action: 'checkedIn',
+        hoursLogged: 0,
+        checkInTime: sessionRow.check_in_time,
+      }
+    }
+
+    const activeSessionRow = activeSession as CheckInSessionRow
+
+    if (activeSessionRow.event_id !== eventId) {
+      throw new Error('Volunteer is already checked in for another event.')
+    }
+
+    const checkOutTime = new Date().toISOString()
+    const checkInTime = new Date(activeSessionRow.check_in_time)
+    const durationMinutes = Math.max(
+      0,
+      Math.floor((new Date(checkOutTime).getTime() - checkInTime.getTime()) / (1000 * 60))
+    )
+    const hours = Math.round((durationMinutes / 60) * 100) / 100
+
+    const { data: updatedSession, error: updateSessionError } = await client
+      .from('check_in_sessions')
+      .update({
+        check_out_time: checkOutTime,
+        hours_logged: hours,
+      })
+      .eq('id', activeSessionRow.id)
+      .select()
+      .single()
+
+    if (updateSessionError || !updatedSession) {
+      throw new Error(updateSessionError?.message || 'Failed to complete volunteer check-out')
+    }
+
+    const { error: attendanceUpdateError } = await client
+      .from('attendance_logs')
+      .update({ checked_out_at: checkOutTime })
+      .eq('volunteer_id', profileRow.id)
+      .eq('event_id', eventId)
+      .is('checked_out_at', null)
+
+    if (attendanceUpdateError) {
+      console.error('Failed to update attendance log:', attendanceUpdateError)
+    }
+
+    let finalSignup: EventVolunteerRow | null = signupData as EventVolunteerRow | null
+
+    if (finalSignup) {
+      const { data: updatedSignup, error: updateSignupError } = await client
+        .from('event_volunteers')
+        .update({
+          status: 'attended',
+          hours,
+          checked_in_at: activeSessionRow.check_in_time,
+        })
+        .eq('id', finalSignup.id)
+        .select()
+        .single()
+
+      if (updateSignupError || !updatedSignup) {
+        console.error('Failed to update signup:', updateSignupError)
+      } else {
+        finalSignup = updatedSignup as EventVolunteerRow
+      }
+    } else {
+      const { data: newSignup, error: insertSignupError } = await client
+        .from('event_volunteers')
+        .insert({
+          user_id: profileRow.id,
+          event_id: eventId,
+          event_title: 'Event Check-in',
+          status: 'attended',
+          hours,
+          checked_in_at: activeSessionRow.check_in_time,
+        })
+        .select()
+        .single()
+
+      if (insertSignupError || !newSignup) {
+        throw new Error(insertSignupError?.message || 'Failed to create attended signup record')
+      }
+
+      finalSignup = newSignup as EventVolunteerRow
+    }
+
+    const { data: currentTotalProfile } = await client
+      .from('profiles')
+      .select('total_hours')
+      .eq('id', profileRow.id)
+      .single()
+
+    const currentTotalHours =
+      typeof currentTotalProfile?.total_hours === 'number' ? currentTotalProfile.total_hours : 0
+
+    const { error: totalHoursError } = await client
+      .from('profiles')
+      .update({ total_hours: currentTotalHours + hours })
+      .eq('id', profileRow.id)
+
+    if (totalHoursError) {
+      console.error('Failed to update volunteer total hours:', totalHoursError)
+    }
+
+    return {
+      profile: mappedProfile,
+      signup: {
+        ...mapSignupRow(finalSignup),
+        checkedInAt: finalSignup.checked_in_at || activeSessionRow.check_in_time,
+      },
+      action: 'checkedOut',
+      hoursLogged: hours,
+      checkInTime: activeSessionRow.check_in_time,
+      checkOutTime,
     }
   },
 }

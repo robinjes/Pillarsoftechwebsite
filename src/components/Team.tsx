@@ -141,7 +141,7 @@ const teamMembers: TeamMember[] = [
       school: 'Livermore High School',
       hobby: 'Playing volleyball and biking',
       favoriteApp: 'Instagram',
-      major: 'Undecided'
+      major: 'Aerospace Engineer'
     }
   }
 ]
