@@ -258,8 +258,10 @@ begin
 end;
 $$ language plpgsql security definer;
 
--- Trigger definition (uncomment below if using DB auto-profile trigger)
--- drop trigger if exists on_auth_user_created on auth.users;
--- create trigger on_auth_user_created
---   after insert on auth.users
---   for each row execute procedure public.handle_new_user();
+-- Trigger definition
+-- Keeps profile creation reliable even when email confirmation is enabled and
+-- the browser does not receive an authenticated session immediately after signup.
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute procedure public.handle_new_user();

@@ -408,6 +408,12 @@ export const volunteerService = {
       throw new Error(authError?.message || 'Authentication signup failed')
     }
 
+    if (!authData.session) {
+      throw new Error(
+        'Account created. Please confirm your email, then come back and sign in to finish your volunteer profile.'
+      )
+    }
+
     const profile = await fetchOrCreateProfile(authData.user)
     if (!profile) {
       throw new Error(
@@ -482,7 +488,7 @@ export const volunteerService = {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/volunteer/checkin`,
+        redirectTo: `${window.location.origin}/volunteer`,
         queryParams: {
           prompt: 'select_account',
         },

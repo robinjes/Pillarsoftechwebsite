@@ -78,6 +78,7 @@ export default function VolunteerPortalPage() {
   const [fullName, setFullName] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
+  const [authNotice, setAuthNotice] = useState('')
 
   // Event signup
   const [signingUpEventId, setSigningUpEventId] = useState<string | null>(null)
@@ -193,6 +194,7 @@ export default function VolunteerPortalPage() {
     e.preventDefault()
     setAuthLoading(true)
     setAuthError('')
+    setAuthNotice('')
     try {
       if (authTab === 'signin') {
         const profile = await volunteerService.signInWithEmail(email, password)
@@ -207,7 +209,14 @@ export default function VolunteerPortalPage() {
         setSkipAuthCallback(true)
       }
     } catch (err: any) {
-      setAuthError(err.message || 'Authentication failed.')
+      const message = err.message || 'Authentication failed.'
+      if (message.startsWith('Account created.')) {
+        setAuthNotice(message)
+        setAuthTab('signin')
+        setPassword('')
+      } else {
+        setAuthError(message)
+      }
     } finally {
       setAuthLoading(false)
     }
@@ -216,6 +225,7 @@ export default function VolunteerPortalPage() {
   const handleGoogleSSO = async () => {
     setAuthLoading(true)
     setAuthError('')
+    setAuthNotice('')
     try {
       await volunteerService.signInWithGoogle()
     } catch (err: any) {
@@ -1042,6 +1052,12 @@ export default function VolunteerPortalPage() {
               {authError && (
                 <div className="text-rose-400 text-xs font-bold bg-rose-500/10 border border-rose-500/20 p-3 rounded-xl">
                   {authError}
+                </div>
+              )}
+
+              {authNotice && (
+                <div className="text-emerald-300 text-xs font-bold bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">
+                  {authNotice}
                 </div>
               )}
 
