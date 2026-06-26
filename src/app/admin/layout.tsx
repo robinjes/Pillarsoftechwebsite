@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Fredoka, Space_Grotesk } from 'next/font/google';
-import { ShieldCheck, Calendar, FileText, Settings, LogOut, Menu, X } from 'lucide-react';
+import { ShieldCheck, Calendar, FileText, Settings, LogOut, Menu, X, Users, BarChart3, Clock } from 'lucide-react';
 
 const fredoka = Fredoka({ subsets: ['latin'] });
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] });
@@ -31,7 +31,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   const navItems = [
+    { name: 'Dashboard', href: '/admin', icon: BarChart3 },
     { name: 'Events', href: '/admin/events', icon: Calendar },
+    { name: 'Volunteers', href: '/admin/volunteers', icon: Users },
+    { name: 'Hours', href: '/admin/hours', icon: Clock },
+    { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Forms', href: '/admin/forms', icon: FileText },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];

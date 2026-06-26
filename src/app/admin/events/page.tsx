@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Fredoka, Space_Grotesk } from 'next/font/google';
 import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Event } from '@/data/events';
+import Image from 'next/image';
 
 const fredoka = Fredoka({ subsets: ['latin'] });
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] });

@@ -6,12 +6,30 @@
   :root {
     --background: 10 20 40; /* matches primary dark blue */
     --foreground: 248 250 252; /* slate-50 */
+    --font-body-stack: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+    --font-display-stack: "Cooper Black", "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+    --font-heading-stack: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
   }
 }
 
 @layer base {
   body {
     @apply bg-[#11265e] text-slate-50;
+    font-family: var(--font-body-stack);
+  }
+}
+
+@layer utilities {
+  .font-body {
+    font-family: var(--font-body-stack);
+  }
+
+  .font-display {
+    font-family: var(--font-display-stack);
+  }
+
+  .font-heading {
+    font-family: var(--font-heading-stack);
   }
 }
 

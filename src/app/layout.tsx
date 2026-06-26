@@ -1,14 +1,9 @@
 import type { Metadata } from 'next'
-import { Inter, Fredoka, Space_Grotesk, Quicksand } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import GlobalShortcut from '@/components/GlobalShortcut'
-
-const inter = Inter({ subsets: ['latin'] })
-const fredoka = Fredoka({ subsets: ['latin'] })
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
-const quicksand = Quicksand({ subsets: ['latin'] })
+import { quicksand } from '@/lib/fonts'
 
 export const metadata: Metadata = {
   title: 'Pillars of Tech',
