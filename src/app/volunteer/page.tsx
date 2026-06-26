@@ -147,7 +147,11 @@ export default function VolunteerPortalPage() {
   const handleToggleExpand = (id: string) => {
     setExpandedEvents((prev) => {
       const next = new Set(prev)
-      next.has(id) ? next.delete(id) : next.add(id)
+      if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
       return next
     })
   }
@@ -168,8 +172,8 @@ export default function VolunteerPortalPage() {
         setSignups([])
       }
       setIsAuthModalOpen(false)
-    } catch (err: any) {
-      setAuthError(err.message || 'Authentication failed.')
+    } catch (err: unknown) {
+      setAuthError(err instanceof Error ? err.message : 'Authentication failed.')
     } finally {
       setAuthLoading(false)
     }
@@ -180,8 +184,8 @@ export default function VolunteerPortalPage() {
     setAuthError('')
     try {
       await volunteerService.signInWithGoogle()
-    } catch (err: any) {
-      setAuthError(err.message || 'Google SSO failed.')
+    } catch (err: unknown) {
+      setAuthError(err instanceof Error ? err.message : 'Google SSO failed.')
       setAuthLoading(false)
     }
   }

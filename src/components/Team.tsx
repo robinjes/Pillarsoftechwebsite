@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { Fredoka } from 'next/font/google'
-import { ArrowUpRight, GraduationCap, MapPin, Sparkles, Users } from 'lucide-react'
+import { ArrowUpRight, Sparkles, Users } from 'lucide-react'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 
@@ -148,24 +148,6 @@ const teamMembers: TeamMember[] = [
 
 const teamJoinUrl = 'https://forms.gle/XqeKkMF4cj5W62yL9'
 
-const statCards = [
-  {
-    label: 'Team Members',
-    value: `${teamMembers.length}+`,
-    Icon: Users
-  },
-  {
-    label: 'Schools Represented',
-    value: `${new Set(teamMembers.map((member) => member.details.school)).size}`,
-    Icon: GraduationCap
-  },
-  {
-    label: 'Shared Mission',
-    value: 'STEM For All',
-    Icon: Sparkles
-  }
-]
-
 function MemberCard({ member, index }: { member: TeamMember; index: number }) {
   const useUnoptimizedImage = member.name === 'Yashas Jeedi' || member.name === 'Michael Nolan McClung'
 
@@ -256,7 +238,7 @@ export default function Team() {
           viewport={{ once: true }}
         >
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <p className="text-sm text-cyan-100">Want to join us? We're always looking for passionate students!</p>
+            <p className="text-sm text-cyan-100">Want to join us? We&apos;re always looking for passionate students!</p>
             <a
               href={teamJoinUrl}
               target="_blank"
@@ -315,7 +297,7 @@ export default function Team() {
               Interested in Joining?
             </h2>
             <p className="text-lg text-blue-100 max-w-2xl mx-auto mb-6">
-              We're always looking for passionate students who want to help grow STEM education in our community.
+              We&apos;re always looking for passionate students who want to help grow STEM education in our community.
             </p>
             <a
               href={teamJoinUrl}
