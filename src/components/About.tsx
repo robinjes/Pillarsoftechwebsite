@@ -2,41 +2,33 @@
 
 import { motion } from 'framer-motion'
 import { Fredoka } from 'next/font/google'
-import { GraduationCap, Lightbulb, Users, Target, Heart, Zap, Code, Rocket } from 'lucide-react'
+import { GraduationCap, Lightbulb, Users, Target, Heart, Code, Rocket } from 'lucide-react'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 
-const partnerNames = [
-  'Pedrozzi Youth Foundation',
-  'QUEST Science Center',
-  'Altamont Creek Elementary'
+const partnerOrganizations = [
+  {
+    name: 'Hack Club',
+    subtitle: 'Fiscal sponsor',
+    monogram: 'HC',
+  },
+  {
+    name: 'Pedrozzi Youth Foundation',
+    subtitle: 'Community partner',
+    monogram: 'PY',
+  },
+  {
+    name: 'QUEST Science Center',
+    subtitle: 'STEM collaborator',
+    monogram: 'QS',
+  },
+  {
+    name: 'Altamont Creek Elementary',
+    subtitle: 'School partner',
+    monogram: 'AC',
+  },
 ]
-
-function RotatingPartners() {
-  const [current, setCurrent] = useState(0)
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % partnerNames.length)
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [])
-
-  return (
-    <motion.p
-      key={current}
-      className="text-cyan-300 text-sm md:text-base"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.5 }}
-    >
-      {partnerNames[current]}
-    </motion.p>
-  )
-}
 
 export default function About() {
   const coreValues = [
@@ -184,13 +176,46 @@ export default function About() {
                   {achievement.number}
                 </motion.div>
                 <p className="text-blue-100 text-lg">{achievement.label}</p>
-                {achievement.label === 'Partner Organizations' && (
-                  <div className="mt-2 h-6">
-                    <RotatingPartners />
-                  </div>
-                )}
               </div>
             ))}
+          </motion.div>
+
+          <motion.div
+            className="mt-12 rounded-2xl border border-white/10 bg-white/5 px-6 py-6 backdrop-blur-md"
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+          >
+            <div className="mb-5 text-center">
+              <h3 className={`${fredoka.className} text-2xl md:text-3xl font-bold text-white`}>
+                Our Partners
+              </h3>
+              <p className="mt-2 text-sm md:text-base text-blue-100/90">
+                The organizations helping us expand access to STEM education.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-4">
+              {partnerOrganizations.map((partner) => (
+                <div
+                  key={partner.name}
+                  className="group flex min-w-[220px] flex-1 basis-[220px] items-center gap-4 rounded-2xl border border-white/10 bg-black/20 px-5 py-4 opacity-75 transition-all duration-200 ease-in-out hover:-translate-y-1 hover:border-cyan-300/40 hover:bg-white/10 hover:opacity-100 hover:shadow-lg hover:shadow-cyan-500/10"
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-sm font-black tracking-[0.18em] text-white/70 transition-all duration-200 ease-in-out group-hover:border-cyan-300/40 group-hover:text-cyan-100">
+                    {partner.monogram}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-base font-semibold text-white transition-all duration-200 ease-in-out group-hover:text-cyan-100">
+                      {partner.name}
+                    </p>
+                    <p className="text-sm text-blue-100/70 transition-all duration-200 ease-in-out group-hover:text-blue-100">
+                      {partner.subtitle}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </motion.div>
         </div>
       </section>

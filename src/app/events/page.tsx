@@ -76,7 +76,7 @@ export default function EventsPage() {
 
   const parseEventDate = (dateStr: string): number => {
     const trimmed = dateStr.trim()
-    if (!trimmed || /^tbd$/i.test(trimmed)) {
+    if (!trimmed || /^(tbd|coming soon)$/i.test(trimmed)) {
       return 0
     }
 

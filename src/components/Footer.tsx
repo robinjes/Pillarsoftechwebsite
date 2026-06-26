@@ -4,12 +4,22 @@ import { motion } from 'framer-motion'
 import { Space_Grotesk } from 'next/font/google'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Instagram, Mail, Youtube } from 'lucide-react'
+import { Instagram, Mail, Youtube, CircleHelp, Gift } from 'lucide-react'
 
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 
 export default function Footer() {
   const footerLinks = [
+    {
+      label: 'FAQ',
+      href: '/faq',
+      icon: CircleHelp
+    },
+    {
+      label: 'Wishlist',
+      href: '/wishlist',
+      icon: Gift
+    },
     {
       label: 'YouTube',
       href: 'https://www.youtube.com/@PillarsofTech',
@@ -88,7 +98,7 @@ export default function Footer() {
                     href={item.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`${spaceGrotesk.className} inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-blue-100 transition-colors hover:bg-white/10 hover:text-white`}
+                    className={`${spaceGrotesk.className} inline-flex min-h-11 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-blue-100 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-primary`}
                   >
                     {content}
                   </a>
@@ -96,7 +106,7 @@ export default function Footer() {
                   <Link
                     key={item.label}
                     href={item.href}
-                    className={`${spaceGrotesk.className} inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-blue-100 transition-colors hover:bg-white/10 hover:text-white`}
+                    className={`${spaceGrotesk.className} inline-flex min-h-11 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-blue-100 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-primary`}
                   >
                     {content}
                   </Link>

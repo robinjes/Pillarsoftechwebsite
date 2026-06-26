@@ -1,9 +1,11 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import emailjs from '@emailjs/browser'
 import { Fredoka } from 'next/font/google'
+import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
   ArrowUpRight,
   CheckCircle2,
@@ -21,6 +23,27 @@ const SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
 const TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID
 const EMAILJS_READY = Boolean(PUBLIC_KEY && SERVICE_ID && TEMPLATE_ID)
 const CONTACT_EMAIL = 'pillarsoftech@gmail.com'
+
+const subjectOptions = [
+  {
+    value: 'general',
+    label: 'General Inquiries & Feedback'
+  },
+  {
+    value: 'workshop',
+    label: 'Host a Workshop (Bring Us to Your School)'
+  },
+  {
+    value: 'wishlist',
+    label: 'Hardware & Equipment Donations (Wishlist)'
+  },
+  {
+    value: 'partnerships',
+    label: 'Partnerships and School Collaborations'
+  }
+] as const
+
+type SubjectValue = (typeof subjectOptions)[number]['value']
 
 if (PUBLIC_KEY) {
   emailjs.init(PUBLIC_KEY)
@@ -52,15 +75,27 @@ const contactStats = [
 ]
 
 export default function Contact() {
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    subject: '',
+    subject: 'general' as SubjectValue,
+    schoolName: '',
+    studentCount: '',
     message: ''
   })
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const resetTimer = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (searchParams.get('reason') === 'wishlist') {
+      setFormData((currentValue) => ({
+        ...currentValue,
+        subject: 'wishlist'
+      }))
+    }
+  }, [searchParams])
 
   useEffect(() => {
     return () => {
@@ -92,6 +127,9 @@ export default function Contact() {
     setErrorMessage('')
     clearStatusTimer()
 
+    const subjectLabel =
+      subjectOptions.find((option) => option.value === formData.subject)?.label ?? 'General Inquiries & Feedback'
+
     try {
       if (!EMAILJS_READY) {
         throw new Error('The contact form is currently unavailable. Please use email instead.')
@@ -101,7 +139,10 @@ export default function Contact() {
         to_name: 'Pillars of Tech',
         from_name: formData.name,
         reply_to: formData.email,
-        subject: formData.subject,
+        subject: subjectLabel,
+        inquiry_type: subjectLabel,
+        school_name: formData.subject === 'workshop' ? formData.schoolName : '',
+        estimated_student_count: formData.subject === 'workshop' ? formData.studentCount : '',
         message: formData.message,
         to_email: CONTACT_EMAIL
       })
@@ -110,7 +151,9 @@ export default function Contact() {
       setFormData({
         name: '',
         email: '',
-        subject: '',
+        subject: 'general',
+        schoolName: '',
+        studentCount: '',
         message: ''
       })
       scheduleReset()
@@ -123,13 +166,27 @@ export default function Contact() {
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setFormData((currentValue) => ({
       ...currentValue,
       [name]: value
     }))
   }
+
+  const handleSubjectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const nextSubject = e.target.value as SubjectValue
+
+    setFormData((currentValue) => ({
+      ...currentValue,
+      subject: nextSubject,
+      schoolName: nextSubject === 'workshop' ? currentValue.schoolName : '',
+      studentCount: nextSubject === 'workshop' ? currentValue.studentCount : ''
+    }))
+  }
+
+  const selectedSubject = formData.subject
+  const isWorkshop = selectedSubject === 'workshop'
 
   const getSubmitButtonText = () => {
     switch (status) {
@@ -203,14 +260,14 @@ export default function Contact() {
             >
               <a
                 href={`mailto:${CONTACT_EMAIL}`}
-                className="inline-flex items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
               >
                 <Mail className="h-4 w-4" />
                 Email us directly
               </a>
               <a
                 href="#contact-form"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-blue-50"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
               >
                 Jump to form
                 <ArrowUpRight className="h-4 w-4" />
@@ -389,7 +446,7 @@ export default function Contact() {
                     onChange={handleChange}
                     placeholder="Your name"
                     autoComplete="name"
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus:border-cyan-300/40 focus:bg-white/10 focus:ring-2 focus:ring-cyan-400/20"
+                    className="min-h-[44px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus-visible:border-cyan-300/40 focus-visible:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
                     required
                     disabled={status === 'sending'}
                   />
@@ -407,7 +464,7 @@ export default function Contact() {
                     onChange={handleChange}
                     placeholder="you@example.com"
                     autoComplete="email"
-                    className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus:border-cyan-300/40 focus:bg-white/10 focus:ring-2 focus:ring-cyan-400/20"
+                    className="min-h-[44px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus-visible:border-cyan-300/40 focus-visible:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
                     required
                     disabled={status === 'sending'}
                   />
@@ -418,18 +475,73 @@ export default function Contact() {
                 <label htmlFor="subject" className="mb-2 block text-sm font-semibold text-cyan-100">
                   Subject
                 </label>
-                <input
-                  type="text"
+                <select
                   id="subject"
                   name="subject"
                   value={formData.subject}
-                  onChange={handleChange}
-                  placeholder="How can we help?"
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus:border-cyan-300/40 focus:bg-white/10 focus:ring-2 focus:ring-cyan-400/20"
+                  onChange={handleSubjectChange}
+                  className="min-h-[44px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus-visible:border-cyan-300/40 focus-visible:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
                   required
                   disabled={status === 'sending'}
-                />
+                >
+                  {subjectOptions.map((option) => (
+                    <option key={option.value} value={option.value} className="bg-slate-900 text-white">
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
               </div>
+
+              <AnimatePresence initial={false}>
+                {isWorkshop && (
+                  <motion.div
+                    key="workshop-fields"
+                    initial={{ opacity: 0, height: 0, y: -8 }}
+                    animate={{ opacity: 1, height: 'auto', y: 0 }}
+                    exit={{ opacity: 0, height: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className="grid gap-4 overflow-hidden sm:grid-cols-2 sm:gap-5"
+                  >
+                    <div>
+                      <label htmlFor="schoolName" className="mb-2 block text-sm font-semibold text-cyan-100">
+                        School/Organization Name
+                      </label>
+                      <input
+                        type="text"
+                        id="schoolName"
+                        name="schoolName"
+                        value={formData.schoolName}
+                        onChange={handleChange}
+                        autoComplete="organization"
+                        className="min-h-[44px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus-visible:border-cyan-300/40 focus-visible:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
+                        placeholder="School, club, or organization"
+                        required={isWorkshop}
+                        disabled={status === 'sending'}
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="studentCount" className="mb-2 block text-sm font-semibold text-cyan-100">
+                        Estimated Student Count
+                      </label>
+                      <input
+                        type="number"
+                        id="studentCount"
+                        name="studentCount"
+                        value={formData.studentCount}
+                        onChange={handleChange}
+                        inputMode="numeric"
+                        min="1"
+                        step="1"
+                        className="min-h-[44px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus-visible:border-cyan-300/40 focus-visible:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
+                        placeholder="Approx. number of students"
+                        required={isWorkshop}
+                        disabled={status === 'sending'}
+                      />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               <div>
                 <label htmlFor="message" className="mb-2 block text-sm font-semibold text-cyan-100">
@@ -442,7 +554,7 @@ export default function Contact() {
                   onChange={handleChange}
                   placeholder="Tell us a little about your idea, question, or event..."
                   rows={6}
-                  className="w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus:border-cyan-300/40 focus:bg-white/10 focus:ring-2 focus:ring-cyan-400/20"
+                  className="min-h-[44px] w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus-visible:border-cyan-300/40 focus-visible:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
                   required
                   disabled={status === 'sending'}
                 />
@@ -453,12 +565,19 @@ export default function Contact() {
                 disabled={status === 'sending' || !EMAILJS_READY}
                 whileHover={{ scale: status === 'sending' ? 1 : 1.01 }}
                 whileTap={{ scale: status === 'sending' ? 1 : 0.99 }}
-                className={`inline-flex w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 font-semibold text-white shadow-lg shadow-cyan-500/20 transition ${getSubmitButtonStyle()}`}
+                className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 font-semibold text-white shadow-lg shadow-cyan-500/20 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e] ${getSubmitButtonStyle()}`}
               >
                 {status === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
                 {getSubmitButtonText()}
               </motion.button>
             </form>
+            <p className="mt-4 text-sm text-blue-100">
+              Need to coordinate a donation right away? Visit the{' '}
+              <Link href="/wishlist" className="font-semibold text-cyan-200 underline underline-offset-4">
+                wishlist
+              </Link>{' '}
+              for the items we are actively collecting.
+            </p>
           </motion.div>
         </div>
       </section>

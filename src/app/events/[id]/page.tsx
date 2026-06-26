@@ -127,10 +127,13 @@ export default function EventPage() {
   const accentColor = isCompleted ? 'text-emerald-500' : 'text-accent'
   const registrationNote = event.registrationNote?.trim()
   const showRegistrationTbd = registrationNote === 'TBD'
+  const showRegistrationComingSoon = registrationNote === 'Coming Soon'
   const registrationStatus = isCompleted
     ? 'Completed'
     : hasForm
     ? 'Register Now!'
+    : showRegistrationComingSoon
+    ? 'Coming Soon'
     : showRegistrationTbd
     ? 'TBD'
     : 'Registration Ended'

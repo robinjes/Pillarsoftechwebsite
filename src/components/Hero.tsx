@@ -42,13 +42,12 @@ export default function Hero() {
   const videoRef = useRef<HTMLVideoElement | null>(null)
 
   useEffect(() => {
-    if (carouselItems[activeSlide].type === 'video') {
-      return
-    }
+    const activeItem = carouselItems[activeSlide]
+    const timeoutMs = activeItem.type === 'video' ? 14000 : 4500
 
     const timeout = window.setTimeout(() => {
       setActiveSlide((current) => (current + 1) % carouselItems.length)
-    }, 4500)
+    }, timeoutMs)
 
     return () => window.clearTimeout(timeout)
   }, [activeSlide])
@@ -87,6 +86,10 @@ export default function Hero() {
 
   const goToNextSlide = () => {
     setActiveSlide((current) => (current + 1) % carouselItems.length)
+  }
+
+  const handleVideoError = () => {
+    goToNextSlide()
   }
 
   const handleVideoTimeUpdate = () => {
@@ -216,6 +219,21 @@ export default function Hero() {
     }
   ]
 
+  const heroCtas = [
+    {
+      label: 'Volunteer with us',
+      href: 'https://docs.google.com/forms/d/e/1FAIpQLSdsNmpS2wpikV77wl1ifpD52a0zAepa-b8DhesqFjPTQVoo7w/viewform?usp=header',
+      external: true,
+      variant: 'primary'
+    },
+    {
+      label: 'About us',
+      href: '/about',
+      external: false,
+      variant: 'secondary'
+    }
+  ] as const
+
   return (
     <>
       {/* Hero Section */}
@@ -245,10 +263,11 @@ export default function Hero() {
                   playsInline
                   preload="metadata"
                   poster={item.poster}
+                  onError={handleVideoError}
                   onTimeUpdate={handleVideoTimeUpdate}
                   onEnded={goToNextSlide}
                 >
-                  <source src={item.src} type="video/mp4" />
+                  <source src={item.src} />
                 </video>
               )}
             </div>
@@ -285,6 +304,35 @@ export default function Hero() {
             >
               We're a student-led organization dedicated to making STEM education accessible to all. Through hands-on events, mentorship, and community programs, we're building the next generation of STEM leaders.
             </motion.p>
+
+            <motion.div
+              className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              {heroCtas.map((cta) =>
+                cta.external ? (
+                <a
+                    key={cta.label}
+                    href={cta.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center rounded-full bg-white px-8 py-3 text-sm font-semibold text-blue-900 shadow-lg shadow-cyan-500/20 transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-blue-50 md:text-base"
+                  >
+                    {cta.label}
+                  </a>
+                ) : (
+                  <Link
+                    key={cta.label}
+                    href={cta.href}
+                    className="inline-flex items-center justify-center rounded-full border border-white/35 bg-white/5 px-8 py-3 text-sm font-semibold text-white transition-all duration-200 ease-in-out hover:border-white/60 hover:bg-white/10 md:text-base"
+                  >
+                    {cta.label}
+                  </Link>
+                )
+              )}
+            </motion.div>
             
             {/* Scroll Indicator */}
             <motion.div

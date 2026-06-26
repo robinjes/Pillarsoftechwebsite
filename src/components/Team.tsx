@@ -181,13 +181,13 @@ function MemberCard({ member, index }: { member: TeamMember; index: number }) {
       
       <div className="relative p-6">
         {/* Image - Square */}
-        <div className="mb-5 overflow-hidden rounded-xl border border-cyan-400/30 bg-gradient-to-br from-cyan-500/20 to-blue-600/20">
-          <div className="relative w-full pb-[100%]">
+        <div className="mb-5 overflow-hidden rounded-2xl border border-cyan-400/25 bg-gradient-to-br from-cyan-500/15 to-blue-600/15 shadow-inner shadow-black/10">
+          <div className="relative aspect-[3/4] w-full">
             <Image
               src={member.image}
               alt={member.name}
               fill
-              className="absolute inset-0 h-full w-full object-cover"
+              className="h-full w-full object-cover"
               priority={index < 3}
               quality={100}
               unoptimized={useUnoptimizedImage}
