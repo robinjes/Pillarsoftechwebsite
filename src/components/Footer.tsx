@@ -28,7 +28,7 @@ export default function Footer() {
     },
     {
       label: 'Instagram',
-      href: 'https://www.instagram.com/pillarsoftech',
+      href: 'https://www.instagram.com/thepillarsoftech',
       icon: Instagram,
       external: true
     },
