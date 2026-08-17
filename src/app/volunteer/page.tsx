@@ -30,6 +30,7 @@ import {
   Wrench,
   HandshakeIcon,
   Users,
+  ArrowRight,
 } from 'lucide-react'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
@@ -465,6 +466,30 @@ export default function VolunteerPortalPage() {
           <p className={`${spaceGrotesk.className} text-xl text-blue-100 max-w-2xl mx-auto opacity-90 leading-relaxed`}>
             Volunteer at our events—the easiest way to get involved with Pillars of Tech, without the commitment!
           </p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+          className="max-w-4xl mx-auto"
+        >
+          <div className="flex flex-col gap-4 rounded-3xl border border-cyan-400/20 bg-white/5 px-5 py-5 text-center shadow-[0_12px_40px_rgba(0,0,0,0.16)] backdrop-blur-xl md:flex-row md:items-center md:justify-between md:text-left md:px-6">
+            <p className={`${spaceGrotesk.className} text-sm leading-6 text-blue-100/90 md:max-w-2xl md:text-base`}>
+              This page is for volunteering with us at events. If you want to join the team, use the
+              application below.
+            </p>
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSdsNmpS2wpikV77wl1ifpD52a0zAepa-b8DhesqFjPTQVoo7w/viewform?usp=header"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={`${spaceGrotesk.className} inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-gradient-to-r from-cyan-300 to-blue-400 px-5 py-3 text-sm font-bold text-slate-950 shadow-lg shadow-cyan-500/20 transition duration-200 hover:-translate-y-0.5 hover:from-cyan-200 hover:to-blue-300 hover:shadow-cyan-500/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-primary`}
+            >
+              Join the team application
+              <ArrowRight className="h-4 w-4" />
+            </a>
+          </div>
         </motion.div>
 
         {/* ── PROGRAM DESCRIPTION ── */}

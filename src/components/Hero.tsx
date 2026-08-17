@@ -107,9 +107,9 @@ export default function Hero() {
 
   const primaryCards = [
     {
-      title: 'Join Us',
+      title: 'Join the Team',
       description:
-        'Be part of our founding team of interns, mentors, and more opportunities to come.',
+        'Apply to join our team of interns, mentors, and organizers as we grow Pillars of Tech.',
       href: 'https://docs.google.com/forms/d/e/1FAIpQLSdsNmpS2wpikV77wl1ifpD52a0zAepa-b8DhesqFjPTQVoo7w/viewform?usp=header',
       external: true,
       accent: 'from-emerald-300/25 to-blue-500/10'
@@ -118,8 +118,7 @@ export default function Hero() {
       title: 'Donate to Us',
       description:
         'By donating to us, you help fund technology education, student programs, and more hands-on opportunities for young learners.',
-      href: 'https://hcb.hackclub.com/donations/start/pillars-of-tech',
-      external: true,
+      href: '/fundraiser',
       accent: 'from-amber-200/30 to-blue-500/10'
     },
     {
@@ -222,8 +221,8 @@ export default function Hero() {
   const heroCtas = [
     {
       label: 'Volunteer with us',
-      href: 'https://docs.google.com/forms/d/e/1FAIpQLSdsNmpS2wpikV77wl1ifpD52a0zAepa-b8DhesqFjPTQVoo7w/viewform?usp=header',
-      external: true,
+      href: '/volunteer',
+      external: false,
       variant: 'primary'
     },
     {

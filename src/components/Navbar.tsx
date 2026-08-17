@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { Space_Grotesk } from 'next/font/google'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Menu, X, Home, Info, Calendar, Users, Mail, Newspaper, Heart, CircleHelp, Gift, ChevronDown } from 'lucide-react'
+import { Menu, X, Home, Info, Calendar, Users, Mail, Newspaper, Heart, CircleHelp, Gift, ChevronDown, BadgeDollarSign } from 'lucide-react'
 
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 
@@ -35,6 +35,7 @@ export default function Navbar() {
       items: [
         { name: 'Volunteer', href: '/volunteer', icon: Heart },
         { name: 'Wishlist', href: '/wishlist', icon: Gift },
+        { name: 'Donate / Support Us', href: '/fundraiser', icon: BadgeDollarSign },
       ],
     },
     {
@@ -192,6 +193,14 @@ export default function Navbar() {
                     </div>
                   </div>
                 ))}
+                <Link
+                  href="/fundraiser"
+                  onClick={() => setIsOpen(false)}
+                  className="flex min-h-11 items-center px-4 py-3 text-white/70 hover:text-white hover:bg-white/5 rounded-2xl transition-all font-bold group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
+                >
+                  <BadgeDollarSign className="w-5 h-5 mr-4 text-accent group-hover:scale-110 transition-transform" />
+                  Donate / Support Us
+                </Link>
               </nav>
 
               <div className="mt-auto pt-6 border-t border-white/5 text-center">
