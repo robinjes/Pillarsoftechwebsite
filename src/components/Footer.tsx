@@ -1,135 +1,90 @@
-'use client'
-
-import { motion } from 'framer-motion'
-import { Space_Grotesk } from 'next/font/google'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Instagram, Mail, Youtube, CircleHelp, Gift } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
+import BrandMark from '@/components/site/BrandMark'
+
+const exploreLinks = [
+  { label: 'About', href: '/about' },
+  { label: 'Events', href: '/events' },
+  { label: 'Volunteer', href: '/volunteer' },
+  { label: 'Fundraiser', href: '/fundraiser' },
+]
+
+const resourceLinks = [
+  { label: 'FAQ', href: '/faq' },
+  { label: 'Wishlist', href: '/wishlist' },
+  { label: 'Newsletter', href: '/newsletter' },
+  { label: 'Contact', href: '/contact' },
+]
+
+const currentYear = new Date().getFullYear()
 
 export default function Footer() {
-  const footerLinks = [
-    {
-      label: 'FAQ',
-      href: '/faq',
-      icon: CircleHelp
-    },
-    {
-      label: 'Wishlist',
-      href: '/wishlist',
-      icon: Gift
-    },
-    {
-      label: 'YouTube',
-      href: 'https://www.youtube.com/@PillarsofTech',
-      icon: Youtube,
-      external: true
-    },
-    {
-      label: 'Instagram',
-      href: 'https://www.instagram.com/thepillarsoftech',
-      icon: Instagram,
-      external: true
-    },
-    {
-      label: 'Contact Us',
-      href: '/contact',
-      icon: Mail
-    }
-  ]
-
   return (
-    <footer className="border-t border-white/10 bg-gradient-to-b from-[#0f1f3f] to-[#091224] py-12">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto flex max-w-3xl flex-col items-center gap-8 rounded-[2rem] border border-white/10 bg-white/5 px-6 py-10 text-center shadow-[0_20px_80px_rgba(0,0,0,0.18)] backdrop-blur-xl">
-          <div className="flex flex-col items-center gap-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
-              viewport={{ once: true }}
-              className="relative h-[120px] w-[180px]"
+    <footer className="border-t border-white/20 bg-midnight text-warm">
+      <div className="site-shell mx-auto px-5 py-14 sm:px-8 sm:py-20 lg:px-10">
+        <div className="editorial-grid gap-y-12">
+          <div className="col-span-12 lg:col-span-5">
+            <BrandMark />
+            <p className="mt-6 max-w-sm text-lg leading-7 text-warm/80">
+              Breaking barriers, building innovators through hands-on STEM learning.
+            </p>
+            <a
+              href="https://hcb.hackclub.com/pillars-of-tech/transactions"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-8 inline-flex min-h-11 items-center gap-2 border border-sky px-4 text-sm font-semibold text-sky transition-colors hover:bg-sky hover:text-midnight"
             >
-              <Image
-                src="/potofficiallogo.png"
-                alt="Pillars of Tech Logo"
-                fill
-                className="object-contain opacity-90 transition-opacity hover:opacity-100"
-                sizes="180px"
-              />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
-              viewport={{ once: true }}
-              className="text-center"
-            >
-              <a
-                href="https://hcb.hackclub.com/pillars-of-tech/transactions"
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`${spaceGrotesk.className} inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-blue-100 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#091224]`}
-              >
-                Transparent Finances
-              </a>
-            </motion.div>
-
-            <div className="h-px w-full bg-gradient-to-r from-transparent via-white/15 to-transparent" />
-
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.25 }}
-              viewport={{ once: true }}
-              className="flex flex-wrap items-center justify-center gap-3 pt-4"
-            >
-              {footerLinks.map((item) => {
-                const content = (
-                  <>
-                    <item.icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </>
-                )
-
-                return item.external ? (
-                    <a
-                      key={item.label}
-                      href={item.href}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`${spaceGrotesk.className} inline-flex min-h-11 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-blue-100 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#091224]`}
-                    >
-                      {content}
-                    </a>
-                ) : (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className={`${spaceGrotesk.className} inline-flex min-h-11 items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-blue-100 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#091224]`}
-                  >
-                    {content}
-                  </Link>
-                )
-              })}
-            </motion.div>
+              Transparent finances
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </a>
           </div>
 
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+          <div className="col-span-6 lg:col-span-2">
+            <h2 className="font-display text-sm font-bold uppercase tracking-[0.18em] text-sky">Explore</h2>
+            <nav className="mt-5 flex flex-col items-start gap-3" aria-label="Explore footer links">
+              {exploreLinks.map((link) => (
+                <Link key={link.href} href={link.href} className="min-h-11 py-2 text-sm font-semibold text-warm/80 transition-colors hover:text-sky">
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            viewport={{ once: true }}
-            className="text-center text-sm text-blue-100/60"
-          >
-            © 2026 Pillars of Tech. All rights reserved.
-          </motion.div>
+          <div className="col-span-6 lg:col-span-2">
+            <h2 className="font-display text-sm font-bold uppercase tracking-[0.18em] text-sky">Resources</h2>
+            <nav className="mt-5 flex flex-col items-start gap-3" aria-label="Resource footer links">
+              {resourceLinks.map((link) => (
+                <Link key={link.href} href={link.href} className="min-h-11 py-2 text-sm font-semibold text-warm/80 transition-colors hover:text-sky">
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          <div className="col-span-12 border-t border-white/20 pt-8 lg:col-span-3 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
+            <h2 className="font-display text-sm font-bold uppercase tracking-[0.18em] text-sky">Find us</h2>
+            <div className="mt-5 flex flex-col items-start gap-3">
+              <a className="min-h-11 py-2 text-sm font-semibold text-warm/80 transition-colors hover:text-sky" href="https://www.youtube.com/@PillarsofTech" target="_blank" rel="noreferrer">
+                YouTube <span className="sr-only">(opens in a new tab)</span>
+              </a>
+              <a className="min-h-11 py-2 text-sm font-semibold text-warm/80 transition-colors hover:text-sky" href="https://www.instagram.com/thepillarsoftech" target="_blank" rel="noreferrer">
+                Instagram <span className="sr-only">(opens in a new tab)</span>
+              </a>
+            </div>
+            <div className="mt-6 flex items-center gap-3 border-t border-white/20 pt-5">
+              <Image src="/logonotext.png" alt="" width={34} height={34} />
+              <p className="text-xs leading-5 text-warm/60">Pillars of Tech is fiscally sponsored by Hack Club.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-14 flex flex-col gap-3 border-t border-white/20 pt-6 text-xs text-warm/60 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {currentYear} Pillars of Tech. All rights reserved.</p>
+          <p>Built for curious minds and generous communities.</p>
         </div>
       </div>
     </footer>
   )
-} 
+}

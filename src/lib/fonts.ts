@@ -1,6 +1,14 @@
-import { Fredoka, Inter, Quicksand, Space_Grotesk } from 'next/font/google'
+import { Familjen_Grotesk, IBM_Plex_Sans } from 'next/font/google'
 
-export const inter = Inter({ subsets: ['latin'], display: 'swap' })
-export const fredoka = Fredoka({ subsets: ['latin'], display: 'swap' })
-export const quicksand = Quicksand({ subsets: ['latin'], display: 'swap' })
-export const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], display: 'swap' })
+export const displayFont = Familjen_Grotesk({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-display',
+})
+
+export const bodyFont = IBM_Plex_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-body',
+  weight: ['400', '500', '600', '700'],
+})

@@ -4,41 +4,106 @@
 
 @layer base {
   :root {
-    --background: 10 20 40; /* matches primary dark blue */
-    --foreground: 248 250 252; /* slate-50 */
-    --font-body-stack: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
-    --font-display-stack: "Cooper Black", "Trebuchet MS", "Segoe UI", Arial, sans-serif;
-    --font-heading-stack: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+    --cream: #F3EBDD;
+    --ink: #101114;
+    --midnight: #0B1F3A;
+    --sky: #A9D8F2;
+    --cobalt: #2B5DA8;
+    --warm-white: #FFFDF8;
+    --paper: #FFFDF8;
+    --font-body-stack: var(--font-body), Arial, sans-serif;
+    --font-display-stack: var(--font-display), Arial, sans-serif;
   }
 }
 
-@layer base {
-  body {
-    @apply bg-[#11265e] text-slate-50;
-    font-family: var(--font-body-stack);
-  }
+* {
+  box-sizing: border-box;
 }
 
-@layer utilities {
-  .font-body {
-    font-family: var(--font-body-stack);
-  }
-
-  .font-display {
-    font-family: var(--font-display-stack);
-  }
-
-  .font-heading {
-    font-family: var(--font-heading-stack);
-  }
+html {
+  scroll-behavior: smooth;
 }
 
-@keyframes shine {
-  0% {
-    background-position: 200% 0;
+body {
+  margin: 0;
+  overflow-x: hidden;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body-stack);
+}
+
+.site-shell {
+  width: min(100%, 90rem);
+}
+
+::selection {
+  background: var(--sky);
+  color: var(--midnight);
+}
+
+a,
+button,
+summary {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--sky);
+  outline-offset: 3px;
+}
+
+.skip-link {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  transform: translateY(-160%);
+  background: var(--warm-white);
+  color: var(--midnight);
+  border: 1px solid var(--midnight);
+  padding: 0.7rem 1rem;
+  font-weight: 700;
+  transition: transform 160ms ease;
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.editorial-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 2rem);
+}
+
+.editorial-rule {
+  border-top: 1px solid currentColor;
+}
+
+.display-heading {
+  font-family: var(--font-display-stack);
+  letter-spacing: -0.045em;
+  line-height: 0.95;
+}
+
+.body-copy {
+  max-width: 62ch;
+  line-height: 1.65;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
   }
 
-  100% {
-    background-position: -20% 0;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
   }
 }
