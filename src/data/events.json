@@ -6,7 +6,20 @@
     "time": "5:00 PM - 7:30 PM",
     "location": "Joe Michell K-8",
     "status": "past",
-    "image": "/Scienceoddyseycover.jpg",
+    "image": "/images/events/science-odyssey/drive-01.webp",
+    "heroImage": "/images/events/science-odyssey/drive-01.webp",
+    "gallery": [
+      "/images/events/science-odyssey/drive-01.webp",
+      "/images/events/science-odyssey/drive-02.webp",
+      "/images/events/science-odyssey/drive-03.webp"
+    ],
+    "imageAlt": "Students crowd around an outdoor table building marshmallow structures at Science Odyssey.",
+    "heroImageAlt": "Students crowd around an outdoor table building marshmallow structures at Science Odyssey.",
+    "galleryAlts": [
+      "Students crowd around an outdoor table building marshmallow structures at Science Odyssey.",
+      "Students compare and test marshmallow structures at the Science Odyssey table.",
+      "Completed marshmallow structures rest on engineering challenge sheets."
+    ],
     "heroVideo": "/PoT%202.26%20Timelapse.mp4",
     "description": "At this year’s Science Odyssey, Pillars of Tech hosted an interactive engineering booth designed to introduce participants to the concepts of structural strength and material efficiency.\n\nStudents took part in a marshmallow structural challenge, where they were given materials to design and build a structure capable of supporting as many pennies as possible. The activity encouraged participants to think like engineers, balancing strength, stability, and efficiency.\n\nOnce the structures were built, we tested them by gradually adding pennies to measure how much weight they could support. Participants quickly learned that the strongest structure wasn’t always the one that used the most materials. In engineering, efficiency matters just as much as strength; a design that holds significant weight while using fewer materials is often the most impressive.\n\nThe challenge sparked creativity, problem-solving, and collaboration among students of all ages. One standout design successfully supported 85 pennies, the highest weight achieved during the event.\n\nThrough activities like this, Pillars of Tech aims to make STEM concepts tangible, engaging, and fun, helping inspire the next generation of engineers and innovators.",
     "stats": [
@@ -31,7 +44,20 @@
     "time": "6:00 PM - 8:00 PM",
     "location": "Altamont Creek Elementary School (MPR)",
     "status": "past",
-    "image": "/images/events/wildcat-tank/Wildcat%20Tank%20Timelapse.mov.png",
+    "image": "/images/events/wildcat-tank-altamont/drive-01.webp",
+    "heroImage": "/images/events/wildcat-tank-altamont/drive-01.webp",
+    "gallery": [
+      "/images/events/wildcat-tank-altamont/drive-01.webp",
+      "/images/events/wildcat-tank-altamont/drive-02.webp",
+      "/images/events/wildcat-tank-altamont/drive-03.webp"
+    ],
+    "imageAlt": "A student presents a project board to the Wildcat Tank judging panel.",
+    "heroImageAlt": "A student presents a project board to the Wildcat Tank judging panel.",
+    "galleryAlts": [
+      "A student presents a project board to the Wildcat Tank judging panel.",
+      "Wildcat Tank judges listen during a student presentation.",
+      "Student organizers pose beneath the Wildcat Tank presentation screen."
+    ],
     "heroVideo": "/videos/events/wildcat-tank/Wildcat%20Tank%20Timelapse.mov",
     "youtubeVideos": [
       "https://www.youtube.com/watch?v=tvG1YQygTcc",
@@ -46,23 +72,21 @@
     "time": "6:00-7:30PM",
     "location": "Altamont Creek Elementary School",
     "status": "completed",
-    "image": "/images/events/family-science-night/IMG_5880.jpg",
+    "image": "/images/events/family-science-night-altamont/drive-01.webp",
+    "heroImage": "/images/events/family-science-night-altamont/drive-01.webp",
     "gallery": [
-      "/images/events/family-science-night/IMG_5880.jpg",
-      "/images/events/family-science-night/IMG_0547.jpg",
-      "/images/events/family-science-night/IMG_0551.jpg",
-      "/images/events/family-science-night/IMG_5898.jpg",
-      "/images/events/family-science-night/IMG_5905.jpg",
-      "/images/events/family-science-night/IMG_5914.jpg",
-      "/images/events/family-science-night/IMG_5928.jpg",
-      "/images/events/family-science-night/IMG_5940.jpg",
-      "/images/events/family-science-night/IMG_5967.jpg",
-      "/images/events/family-science-night/IMG_6049.jpg",
-      "/images/events/family-science-night/IMG_6105.jpg",
-      "/images/events/family-science-night/IMG_8330.JPG",
-      "/images/events/family-science-night/IMG_8331.JPG",
-      "/images/events/family-science-night/IMG_8332.JPG",
-      "/images/events/family-science-night/IMG_8333.JPG"
+      "/images/events/family-science-night-altamont/drive-01.webp",
+      "/images/events/family-science-night-altamont/drive-02.webp",
+      "/images/events/family-science-night-altamont/drive-03.webp",
+      "/images/events/family-science-night-altamont/drive-04.webp"
+    ],
+    "imageAlt": "Students drive VEX robots through a taped floor course at Family Science Night.",
+    "heroImageAlt": "Students drive VEX robots through a taped floor course at Family Science Night.",
+    "galleryAlts": [
+      "Students drive VEX robots through a taped floor course at Family Science Night.",
+      "An older student demonstrates a VEX robot to three younger students.",
+      "An older student helps a child guide a robot through the floor course.",
+      "An older student shows a child how to control a VEX robot."
     ],
     "registrationNote": "TBD",
     "description": "At Family Science Night at Altamont Creek Elementary School, students explored student-built VEX robots from Livermore High School’s Green Engineering Academy (GEA).\n\nStudents put the robots to the test by driving through a maze, collecting cubes, and completing a precision “narrow path” challenge to transport blocks across the table. These hands-on activities helped students explore how robots work—from coding and motors to wiring and control systems.\n\nWe’re grateful to the Green Engineering Academy for sharing their incredible robots and helping us bring a memorable robotics experience to families.\n\nWhat is the GEA?\n\nThe Green Engineering Academy is a four-year engineering pathway at Livermore High School (founded in 2010) that combines rigorous academics with hands-on, industry-relevant engineering experiences. The program follows the Project Lead the Way (PLTW) curriculum and gives students experience with tools like Onshape, Fusion 360, and Revit—preparing them for college engineering programs, apprenticeships, and technical careers through real-world projects and applied engineering experiences."
@@ -112,7 +136,24 @@
     "time": "5:00 PM - 7:30 PM",
     "location": "Altamont Creek Elementary School",
     "status": "completed",
-    "image": "/images/events/wildcat-carnival/cover.png",
+    "image": "/images/events/wildcat-carnival/drive-01.webp",
+    "heroImage": "/images/events/wildcat-carnival/drive-01.webp",
+    "gallery": [
+      "/images/events/wildcat-carnival/drive-01.webp",
+      "/images/events/wildcat-carnival/drive-02.webp",
+      "/images/events/wildcat-carnival/drive-03.webp",
+      "/images/events/wildcat-carnival/drive-04.webp",
+      "/images/events/wildcat-carnival/drive-05.webp"
+    ],
+    "imageAlt": "A crowd gathers around the outdoor Oobleck demonstration at Wildcat Carnival.",
+    "heroImageAlt": "A crowd gathers around the outdoor Oobleck demonstration at Wildcat Carnival.",
+    "galleryAlts": [
+      "A crowd gathers around the outdoor Oobleck demonstration at Wildcat Carnival.",
+      "Children mix Oobleck in colorful bowls at an outdoor science table.",
+      "A student facilitator guides children through the Oobleck activity.",
+      "Hands lift stretching Oobleck from a pink bowl.",
+      "Two student facilitators stand at the Oobleck activity table in late-afternoon light."
+    ],
     "heroVideo": "/videos/events/wildcat-tank/TiemLapseCarnivalV2.MOV",
     "description": "The Wildcat Carnival brought our Altamont elementary students together for an exciting day of hands-on exploration and scientific discovery! Designed to spark curiosity and a love for STEM, the interactive science stations gave students a front-row seat to the wonders of chemistry and physics.\n\nThe event featured two major highlights that captured the imagination of our young scientists:\n\n• Elephant's Toothpaste: A crowd-favorite demonstration where students witnessed a rapid, foaming exothermic reaction, illustrating the concepts of chemical energy and heat release in a spectacular display.\n\n• Oobleck Exploration: A dynamic sensory station where students interacted with a fascinating non-Newtonian fluid. By pushing, pulling, and pouring the mixture, they explored how some materials defy standard laws of physics by acting as both a solid and a liquid.\n\nThe event highlighted impressive curiosity, critical thinking, and a joy for learning from every participant. Thank you to the families, volunteers, and supporters who helped create an encouraging, high-energy atmosphere that made the day a memorable celebration of student discovery!",
     "stats": [
@@ -137,7 +178,20 @@
     "time": "3 Hours",
     "location": "Stockmens Park",
     "status": "past",
-    "image": "/SSPResultBG.png",
+    "image": "/images/events/foil-boat-stockmens/drive-01.webp",
+    "heroImage": "/images/events/foil-boat-stockmens/drive-01.webp",
+    "gallery": [
+      "/images/events/foil-boat-stockmens/drive-01.webp",
+      "/images/events/foil-boat-stockmens/drive-02.webp",
+      "/images/events/foil-boat-stockmens/drive-03.webp"
+    ],
+    "imageAlt": "People stand beside the outdoor Build-a-Boat Competition table at Stockmens Park.",
+    "heroImageAlt": "People stand beside the outdoor Build-a-Boat Competition table at Stockmens Park.",
+    "galleryAlts": [
+      "People stand beside the outdoor Build-a-Boat Competition table at Stockmens Park.",
+      "Students gather around water tubs to test hand-built foil boats at Stockmens Park.",
+      "An older student helps children test a foil boat in a water tub."
+    ],
     "description": "Our Foil Boat Competition brought participants together to test their creativity and engineering skills using one simple material: aluminum foil. Each participant designed and built a foil boat, then put it to the test to see how many pennies their boat could hold before sinking.\n\nThe event provided a fun, hands-on way to explore STEM concepts, especially the science of buoyancy, stability, and design. Participants learned how small changes in structure can make a big difference—while enjoying some friendly competition.",
     "stats": [
       {
@@ -161,7 +215,22 @@
     "time": "1 Hour",
     "location": "Pedrozzi CONNECT",
     "status": "past",
-    "image": "/EggDropBG.png",
+    "image": "/images/events/pedrozzi-connect-egg-drop/drive-01.webp",
+    "heroImage": "/images/events/pedrozzi-connect-egg-drop/drive-01.webp",
+    "gallery": [
+      "/images/events/pedrozzi-connect-egg-drop/drive-01.webp",
+      "/images/events/pedrozzi-connect-egg-drop/drive-02.webp",
+      "/images/events/pedrozzi-connect-egg-drop/drive-03.webp",
+      "/images/events/pedrozzi-connect-egg-drop/drive-04.webp"
+    ],
+    "imageAlt": "Students watch an egg-drop test on a grassy field at Pedrozzi CONNECT.",
+    "heroImageAlt": "Students watch an egg-drop test on a grassy field at Pedrozzi CONNECT.",
+    "galleryAlts": [
+      "Students watch an egg-drop test on a grassy field at Pedrozzi CONNECT.",
+      "Students sit facing the stage during the Pedrozzi CONNECT Egg Drop introduction.",
+      "Two students assemble protective materials for an egg-drop container.",
+      "A group of student organizers gathers outdoors after the Pedrozzi CONNECT Egg Drop."
+    ],
     "description": "At Pedrozzi CONNECT Youth, participants joined our Egg Drop Competition and tested their creativity and engineering skills by designing protective containers for raw eggs. \n\nThe event provided a fun, hands-on way to explore STEM concepts, especially the science of impact forces, shock absorption, and design. Participants learned how small changes in structure can make a big difference—while enjoying some friendly competition.",
     "stats": [
       {
