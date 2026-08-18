@@ -96,7 +96,12 @@ export async function middleware(request: NextRequest) {
 
     // Middleware only refreshes the cookie session. Protected layouts and API
     // handlers perform the actual getUser + staff-membership authorization.
-    await client.auth.getUser()
+    try {
+      await client.auth.getUser()
+    } catch {
+      // Session refresh is best-effort here. Public documents still receive
+      // security headers; protected layouts and APIs authorize independently.
+    }
   }
 
   applySecurityHeaders(response, csp)

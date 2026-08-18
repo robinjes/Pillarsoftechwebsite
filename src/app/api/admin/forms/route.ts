@@ -5,6 +5,7 @@ import { disableAdminForm, listAdminForms, saveAdminForm } from '@/lib/content-r
 import { formWriteSchema } from '@/lib/content-contracts'
 import { authFailureResponse } from '@/lib/auth/http'
 import { requireVerifiedStaff } from '@/lib/auth/server'
+import { sameOrigin, sameOriginFailure } from '@/lib/volunteer-api'
 
 const idPattern = /^[a-z0-9][a-z0-9_-]{0,63}$/
 
@@ -31,6 +32,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   const auth = await requireVerifiedStaff()
   if (!auth.ok) return authFailureResponse(auth)
+  if (!sameOrigin(request)) return sameOriginFailure()
   const parsed = formWriteSchema.safeParse(await readJson(request))
   if (!parsed.success) return NextResponse.json({ error: 'Invalid form body.', issues: parsed.error.issues }, { status: 400 })
   try {
@@ -43,6 +45,7 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   const auth = await requireVerifiedStaff()
   if (!auth.ok) return authFailureResponse(auth)
+  if (!sameOrigin(request)) return sameOriginFailure()
   const { eventId, kind } = lookup(request)
   if (!eventId || !kind) return NextResponse.json({ error: 'A valid eventId and kind are required.' }, { status: 400 })
   const body = await readJson(request)
@@ -60,6 +63,7 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   const auth = await requireVerifiedStaff()
   if (!auth.ok) return authFailureResponse(auth)
+  if (!sameOrigin(request)) return sameOriginFailure()
   const { eventId, kind } = lookup(request)
   if (!eventId || !kind) return NextResponse.json({ error: 'A valid eventId and kind are required.' }, { status: 400 })
   try {

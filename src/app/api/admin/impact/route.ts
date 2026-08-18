@@ -5,6 +5,7 @@ import { authFailureResponse } from '@/lib/auth/http'
 import { requireVerifiedStaff } from '@/lib/auth/server'
 import { deleteAdminImpact, listAdminImpact, saveAdminImpact } from '@/lib/content-repository'
 import { impactMetricSchema } from '@/lib/content-contracts'
+import { sameOrigin, sameOriginFailure } from '@/lib/volunteer-api'
 
 const keyPattern = /^[a-z0-9][a-z0-9_-]{0,63}$/
 
@@ -21,6 +22,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const auth = await requireVerifiedStaff()
   if (!auth.ok) return authFailureResponse(auth)
+  if (!sameOrigin(request)) return sameOriginFailure()
   const parsed = impactMetricSchema.safeParse(await readJson(request))
   if (!parsed.success) return NextResponse.json({ error: 'Invalid impact metric.', issues: parsed.error.issues }, { status: 400 })
   try {
@@ -33,6 +35,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   const auth = await requireVerifiedStaff()
   if (!auth.ok) return authFailureResponse(auth)
+  if (!sameOrigin(request)) return sameOriginFailure()
   const parsed = impactMetricSchema.safeParse(await readJson(request))
   if (!parsed.success) return NextResponse.json({ error: 'Invalid impact metric.', issues: parsed.error.issues }, { status: 400 })
   try {
@@ -45,6 +48,7 @@ export async function PUT(request: Request) {
 export async function DELETE(request: Request) {
   const auth = await requireVerifiedStaff()
   if (!auth.ok) return authFailureResponse(auth)
+  if (!sameOrigin(request)) return sameOriginFailure()
   const key = new URL(request.url).searchParams.get('key')?.trim() ?? ''
   if (!keyPattern.test(key)) return NextResponse.json({ error: 'A valid metric key is required.' }, { status: 400 })
   try {

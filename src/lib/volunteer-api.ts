@@ -10,7 +10,9 @@ export function jsonNoStore(body: unknown, status = 200): NextResponse {
 
 export function sameOrigin(request: Request): boolean {
   const origin = request.headers.get('origin')
-  if (!origin || origin === 'null') return true
+  // Missing Origin is retained for server-to-server/non-browser callers.
+  // An explicit opaque Origin is browser-supplied and must fail closed.
+  if (!origin) return true
   try {
     return new URL(origin).origin === new URL(request.url).origin
   } catch {

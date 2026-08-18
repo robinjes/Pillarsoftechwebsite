@@ -4,6 +4,7 @@ import { readJson } from '@/lib/admin-api'
 import { authFailureResponse } from '@/lib/auth/http'
 import { requireVerifiedStaff } from '@/lib/auth/server'
 import { MediaPipelineError, parseMediaSignRequest, signMediaUpload } from '@/lib/media/server'
+import { sameOrigin, sameOriginFailure } from '@/lib/volunteer-api'
 
 function mediaErrorResponse(error: unknown) {
   if (error instanceof MediaPipelineError) {
@@ -21,6 +22,7 @@ function mediaErrorResponse(error: unknown) {
 export async function POST(request: Request) {
   const auth = await requireVerifiedStaff()
   if (!auth.ok) return authFailureResponse(auth)
+  if (!sameOrigin(request)) return sameOriginFailure()
 
   try {
     const input = parseMediaSignRequest(await readJson(request))

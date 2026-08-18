@@ -5,6 +5,7 @@ import { readJson } from '@/lib/admin-api'
 import { authFailureResponse } from '@/lib/auth/http'
 import { requireVerifiedStaff } from '@/lib/auth/server'
 import { finalizeMediaUpload, MediaPipelineError } from '@/lib/media/server'
+import { sameOrigin, sameOriginFailure } from '@/lib/volunteer-api'
 
 const finalizeRequestSchema = z.object({ mediaId: z.string().uuid() }).strict()
 
@@ -24,6 +25,7 @@ function mediaErrorResponse(error: unknown) {
 export async function POST(request: Request) {
   const auth = await requireVerifiedStaff()
   if (!auth.ok) return authFailureResponse(auth)
+  if (!sameOrigin(request)) return sameOriginFailure()
 
   const parsed = finalizeRequestSchema.safeParse(await readJson(request))
   if (!parsed.success) {

@@ -11,6 +11,7 @@ import {
 import { eventWriteSchema } from '@/lib/content-contracts'
 import { authFailureResponse } from '@/lib/auth/http'
 import { requireVerifiedStaff } from '@/lib/auth/server'
+import { sameOrigin, sameOriginFailure } from '@/lib/volunteer-api'
 
 const eventIdPattern = /^[a-z0-9][a-z0-9_-]{0,63}$/
 
@@ -32,6 +33,7 @@ export async function GET() {
 export async function POST(request: Request) {
   const auth = await requireVerifiedStaff()
   if (!auth.ok) return authFailureResponse(auth)
+  if (!sameOrigin(request)) return sameOriginFailure()
   const parsed = eventWriteSchema.safeParse(await readJson(request))
   if (!parsed.success) return NextResponse.json({ error: 'Invalid event body.', issues: parsed.error.issues }, { status: 400 })
   try {
@@ -44,6 +46,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   const auth = await requireVerifiedStaff()
   if (!auth.ok) return authFailureResponse(auth)
+  if (!sameOrigin(request)) return sameOriginFailure()
   const id = eventIdFromRequest(request)
   if (!id) return NextResponse.json({ error: 'A valid event id is required.' }, { status: 400 })
   const parsed = eventWriteSchema.safeParse(await readJson(request))
@@ -60,6 +63,7 @@ export async function PUT(request: Request) {
 export async function PATCH(request: Request) {
   const auth = await requireVerifiedStaff()
   if (!auth.ok) return authFailureResponse(auth)
+  if (!sameOrigin(request)) return sameOriginFailure()
   const id = eventIdFromRequest(request)
   if (!id) return NextResponse.json({ error: 'A valid event id is required.' }, { status: 400 })
   const parsed = (await readJson(request)) as unknown
@@ -77,6 +81,7 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   const auth = await requireVerifiedStaff()
   if (!auth.ok) return authFailureResponse(auth)
+  if (!sameOrigin(request)) return sameOriginFailure()
   const id = eventIdFromRequest(request)
   if (!id) return NextResponse.json({ error: 'A valid event id is required.' }, { status: 400 })
   try {
