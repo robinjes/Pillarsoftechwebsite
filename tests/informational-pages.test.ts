@@ -26,7 +26,8 @@ describe('informational and action pages', () => {
     expect(pageSources.fundraiser).toContain('Hack Club handles checkout')
     expect(pageSources.fundraiser).toContain('does not receive your card details')
     expect(pageSources.fundraiser).toContain('href={donationUrl}')
-    expect(pageSources.fundraiser).toContain('src={donationUrl}')
+    expect(pageSources.fundraiser).toContain('<ExternalEmbedOptIn')
+    expect(pageSources.fundraiser).not.toContain('<iframe')
   })
 
   it('preserves the contact endpoint, inquiry choices, honeypot, and states', () => {
@@ -77,6 +78,8 @@ describe('informational and action pages', () => {
     expect(newsletterData).toContain('https://forms.gle/skeQAnZehhyVUV5k9')
     expect(newsletterData).toContain('Every Sunday')
     expect(pageSources.newsletter).not.toMatch(/testimonial|what readers say/i)
+    expect(pageSources.newsletter).toContain('<ExternalEmbedOptIn')
+    expect(pageSources.newsletter).not.toContain('<iframe')
   })
 
   it('does not ship retired legal, metric, partner, or SLA claims', () => {

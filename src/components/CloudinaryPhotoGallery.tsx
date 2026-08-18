@@ -131,7 +131,7 @@ export default function CloudinaryPhotoGallery({ title, description, folder, pho
                   className="group relative min-h-64 bg-[var(--paper)] text-left focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--cobalt)]"
                   aria-label={'Open photo: ' + photo.alt}
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden"><Image src={imageUrl} alt={photo.alt} fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" /></div>
+                  <div className="relative aspect-[4/3] overflow-hidden"><Image src={imageUrl} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" /></div>
                   <span className="block border-t border-[var(--ink)] px-4 py-3 text-sm font-semibold leading-6 text-[var(--midnight)]">{photo.alt}</span>
                 </button>
               ) : (
@@ -143,13 +143,13 @@ export default function CloudinaryPhotoGallery({ title, description, folder, pho
       </div>
 
       {activePhoto && activeIndex !== null ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--midnight)]/95 p-4" role="dialog" aria-modal="true" aria-labelledby="photo-viewer-title" onClick={() => setActiveIndex(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--midnight)]/95 p-4" role="dialog" aria-modal="true" aria-labelledby="photo-viewer-title" aria-describedby="photo-viewer-description" onClick={() => setActiveIndex(null)}>
           <div ref={dialogRef} className="relative w-full max-w-6xl border-2 border-[var(--cream)] bg-[var(--midnight)] p-3 rounded-[10px]" onClick={(event) => event.stopPropagation()}>
             <h2 id="photo-viewer-title" className="sr-only">Photo viewer: {activePhoto.alt}</h2>
             <button ref={closeButtonRef} type="button" onClick={() => setActiveIndex(null)} className="absolute right-4 top-4 z-10 inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Close photo viewer"><X className="h-5 w-5" aria-hidden="true" /></button>
             {photos.length > 1 ? <><button type="button" onClick={() => setActiveIndex((activeIndex - 1 + photos.length) % photos.length)} className="absolute left-4 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Previous photo"><ChevronLeft className="h-5 w-5" aria-hidden="true" /></button><button type="button" onClick={() => setActiveIndex((activeIndex + 1) % photos.length)} className="absolute right-4 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Next photo"><ChevronRight className="h-5 w-5" aria-hidden="true" /></button></> : null}
-            <div className="relative aspect-[16/10] max-h-[82vh] w-full"><Image src={buildImageUrl(activePhoto.publicId) || ''} alt={activePhoto.alt} fill sizes="100vw" className="object-contain" priority /></div>
-            <p className="border-t border-[var(--cream)]/40 px-3 py-4 text-sm leading-7 text-[var(--cream)]">{activePhoto.alt}</p>
+            <div className="relative aspect-[16/10] max-h-[82vh] w-full"><Image src={buildImageUrl(activePhoto.publicId) || ''} alt="" fill sizes="100vw" className="object-contain" priority /></div>
+            <p id="photo-viewer-description" className="border-t border-[var(--cream)]/40 px-3 py-4 text-sm leading-7 text-[var(--cream)]">{activePhoto.alt}</p>
           </div>
         </div>
       ) : null}

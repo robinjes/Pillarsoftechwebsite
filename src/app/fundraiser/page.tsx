@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ArrowLeft, ArrowUpRight, HeartHandshake } from 'lucide-react'
+import ExternalEmbedOptIn from '@/components/ExternalEmbedOptIn'
 
 const donationUrl = 'https://hcb.hackclub.com/donations/start/pillars-of-tech'
 
@@ -33,7 +34,7 @@ export default function FundraiserPage() {
             <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">A clear route to give</p>
             <h2 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-6xl">Keep the learning hands-on.</h2>
             <p className="mt-6 max-w-xl font-body text-lg leading-8 text-[var(--ink)]/70">
-              Donations are processed through Hack Club. Use the embedded checkout below or open the same secure donation page directly.
+              Donations are processed through Hack Club. Open the secure donation page directly, or choose to load the optional checkout panel below.
             </p>
             <p className="mt-6 border-l-4 border-[var(--sky)] pl-4 font-body text-sm leading-6 text-[var(--ink)]/70">
               Hack Club handles checkout. This site does not receive your card details.
@@ -50,20 +51,14 @@ export default function FundraiserPage() {
           </div>
 
           <div className="min-w-0 border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-2 sm:p-3">
-            <iframe
+            <ExternalEmbedOptIn
               src={donationUrl}
               title="Pillars of Tech donation checkout"
-              className="h-[720px] w-full border-0 sm:h-[780px]"
-              scrolling="yes"
-              frameBorder="0"
-              marginHeight={0}
-              marginWidth={0}
-              allowFullScreen
-              loading="lazy"
+              directLabel="Open secure donation page"
+              loadLabel="Load secure checkout"
+              description="This optional panel is hosted by Hack Club and loads only when you ask for it."
+              fallbackCopy="If the embedded checkout does not load, use the secure donation page directly. Hack Club handles checkout; this site does not receive your card details."
             />
-            <p className="border-t border-[var(--ink)]/20 px-3 py-3 font-body text-xs leading-5 text-[var(--ink)]/60">
-              If the embedded checkout does not load, use the secure donation page link above.
-            </p>
           </div>
         </div>
       </section>

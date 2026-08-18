@@ -75,7 +75,8 @@ describe('public event experience', () => {
     expect(gallery).toContain("LOCAL_PHOTO_PATHS[publicId] || buildCloudinaryUrl")
     expect(gallery).not.toContain('Repository preview images')
     expect(gallery).toContain('next/image')
-    expect(gallery).toContain('alt={photo.alt}')
+    expect(gallery).toContain('alt=""')
+    expect(gallery).toContain("aria-label={'Open photo: ' + photo.alt}")
     for (const file of ['Outdoor1.JPG', 'Outdoor2.JPG', 'Judges+Gatty.JPG']) {
       expect(existsSync(path.resolve(process.cwd(), 'public/images/events/wildcat-tank', file))).toBe(true)
     }
@@ -98,6 +99,8 @@ describe('public event experience', () => {
     expect(eventDetailPage).toContain('pdfCloseButtonRef')
     expect(gallery).toContain('openerRef')
     expect(gallery).toContain('closeButtonRef')
+    expect(gallery).toContain('aria-describedby="photo-viewer-description"')
+    expect(gallery).toContain('id="photo-viewer-description"')
   })
 
   it('keeps the redesign within the editorial visual contract', () => {

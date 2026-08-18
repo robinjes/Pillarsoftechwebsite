@@ -76,7 +76,7 @@ export default function WorkshopAssembly() {
                 <ol className="mt-12 border-t border-midnight/30">
                   {stages.map((stage) => (
                     <li key={stage.number} className="grid grid-cols-[3.5rem_1fr] gap-4 border-b border-midnight/30 py-5">
-                      <span className="font-display text-sm font-bold text-cobalt">{stage.number}</span>
+                      <span className="font-display text-sm font-bold text-midnight">{stage.number}</span>
                       <span>
                         <strong className="block font-display text-xl text-midnight">{stage.title}</strong>
                         <span className="mt-1 block text-sm leading-6 text-midnight/70">{stage.text}</span>
@@ -131,7 +131,7 @@ export default function WorkshopAssembly() {
               <article key={stage.number} className="border-t border-midnight/30 pt-5">
                 <div className="flex items-baseline justify-between gap-5">
                   <h3 className="font-display text-2xl font-semibold text-midnight">{stage.title}</h3>
-                  <span className="font-display text-sm font-bold text-cobalt">{stage.number}</span>
+                  <span className="font-display text-sm font-bold text-midnight">{stage.number}</span>
                 </div>
                 <div className="mt-6 border border-midnight/30 p-3">
                   <RoverSvg state={Number(stage.number) as AssemblyState} />

@@ -41,6 +41,7 @@ function HeroSection() {
                 alt="Volunteers guide children building marshmallow structures at outdoor tables"
                 fill
                 priority
+                fetchPriority="high"
                 sizes="(max-width: 1024px) 100vw, 42vw"
                 className="object-cover"
               />
@@ -57,13 +58,13 @@ function HeroSection() {
 
 function FinanceSection() {
   return (
-    <section className="bg-cobalt text-warm" aria-labelledby="finance-heading">
+    <section className="bg-cobalt text-cream" aria-labelledby="finance-heading">
       <div className="site-shell mx-auto px-5 py-20 sm:px-8 lg:px-10 lg:py-24">
         <div className="editorial-grid items-center gap-y-8">
           <div className="col-span-12 lg:col-span-7">
-            <p className="mb-4 font-display text-sm font-bold uppercase tracking-[0.2em] text-sky">Open by design</p>
+            <p className="mb-4 font-display text-sm font-bold uppercase tracking-[0.2em] text-cream">Open by design</p>
             <h2 id="finance-heading" className="display-heading max-w-3xl text-4xl sm:text-5xl">See the public record.</h2>
-            <p className="body-copy mt-6 text-lg leading-8 text-warm/80">
+            <p className="body-copy mt-6 text-lg leading-8 text-cream">
               Pillars of Tech is fiscally sponsored by Hack Club. Our public transaction ledger is the clearest place to follow the financial activity behind this work.
             </p>
           </div>
@@ -72,11 +73,11 @@ function FinanceSection() {
               href="https://hcb.hackclub.com/pillars-of-tech/transactions"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-12 items-center gap-2 border border-sky px-5 text-sm font-bold text-sky transition-colors hover:bg-sky hover:text-midnight"
+              className="inline-flex min-h-12 items-center gap-2 border border-cream px-5 text-sm font-bold text-cream transition-colors hover:bg-sky hover:text-midnight"
             >
               Open HCB transactions <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </a>
-            <p className="mt-4 text-sm leading-6 text-warm/60">External source · Hack Club bank</p>
+            <p className="mt-4 text-sm leading-6 text-cream">External source · Hack Club bank</p>
           </div>
         </div>
       </div>

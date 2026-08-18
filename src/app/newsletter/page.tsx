@@ -6,6 +6,7 @@ import {
   newsletterSignupUrl,
   newsletterWebsiteUrl,
 } from '@/data/newsletter'
+import ExternalEmbedOptIn from '@/components/ExternalEmbedOptIn'
 
 export const metadata: Metadata = {
   title: 'Newsletter | Pillars of Tech',
@@ -63,22 +64,14 @@ export default function NewsletterPage() {
           </div>
 
           <div className="border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-2 sm:p-3">
-            <iframe
+            <ExternalEmbedOptIn
               src={newsletterEmbedUrl}
               title="Pillars of Tech newsletter signup form"
-              width="100%"
-              height="934"
-              frameBorder="0"
-              marginHeight={0}
-              marginWidth={0}
-              className="w-full"
-              loading="lazy"
-            >
-              Loading the signup form…
-            </iframe>
-            <p className="border-t border-[var(--ink)]/20 px-3 py-3 font-body text-xs leading-5 text-[var(--ink)]/60">
-              If the embedded form does not load, use the direct signup link above or visit the newsletter homepage.
-            </p>
+              directLabel="Use the form directly"
+              loadLabel="Load signup form"
+              description="This optional Google Form loads only after you choose to view it here."
+              fallbackCopy="If the embedded form does not load, use the direct signup link above or visit the newsletter homepage."
+            />
           </div>
 
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 font-body text-sm font-bold">

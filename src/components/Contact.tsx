@@ -163,7 +163,7 @@ export default function Contact() {
 
       <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
         <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[0.72fr_1.28fr] lg:px-12 lg:py-24">
-          <aside>
+          <div>
             <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Conversation starters</p>
             <h2 className="mt-4 max-w-sm font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Bring the useful details.</h2>
             <p className="mt-5 max-w-sm font-body text-base leading-7 text-[var(--ink)]/65">
@@ -180,7 +180,7 @@ export default function Contact() {
             <p className="mt-8 border-l-2 border-[var(--sky)] pl-4 font-body text-sm leading-6 text-[var(--ink)]/65">
               For an event request, include the date, location, and any relevant constraints.
             </p>
-          </aside>
+          </div>
 
           <section id="contact-form" className="border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-5 sm:p-8">
             <div className="flex flex-col gap-5 border-b-2 border-[var(--ink)] pb-6 sm:flex-row sm:items-end sm:justify-between">
