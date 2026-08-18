@@ -29,6 +29,8 @@ describe('editorial homepage foundation', () => {
     expect(metrics).toContain('metric.methodologyNote')
     expect(metrics).toContain('How this is counted')
     expect(page).toContain('Students crowd around an outdoor table building marshmallow structures at Science Odyssey.')
+    expect(page).toContain('loading="eager"')
+    expect(page).not.toContain('fetchPriority="high"')
   })
 
   it('keeps the signature workshop motion restrained and object-only', () => {

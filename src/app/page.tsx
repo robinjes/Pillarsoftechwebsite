@@ -40,8 +40,7 @@ function HeroSection() {
                 src="/images/events/science-odyssey/drive-01.webp"
                 alt="Students crowd around an outdoor table building marshmallow structures at Science Odyssey."
                 fill
-                priority
-                fetchPriority="high"
+                loading="eager"
                 quality={60}
                 sizes="(max-width: 1024px) 100vw, 42vw"
                 className="object-cover"
