@@ -134,7 +134,14 @@ begin
        or (
          p_submitted_data ? (field->>'id')
          and jsonb_typeof(p_submitted_data -> (field->>'id')) = 'string'
-         and length(btrim(p_submitted_data ->> (field->>'id'))) > 2000
+         and length(p_submitted_data ->> (field->>'id')) > 2000
+       )
+       or (
+         p_submitted_data ? (field->>'id')
+         and (field->>'required')::boolean
+         and (field->>'type') <> 'checkbox'
+         and jsonb_typeof(p_submitted_data -> (field->>'id')) = 'string'
+         and btrim(p_submitted_data ->> (field->>'id')) = ''
        )
        or (
          p_submitted_data ? (field->>'id')

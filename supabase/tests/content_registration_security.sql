@@ -1,6 +1,6 @@
 -- Content ownership and participant registration RPC contract tests.
 begin;
-select plan(23);
+select plan(25);
 
 select has_function(
   'public', 'register_participant', array['text', 'jsonb'],
@@ -185,6 +185,18 @@ select throws_ok(
   'P0005',
   'invalid participant answers',
   'participant answer lengths are bounded by the RPC'
+);
+select throws_ok(
+  $$select public.register_participant('content-security-event', jsonb_build_object('full_name', repeat(' ', 2001)))$$,
+  'P0005',
+  'invalid participant answers',
+  'untrimmed whitespace answer lengths are bounded by the RPC'
+);
+select throws_ok(
+  $$select public.register_participant('content-security-event', jsonb_build_object('full_name', '   '))$$,
+  'P0005',
+  'invalid participant answers',
+  'required non-checkbox answers cannot be whitespace-only'
 );
 select lives_ok(
   $$select public.register_participant('content-security-event', '{"full_name":"Ada"}'::jsonb)$$,
