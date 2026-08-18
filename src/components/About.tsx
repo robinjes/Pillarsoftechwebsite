@@ -1,306 +1,174 @@
-'use client'
-
-import { motion } from 'framer-motion'
-import { Fredoka } from 'next/font/google'
-import { GraduationCap, Lightbulb, Users, Target, Heart, Code, Rocket } from 'lucide-react'
 import Link from 'next/link'
+import { ArrowUpRight, BookOpen, Compass, Hammer, History } from 'lucide-react'
 
-const fredoka = Fredoka({ subsets: ['latin'] })
+const financeUrl = 'https://hcb.hackclub.com/pillars-of-tech/transactions'
+
+const workingMethods = [
+  {
+    title: 'Hands-on events',
+    description: 'Robotics, coding, and engineering activities give students something real to test, change, and explain.',
+    icon: Hammer,
+  },
+  {
+    title: 'Mentorship',
+    description: 'Student leaders and mentors make room for questions, practice, and the confidence to keep going.',
+    icon: Compass,
+  },
+  {
+    title: 'Access',
+    description: 'We design welcoming entry points into technology, with clear next steps for students and families.',
+    icon: BookOpen,
+  },
+] as const
 
 export default function About() {
-  const coreValues = [
-    {
-      title: 'Accessibility',
-      description: 'Technology education should be available to everyone, regardless of background or financial status.',
-      Icon: Users,
-      color: 'from-cyan-400 to-blue-400'
-    },
-    {
-      title: 'Innovation',
-      description: 'We foster creativity and problem-solving through hands-on projects and real-world applications.',
-      Icon: Lightbulb,
-      color: 'from-amber-400 to-orange-400'
-    },
-    {
-      title: 'Community',
-      description: 'Building a supportive network of students, mentors, and industry professionals who lift each other up.',
-      Icon: Heart,
-      color: 'from-rose-400 to-pink-400'
-    },
-    {
-      title: 'Excellence',
-      description: 'We strive for quality in everything we do, from our events to our mentorship programs.',
-      Icon: Rocket,
-      color: 'from-purple-400 to-indigo-400'
-    }
-  ]
-
-  const pillars = [
-    {
-      title: 'Hands-On Events',
-      description: 'From robotics challenges to coding competitions, we create engaging experiences that spark passion for STEM.',
-      Icon: Code
-    },
-    {
-      title: 'Mentorship Programs',
-      description: 'Connect with experienced professionals and student leaders who guide your journey in tech.',
-      Icon: GraduationCap
-    },
-    {
-      title: 'Community Focus',
-      description: 'We prioritize underserved communities and ensure technology education reaches those who need it most.',
-      Icon: Users
-    }
-  ]
-
   return (
-    <>
-      {/* Hero Section */}
-      <section className="relative min-h-[60vh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-700 via-blue-600 to-blue-500 pt-20">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-950/50 via-blue-900/45 to-blue-700/50" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_35%),radial-gradient(circle_at_bottom,rgba(59,130,246,0.12),transparent_45%)]" />
-        
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <motion.h1
-            className={`${fredoka.className} text-5xl md:text-6xl font-bold text-white mb-6`}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            About Pillars of Tech
-          </motion.h1>
-          
-          <motion.p
-            className="text-xl md:text-2xl text-blue-100 mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            Empowering students to become the STEM leaders of tomorrow
-          </motion.p>
+    <div className="bg-[var(--cream)] text-[var(--ink)]">
+      <header className="border-b-2 border-[var(--ink)]/20">
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[1.25fr_0.75fr] lg:px-12 lg:py-28">
+          <div>
+            <p className="mb-6 font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">
+              About / Pillars of Tech
+            </p>
+            <h1 className="max-w-4xl font-display text-5xl leading-[0.96] tracking-tight text-[var(--midnight)] sm:text-7xl lg:text-[6.8rem]">
+              Make room for the next idea.
+            </h1>
+          </div>
+          <div className="self-end border-l-4 border-[var(--cobalt)] pl-6 lg:mb-2">
+            <p className="font-body text-lg font-semibold leading-7 text-[var(--midnight)] sm:text-xl">
+              Pillars of Tech is a student-led STEM organization building practical ways for students to meet technology.
+            </p>
+            <p className="mt-5 font-body text-sm leading-6 text-[var(--ink)]/70">
+              We learn by making, share what we learn, and keep the door open for the next person.
+            </p>
+          </div>
         </div>
-      </section>
+      </header>
 
-      {/* Mission & Vision Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-800/20 via-blue-750/20 to-blue-800/20 backdrop-blur-sm border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-            {/* Mission */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="group relative overflow-hidden rounded-2xl border border-blue-400/20 bg-gradient-to-br from-blue-700/20 to-blue-900/20 p-10 backdrop-blur-md hover:border-blue-300/40 transition-all duration-300"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative z-10">
-                <Target className="w-12 h-12 text-cyan-400 mb-4" />
-                <h3 className={`${fredoka.className} text-3xl font-bold text-white mb-4`}>Our Mission</h3>
-                <p className="text-lg text-blue-100 leading-relaxed">
-                  To make technology education accessible and engaging for all students, particularly those in underserved communities. We believe every student has the potential to excel in STEM, and we&apos;re committed to providing the opportunities, mentorship, and resources to help them succeed.
-                </p>
-              </div>
-            </motion.div>
-
-            {/* Vision */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="group relative overflow-hidden rounded-2xl border border-blue-400/20 bg-gradient-to-br from-blue-700/20 to-blue-900/20 p-10 backdrop-blur-md hover:border-blue-300/40 transition-all duration-300"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative z-10">
-                <Rocket className="w-12 h-12 text-purple-400 mb-4" />
-                <h3 className={`${fredoka.className} text-3xl font-bold text-white mb-4`}>Our Vision</h3>
-                <p className="text-lg text-blue-100 leading-relaxed">
-                  We envision a future where students can discover technology through accessible programs, meaningful mentorship, and hands-on experiences. We&apos;re building a community of innovators, leaders, and changemakers who can shape the future.
-                </p>
-              </div>
-            </motion.div>
+      <section className="border-b border-[var(--ink)]/20">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:px-12 lg:py-24">
+          <div>
+            <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">The mission</p>
+            <h2 className="mt-4 max-w-sm font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">
+              Technology education should feel possible.
+            </h2>
+          </div>
+          <div className="max-w-3xl space-y-6 font-body text-lg leading-8 text-[var(--ink)]/80">
+            <p>
+              We create opportunities for students to explore technology through accessible programs, useful tools, and patient guidance. The work is intentionally practical: start with a question, build something, and learn from what happens next.
+            </p>
+            <p>
+              Pillars of Tech began as a student-led effort to make that kind of learning easier to find. Our current work stays close to that origin through hands-on events, mentorship, and an open invitation to participate.
+            </p>
           </div>
         </div>
       </section>
 
-      {/* Core Values Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-800/20 via-blue-750/20 to-blue-800/20 backdrop-blur-sm border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className={`${fredoka.className} text-4xl md:text-5xl font-bold text-white mb-4`}>
-              Our Core Values
-            </h2>
-            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-              These principles guide everything we do and define who we are as an organization
+      <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
+        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12 lg:py-24">
+          <div className="mb-12 flex flex-col justify-between gap-5 border-b-2 border-[var(--ink)] pb-6 sm:flex-row sm:items-end">
+            <div>
+              <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">How we work</p>
+              <h2 className="mt-3 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Build, guide, invite.</h2>
+            </div>
+            <p className="max-w-sm font-body text-sm leading-6 text-[var(--ink)]/65">
+              Three connected practices keep the experience grounded for students, families, and mentors.
             </p>
-          </motion.div>
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {coreValues.map((value, index) => (
-              <motion.div
-                key={value.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="group relative overflow-hidden rounded-xl border border-blue-400/20 bg-gradient-to-br from-blue-700/20 to-blue-900/20 p-8 backdrop-blur-md hover:border-blue-300/40 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative z-10">
-                  <value.Icon className="w-10 h-10 text-cyan-400 mb-4" />
-                  <h3 className={`${fredoka.className} text-2xl font-bold text-white mb-3`}>
-                    {value.title}
-                  </h3>
-                  <p className="text-blue-100 leading-relaxed">
-                    {value.description}
-                  </p>
+          <div className="divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20">
+            {workingMethods.map((method, index) => {
+              const Icon = method.icon
+
+              return (
+                <div key={method.title} className="grid gap-5 py-7 sm:grid-cols-[5rem_0.8fr_1.2fr] sm:items-center">
+                  <p className="font-body text-sm font-bold tabular-nums text-[var(--cobalt)]">0{index + 1}</p>
+                  <div className="flex items-center gap-4">
+                    <Icon aria-hidden="true" className="h-7 w-7 text-[var(--cobalt)]" strokeWidth={1.8} />
+                    <h3 className="font-display text-2xl text-[var(--midnight)]">{method.title}</h3>
+                  </div>
+                  <p className="font-body text-base leading-7 text-[var(--ink)]/70">{method.description}</p>
                 </div>
-              </motion.div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* Three Pillars Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-900/30 via-blue-800/30 to-blue-900/30 backdrop-blur-md border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className={`${fredoka.className} text-4xl md:text-5xl font-bold text-white mb-4`}>
-              How We Make an Impact
-            </h2>
-            <p className="text-xl text-blue-100 max-w-3xl mx-auto">
-              Our work is built on three pillars designed to create lasting change in STEM education
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {pillars.map((pillar, index) => (
-              <motion.div
-                key={pillar.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.15 }}
-                viewport={{ once: true }}
-                className="group relative overflow-hidden rounded-xl border border-blue-400/20 bg-gradient-to-br from-blue-700/30 to-blue-900/30 p-8 backdrop-blur-md hover:border-blue-300/40 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10"
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                <div className="relative z-10">
-                  <pillar.Icon className="w-12 h-12 text-cyan-400 mb-4" />
-                  <h3 className={`${fredoka.className} text-2xl font-bold text-white mb-3`}>
-                    {pillar.title}
-                  </h3>
-                  <p className="text-blue-100 leading-relaxed">
-                    {pillar.description}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
+      <section className="bg-[var(--midnight)] text-[var(--cream)]">
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:px-12 lg:py-24">
+          <div>
+            <div className="flex items-center gap-3 text-[var(--sky)]">
+              <History aria-hidden="true" className="h-6 w-6" strokeWidth={1.7} />
+              <p className="font-body text-xs font-bold uppercase tracking-[0.28em]">A living history</p>
+            </div>
+            <h2 className="mt-5 max-w-sm font-display text-4xl leading-tight sm:text-5xl">A small start, kept in motion.</h2>
+          </div>
+          <div className="border-l border-[var(--sky)]/40 pl-6 sm:pl-10">
+            <div className="space-y-10 font-body text-base leading-7 text-[var(--cream)]/75 sm:text-lg">
+              <div>
+                <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-[var(--sky)]">The beginning</p>
+                <p>Pillars of Tech grew from students asking how to make technology feel less distant and more hands-on.</p>
+              </div>
+              <div>
+                <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-[var(--sky)]">The practice now</p>
+                <p>Events, mentorship, and community learning turn that question into a repeatable way to welcome people in.</p>
+              </div>
+              <div>
+                <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-[var(--sky)]">The next chapter</p>
+                <p>We are continuing to listen, improve the work, and make the next invitation clearer than the last.</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Who We Are Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-800/20 via-blue-750/20 to-blue-800/20 backdrop-blur-sm border-t border-white/10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center"
-          >
-            <h2 className={`${fredoka.className} text-4xl font-bold text-white mb-6`}>
-              Who We Are
-            </h2>
-            <div className="space-y-6 text-lg text-blue-100 leading-relaxed">
-              <p>
-                We are a passionate collective of high school students, mentors, and volunteers united by a single mission: to democratize access to technology education. Our team comes from diverse backgrounds, but we share a common belief that every student deserves the opportunity to discover their potential in STEM.
-              </p>
-              <p>
-                <span className="text-cyan-300 font-semibold">Fiscally sponsored through Hack Club</span>. For financial transparency, review the{' '}
-                <a
-                  href="https://hcb.hackclub.com/pillars-of-tech/transactions"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-cyan-300 underline underline-offset-4 hover:text-cyan-100"
-                >
-                  HCB transparency report
-                </a>
-                . Our work centers on accessible STEM learning, hands-on programs, and mentorship.
-              </p>
-              <p>
-                What sets us apart is our student-led approach. We don&apos;t just teach STEM; we create experiences that inspire. Through engaging events, meaningful mentorship, and genuine community support, we&apos;re building the next generation of STEM leaders, innovators, and changemakers.
-              </p>
-              <p>
-                Our commitment extends beyond the classroom. We&apos;re actively working to bridge the digital divide, ensure equitable access to technology education, and create pathways for students from underrepresented communities to succeed in tech careers.
-              </p>
-            </div>
-
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-              <a 
-                href="https://hcb.hackclub.com/pillars-of-tech/transactions"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
-              >
-                View Our Transparency Report
-              </a>
-              <Link
-                href="/contact"
-                className="inline-block border-2 border-cyan-400 text-cyan-300 hover:bg-cyan-400/10 px-8 py-3 rounded-lg font-semibold transition-all duration-300"
-              >
-                Get in Touch
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-br from-blue-700 via-blue-600 to-blue-700 border-t border-white/10">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className={`${fredoka.className} text-4xl font-bold text-white mb-6`}>
-              Join Our Mission
-            </h2>
-            <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Whether you&apos;re a student looking to learn, an educator wanting to volunteer, or a company interested in supporting tech education, there&apos;s a place for you in our community.
+      <section className="border-b border-[var(--ink)]/20 bg-[var(--cream)]">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1fr_1fr] lg:px-12 lg:py-20">
+          <div>
+            <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Financial home</p>
+            <h2 className="mt-4 max-w-md font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Clear enough to follow.</h2>
+          </div>
+          <div className="border-t-2 border-[var(--ink)] pt-5 font-body text-base leading-7 text-[var(--ink)]/75">
+            <p>
+              <span className="font-bold text-[var(--midnight)]">Fiscally sponsored through Hack Club</span>, Pillars of Tech shares its HCB transaction record for financial transparency.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="https://docs.google.com/forms/d/e/1FAIpQLSdsNmpS2wpikV77wl1ifpD52a0zAepa-b8DhesqFjPTQVoo7w/viewform"
-                className="inline-block bg-white text-blue-600 hover:bg-blue-50 px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"
-              >
-                Join Our Team
-              </Link>
-              <Link
-                href="https://hcb.hackclub.com/donations/start/pillars-of-tech"
-                className="inline-block border-2 border-white text-white hover:bg-white/10 px-8 py-3 rounded-lg font-semibold transition-all duration-300"
-              >
-                Support Our Work
-              </Link>
-            </div>
-          </motion.div>
+            <a
+              href={financeUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-bold text-[var(--cobalt)] transition-colors hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
+            >
+              Review HCB transactions
+              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+            </a>
+          </div>
         </div>
       </section>
-    </>
+
+      <section className="bg-[var(--sky)]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-20">
+          <div>
+            <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--midnight)]/70">Keep exploring</p>
+            <h2 className="mt-3 max-w-2xl font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Find the next useful door.</h2>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/events"
+              className="inline-flex min-h-11 items-center gap-2 border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--midnight)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
+            >
+              Explore events
+              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/contact"
+              className="inline-flex min-h-11 items-center border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--midnight)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
+            >
+              Start a conversation
+            </Link>
+          </div>
+        </div>
+      </section>
+    </div>
   )
-} 
+}

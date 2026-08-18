@@ -1,40 +1,17 @@
 'use client'
 
-import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
-import { Fredoka } from 'next/font/google'
 import Link from 'next/link'
+import { useEffect, useRef, useState } from 'react'
+import { ArrowUpRight, CheckCircle2, Mail, MessageCircle, Send } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
-import {
-  ArrowUpRight,
-  CheckCircle2,
-  Mail,
-  MessageCircle,
-  Sparkles,
-  Users
-} from 'lucide-react'
-
-const fredoka = Fredoka({ subsets: ['latin'] })
 
 const CONTACT_EMAIL = 'pillarsoftech@gmail.com'
 
 const subjectOptions = [
-  {
-    value: 'general',
-    label: 'General Inquiries & Feedback'
-  },
-  {
-    value: 'workshop',
-    label: 'Host a Workshop (Bring Us to Your School)'
-  },
-  {
-    value: 'wishlist',
-    label: 'Hardware & Equipment Donations (Wishlist)'
-  },
-  {
-    value: 'partnerships',
-    label: 'Partnerships and School Collaborations'
-  }
+  { value: 'general', label: 'General inquiries & feedback' },
+  { value: 'workshop', label: 'Host a workshop at your school' },
+  { value: 'wishlist', label: 'Hardware & equipment donations' },
+  { value: 'partnerships', label: 'Partnerships and school collaborations' },
 ] as const
 
 type SubjectValue = (typeof subjectOptions)[number]['value']
@@ -43,20 +20,7 @@ const inquiryHighlights = [
   'Partnerships and school collaborations',
   'Volunteering and event support',
   'Workshop or speaking requests',
-  'General questions and feedback'
-]
-
-const contactStats = [
-  {
-    label: 'Best channel',
-    value: CONTACT_EMAIL,
-    icon: Mail
-  },
-  {
-    label: 'Great for',
-    value: 'Events, outreach, and support',
-    icon: Users
-  }
+  'General questions and feedback',
 ]
 
 export default function Contact() {
@@ -67,7 +31,7 @@ export default function Contact() {
     subject: 'general' as SubjectValue,
     schoolName: '',
     studentCount: '',
-    message: ''
+    message: '',
   })
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
@@ -75,18 +39,13 @@ export default function Contact() {
 
   useEffect(() => {
     if (searchParams.get('reason') === 'wishlist') {
-      setFormData((currentValue) => ({
-        ...currentValue,
-        subject: 'wishlist'
-      }))
+      setFormData((currentValue) => ({ ...currentValue, subject: 'wishlist' }))
     }
   }, [searchParams])
 
   useEffect(() => {
     return () => {
-      if (resetTimer.current) {
-        window.clearTimeout(resetTimer.current)
-      }
+      if (resetTimer.current) window.clearTimeout(resetTimer.current)
     }
   }, [])
 
@@ -106,14 +65,13 @@ export default function Contact() {
     }, 3000)
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
     setStatus('sending')
     setErrorMessage('')
     clearStatusTimer()
 
-    const subjectLabel =
-      subjectOptions.find((option) => option.value === formData.subject)?.label ?? 'General Inquiries & Feedback'
+    const subjectLabel = subjectOptions.find((option) => option.value === formData.subject)?.label ?? 'General inquiries & feedback'
 
     try {
       const response = await fetch('/api/contact', {
@@ -130,283 +88,122 @@ export default function Contact() {
         }),
       })
       const result = await response.json().catch(() => ({}))
-      if (!response.ok) throw new Error(result.error || 'Something went wrong while receiving the message.')
+      if (!response.ok) {
+        throw new Error(typeof result.error === 'string' ? result.error : 'We could not send that message. Please check the form or email us directly.')
+      }
 
       setStatus('success')
-      setFormData({
-        name: '',
-        email: '',
-        subject: 'general',
-        schoolName: '',
-        studentCount: '',
-        message: ''
-      })
+      setFormData({ name: '', email: '', subject: 'general', schoolName: '', studentCount: '', message: '' })
       scheduleReset()
     } catch (error) {
       setStatus('error')
-      setErrorMessage(
-        error instanceof Error ? error.message : 'Something went wrong while receiving the message.'
-      )
+      setErrorMessage(error instanceof Error ? error.message : 'We could not send that message. Please email us directly instead.')
       scheduleReset()
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
-    setFormData((currentValue) => ({
-      ...currentValue,
-      [name]: value
-    }))
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = event.target
+    setFormData((currentValue) => ({ ...currentValue, [name]: value }))
   }
 
-  const handleSubjectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const nextSubject = e.target.value as SubjectValue
-
+  const handleSubjectChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const nextSubject = event.target.value as SubjectValue
     setFormData((currentValue) => ({
       ...currentValue,
       subject: nextSubject,
       schoolName: nextSubject === 'workshop' ? currentValue.schoolName : '',
-      studentCount: nextSubject === 'workshop' ? currentValue.studentCount : ''
+      studentCount: nextSubject === 'workshop' ? currentValue.studentCount : '',
     }))
   }
 
-  const selectedSubject = formData.subject
-  const isWorkshop = selectedSubject === 'workshop'
-
-  const getSubmitButtonText = () => {
-    switch (status) {
-      case 'sending':
-        return 'Sending...'
-      case 'success':
-        return 'Message Received'
-      case 'error':
-        return 'Try Again'
-      default:
-        return 'Send Message'
-    }
-  }
-
-  const getSubmitButtonStyle = () => {
-    switch (status) {
-      case 'sending':
-        return 'bg-slate-400/50 cursor-not-allowed'
-      case 'success':
-        return 'bg-emerald-500 hover:bg-emerald-500'
-      case 'error':
-        return 'bg-rose-500 hover:bg-rose-600'
-      default:
-        return 'bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-sky-500'
-    }
-  }
+  const isWorkshop = formData.subject === 'workshop'
+  const isSending = status === 'sending'
+  const buttonLabel = status === 'sending' ? 'Sending message…' : status === 'success' ? 'Message received' : status === 'error' ? 'Try again' : 'Send message'
+  const buttonClass = status === 'sending'
+    ? 'cursor-not-allowed bg-[var(--ink)]/30 text-[var(--ink)]/50'
+    : status === 'success'
+      ? 'bg-[var(--cobalt)] text-[var(--cream)]'
+      : status === 'error'
+        ? 'bg-red-700 text-[var(--cream)] hover:bg-red-800'
+        : 'bg-[var(--midnight)] text-[var(--cream)] hover:bg-[var(--cobalt)]'
 
   return (
-    <>
-      <section className="relative overflow-hidden border-b border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.16),transparent_28%),linear-gradient(180deg,#0a1a3e_0%,#11265e_100%)] pt-20">
-        <div className="absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(255,255,255,0.05)_50%,transparent_100%)] opacity-60" />
-        <div className="absolute -left-24 top-6 h-72 w-72 rounded-full bg-cyan-400/20 blur-3xl" />
-        <div className="absolute -right-24 top-24 h-80 w-80 rounded-full bg-blue-500/20 blur-3xl" />
-
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
-          <div className="mx-auto max-w-4xl text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 18 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="inline-flex items-center gap-2 rounded-full border border-cyan-300/30 bg-cyan-400/10 px-4 py-2 text-sm font-semibold text-cyan-100"
+    <div className="bg-[var(--cream)] text-[var(--ink)]">
+      <header className="border-b-2 border-[var(--ink)]/20">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:px-12 lg:py-28">
+          <div>
+            <div className="mb-6 flex items-center gap-3 font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">
+              <MessageCircle aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
+              Contact / Start here
+            </div>
+            <h1 className="max-w-4xl font-display text-5xl leading-[0.96] tracking-tight text-[var(--midnight)] sm:text-7xl lg:text-[6.8rem]">
+              Let&apos;s make the next step clear.
+            </h1>
+            <p className="mt-7 max-w-2xl font-body text-lg leading-8 text-[var(--ink)]/70 sm:text-xl">
+              Tell us what you are working on, what you want to ask, or where you would like to help.
+            </p>
+          </div>
+          <div className="border-l-4 border-[var(--cobalt)] pl-6">
+            <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Direct line</p>
+            <p className="mt-4 font-display text-3xl leading-tight text-[var(--midnight)]">Prefer email?</p>
+            <a
+              href={`mailto:${CONTACT_EMAIL}`}
+              className="mt-4 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
             >
-              <MessageCircle className="h-4 w-4" />
-              Contact Pillars of Tech
-            </motion.div>
-
-            <motion.h1
-              className={`${fredoka.className} mt-6 text-4xl font-bold tracking-tight text-white sm:text-6xl`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.08 }}
-            >
-              Let&apos;s build something meaningful together.
-            </motion.h1>
-
-            <motion.p
-              className="mx-auto mt-5 max-w-3xl text-base leading-7 text-blue-100 sm:mt-6 sm:text-xl sm:leading-8"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.16 }}
-            >
-              Whether you want to collaborate, support an event, or just say hello, we&apos;d love to
-              hear from you.
-            </motion.p>
-
-            <motion.div
-              className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center"
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.24 }}
-            >
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
-              >
-                <Mail className="h-4 w-4" />
-                Email us directly
-              </a>
-              <a
-                href="#contact-form"
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
-              >
-                Jump to form
-                <ArrowUpRight className="h-4 w-4" />
-              </a>
-            </motion.div>
-
-            <motion.a
-              href="#contact-form"
-              className="mx-auto mt-10 inline-flex flex-col items-center gap-2 text-sm font-semibold text-cyan-100/90 transition hover:text-white"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              <span className="rounded-full border border-cyan-300/20 bg-cyan-400/10 px-4 py-2">
-                Scroll down for the form
-              </span>
-              <span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/5">
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2.25"
-                  className="h-5 w-5 animate-bounce"
-                >
-                  <path d="M12 5v14" strokeLinecap="round" />
-                  <path d="m6 13 6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </span>
-            </motion.a>
+              {CONTACT_EMAIL}
+              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+            </a>
           </div>
         </div>
-      </section>
+      </header>
 
-      <section className="border-b border-white/10 bg-white/5 py-16">
-        <div className="mx-auto grid max-w-7xl gap-4 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
-          {contactStats.map((item, index) => {
-            const Icon = item.icon
-
-            return (
-              <motion.div
-                key={item.label}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.08 }}
-                viewport={{ once: true }}
-                className="rounded-2xl border border-white/10 bg-slate-950/20 p-5 shadow-[0_20px_80px_-30px_rgba(14,165,233,0.45)] backdrop-blur sm:p-6"
-              >
-                <div className="flex items-start gap-3 sm:items-center">
-                  <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-400/15 text-cyan-200">
-                    <Icon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-blue-200">{item.label}</p>
-                    <p className="font-semibold text-white">{item.value}</p>
-                  </div>
-                </div>
-              </motion.div>
-            )
-          })}
-        </div>
-      </section>
-
-      <section className="bg-[linear-gradient(180deg,rgba(17,38,94,0.92)_0%,rgba(8,15,36,0.96)_100%)] py-20">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur sm:p-8"
-          >
-            <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-cyan-400/25 to-blue-500/25 text-cyan-200">
-                <Sparkles className="h-6 w-6" />
-              </div>
-              <div>
-                <h2 className={`${fredoka.className} text-2xl font-bold text-white sm:text-3xl`}>
-                  What to reach out about
-                </h2>
-                <p className="mt-2 max-w-xl text-sm text-blue-100 sm:text-base">
-                  We keep this page simple so it&apos;s easy to start a conversation.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
+      <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[0.72fr_1.28fr] lg:px-12 lg:py-24">
+          <aside>
+            <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Conversation starters</p>
+            <h2 className="mt-4 max-w-sm font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Bring the useful details.</h2>
+            <p className="mt-5 max-w-sm font-body text-base leading-7 text-[var(--ink)]/65">
+              Choose a subject and include the context that will help us understand what you need.
+            </p>
+            <ul className="mt-8 divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20 font-body text-sm font-semibold text-[var(--midnight)]">
               {inquiryHighlights.map((item) => (
-                <div
-                  key={item}
-                  className="flex items-center gap-3 rounded-2xl border border-white/10 bg-slate-950/20 px-4 py-4 text-sm text-blue-50"
-                >
-                  <CheckCircle2 className="h-5 w-5 flex-none text-cyan-300" />
+                <li key={item} className="flex items-start gap-3 py-4">
+                  <CheckCircle2 aria-hidden="true" className="mt-0.5 h-4 w-4 flex-none text-[var(--cobalt)]" />
                   <span>{item}</span>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
+            <p className="mt-8 border-l-2 border-[var(--sky)] pl-4 font-body text-sm leading-6 text-[var(--ink)]/65">
+              For an event request, include the date, location, and any relevant constraints.
+            </p>
+          </aside>
 
-            <div className="mt-8 rounded-2xl border border-cyan-300/15 bg-cyan-400/10 p-5">
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-cyan-200">
-                Quick note
-              </p>
-              <p className="mt-2 text-sm leading-6 text-blue-100">
-                If your message is about an event, include the date, location, and any deadlines so
-                we can respond with something useful right away.
-              </p>
-            </div>
-          </motion.div>
-
-          <motion.div
-            id="contact-form"
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.08 }}
-            viewport={{ once: true }}
-            className="rounded-3xl border border-white/10 bg-slate-950/25 p-6 shadow-[0_24px_100px_-40px_rgba(59,130,246,0.65)] backdrop-blur sm:p-8"
-          >
-            <div className="mb-8">
-              <h2 className={`${fredoka.className} text-2xl font-bold text-white sm:text-3xl`}>
-                Send a message
-              </h2>
-              <p className="mt-2 text-sm text-blue-100 sm:text-base">Share a few details to help us understand your message.</p>
+          <section id="contact-form" className="border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-5 sm:p-8">
+            <div className="flex flex-col gap-5 border-b-2 border-[var(--ink)] pb-6 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Message form</p>
+                <h2 className="mt-3 font-display text-3xl leading-tight text-[var(--midnight)] sm:text-4xl">Send a note.</h2>
+              </div>
+              <Send aria-hidden="true" className="h-7 w-7 text-[var(--cobalt)]" strokeWidth={1.7} />
             </div>
 
             {errorMessage && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 rounded-2xl border border-rose-400/30 bg-rose-500/15 px-4 py-3 text-sm text-rose-100"
-                role="alert"
-                aria-live="polite"
-              >
+              <div id="contact-error" className="mt-6 border-l-4 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950" role="alert" aria-live="polite">
                 {errorMessage}
-              </motion.div>
+              </div>
             )}
 
             {status === 'success' && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 rounded-2xl border border-emerald-400/30 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-100"
-                role="status"
-                aria-live="polite"
-              >
-                Your message is on its way. We&apos;ll get back to you soon.
-              </motion.div>
+              <div className="mt-6 border-l-4 border-[var(--cobalt)] bg-[var(--sky)]/35 px-4 py-3 font-body text-sm leading-6 text-[var(--midnight)]" role="status" aria-live="polite">
+                Your message was received. We&apos;ll follow up through the email address you provided.
+              </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
-              <div className="grid gap-4 sm:grid-cols-2 sm:gap-5">
+            <form onSubmit={handleSubmit} className="mt-7 space-y-5" aria-describedby={errorMessage ? 'contact-error' : undefined}>
+              <div className="grid gap-5 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="name" className="mb-2 block text-sm font-semibold text-cyan-100">
-                    Name
-                  </label>
+                  <label htmlFor="name" className="mb-2 block font-body text-sm font-bold text-[var(--midnight)]">Name</label>
                   <input
                     type="text"
                     id="name"
@@ -415,16 +212,13 @@ export default function Contact() {
                     onChange={handleChange}
                     placeholder="Your name"
                     autoComplete="name"
-                    className="min-h-[44px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus-visible:border-cyan-300/40 focus-visible:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
+                    className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
                     required
-                    disabled={status === 'sending'}
+                    disabled={isSending}
                   />
                 </div>
-
                 <div>
-                  <label htmlFor="email" className="mb-2 block text-sm font-semibold text-cyan-100">
-                    Email
-                  </label>
+                  <label htmlFor="email" className="mb-2 block font-body text-sm font-bold text-[var(--midnight)]">Email</label>
                   <input
                     type="email"
                     id="email"
@@ -433,123 +227,99 @@ export default function Contact() {
                     onChange={handleChange}
                     placeholder="you@example.com"
                     autoComplete="email"
-                    className="min-h-[44px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus-visible:border-cyan-300/40 focus-visible:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
+                    className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
                     required
-                    disabled={status === 'sending'}
+                    disabled={isSending}
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="subject" className="mb-2 block text-sm font-semibold text-cyan-100">
-                  Subject
-                </label>
+                <label htmlFor="subject" className="mb-2 block font-body text-sm font-bold text-[var(--midnight)]">What can we help with?</label>
                 <select
                   id="subject"
                   name="subject"
                   value={formData.subject}
                   onChange={handleSubjectChange}
-                  className="min-h-[44px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white outline-none transition focus-visible:border-cyan-300/40 focus-visible:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
+                  className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
                   required
-                  disabled={status === 'sending'}
+                  disabled={isSending}
                 >
                   {subjectOptions.map((option) => (
-                    <option key={option.value} value={option.value} className="bg-slate-900 text-white">
-                      {option.label}
-                    </option>
+                    <option key={option.value} value={option.value}>{option.label}</option>
                   ))}
                 </select>
               </div>
 
-              <AnimatePresence initial={false}>
-                {isWorkshop && (
-                  <motion.div
-                    key="workshop-fields"
-                    initial={{ opacity: 0, height: 0, y: -8 }}
-                    animate={{ opacity: 1, height: 'auto', y: 0 }}
-                    exit={{ opacity: 0, height: 0, y: -8 }}
-                    transition={{ duration: 0.25 }}
-                    className="grid gap-4 overflow-hidden sm:grid-cols-2 sm:gap-5"
-                  >
-                    <div>
-                      <label htmlFor="schoolName" className="mb-2 block text-sm font-semibold text-cyan-100">
-                        School/Organization Name
-                      </label>
-                      <input
-                        type="text"
-                        id="schoolName"
-                        name="schoolName"
-                        value={formData.schoolName}
-                        onChange={handleChange}
-                        autoComplete="organization"
-                        className="min-h-[44px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus-visible:border-cyan-300/40 focus-visible:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
-                        placeholder="School, club, or organization"
-                        required={isWorkshop}
-                        disabled={status === 'sending'}
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="studentCount" className="mb-2 block text-sm font-semibold text-cyan-100">
-                        Estimated Student Count
-                      </label>
-                      <input
-                        type="number"
-                        id="studentCount"
-                        name="studentCount"
-                        value={formData.studentCount}
-                        onChange={handleChange}
-                        inputMode="numeric"
-                        min="1"
-                        step="1"
-                        className="min-h-[44px] w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus-visible:border-cyan-300/40 focus-visible:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
-                        placeholder="Approx. number of students"
-                        required={isWorkshop}
-                        disabled={status === 'sending'}
-                      />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {isWorkshop && (
+                <div className="grid gap-5 border-l-2 border-[var(--sky)] pl-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="schoolName" className="mb-2 block font-body text-sm font-bold text-[var(--midnight)]">School or organization</label>
+                    <input
+                      type="text"
+                      id="schoolName"
+                      name="schoolName"
+                      value={formData.schoolName}
+                      onChange={handleChange}
+                      autoComplete="organization"
+                      placeholder="School, club, or organization"
+                      className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                      required={isWorkshop}
+                      disabled={isSending}
+                    />
+                  </div>
+                  <div>
+                    <label htmlFor="studentCount" className="mb-2 block font-body text-sm font-bold text-[var(--midnight)]">Estimated students</label>
+                    <input
+                      type="number"
+                      id="studentCount"
+                      name="studentCount"
+                      value={formData.studentCount}
+                      onChange={handleChange}
+                      inputMode="numeric"
+                      min="1"
+                      step="1"
+                      placeholder="Approximate number"
+                      className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                      required={isWorkshop}
+                      disabled={isSending}
+                    />
+                  </div>
+                </div>
+              )}
 
               <div>
-                <label htmlFor="message" className="mb-2 block text-sm font-semibold text-cyan-100">
-                  Message
-                </label>
+                <label htmlFor="message" className="mb-2 block font-body text-sm font-bold text-[var(--midnight)]">Message</label>
                 <textarea
                   id="message"
                   name="message"
                   value={formData.message}
                   onChange={handleChange}
-                  placeholder="Tell us a little about your idea, question, or event..."
-                  rows={6}
-                  className="min-h-[44px] w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white placeholder:text-blue-200/40 outline-none transition focus-visible:border-cyan-300/40 focus-visible:bg-white/10 focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e]"
+                  placeholder="Tell us about your idea, question, or event."
+                  rows={7}
+                  className="min-h-11 w-full resize-y rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
                   required
-                  disabled={status === 'sending'}
+                  disabled={isSending}
                 />
               </div>
 
-              <motion.button
+              <button
                 type="submit"
-                disabled={status === 'sending'}
-                whileHover={{ scale: status === 'sending' ? 1 : 1.01 }}
-                whileTap={{ scale: status === 'sending' ? 1 : 0.99 }}
-                className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 font-semibold text-white shadow-lg shadow-cyan-500/20 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e] ${getSubmitButtonStyle()}`}
+                disabled={isSending}
+                className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md px-6 py-3 font-body font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)] ${buttonClass}`}
               >
-                {status === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
-                {getSubmitButtonText()}
-              </motion.button>
+                {status === 'success' ? <CheckCircle2 aria-hidden="true" className="h-4 w-4" /> : <Mail aria-hidden="true" className="h-4 w-4" />}
+                {buttonLabel}
+              </button>
             </form>
-            <p className="mt-4 text-sm text-blue-100">
-              Need to coordinate a donation right away? Visit the{' '}
-              <Link href="/wishlist" className="font-semibold text-cyan-200 underline underline-offset-4">
-                wishlist
-              </Link>{' '}
-              for the items we are actively collecting.
+
+            <p className="mt-5 font-body text-sm leading-6 text-[var(--ink)]/65">
+              Looking for equipment? Visit the{' '}
+              <Link href="/wishlist" className="font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]">wishlist</Link>.
             </p>
-          </motion.div>
+          </section>
         </div>
       </section>
-    </>
+    </div>
   )
 }

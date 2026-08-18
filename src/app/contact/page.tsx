@@ -3,8 +3,8 @@ import Contact from '@/components/Contact'
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen pt-16">
-      <Suspense fallback={<div className="mx-auto max-w-7xl px-4 py-24 text-center text-blue-100 sm:px-6 lg:px-8">Loading contact form...</div>}>
+    <main className="min-h-screen overflow-x-hidden pt-16">
+      <Suspense fallback={<div className="bg-[var(--cream)] px-5 py-24 text-center font-body text-[var(--ink)] sm:px-8">Loading contact form…</div>}>
         <Contact />
       </Suspense>
     </main>

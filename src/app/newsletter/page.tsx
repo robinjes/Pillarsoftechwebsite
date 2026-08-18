@@ -1,14 +1,11 @@
 import type { Metadata } from 'next'
-import { Fredoka } from 'next/font/google'
-import { ArrowRight, CalendarDays, Lightbulb, Users } from 'lucide-react'
+import { ArrowUpRight, CalendarDays, Lightbulb, Users } from 'lucide-react'
 import {
   newsletterEmbedUrl,
   newsletterPageDescription,
   newsletterSignupUrl,
-  newsletterWebsiteUrl
+  newsletterWebsiteUrl,
 } from '@/data/newsletter'
-
-const fredoka = Fredoka({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'Newsletter | Pillars of Tech',
@@ -16,84 +13,56 @@ export const metadata: Metadata = {
 }
 
 const highlights = [
-  {
-    title: 'Weekly Updates',
-    description:
-      'See what Pillars of Tech has been building, teaching, and planning each week.',
-    Icon: CalendarDays
-  },
-  {
-    title: 'STEM Spotlights',
-    description:
-      'Read simple STEM ideas and topics that students and parents can explore together.',
-    Icon: Lightbulb
-  },
-  {
-    title: 'Upcoming Events',
-    description:
-      'Stay up to date on upcoming events, opportunities to join, and ways to support our community.',
-    Icon: Users
-  }
-]
+  { title: 'Weekly updates', description: 'Notes about the work, what is being taught, and what is coming next.', icon: CalendarDays },
+  { title: 'STEM spotlights', description: 'Simple STEM ideas and topics for students and families to explore.', icon: Lightbulb },
+  { title: 'Upcoming events', description: 'Event notes, opportunities to join, and ways to stay involved.', icon: Users },
+] as const
 
 export default function NewsletterPage() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-950 via-blue-900 to-blue-700 pt-24 pb-20">
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-[2rem] border border-white/15 bg-white/10 p-8 text-center shadow-[0_0_60px_rgba(37,99,235,0.2)] backdrop-blur-sm sm:p-10 lg:p-14">
-          <p className="text-sm font-bold uppercase tracking-[0.35em] text-blue-200">
-            Sunday Newsletter
-          </p>
-          <h1 className={`${fredoka.className} mt-4 text-4xl font-bold text-white sm:text-5xl lg:text-6xl`}>
-            Sign Up for Our Newsletter
-          </h1>
-          <p className="mt-6 mx-auto max-w-3xl text-lg text-blue-100 sm:text-xl">
-            {newsletterPageDescription}
-          </p>
-
-          <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+    <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] pt-16 text-[var(--ink)]">
+      <header className="border-b-2 border-[var(--ink)]/20">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:px-12 lg:py-28">
+          <div>
+            <p className="mb-6 font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Newsletter / Sundays</p>
+            <h1 className="max-w-4xl font-display text-5xl leading-[0.96] tracking-tight text-[var(--midnight)] sm:text-7xl lg:text-[6.8rem]">
+              A small note for the week ahead.
+            </h1>
+          </div>
+          <div className="border-l-4 border-[var(--cobalt)] pl-6">
+            <p className="font-body text-lg leading-8 text-[var(--ink)]/75 sm:text-xl">{newsletterPageDescription}</p>
             <a
               href={newsletterSignupUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 font-bold text-blue-900 shadow-lg transition-transform duration-200 hover:-translate-y-1 hover:bg-blue-50"
+              className="mt-6 inline-flex min-h-11 items-center gap-2 bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
             >
-              Join the Newsletter
-              <ArrowRight className="h-4 w-4" />
-            </a>
-            <a
-              href={newsletterWebsiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-blue-900/40 px-6 py-3 font-bold text-white transition-colors hover:bg-blue-800/70"
-            >
-              Visit the Newsletter Homepage
+              Open the signup form
+              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
             </a>
           </div>
         </div>
+      </header>
 
-        <div className="mt-10 rounded-[2rem] border border-white/15 bg-blue-950/45 p-4 shadow-[0_0_50px_rgba(14,116,144,0.16)] backdrop-blur-sm sm:p-6">
-          <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+      <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
+        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12 lg:py-24">
+          <div className="mb-10 flex flex-col gap-4 border-b-2 border-[var(--ink)] pb-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className={`${fredoka.className} text-3xl font-bold text-white`}>
-                Sign Up Here
-              </h2>
-              <p className="mt-2 max-w-2xl text-blue-100">
-                Fill out the form below to get the Sunday newsletter and stay updated on STEM topics, new programs, and upcoming events.
-              </p>
+              <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Subscribe</p>
+              <h2 className="mt-3 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Read it where it is easiest.</h2>
             </div>
             <a
               href={newsletterSignupUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-5 py-3 font-bold text-white transition-colors hover:bg-white/15"
+              className="inline-flex min-h-11 items-center justify-center gap-2 border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
             >
-              Open Form in a New Tab
-              <ArrowRight className="h-4 w-4" />
+              Use the form directly
+              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
             </a>
           </div>
 
-          <div className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-white">
+          <div className="border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-2 sm:p-3">
             <iframe
               src={newsletterEmbedUrl}
               title="Pillars of Tech newsletter signup form"
@@ -105,24 +74,51 @@ export default function NewsletterPage() {
               className="w-full"
               loading="lazy"
             >
-              Loading…
+              Loading the signup form…
             </iframe>
+            <p className="border-t border-[var(--ink)]/20 px-3 py-3 font-body text-xs leading-5 text-[var(--ink)]/60">
+              If the embedded form does not load, use the direct signup link above or visit the newsletter homepage.
+            </p>
+          </div>
+
+          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 font-body text-sm font-bold">
+            <a
+              href={newsletterWebsiteUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center gap-2 text-[var(--cobalt)] underline decoration-2 underline-offset-4 transition hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+            >
+              Visit the newsletter homepage
+              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+            </a>
+            <a
+              href={newsletterSignupUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 items-center gap-2 text-[var(--cobalt)] underline decoration-2 underline-offset-4 transition hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+            >
+              Open signup in a new tab
+              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+            </a>
           </div>
         </div>
+      </section>
 
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          {highlights.map((item) => (
-            <div
-              key={item.title}
-              className="rounded-2xl border border-white/15 bg-blue-900/45 p-6 backdrop-blur-sm"
-            >
-              <item.Icon className="h-10 w-10 text-amber-300" />
-              <h2 className={`${fredoka.className} mt-4 text-2xl font-bold text-white`}>
-                {item.title}
-              </h2>
-              <p className="mt-3 text-blue-100">{item.description}</p>
-            </div>
-          ))}
+      <section className="bg-[var(--midnight)] text-[var(--cream)]">
+        <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-12 lg:py-20">
+          <div className="grid gap-0 divide-y divide-[var(--sky)]/30 border-y border-[var(--sky)]/30 md:grid-cols-3 md:divide-x md:divide-y-0">
+            {highlights.map((highlight) => {
+              const Icon = highlight.icon
+
+              return (
+                <div key={highlight.title} className="px-0 py-7 md:px-7 md:py-2 first:md:pl-0 last:md:pr-0">
+                  <Icon aria-hidden="true" className="h-6 w-6 text-[var(--sky)]" strokeWidth={1.7} />
+                  <h2 className="mt-5 font-display text-2xl text-[var(--cream)]">{highlight.title}</h2>
+                  <p className="mt-3 font-body text-sm leading-6 text-[var(--cream)]/70">{highlight.description}</p>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </section>
     </main>
