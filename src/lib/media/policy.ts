@@ -32,8 +32,32 @@ export const MEDIA_POLICIES: Record<string, MediaPolicy> = {
 
 const mediaContentTypes = Object.keys(MEDIA_POLICIES) as [string, ...string[]]
 
+function hasPathLikeFilenamePart(value: string): boolean {
+  let candidate = value
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    if (
+      candidate === '.' ||
+      candidate === '..' ||
+      /[\\/\u0000-\u001f\u007f]/.test(candidate) ||
+      /%(?:2e|2f|5c)/i.test(candidate)
+    ) return true
+    try {
+      const decoded = decodeURIComponent(candidate)
+      if (decoded === candidate) return false
+      candidate = decoded
+    } catch {
+      return false
+    }
+  }
+  return false
+}
+
+export function isSafeUploadFilename(value: string): boolean {
+  return value.trim().length > 0 && !hasPathLikeFilenamePart(value)
+}
+
 export const mediaSignRequestSchema = z.object({
-  filename: z.string().trim().min(1).max(240),
+  filename: z.string().min(1).max(240).refine(isSafeUploadFilename, 'Filename must be a plain file name.').trim(),
   contentType: z.enum(mediaContentTypes),
   size: z.number().int().positive(),
 }).strict()
@@ -105,6 +129,7 @@ export function objectKeyFor(policy: MediaPolicy, prefix: 'incoming' | 'final' =
 }
 
 export function validateClaimedUpload(input: MediaSignRequest): { policy: MediaPolicy; displayName: string } | { error: string } {
+  if (!isSafeUploadFilename(input.filename)) return { error: 'Filename must be a plain file name.' }
   const policy = MEDIA_POLICIES[input.contentType]
   if (!policy) return { error: 'Unsupported media type.' }
   if (input.size > policy.maxBytes) {

@@ -11,6 +11,7 @@ import { applySecurityHeaders, buildContentSecurityPolicy, middleware } from '@/
 import {
   detectMediaType,
   detectedMatchesClaimed,
+  isSafeUploadFilename,
   normalizeDisplayName,
   objectKeyFor,
   MEDIA_POLICIES,
@@ -22,7 +23,27 @@ describe('media policy', () => {
     const key = objectKeyFor(MEDIA_POLICIES['image/jpeg'], 'incoming')
     expect(key).toMatch(/^incoming\/[a-f0-9]{48}\.jpg$/)
     expect(key).not.toContain('evil')
-    expect(normalizeDisplayName('../../evil.jpg')).toBe('evil.jpg')
+    expect(normalizeDisplayName('ordinary file.jpg')).toBe('ordinary file.jpg')
+  })
+
+  it('rejects path-like sign filenames while allowing ordinary spaces', () => {
+    const valid = parseMediaSignRequest({ filename: 'spring event poster.jpg', contentType: 'image/jpeg', size: 10 })
+    expect(valid.displayName).toBe('spring event poster.jpg')
+    expect(isSafeUploadFilename('ordinary file.jpg')).toBe(true)
+
+    for (const filename of [
+      '../poster.jpg',
+      'folder/poster.jpg',
+      'folder\\poster.jpg',
+      '..',
+      '%2e%2e%2fposter.jpg',
+      '%252e%252e%252fposter.jpg',
+      'poster\u0000.jpg',
+      'poster\n.jpg',
+    ]) {
+      expect(isSafeUploadFilename(filename)).toBe(false)
+      expect(() => parseMediaSignRequest({ filename, contentType: 'image/jpeg', size: 10 })).toThrow()
+    }
   })
 
   it('detects supported magic bytes and rejects claimed spoofing', () => {

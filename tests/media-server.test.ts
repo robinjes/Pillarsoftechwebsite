@@ -80,7 +80,7 @@ describe('server media ownership and finalization', () => {
     }
     mockedServiceClient.mockReturnValue(client as never)
 
-    const input = parseMediaSignRequest({ filename: '../poster.jpg', contentType: 'image/jpeg', size: 4 })
+    const input = parseMediaSignRequest({ filename: 'poster.jpg', contentType: 'image/jpeg', size: 4 })
     await expect(signMediaUpload(input, 'staff-1')).rejects.toMatchObject({ code: 'storage_unavailable', status: 503 })
     expect(order).toEqual(['insert', 'token'])
     expect(update.update).toHaveBeenCalledWith(expect.objectContaining({ status: 'rejected' }))
