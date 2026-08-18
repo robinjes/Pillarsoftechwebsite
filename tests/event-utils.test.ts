@@ -9,6 +9,8 @@ describe('event asset utilities', () => {
       'https://cdn.example.com/hero.jpg'
     );
     expect(normalizeAssetPath('   ')).toBeUndefined();
+    expect(normalizeAssetPath('data:text/plain,unsafe')).toBeUndefined();
+    expect(normalizeAssetPath('//evil.example/asset.png')).toBeUndefined();
   });
 
   it('converts YouTube links to privacy-preserving embed URLs', () => {

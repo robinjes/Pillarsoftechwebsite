@@ -13,7 +13,6 @@
     "check": "npm run lint && npm run typecheck && npm run test:run"
   },
   "dependencies": {
-    "@emailjs/browser": "^4.4.1",
     "@heroicons/react": "^2.1.1",
     "@supabase/ssr": "0.10.0",
     "@supabase/supabase-js": "2.108.2",
@@ -27,7 +26,8 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "server-only": "^0.0.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",

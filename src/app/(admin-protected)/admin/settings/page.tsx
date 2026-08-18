@@ -1,110 +1,73 @@
 'use client'
 
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Fredoka, Space_Grotesk } from 'next/font/google';
-import { Check, Copy, Code, HelpCircle } from 'lucide-react';
+import { useEffect, useState } from 'react'
 
-const fredoka = Fredoka({ subsets: ['latin'] });
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] });
-
-const APPS_SCRIPT_CODE = `
-function doPost(e) {
-  // Parse incoming JSON data from the registration form
-  var data = JSON.parse(e.postData.contents);
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  
-  // If spreadsheet is empty, set headers matching the data keys
-  if (sheet.getLastRow() === 0) {
-    var headers = Object.keys(data);
-    sheet.appendRow(headers);
-    
-    // Style headers
-    var headerRange = sheet.getRange(1, 1, 1, headers.length);
-    headerRange.setFontWeight("bold");
-    headerRange.setBackground("#f3f4f6");
-  }
-  
-  // Append response row
-  var rowData = Object.values(data);
-  sheet.appendRow(rowData);
-  
-  // Return success response to the website
-  return ContentService.createTextOutput(JSON.stringify({ "status": "success" }))
-    .setMimeType(ContentService.MimeType.JSON);
+type ContentDocument = {
+  key: string
+  title: string
+  body: string
+  content: Record<string, string>
+  publicationState: 'unpublished' | 'published'
+  safeForPublic: boolean
 }
 
-// Helper to handle preflight CORS requests from Next.js
-function doOptions(e) {
-  return ContentService.createTextOutput("OK");
-}
-`.trim();
+const blankDocument: ContentDocument = { key: 'homepage', title: '', body: '', content: {}, publicationState: 'unpublished', safeForPublic: false }
 
 export default function AdminSettings() {
-  const [copied, setCopied] = useState(false);
+  const [document, setDocument] = useState<ContentDocument>(blankDocument)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
 
-  const copyCode = () => {
-    navigator.clipboard.writeText(APPS_SCRIPT_CODE);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const response = await fetch('/api/admin/content', { cache: 'no-store' })
+        const result = await response.json().catch(() => ({}))
+        if (!response.ok) throw new Error(result.error || 'Content could not be loaded.')
+        const first = Array.isArray(result.documents) ? result.documents[0] as ContentDocument | undefined : undefined
+        if (first) setDocument(first)
+      } catch (loadError) {
+        setError(loadError instanceof Error ? loadError.message : 'Content could not be loaded.')
+      } finally {
+        setLoading(false)
+      }
+    }
+    void load()
+  }, [])
+
+  const save = async (event: React.FormEvent) => {
+    event.preventDefault()
+    setSaving(true)
+    setMessage('')
+    setError('')
+    try {
+      const response = await fetch('/api/admin/content', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(document) })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || 'Content could not be saved.')
+      setDocument(result.document)
+      setMessage('Content saved.')
+    } catch (saveError) {
+      setError(saveError instanceof Error ? saveError.message : 'Content could not be saved.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
-    <div className="space-y-8 max-w-4xl">
-      <div>
-        <h1 className={`${fredoka.className} text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent to-purple-500`}>
-          Webhook Instructions
-        </h1>
-        <p className={`${spaceGrotesk.className} text-blue-200 mt-2`}>
-          Learn how to generate a custom Apps Script webhook for your event registration forms to receive submissions directly into a Google Sheet.
-        </p>
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-slate-900 border border-white/10 p-6 md:p-8 rounded-3xl mt-8"
-      >
-        <h2 className={`${fredoka.className} text-2xl font-bold text-white mb-6 flex items-center`}>
-          <Code className="w-6 h-6 mr-3 text-accent" />
-          Setup Instructions
-        </h2>
-
-        <div className={`space-y-6 ${spaceGrotesk.className} text-blue-100`}>
-          <div className="flex gap-4 p-4 bg-blue-900/20 border border-blue-800/50 rounded-xl items-start">
-            <HelpCircle className="w-6 h-6 text-blue-400 shrink-0 mt-0.5" />
-            <div className="space-y-2">
-              <p className="font-semibold text-blue-200">How to link your Google Sheet (Repeat for each form):</p>
-              <ol className="list-decimal list-inside space-y-1 text-sm text-blue-100/80">
-                <li>Create a new <a href="https://sheets.new" target="_blank" className="text-accent hover:underline font-bold">Google Sheet</a></li>
-                <li>In the top menu, click <strong>Extensions {'>'} Apps Script</strong></li>
-                <li>Delete any code in the editor and paste the script below</li>
-                <li>Click <strong>Deploy {'>'} New deployment</strong></li>
-                <li>Select type: <strong>Web app</strong></li>
-                <li>Execute as: <strong>Me</strong></li>
-                <li>Who has access: <strong>Anyone</strong></li>
-                <li>Click <strong>Deploy</strong>, authorize access (click Advanced {'>'} Go to script if warned)</li>
-                <li>Copy the <strong>Web app URL</strong> and paste it into the Webhook URL field for that specific event&apos;s form!</li>
-              </ol>
-            </div>
-          </div>
-
-          <div className="relative group">
-            <div className="absolute right-4 top-4">
-              <button
-                onClick={copyCode}
-                className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-colors flex items-center text-sm font-semibold border border-white/10"
-              >
-                {copied ? <Check className="w-4 h-4 mr-2 text-emerald-400" /> : <Copy className="w-4 h-4 mr-2" />}
-                {copied ? 'Copied!' : 'Copy Code'}
-              </button>
-            </div>
-            <pre className="p-6 bg-[#0d1117] text-slate-300 rounded-xl border border-white/10 overflow-x-auto text-sm leading-relaxed shadow-inner">
-              <code>{APPS_SCRIPT_CODE}</code>
-            </pre>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
+    <section className="max-w-3xl space-y-6 text-white">
+      <div><h1 className="text-3xl font-bold">Site content</h1><p className="mt-1 text-sm text-blue-200">Manage bounded content documents through the staff API.</p></div>
+      {loading ? <p className="text-blue-200">Loading…</p> : <form onSubmit={save} className="space-y-4 rounded-xl border border-white/10 bg-slate-900/60 p-5">
+        {message && <p className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3 text-emerald-100">{message}</p>}
+        {error && <p className="rounded-lg border border-rose-400/30 bg-rose-400/10 p-3 text-rose-100">{error}</p>}
+        <label className="block space-y-1 text-sm">Key<input required pattern="[a-z0-9][a-z0-9_-]{0,63}" value={document.key} onChange={(event) => setDocument({ ...document, key: event.target.value })} className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
+        <label className="block space-y-1 text-sm">Title<input value={document.title} onChange={(event) => setDocument({ ...document, title: event.target.value })} className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
+        <label className="block space-y-1 text-sm">Body<textarea value={document.body} onChange={(event) => setDocument({ ...document, body: event.target.value })} rows={8} className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={document.safeForPublic} onChange={(event) => setDocument({ ...document, safeForPublic: event.target.checked })} /> Safe for public rendering</label>
+        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={document.publicationState === 'published'} onChange={(event) => setDocument({ ...document, publicationState: event.target.checked ? 'published' : 'unpublished' })} /> Published</label>
+        <button disabled={saving} className="rounded-lg bg-accent px-5 py-2 font-semibold text-slate-900 disabled:opacity-50">{saving ? 'Saving…' : 'Save content'}</button>
+      </form>}
+    </section>
+  )
 }

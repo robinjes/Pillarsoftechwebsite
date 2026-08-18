@@ -36,8 +36,9 @@ export default function AdminAnalytics() {
       const profiles = await volunteerService.getAllProfiles()
       setAllProfiles(profiles)
 
-      const res = await fetch('/api/events')
-      const eventData = await res.json()
+      const res = await fetch('/api/admin/events', { cache: 'no-store' })
+      const eventResult = await res.json()
+      const eventData = Array.isArray(eventResult) ? eventResult : eventResult.events || []
       setEvents(eventData || [])
 
       // Calculate event stats (mock data based on available info)

@@ -1,71 +1,30 @@
-import { NextResponse } from 'next/server';
-import { dataStore, FormSchema } from '@/lib/data-store';
-import { authFailureResponse } from '@/lib/auth/http';
-import { requireVerifiedStaff } from '@/lib/auth/server';
+import { NextResponse } from 'next/server'
+
+import { getPublicParticipantForm } from '@/lib/content-repository'
+import { formLookupSchema } from '@/lib/content-contracts'
+
+export const dynamic = 'force-dynamic'
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const eventId = searchParams.get('eventId');
-  
-  const forms = dataStore.getForms();
-  
-  if (eventId) {
-    const form = forms.find(f => f.eventId === eventId);
-    if (form) {
-      return NextResponse.json(form);
-    }
-    return NextResponse.json({ error: 'Form not found for this event' }, { status: 404 });
+  const searchParams = new URL(request.url).searchParams
+  const parsed = formLookupSchema.safeParse({
+    eventId: searchParams.get('eventId') ?? '',
+    kind: searchParams.get('kind') ?? 'participant',
+  })
+  if (!parsed.success || parsed.data.kind !== 'participant') {
+    return NextResponse.json({ error: 'A single published eventId is required.' }, { status: 400 })
   }
-  
-  return NextResponse.json(forms);
-}
-
-export async function POST(request: Request) {
-  const auth = await requireVerifiedStaff();
-  if (!auth.ok) return authFailureResponse(auth);
 
   try {
-    const newForm: FormSchema = await request.json();
-    const forms = dataStore.getForms();
-    
-    if (!newForm.id) {
-      newForm.id = `form-${Date.now()}`;
-    }
-    
-    // Check if form for this event already exists and replace it
-    const existingIndex = forms.findIndex(f => f.eventId === newForm.eventId);
-    if (existingIndex !== -1) {
-      forms[existingIndex] = newForm;
-    } else {
-      forms.push(newForm);
-    }
-    
-    dataStore.saveForms(forms);
-    
-    return NextResponse.json({ success: true, form: newForm });
+    const form = await getPublicParticipantForm(parsed.data.eventId)
+    if (!form) return NextResponse.json({ error: 'Active registration form not found.' }, { status: 404 })
+    return NextResponse.json({
+      eventId: form.eventId,
+      kind: form.kind,
+      fields: form.fields,
+      isActive: form.isActive,
+    }, { headers: { 'Cache-Control': 'public, max-age=60, stale-while-revalidate=300' } })
   } catch {
-    return NextResponse.json({ error: 'Failed to save form' }, { status: 400 });
-  }
-}
-
-export async function DELETE(request: Request) {
-  const auth = await requireVerifiedStaff();
-  if (!auth.ok) return authFailureResponse(auth);
-
-  try {
-    const { searchParams } = new URL(request.url);
-    const eventId = searchParams.get('eventId');
-    
-    if (!eventId) {
-      return NextResponse.json({ error: 'Event ID required' }, { status: 400 });
-    }
-    
-    const forms = dataStore.getForms();
-    const newForms = forms.filter(f => f.eventId !== eventId);
-    
-    dataStore.saveForms(newForms);
-    return NextResponse.json({ success: true });
-  } catch {
-    return NextResponse.json({ error: 'Failed to delete form' }, { status: 400 });
+    return NextResponse.json({ error: 'Public form content is temporarily unavailable.' }, { status: 503 })
   }
 }

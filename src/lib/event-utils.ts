@@ -19,7 +19,11 @@ export function normalizeAssetPath(asset?: string | null) {
     return undefined;
   }
 
-  if (isAbsoluteUrl(trimmed) || trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+  if (/^(?:javascript|data|blob|file):/i.test(trimmed) || trimmed.startsWith('//')) {
+    return undefined;
+  }
+
+  if (isAbsoluteUrl(trimmed)) {
     return trimmed;
   }
 

@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
-import emailjs from '@emailjs/browser'
 import { Fredoka } from 'next/font/google'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -18,10 +17,6 @@ import {
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 
-const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY
-const SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID
-const TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID
-const EMAILJS_READY = Boolean(PUBLIC_KEY && SERVICE_ID && TEMPLATE_ID)
 const CONTACT_EMAIL = 'pillarsoftech@gmail.com'
 
 const subjectOptions = [
@@ -44,10 +39,6 @@ const subjectOptions = [
 ] as const
 
 type SubjectValue = (typeof subjectOptions)[number]['value']
-
-if (PUBLIC_KEY) {
-  emailjs.init(PUBLIC_KEY)
-}
 
 const inquiryHighlights = [
   'Partnerships and school collaborations',
@@ -131,21 +122,21 @@ export default function Contact() {
       subjectOptions.find((option) => option.value === formData.subject)?.label ?? 'General Inquiries & Feedback'
 
     try {
-      if (!EMAILJS_READY) {
-        throw new Error('The contact form is currently unavailable. Please use email instead.')
-      }
-
-      await emailjs.send(SERVICE_ID as string, TEMPLATE_ID as string, {
-        to_name: 'Pillars of Tech',
-        from_name: formData.name,
-        reply_to: formData.email,
-        subject: subjectLabel,
-        inquiry_type: subjectLabel,
-        school_name: formData.subject === 'workshop' ? formData.schoolName : '',
-        estimated_student_count: formData.subject === 'workshop' ? formData.studentCount : '',
-        message: formData.message,
-        to_email: CONTACT_EMAIL
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: subjectLabel,
+          schoolName: formData.subject === 'workshop' ? formData.schoolName : '',
+          studentCount: formData.subject === 'workshop' ? formData.studentCount : '',
+          message: formData.message,
+          honeypot: '',
+        }),
       })
+      const result = await response.json().catch(() => ({}))
+      if (!response.ok) throw new Error(result.error || 'Something went wrong while receiving the message.')
 
       setStatus('success')
       setFormData({
@@ -160,7 +151,7 @@ export default function Contact() {
     } catch (error) {
       setStatus('error')
       setErrorMessage(
-        error instanceof Error ? error.message : 'Something went wrong while sending the message.'
+        error instanceof Error ? error.message : 'Something went wrong while receiving the message.'
       )
       scheduleReset()
     }
@@ -193,7 +184,7 @@ export default function Contact() {
       case 'sending':
         return 'Sending...'
       case 'success':
-        return 'Message Sent'
+        return 'Message Received'
       case 'error':
         return 'Try Again'
       default:
@@ -404,22 +395,6 @@ export default function Contact() {
               </motion.div>
             )}
 
-            {!EMAILJS_READY && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 rounded-2xl border border-amber-400/30 bg-amber-500/15 px-4 py-3 text-sm text-amber-100"
-                role="status"
-                aria-live="polite"
-              >
-                The form is temporarily unavailable. Please email us at{' '}
-                <a className="font-semibold underline" href={`mailto:${CONTACT_EMAIL}`}>
-                  {CONTACT_EMAIL}
-                </a>
-                .
-              </motion.div>
-            )}
-
             {status === 'success' && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -562,7 +537,7 @@ export default function Contact() {
 
               <motion.button
                 type="submit"
-                disabled={status === 'sending' || !EMAILJS_READY}
+                disabled={status === 'sending'}
                 whileHover={{ scale: status === 'sending' ? 1 : 1.01 }}
                 whileTap={{ scale: status === 'sending' ? 1 : 0.99 }}
                 className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl px-6 py-4 font-semibold text-white shadow-lg shadow-cyan-500/20 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a1a3e] ${getSubmitButtonStyle()}`}

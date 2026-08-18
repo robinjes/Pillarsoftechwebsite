@@ -48,8 +48,9 @@ export default function AdminDashboard() {
       const staff = profiles.filter(p => p.role === 'staff')
 
       // Load events
-      const res = await fetch('/api/events')
-      const eventData = await res.json()
+      const res = await fetch('/api/admin/events', { cache: 'no-store' })
+      const eventResult = await res.json()
+      const eventData = Array.isArray(eventResult) ? eventResult : eventResult.events || []
       setEvents(eventData || [])
 
       // Calculate stats
