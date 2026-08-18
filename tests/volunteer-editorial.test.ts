@@ -1,0 +1,78 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
+import { describe, expect, it } from 'vitest'
+
+const sourceRoot = path.resolve(process.cwd(), 'src')
+const readSource = (relativePath: string) => readFileSync(path.join(sourceRoot, relativePath), 'utf8')
+
+const volunteerPage = readSource('app/volunteer/page.tsx')
+const checkinPage = readSource('app/volunteer/checkin/page.tsx')
+const memberQr = readSource('components/LocalMemberQr.tsx')
+const memberCard = readSource('components/MemberCard.tsx')
+const publicVolunteerSource = [volunteerPage, checkinPage, memberQr, memberCard].join('\n')
+
+describe('volunteer and staff check-in experience', () => {
+  it('keeps volunteer registration open-state gated and preserves the real member workflow', () => {
+    expect(volunteerPage).toContain("event.volunteerRegistrationState !== 'open'")
+    expect(volunteerPage).toContain('disabled={!open || signingUpEventId === event.id}')
+    expect(volunteerPage).toContain('Roster full')
+    expect(volunteerPage).toContain('Registration closed')
+    expect(volunteerPage).toContain('registerForEvent')
+    expect(volunteerPage).toContain('withdrawFromEvent')
+    expect(volunteerPage).toContain("signInWithGoogle('/volunteer')")
+    expect(volunteerPage).toContain('void loadVolunteerSession().catch')
+  })
+
+  it('implements a keyboard-safe, labelled auth dialog with focus and scroll restoration', () => {
+    expect(volunteerPage).toContain('role="dialog" aria-modal="true" aria-labelledby="volunteer-auth-title"')
+    expect(volunteerPage).toContain('id="volunteer-auth-title"')
+    expect(volunteerPage).toContain("event.key === 'Escape'")
+    expect(volunteerPage).toContain("event.key !== 'Tab'")
+    expect(volunteerPage).toContain('authOpenerRef')
+    expect(volunteerPage).toContain('authCloseRef')
+    expect(volunteerPage).toContain('document.body.style.overflow = \'hidden\'')
+    expect(volunteerPage).toContain('previousOverflow')
+    expect(volunteerPage).toContain('authOpenerRef.current?.focus()')
+    expect(volunteerPage).toContain("button:not([disabled]), a[href]")
+  })
+
+  it('keeps locally generated QR codes recoverable when generation fails', () => {
+    expect(memberQr).toContain("from 'qrcode'")
+    expect(memberQr).toContain('QRCode.toDataURL')
+    expect(memberQr).toContain('role="status"')
+    expect(memberQr).toContain('aria-busy="true"')
+    expect(memberQr).toContain('role="alert"')
+    expect(memberQr).toContain('aria-live="assertive"')
+    expect(memberQr).toContain('QR code unavailable.')
+    expect(memberQr).toContain('Try again')
+    expect(memberQr).toContain('setAttempt((current) => current + 1)')
+    expect(memberCard).toContain('<LocalMemberQr')
+    expect(memberCard).toContain('profile.memberCode')
+    expect(memberCard).toContain('Membership QR code for ${profile.fullName}')
+  })
+
+  it('keeps staff attendance server-bound and loads the camera only after staff activation', () => {
+    expect(checkinPage).toContain("import('html5-qrcode')")
+    expect(checkinPage).not.toMatch(/import\s+\{\s*Html5Qrcode\s*\}\s+from\s+['"]html5-qrcode['"]/)
+    expect(checkinPage).toContain("profile.role !== 'staff'")
+    expect(checkinPage).toContain("router.replace('/volunteer')")
+    expect(checkinPage).toContain('getAllProfiles')
+    expect(checkinPage).toContain('getEventRoster')
+    expect(checkinPage).toContain('downloadAttendanceCsv')
+    expect(checkinPage).toContain('getActiveCheckInSessions')
+    expect(checkinPage).toContain('checkInVolunteer')
+    expect(checkinPage).toContain('searchProfiles')
+    expect(checkinPage).toContain('Membership changes remain owner-only operations.')
+    expect(checkinPage).toContain('No volunteers are currently checked in.')
+  })
+
+  it('keeps the redesign accessible, palette-bound, and motion-reduction aware', () => {
+    expect(publicVolunteerSource).toContain('min-h-11')
+    expect(publicVolunteerSource).toContain('focus-visible:')
+    expect(publicVolunteerSource).toContain('var(--cream)')
+    expect(publicVolunteerSource).toContain('var(--midnight)')
+    expect(publicVolunteerSource).toContain('var(--cobalt)')
+    expect(publicVolunteerSource).toContain('motion-reduce:animate-none')
+    expect(publicVolunteerSource).not.toMatch(/bg-gradient|backdrop-blur|rounded-(?:2xl|3xl|full)|framer-motion/)
+  })
+})
