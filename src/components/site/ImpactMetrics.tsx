@@ -1,3 +1,5 @@
+import { previewImpactSnapshot } from '@/data/impact-snapshot'
+
 export type PublicMetric = {
   key: string
   value: number
@@ -9,49 +11,73 @@ export type PublicMetric = {
   displayOrder: number
 }
 
+function formatValue(metric: PublicMetric): string {
+  const number = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(metric.value)
+  if (metric.unit === 'USD') {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+    }).format(metric.value)
+  }
+  return `${number}${metric.unit}`
+}
+
+function formatDate(asOf: string): string {
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(`${asOf}T12:00:00.000Z`))
+}
+
 export default function ImpactMetrics({ metrics }: { metrics: PublicMetric[] }) {
+  // The repository provides this same fallback, but keeping the component
+  // defensive makes local preview and a transient empty response useful.
+  const displayMetrics = metrics.length > 0 ? metrics : previewImpactSnapshot
+
   return (
     <section className="bg-warm" aria-labelledby="impact-heading">
-      <div className="site-shell mx-auto px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
-        <div className="editorial-grid items-end gap-y-8">
-          <div className="col-span-12 lg:col-span-5">
-            <p className="mb-4 font-display text-sm font-bold uppercase tracking-[0.2em] text-cobalt">Measured with care</p>
-            <h2 id="impact-heading" className="display-heading max-w-xl text-4xl text-midnight sm:text-5xl">What we can verify.</h2>
+      <div className="site-shell mx-auto px-5 py-14 sm:px-8 lg:px-10 lg:py-16">
+        <div className="flex flex-col gap-5 border-y border-ink/25 py-5 md:flex-row md:items-center md:justify-between md:gap-10">
+          <div className="shrink-0">
+            <h2 id="impact-heading" className="font-display text-2xl font-semibold tracking-[-0.03em] text-midnight sm:text-3xl">
+              The work, in numbers.
+            </h2>
+            <p className="mt-1 max-w-sm text-sm leading-6 text-ink/65">Source-linked snapshots from the public record.</p>
           </div>
-          <p className="body-copy col-span-12 text-base text-ink/70 lg:col-span-6 lg:col-start-7">
-            We publish only approved, source-dated measures here. When the record is not ready, we say so.
-          </p>
-        </div>
 
-        {metrics.length > 0 ? (
-          <div className="mt-14 grid border-t border-ink/30 sm:grid-cols-2 lg:grid-cols-3">
-            {metrics.map((metric) => (
-              <article key={metric.key} className="border-b border-ink/30 py-7 sm:border-r sm:px-6 sm:first:pl-0 lg:px-8 lg:first:pl-0">
-                <p className="font-display text-4xl font-semibold tracking-[-0.04em] text-midnight sm:text-5xl">
-                  {new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(metric.value)}
-                  {metric.unit ? <span className="ml-2 text-xl text-cobalt">{metric.unit}</span> : null}
+          <div className="grid flex-1 divide-y divide-ink/20 border-t border-ink/20 sm:grid-cols-3 sm:divide-x sm:divide-y-0 sm:border-t-0">
+            {displayMetrics.slice(0, 3).map((metric) => (
+              <article key={metric.key} className="py-4 sm:px-5 sm:py-1 first:sm:pl-0 last:sm:pr-0">
+                <p className="font-display text-3xl font-semibold tracking-[-0.04em] text-midnight sm:text-4xl">
+                  {formatValue(metric)}
                 </p>
-                <h3 className="mt-4 text-lg font-semibold text-ink">{metric.publicLabel}</h3>
-                <p className="mt-3 text-sm leading-6 text-ink/60">
-                  Verified {metric.asOf}.{' '}
-                  <a href={metric.sourceUrl} target="_blank" rel="noreferrer" className="font-semibold text-cobalt underline decoration-cobalt/40 underline-offset-4 hover:text-midnight">
-                    View source
+                <h3 className="mt-1 text-sm font-semibold text-ink">{metric.publicLabel}</h3>
+                <p className="mt-1 text-xs leading-5 text-ink/60">
+                  As of {formatDate(metric.asOf)} ·{' '}
+                  <a href={metric.sourceUrl} target="_blank" rel="noreferrer" className="inline-flex min-h-11 items-center px-1 font-semibold text-cobalt underline decoration-cobalt/40 underline-offset-4 hover:text-midnight">
+                    Source
                   </a>
                 </p>
-                <details className="mt-4 border-t border-ink/20 pt-3 text-sm text-ink/65">
-                  <summary className="min-h-11 cursor-pointer py-2 font-semibold text-cobalt">How this is counted</summary>
-                  <p className="pb-2 leading-6">{metric.methodologyNote}</p>
-                </details>
               </article>
             ))}
           </div>
-        ) : (
-          <div className="mt-14 border-y border-ink/30 py-10" data-testid="impact-empty-state">
-            <p className="max-w-2xl text-2xl font-semibold leading-snug text-midnight sm:text-3xl">
-              Verified impact data is being prepared. We publish the record when its source and date are ready.
-            </p>
-          </div>
-        )}
+        </div>
+
+        <details className="mt-4 max-w-3xl text-sm text-ink/70">
+          <summary className="inline-flex min-h-11 cursor-pointer items-center py-2 font-semibold text-cobalt underline decoration-cobalt/40 underline-offset-4 hover:text-midnight">
+            How these numbers are counted
+          </summary>
+          <ul className="mt-2 space-y-2 border-l-2 border-sky pl-4 leading-6">
+            {displayMetrics.slice(0, 3).map((metric) => (
+              <li key={metric.key}>
+                <span className="font-semibold text-midnight">{metric.publicLabel}:</span> {metric.methodologyNote}
+              </li>
+            ))}
+          </ul>
+        </details>
       </div>
     </section>
   )

@@ -2,6 +2,7 @@ import 'server-only'
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+import { previewImpactSnapshot } from '@/data/impact-snapshot'
 import {
   contentDocumentSchema,
   eventRecordSchema,
@@ -208,13 +209,13 @@ export async function getPublicParticipantForm(eventId: string): Promise<FormDef
 
 export async function listPublicImpact(): Promise<ReturnType<typeof publicImpactMetricSchema.parse>[]> {
   const client = publicClient()
-  if (!client) return []
+  if (!client) return previewImpactSnapshot
   const { data, error } = await client
     .from('impact_metrics')
     .select('key,value,unit,public_label,as_of,source_url,methodology_note,display_order')
     .order('display_order', { ascending: true })
   if (error) rowError(error)
-  return asRows(data).flatMap((row) => {
+  const approvedMetrics = asRows(data).flatMap((row) => {
     const parsed = publicImpactMetricSchema.safeParse({
       key: text(row.key),
       value: Number(row.value),
@@ -227,6 +228,7 @@ export async function listPublicImpact(): Promise<ReturnType<typeof publicImpact
     })
     return parsed.success ? [parsed.data] : []
   })
+  return approvedMetrics.length > 0 ? approvedMetrics : previewImpactSnapshot
 }
 
 export function slugifyEventTitle(title: string): string {

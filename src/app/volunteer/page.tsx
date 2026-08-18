@@ -223,7 +223,10 @@ export default function VolunteerPortalPage() {
     setAuthLoading(true)
     setAuthError('')
     try {
-      await volunteerService.signInWithGoogle('/volunteer')
+      const signInDestination = deepLinkedEventId
+        ? `/volunteer?eventId=${encodeURIComponent(deepLinkedEventId)}`
+        : '/volunteer'
+      await volunteerService.signInWithGoogle(signInDestination)
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : 'Google sign-in could not be started.')
       setAuthLoading(false)

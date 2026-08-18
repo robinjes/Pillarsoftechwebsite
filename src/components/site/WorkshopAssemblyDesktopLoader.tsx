@@ -27,5 +27,5 @@ export default function WorkshopAssemblyDesktopLoader() {
     }
   }, [])
 
-  return DesktopWorkshopAssembly ? <DesktopWorkshopAssembly /> : <section className="relative hidden min-h-[180vh] bg-sky lg:block" aria-hidden="true" />
+  return DesktopWorkshopAssembly ? <DesktopWorkshopAssembly /> : <section className="relative hidden min-h-[280vh] bg-sky lg:block" aria-hidden="true" />
 }

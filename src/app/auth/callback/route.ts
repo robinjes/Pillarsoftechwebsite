@@ -21,20 +21,39 @@ export async function GET(request: Request) {
   }
 
   const next = getSafeNextPath(requestUrl.searchParams.get('next'))
-  const redirectToLogin = (error: string) => {
+  const isVolunteerDestination = next === '/volunteer' || next.startsWith('/volunteer?')
+  const redirectOnError = (error: string) => {
+    if (isVolunteerDestination) {
+      const volunteerUrl = new URL('/volunteer', trustedOrigin)
+      const destination = new URL(next, trustedOrigin)
+      const eventId = destination.searchParams.get('eventId')
+      if (eventId) volunteerUrl.searchParams.set('eventId', eventId)
+      volunteerUrl.searchParams.set('error', 'auth')
+      return NextResponse.redirect(volunteerUrl)
+    }
+
     const loginUrl = new URL('/admin/login', trustedOrigin)
     loginUrl.searchParams.set('error', error)
     return NextResponse.redirect(loginUrl)
   }
 
   const code = requestUrl.searchParams.get('code')
-  if (!code) return redirectToLogin('callback')
+  if (!code) return redirectOnError('callback')
 
-  const client = await createSupabaseServerClient()
-  if (!client) return redirectToLogin('configuration')
+  let client
+  try {
+    client = await createSupabaseServerClient()
+  } catch {
+    return redirectOnError('configuration')
+  }
+  if (!client) return redirectOnError('configuration')
 
-  const { error } = await client.auth.exchangeCodeForSession(code)
-  if (error) return redirectToLogin('callback')
+  try {
+    const { error } = await client.auth.exchangeCodeForSession(code)
+    if (error) return redirectOnError('callback')
+  } catch {
+    return redirectOnError('callback')
+  }
 
   return NextResponse.redirect(new URL(next, trustedOrigin))
 }

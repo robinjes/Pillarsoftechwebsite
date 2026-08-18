@@ -13,42 +13,51 @@ import WorkshopAssembly from '@/components/site/WorkshopAssembly'
 
 function HeroSection() {
   return (
-    <section className="bg-cream" aria-labelledby="hero-heading">
-      <div className="site-shell mx-auto px-5 pb-16 pt-14 sm:px-8 sm:pb-24 sm:pt-20 lg:px-10 lg:pb-32 lg:pt-24">
-        <div className="editorial-grid items-end gap-y-12">
-          <div className="col-span-12 lg:col-span-7">
-            <p className="mb-6 font-display text-sm font-bold uppercase tracking-[0.2em] text-cobalt">Hands-on STEM, made together</p>
-            <h1 id="hero-heading" className="display-heading max-w-4xl text-6xl text-midnight sm:text-7xl lg:text-[7.5rem]">
+    <section className="bg-midnight text-warm" aria-labelledby="hero-heading">
+      <div className="site-shell mx-auto px-5 pb-16 pt-14 sm:px-8 sm:pb-24 sm:pt-20 lg:px-10 lg:pb-24 lg:pt-24">
+        <div className="editorial-grid items-center gap-y-12">
+          <div className="col-span-12 lg:col-span-6">
+            <h1 id="hero-heading" className="display-heading max-w-[12ch] text-[3.6rem] text-warm sm:text-[4.7rem] lg:text-[5.8rem]">
               STEM belongs in every student’s hands.
             </h1>
-            <p className="body-copy mt-8 text-lg text-ink/75 sm:text-xl">
-              We bring students, families, schools, and communities into the same room to ask better questions and build what comes next.
+            <p className="body-copy mt-7 max-w-xl text-lg text-warm/75 sm:text-xl">
+              We make STEM practical, welcoming, and open to more young people through events, mentorship, and community.
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <Link href="/events" className="inline-flex min-h-12 items-center gap-2 border border-midnight bg-midnight px-5 text-sm font-bold text-warm transition-colors hover:bg-cobalt">
+              <Link href="/events" className="inline-flex min-h-12 items-center gap-2 border border-sky bg-sky px-5 text-sm font-bold text-midnight transition-colors hover:bg-warm">
                 Find an Event <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
               </Link>
-              <Link href="/volunteer" className="inline-flex min-h-12 items-center gap-2 border border-midnight px-5 text-sm font-bold text-midnight transition-colors hover:bg-sky">
+              <Link href="/volunteer" className="inline-flex min-h-12 items-center gap-2 border border-warm/70 px-5 text-sm font-bold text-warm transition-colors hover:bg-warm hover:text-midnight">
                 Volunteer <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
           </div>
 
-          <div className="col-span-12 lg:col-span-5 lg:col-start-8">
-            <figure className="relative ml-auto aspect-video w-full max-w-[14rem] overflow-hidden border border-ink/30 bg-sky sm:max-w-none sm:aspect-[4/3]">
+          <div className="col-span-12 lg:col-span-6 lg:col-start-7">
+            <div className="relative mx-auto max-w-2xl pb-8 pl-0 sm:pb-10 sm:pl-8">
+              <figure className="relative aspect-[4/3] w-full overflow-hidden border border-warm/30 bg-sky">
               <Image
-                src="/images/events/science-odyssey/drive-01.webp"
-                alt="Students crowd around an outdoor table building marshmallow structures at Science Odyssey."
+                src="/images/events/science-odyssey/drive-02.webp"
+                alt="Students compare and test marshmallow structures at the Science Odyssey engineering table."
                 fill
-                loading="eager"
-                quality={60}
+                priority
                 sizes="(max-width: 1024px) 100vw, 42vw"
                 className="object-cover"
               />
-              <figcaption className="absolute bottom-0 left-0 border-t border-r border-ink/30 bg-cream px-3 py-2 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-midnight">
-                Science Odyssey · Hands-on engineering
+                <figcaption className="absolute bottom-0 left-0 border-t border-r border-warm/30 bg-midnight px-3 py-2 text-xs font-semibold text-warm">
+                  Science Odyssey · Engineering in public
               </figcaption>
-            </figure>
+              </figure>
+              <figure className="absolute bottom-0 right-0 hidden aspect-[4/3] w-40 overflow-hidden border-4 border-midnight bg-sky shadow-[6px_6px_0_#A9D8F2] sm:block sm:w-48 lg:w-52">
+                <Image
+                  src="/images/events/pedrozzi-connect-egg-drop/drive-04.webp"
+                  alt="Student organizers gather outdoors after the Pedrozzi CONNECT Egg Drop."
+                  fill
+                  sizes="208px"
+                  className="object-cover"
+                />
+              </figure>
+            </div>
           </div>
         </div>
       </div>

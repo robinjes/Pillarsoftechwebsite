@@ -1,5 +1,6 @@
 'use client'
 
+import { getSafeNextPath } from '@/lib/auth/redirect'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase/client'
 import type {
   ActiveAttendanceDto,
@@ -178,6 +179,7 @@ export const volunteerService = {
   isSupabaseConfigured: (): boolean => isSupabaseConfigured(),
 
   getCurrentUser: async (): Promise<VolunteerProfile | null> => {
+    if (!isSupabaseConfigured()) return null
     try {
       const data = await fetchApi<{ profile: VolunteerProfileDto }>('/api/me')
       return data.profile ? mapProfile(data.profile) : null
@@ -191,7 +193,7 @@ export const volunteerService = {
     if (!supabase || typeof window === 'undefined') {
       throw new Error('Google sign-in is not configured on this deployment.')
     }
-    const safeNext = next === '/admin' ? '/admin' : '/volunteer'
+    const safeNext = getSafeNextPath(next, '/volunteer')
     const callback = new URL('/auth/callback', window.location.origin)
     callback.searchParams.set('next', safeNext)
     const { error } = await supabase.auth.signInWithOAuth({

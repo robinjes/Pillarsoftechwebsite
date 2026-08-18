@@ -19,18 +19,18 @@ describe('editorial homepage foundation', () => {
     expect(page.indexOf('<FinanceSection')).toBeLessThan(page.indexOf('<SupportLinks'))
   })
 
-  it('uses only approved impact data and has a qualitative empty state', () => {
+  it('uses source-dated impact data with a compact, accessible caveat disclosure', () => {
     const page = readSource('app/page.tsx')
     const metrics = readSource('components/site/ImpactMetrics.tsx')
     expect(page).toContain('listPublicImpact()')
     expect(page).not.toContain('stats')
-    expect(metrics).toContain('data-testid="impact-empty-state"')
-    expect(metrics).toContain('Verified impact data is being prepared')
+    expect(metrics).toContain('previewImpactSnapshot')
+    expect(metrics).toContain('How these numbers are counted')
     expect(metrics).toContain('metric.methodologyNote')
-    expect(metrics).toContain('How this is counted')
-    expect(page).toContain('Students crowd around an outdoor table building marshmallow structures at Science Odyssey.')
-    expect(page).toContain('loading="eager"')
-    expect(page).not.toContain('fetchPriority="high"')
+    expect(page).toContain('/images/events/science-odyssey/drive-02.webp')
+    expect(page).toContain('Students compare and test marshmallow structures at the Science Odyssey engineering table.')
+    expect(page).toContain('priority')
+    expect(page).not.toContain('loading="eager"')
   })
 
   it('keeps the signature workshop motion restrained and object-only', () => {
@@ -49,9 +49,13 @@ describe('editorial homepage foundation', () => {
     expect(desktopWorkshop).toContain('useReducedMotion')
     expect(desktopWorkshop).toContain("import Image from 'next/image'")
     expect(desktopWorkshop).toContain('ref={sectionRef}')
-    expect(desktopWorkshop).toContain('className="relative hidden min-h-[180vh] bg-sky lg:block"')
+    expect(desktopWorkshop).toContain('min-h-[280vh]')
     for (const asset of ['access.webp', 'build.webp', 'lead.webp']) {
       expect(workshopData).toContain(`/images/workshop/${asset}`)
+      expect(desktopWorkshop).toContain(`/images/workshop/${asset}`)
+    }
+    for (const asset of ['chassis-v2.webp', 'wheel-v2.webp', 'electronics-v2.webp', 'sensor-v2.webp']) {
+      expect(desktopWorkshop).toContain(`/images/workshop/${asset}`)
     }
     expect(workshopData).toContain('A closed workshop kit ready to open for a STEM project.')
     expect(workshopData).toContain('An open STEM kit with wheels, sensors, wiring, and rover parts ready to assemble.')
@@ -59,13 +63,17 @@ describe('editorial homepage foundation', () => {
     expect(workshopData).toContain('A rover project moves from a closed kit to organized components and a completed build through Access, Build, and Lead.')
     expect(desktopWorkshop).toContain('role="img"')
     expect(desktopWorkshop).toContain('aria-hidden="true"')
-    expect(desktopWorkshop).toContain('priority={index === 0}')
-    expect(desktopWorkshop).not.toMatch(/people|student|human|avatar/i)
+    expect(desktopWorkshop).toContain('rotateX')
+    expect(desktopWorkshop).toContain('useAssemblyPart')
+    expect(desktopWorkshop).toContain('reducedMotion ? 1 : finalOpacity')
+    expect(desktopWorkshop).toContain('[0, 0.08, 0.2, 0.3, 0.48]')
+    expect(desktopWorkshop).not.toContain('scaleX')
+    expect(desktopWorkshop).not.toMatch(/\/images\/(?:people|students|avatars)\//i)
     expect(desktopLoader).toContain("matchMedia('(min-width: 1024px)')")
     expect(desktopLoader).toContain("import('@/components/site/WorkshopAssemblyDesktop')")
     expect(desktopLoader).toContain('requestedRef.current')
     expect(desktopLoader).toContain("mediaQuery.addEventListener('change'")
-    expect(desktopLoader).toContain('min-h-[180vh]')
+    expect(desktopLoader).toContain('min-h-[280vh]')
     expect(desktopLoader).toContain('aria-hidden="true"')
   })
 

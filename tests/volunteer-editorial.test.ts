@@ -10,6 +10,7 @@ const checkinPage = readSource('app/volunteer/checkin/page.tsx')
 const checkinLayout = readSource('app/volunteer/checkin/layout.tsx')
 const memberQr = readSource('components/LocalMemberQr.tsx')
 const memberCard = readSource('components/MemberCard.tsx')
+const volunteerService = readSource('lib/volunteerService.ts')
 const publicVolunteerSource = [volunteerPage, checkinPage, memberQr, memberCard].join('\n')
 
 describe('volunteer and staff check-in experience', () => {
@@ -21,7 +22,12 @@ describe('volunteer and staff check-in experience', () => {
     expect(volunteerPage).toContain('Registration closed')
     expect(volunteerPage).toContain('registerForEvent')
     expect(volunteerPage).toContain('withdrawFromEvent')
-    expect(volunteerPage).toContain("signInWithGoogle('/volunteer')")
+    expect(volunteerPage).toContain('const signInDestination = deepLinkedEventId')
+    expect(volunteerPage).toContain('encodeURIComponent(deepLinkedEventId)')
+    expect(volunteerPage).toContain('signInWithGoogle(signInDestination)')
+    expect(volunteerService).toContain("import { getSafeNextPath } from '@/lib/auth/redirect'")
+    expect(volunteerService).toContain("getSafeNextPath(next, '/volunteer')")
+    expect(volunteerService).toContain('if (!isSupabaseConfigured()) return null')
     expect(volunteerPage).toContain('void loadVolunteerSession().catch')
   })
 
