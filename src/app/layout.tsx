@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
+import { connection } from 'next/server'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import GlobalShortcut from '@/components/GlobalShortcut'
 import { quicksand } from '@/lib/fonts'
 
 export const metadata: Metadata = {
@@ -44,15 +44,16 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  await connection()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={quicksand.className} suppressHydrationWarning>
-        <GlobalShortcut />
         <Navbar />
         {children}
         <Footer />

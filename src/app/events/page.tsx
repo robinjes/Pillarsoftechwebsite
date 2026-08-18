@@ -45,21 +45,15 @@ export default function EventsPage() {
 
   // Fetch events and forms on mount
   useEffect(() => {
-    Promise.all([
-      fetch('/api/events').then(res => res.json()),
-      fetch('/api/forms').then(res => res.json())
-    ])
-    .then(([eventsData, formsData]) => {
+    fetch('/api/events')
+    .then(res => res.json())
+    .then((eventsData) => {
       setEvents(eventsData)
-      
-      const activeFormEventIds = new Set<string>();
-      if (Array.isArray(formsData)) {
-        formsData.forEach((form: any) => {
-          if (form.isActive) {
-            activeFormEventIds.add(form.eventId);
-          }
-        });
-      }
+      const activeFormEventIds = new Set<string>(
+        eventsData
+          .filter((event: Event) => event.participantRegistrationState === 'open')
+          .map((event: Event) => event.id),
+      )
       setActiveForms(activeFormEventIds);
       setLoading(false)
     })
@@ -67,7 +61,7 @@ export default function EventsPage() {
   }, [])
 
   const filteredEvents = events.filter((event) => {
-    const normalizedStatus = event.status === 'past' ? 'completed' : event.status
+    const normalizedStatus = event.status
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           event.description.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesFilter = filter === 'all' ? true : normalizedStatus === filter
@@ -108,8 +102,8 @@ export default function EventsPage() {
 
   // Upcoming first; then sort by date with the most recent (or next upcoming) at the top
   const displayEvents = filteredEvents.sort((a, b) => {
-    const aStatus = a.status === 'past' ? 'completed' : a.status
-    const bStatus = b.status === 'past' ? 'completed' : b.status
+    const aStatus = a.status
+    const bStatus = b.status
 
     if (aStatus === 'upcoming' && bStatus !== 'upcoming') return -1
     if (bStatus === 'upcoming' && aStatus !== 'upcoming') return 1

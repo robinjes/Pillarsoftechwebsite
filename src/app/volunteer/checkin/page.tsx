@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
 import Link from 'next/link'
-import { Html5Qrcode } from 'html5-qrcode'
+import type { Html5Qrcode } from 'html5-qrcode'
 import {
   volunteerService,
   EventRosterEntry,
@@ -18,8 +18,7 @@ import {
   ArrowLeft, 
   Search, 
   CheckCircle2, 
-  AlertCircle, 
-  Info,
+  AlertCircle,
   Calendar,
   Clock,
   UserCheck,
@@ -78,13 +77,20 @@ export default function CheckinPage() {
   const [showSettings, setShowSettings] = useState(false)
   const [settingsLoading, setSettingsLoading] = useState(false)
 
-  const qrReaderRef = useRef<HTMLDivElement>(null)
-  const beepPlayTimeoutRef = useRef<any>(null)
+  const beepPlayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const handleCodeScanRef = useRef<(code: string) => void>(() => undefined)
 
   // Programmatic synthesizer check-in beep
   const playSuccessBeep = () => {
     try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      type WindowWithWebkitAudioContext = Window & {
+        webkitAudioContext?: typeof AudioContext
+      }
+      const AudioContextConstructor =
+        window.AudioContext || (window as WindowWithWebkitAudioContext).webkitAudioContext
+      if (!AudioContextConstructor) return
+
+      const audioCtx = new AudioContextConstructor()
       const oscillator = audioCtx.createOscillator()
       const gainNode = audioCtx.createGain()
 
@@ -109,7 +115,6 @@ export default function CheckinPage() {
     let mounted = true
 
     const init = async () => {
-      await volunteerService.handleAuthCallback()
       const profile = await volunteerService.getCurrentUser()
 
       if (!mounted) return
@@ -148,49 +153,44 @@ export default function CheckinPage() {
 
   // Start scanner when cameraActive is true and an event is selected
   useEffect(() => {
-    if (!cameraActive || !selectedEventId) {
-      // Stop scanner if active
-      if (scannerInstance) {
-        if (scannerInstance.isScanning) {
-          scannerInstance.stop().then(() => {
-            scannerInstance.clear()
-            setScannerInstance(null)
-          }).catch(console.error)
-        } else {
-          scannerInstance.clear()
-          setScannerInstance(null)
-        }
-      }
-      return
-    }
+    if (!cameraActive || !selectedEventId) return
 
-    // Give react time to mount the qr-reader div element
+    let cancelled = false
+    let localScanner: Html5Qrcode | null = null
+
+    // Give react time to mount the qr-reader div element. The scanner bundle is
+    // loaded only after the already-verified staff member activates the camera.
     const timer = setTimeout(() => {
       const qrCodeId = 'qr-reader'
-      const html5QrCode = new Html5Qrcode(qrCodeId)
-      
-      html5QrCode.start(
-        { facingMode: 'environment' },
-        {
-          fps: 10,
-          qrbox: (width, height) => {
-            const size = Math.min(width, height) * 0.7
-            return { width: size, height: size }
+      void import('html5-qrcode').then(({ Html5Qrcode }) => {
+        if (cancelled) return
+        const html5QrCode = new Html5Qrcode(qrCodeId)
+        localScanner = html5QrCode
+
+        return html5QrCode.start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: (width, height) => {
+              const size = Math.min(width, height) * 0.7
+              return { width: size, height: size }
+            }
+          },
+          (decodedText) => {
+            handleCodeScanRef.current(decodedText)
+          },
+          () => {
+            // Silent scan failure per frame
           }
-        },
-        async (decodedText) => {
-          // Success callback
-          handleCodeScan(decodedText)
-        },
-        () => {
-          // Silent scan failure per frame
-        }
-      )
-      .then(() => {
-        setScannerInstance(html5QrCode)
-        setCameraError('')
-      })
-      .catch(err => {
+        ).then(() => {
+          if (cancelled) {
+            return html5QrCode.stop().then(() => html5QrCode.clear())
+          }
+          setScannerInstance(html5QrCode)
+          setCameraError('')
+        })
+      }).catch(err => {
+        if (cancelled) return
         console.error('Camera start failed:', err)
         setCameraError('Camera access denied or device busy.')
         setCameraActive(false)
@@ -198,9 +198,28 @@ export default function CheckinPage() {
     }, 100)
 
     return () => {
+      cancelled = true
       clearTimeout(timer)
+      if (localScanner?.isScanning) {
+        void localScanner.stop().then(() => localScanner?.clear()).catch(() => undefined)
+      }
     }
   }, [cameraActive, selectedEventId])
+
+  // Stop the active scanner when the camera is deactivated.
+  useEffect(() => {
+    if (cameraActive || !scannerInstance) return
+
+    if (scannerInstance.isScanning) {
+      scannerInstance.stop().then(() => {
+        scannerInstance.clear()
+        setScannerInstance(null)
+      }).catch(console.error)
+    } else {
+      scannerInstance.clear()
+      setScannerInstance(null)
+    }
+  }, [cameraActive, scannerInstance])
 
   // Stop scanner on unmount
   useEffect(() => {
@@ -211,14 +230,22 @@ export default function CheckinPage() {
     }
   }, [scannerInstance])
 
+  const loadEventRoster = useCallback(async (eventId = selectedEventId) => {
+    if (!eventId) return
+    setRosterLoading(true)
+    const roster = await volunteerService.getEventRoster(eventId)
+    setEventRoster(roster)
+    setRosterLoading(false)
+  }, [selectedEventId])
+
   useEffect(() => {
     if (!selectedEventId) {
       setEventRoster([])
       return
     }
 
-    loadEventRoster(selectedEventId)
-  }, [selectedEventId])
+    void loadEventRoster(selectedEventId)
+  }, [selectedEventId, loadEventRoster])
 
   useEffect(() => {
     let mounted = true
@@ -263,13 +290,15 @@ export default function CheckinPage() {
       beepPlayTimeoutRef.current = setTimeout(() => {
         setRecentScan(null)
       }, 4000)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      setCheckinError(err.message || 'Check-in failed. Check member code.')
+      setCheckinError(err instanceof Error ? err.message : 'Check-in failed. Check member code.')
     } finally {
       setCheckinLoading(false)
     }
   }
+
+  handleCodeScanRef.current = handleCodeScan
 
   const handleManualCheckIn = (e: React.FormEvent) => {
     e.preventDefault()
@@ -290,51 +319,19 @@ export default function CheckinPage() {
     setActiveCheckIns(sessions)
   }
 
-  const loadEventRoster = async (eventId = selectedEventId) => {
-    if (!eventId) return
-    setRosterLoading(true)
-    const roster = await volunteerService.getEventRoster(eventId)
-    setEventRoster(roster)
-    setRosterLoading(false)
-  }
-
-  const exportRosterCsv = () => {
+  const exportRosterCsv = async () => {
     if (!selectedEvent) return
-
-    const rows = [
-      ['Name', 'Email', 'Member Code', 'Status', 'Hours', 'Checked In At'],
-      ...eventRoster.map(({ signup, profile }) => [
-        profile?.fullName || 'Unknown volunteer',
-        profile?.email || '',
-        profile?.memberCode || '',
-        signup.status,
-        signup.hours.toString(),
-        signup.checkedInAt || '',
-      ]),
-    ]
-
-    const csv = rows
-      .map((row) => row.map((value) => `"${value.replace(/"/g, '""')}"`).join(','))
-      .join('\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `${selectedEvent.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-volunteer-roster.csv`
-    link.click()
-    URL.revokeObjectURL(link.href)
+    try {
+      await volunteerService.downloadAttendanceCsv(selectedEvent.id)
+    } catch (error) {
+      setCheckinError(error instanceof Error ? error.message : 'The roster export could not be created.')
+    }
   }
 
   const handleManualProfileSelect = (profile: VolunteerProfile) => {
     setManualCode(profile.memberCode)
     setManualSearch('')
     setManualSearchResults([])
-  }
-
-  const handleUpdateRole = async (userId: string, newRole: 'volunteer' | 'staff') => {
-    const result = await volunteerService.updateUserRole(userId, newRole)
-    if (result) {
-      setAllProfiles(allProfiles.map(p => p.id === userId ? result : p))
-    }
   }
 
   const handleLogout = async () => {
@@ -422,7 +419,7 @@ export default function CheckinPage() {
             Staff Settings
           </h2>
           <p className={`${spaceGrotesk.className} text-sm text-blue-200`}>
-            Manage who is staff and who is a volunteer.
+            View server-controlled staff membership. Membership changes are owner-only SQL operations.
           </p>
         </div>
 
@@ -477,19 +474,6 @@ export default function CheckinPage() {
                   {profile.role}
                 </span>
 
-                <select
-                  value={profile.role}
-                  onChange={(e) =>
-                    handleUpdateRole(
-                      profile.id,
-                      e.target.value as 'volunteer' | 'staff'
-                    )
-                  }
-                  className={`${spaceGrotesk.className} bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-accent`}
-                >
-                  <option value="volunteer">Volunteer</option>
-                  <option value="staff">Staff</option>
-                </select>
               </div>
             </div>
           ))}

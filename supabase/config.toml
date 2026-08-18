@@ -1,0 +1,17 @@
+# Local Supabase configuration for the versioned security-foundation schema.
+# Replace project-specific deployment values through the Supabase CLI; no
+# credentials or staff identities belong in this file.
+project_id = "pillarsoftechwebsite"
+
+[api]
+enabled = true
+
+[db]
+major_version = 15
+
+[auth]
+enabled = true
+
+[storage]
+enabled = true
+file_size_limit = "100MiB"

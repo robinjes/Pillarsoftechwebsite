@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Fredoka, Space_Grotesk } from 'next/font/google';
 import { Send, CheckCircle2, ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
-import { FormSchema, Settings } from '@/lib/data-store';
+import type { FormField } from '@/lib/content-contracts';
 import Link from 'next/link';
 
 const fredoka = Fredoka({ subsets: ['latin'] });
@@ -14,86 +14,63 @@ const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] });
 export default function RegisterPage() {
   const params = useParams();
   const eventId = params.eventId as string;
-  const router = useRouter();
-
-  const [formSchema, setFormSchema] = useState<FormSchema | null>(null);
-  const [appsScriptUrl, setAppsScriptUrl] = useState<string>('');
+  const [formSchema, setFormSchema] = useState<{ eventId: string; kind: 'participant'; fields: FormField[]; isActive: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Form State Values
-  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<Record<string, string | boolean>>({});
 
-  useEffect(() => {
-    fetchData();
-  }, [eventId]);
-
-  const fetchData = async () => {
-    try {
-      const [formRes, settingsRes] = await Promise.all([
-        fetch(`/api/forms?eventId=${eventId}`),
-        fetch('/api/settings')
-      ]);
-
-      if (!formRes.ok) throw new Error('Registration form not found for this event.');
-      
-      const form = await formRes.json();
-      const settings = await settingsRes.json();
-      
-      if (!form.isActive) throw new Error('Registration for this event is currently closed.');
-      
-      setFormSchema(form);
-      setAppsScriptUrl(form.appsScriptUrl || settings.appsScriptUrl);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load registration form.');
-    } finally {
-      setLoading(false);
-    }
+  const getFormValue = (id: string) => {
+    const value = formData[id];
+    return typeof value === 'string' ? value : '';
   };
 
-  const handleInputChange = (id: string, value: any) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const formRes = await fetch(`/api/forms?eventId=${encodeURIComponent(eventId)}`);
+
+        if (!formRes.ok) throw new Error('Registration form not found for this event.');
+
+        const form = await formRes.json();
+
+        if (!form.isActive) throw new Error('Registration for this event is currently closed.');
+
+        setFormSchema(form);
+        setFormData(Object.fromEntries(form.fields.map((field: FormField) => [field.id, field.type === 'checkbox' ? false : ''])));
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : 'Failed to load registration form.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void fetchData();
+  }, [eventId]);
+
+  const handleInputChange = (id: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!appsScriptUrl) {
-      setError('Registration is temporarily unavailable (Webhook not configured).');
-      return;
-    }
-
     setSubmitting(true);
     setError(null);
-    
-    // Format data for Google Sheets
-    // Map field keys back to readable labels if possible, or just send IDs. Sending Labels is better for sheets headers.
-    const payload: Record<string, any> = {};
-    if (formSchema) {
-      formSchema.fields.forEach(field => {
-        payload[field.label] = formData[field.id] || '';
-      });
-      // Add timestamp and Event ID automatically
-      payload['Timestamp'] = new Date().toISOString();
-      payload['Event ID'] = eventId;
-    }
 
     try {
-      const res = await fetch(appsScriptUrl, {
+      const response = await fetch('/api/registrations/participant', {
         method: 'POST',
-        // using text/plain to avoid CORS preflight issues strictly with google apps script
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, answers: formData, honeypot: '' })
       });
-
-      // We might get an opaque response or CORS error depending on how the fetch executes,
-      // but if the promise resolves, we assume the data was sent.
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Registration could not be submitted.');
       setSuccess(true);
-    } catch (err) {
-      console.error(err);
-      // Fallback success because fetch to apps script from client might throw network error due to opaque response
-      setSuccess(true); 
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Registration could not be submitted.');
     } finally {
       setSubmitting(false);
     }
@@ -148,7 +125,7 @@ export default function RegisterPage() {
           transition={{ delay: 0.2 }}
           className={`${fredoka.className} text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 to-emerald-600 mb-6 pb-2`}
         >
-          You're Registered!
+          You&apos;re Registered!
         </motion.h1>
         
         <motion.p 
@@ -157,7 +134,7 @@ export default function RegisterPage() {
           transition={{ delay: 0.3 }}
           className={`${spaceGrotesk.className} text-xl md:text-2xl text-blue-100 opacity-90 mb-10 max-w-lg`}
         >
-          Thank you for signing up. We've successfully received your information and look forward to seeing you there.
+          Thank you for signing up. We&apos;ve successfully received your information and look forward to seeing you there.
         </motion.p>
         
         <motion.div
@@ -223,7 +200,7 @@ export default function RegisterPage() {
                     type={field.type}
                     required={field.required}
                     className="w-full bg-slate-800/80 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-accent focus:bg-slate-800 transition-colors"
-                    value={formData[field.id] || ''}
+                    value={getFormValue(field.id)}
                     onChange={e => handleInputChange(field.id, e.target.value)}
                   />
                 ) : field.type === 'textarea' ? (
@@ -232,7 +209,7 @@ export default function RegisterPage() {
                     required={field.required}
                     rows={4}
                     className="w-full bg-slate-800/80 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-accent focus:bg-slate-800 transition-colors resize-none"
-                    value={formData[field.id] || ''}
+                    value={getFormValue(field.id)}
                     onChange={e => handleInputChange(field.id, e.target.value)}
                   />
                 ) : field.type === 'select' ? (
@@ -240,7 +217,7 @@ export default function RegisterPage() {
                     id={field.id}
                     required={field.required}
                     className="w-full bg-slate-800/80 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-accent focus:bg-slate-800 transition-colors appearance-none"
-                    value={formData[field.id] || ''}
+                    value={getFormValue(field.id)}
                     onChange={e => handleInputChange(field.id, e.target.value)}
                   >
                     <option value="" disabled>-- Select an option --</option>

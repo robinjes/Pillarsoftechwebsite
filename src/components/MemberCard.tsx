@@ -1,4 +1,5 @@
 import { VolunteerProfile } from '@/lib/volunteerService'
+import { LocalMemberQr } from './LocalMemberQr'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
@@ -43,13 +44,7 @@ export const MemberCardContent = ({ profile }: { profile: VolunteerProfile }) =>
 
     {/* QR Code */}
     <div className="bg-white p-4 rounded-2xl flex justify-center mb-6">
-      <img
-        src={`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(profile.memberCode)}`}
-        alt="QR Code"
-        width={160}
-        height={160}
-        className="select-none"
-      />
+      <LocalMemberQr value={profile.memberCode} size={160} alt="Membership QR code" className="select-none" />
     </div>
 
     {/* Footer */}
