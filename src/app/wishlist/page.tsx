@@ -89,7 +89,7 @@ export default function WishlistPage() {
             </h1>
 
             <p className="mt-5 max-w-2xl text-base leading-7 text-blue-100 sm:text-xl sm:leading-8">
-              These are the items that help our student-run nonprofit run hands-on STEM sessions with
+              These are the items that help our student-led STEM organization run hands-on STEM sessions with
               better consistency, more devices, and less setup time.
             </p>
 

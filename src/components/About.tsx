@@ -7,29 +7,6 @@ import Link from 'next/link'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 
-const partnerOrganizations = [
-  {
-    name: 'Hack Club',
-    subtitle: 'Fiscal sponsor',
-    monogram: 'HC',
-  },
-  {
-    name: 'Pedrozzi Youth Foundation',
-    subtitle: 'Community partner',
-    monogram: 'PY',
-  },
-  {
-    name: 'QUEST Science Center',
-    subtitle: 'STEM collaborator',
-    monogram: 'QS',
-  },
-  {
-    name: 'Altamont Creek Elementary',
-    subtitle: 'School partner',
-    monogram: 'AC',
-  },
-]
-
 export default function About() {
   const coreValues = [
     {
@@ -56,13 +33,6 @@ export default function About() {
       Icon: Rocket,
       color: 'from-purple-400 to-indigo-400'
     }
-  ]
-
-  const achievements = [
-    { number: '1000+', label: 'Students Empowered' },
-    { number: '100+', label: 'Volunteer Hours' },
-    { number: '3', label: 'Partner Organizations' },
-    { number: '∞', label: 'Potential Unlocked' }
   ]
 
   const pillars = [
@@ -146,77 +116,11 @@ export default function About() {
                 <Rocket className="w-12 h-12 text-purple-400 mb-4" />
                 <h3 className={`${fredoka.className} text-3xl font-bold text-white mb-4`}>Our Vision</h3>
                 <p className="text-lg text-blue-100 leading-relaxed">
-                  By 2026, we envision a world where 1000+ students have been empowered through our programs, equipped with the skills, confidence, and networks to pursue careers in technology. We&apos;re building a generation of innovators, leaders, and changemakers who will shape the future.
+                  We envision a future where students can discover technology through accessible programs, meaningful mentorship, and hands-on experiences. We&apos;re building a community of innovators, leaders, and changemakers who can shape the future.
                 </p>
               </div>
             </motion.div>
           </div>
-        </div>
-      </section>
-
-      {/* Achievements Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-900/30 to-blue-800/30 backdrop-blur-md border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            {achievements.map((achievement, index) => (
-              <div key={achievement.label} className="text-center">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className={`${fredoka.className} text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-300 mb-2`}
-                >
-                  {achievement.number}
-                </motion.div>
-                <p className="text-blue-100 text-lg">{achievement.label}</p>
-              </div>
-            ))}
-          </motion.div>
-
-          <motion.div
-            className="mt-12 rounded-2xl border border-white/10 bg-white/5 px-6 py-6 backdrop-blur-md"
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            viewport={{ once: true }}
-          >
-            <div className="mb-5 text-center">
-              <h3 className={`${fredoka.className} text-2xl md:text-3xl font-bold text-white`}>
-                Our Partners
-              </h3>
-              <p className="mt-2 text-sm md:text-base text-blue-100/90">
-                The organizations helping us expand access to STEM education.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap justify-center gap-4">
-              {partnerOrganizations.map((partner) => (
-                <div
-                  key={partner.name}
-                  className="group flex min-w-[220px] flex-1 basis-[220px] items-center gap-4 rounded-2xl border border-white/10 bg-black/20 px-5 py-4 opacity-75 transition-all duration-200 ease-in-out hover:-translate-y-1 hover:border-cyan-300/40 hover:bg-white/10 hover:opacity-100 hover:shadow-lg hover:shadow-cyan-500/10"
-                >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-sm font-black tracking-[0.18em] text-white/70 transition-all duration-200 ease-in-out group-hover:border-cyan-300/40 group-hover:text-cyan-100">
-                    {partner.monogram}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-base font-semibold text-white transition-all duration-200 ease-in-out group-hover:text-cyan-100">
-                      {partner.name}
-                    </p>
-                    <p className="text-sm text-blue-100/70 transition-all duration-200 ease-in-out group-hover:text-blue-100">
-                      {partner.subtitle}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </motion.div>
         </div>
       </section>
 
@@ -326,7 +230,16 @@ export default function About() {
                 We are a passionate collective of high school students, mentors, and volunteers united by a single mission: to democratize access to technology education. Our team comes from diverse backgrounds, but we share a common belief that every student deserves the opportunity to discover their potential in STEM.
               </p>
               <p>
-                <span className="text-cyan-300 font-semibold">Fiscally sponsored by Hack Club</span>, a nonprofit organization supporting student technologists worldwide, we operate under their 501(c)(3) status. This partnership means every donation is tax-deductible and goes directly to our programs — no overhead, no bureaucracy, just impact.
+                <span className="text-cyan-300 font-semibold">Fiscally sponsored through Hack Club</span>. For financial transparency, review the{' '}
+                <a
+                  href="https://hcb.hackclub.com/pillars-of-tech/transactions"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-cyan-300 underline underline-offset-4 hover:text-cyan-100"
+                >
+                  HCB transparency report
+                </a>
+                . Our work centers on accessible STEM learning, hands-on programs, and mentorship.
               </p>
               <p>
                 What sets us apart is our student-led approach. We don&apos;t just teach STEM; we create experiences that inspire. Through engaging events, meaningful mentorship, and genuine community support, we&apos;re building the next generation of STEM leaders, innovators, and changemakers.
@@ -338,7 +251,7 @@ export default function About() {
 
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
               <a 
-                href="https://hcb.hackclub.com/pillars-of-tech/transparency"
+                href="https://hcb.hackclub.com/pillars-of-tech/transactions"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-block bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-8 py-3 rounded-lg font-semibold transition-all duration-300 transform hover:scale-105"

@@ -124,7 +124,7 @@ export default function Hero() {
     {
       title: 'Our Vision',
       description:
-        'We want to empower 1000+ students through STEM education and make them future STEM leaders by 2026.',
+        'We envision a future where more students can discover technology through accessible STEM education, mentorship, and hands-on experiences.',
       href: '/about',
       accent: 'from-cyan-300/25 to-blue-500/10'
     }
@@ -196,12 +196,6 @@ export default function Hero() {
       </Link>
     )
   }
-
-  const impactStats = [
-    { number: '1000+', label: 'Students Reached' },
-    { number: '100%', label: 'Community Focused' },
-    { number: '∞', label: 'Potential Unlocked' }
-  ]
 
   const whatWeDo = [
     {
@@ -353,34 +347,6 @@ export default function Hero() {
         </div>
       </section>
 
-      {/* Impact Stats Section */}
-      <section className="bg-gradient-to-r from-blue-900/30 to-blue-800/30 backdrop-blur-md py-12 border-t border-white/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            {impactStats.map((stat, index) => (
-              <div key={stat.label} className="text-center">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.5 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  viewport={{ once: true }}
-                  className={`${fredoka.className} text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 to-blue-300 mb-2`}
-                >
-                  {stat.number}
-                </motion.div>
-                <p className="text-blue-100 text-lg">{stat.label}</p>
-              </div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
       {/* What We Do Section */}
       <section className="py-20 bg-gradient-to-br from-blue-800/20 via-blue-750/20 to-blue-800/20 backdrop-blur-sm border-t border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -441,7 +407,16 @@ export default function Hero() {
               We&apos;re a passionate group of high school students committed to spreading STEM education to underserved communities. Every member of our team believes that every student deserves access to technology education, regardless of their background.
             </p>
             <p className="text-lg text-blue-100 leading-relaxed mb-8">
-              <span className="text-cyan-300 font-semibold">Fiscally sponsored by Hack Club</span>, we operate under their 501(c)(3) status, ensuring all donations go directly to our mission. Our goal? Empower 1000+ students by 2026.
+              <span className="text-cyan-300 font-semibold">Fiscally sponsored through Hack Club</span>, we focus on making STEM education accessible through hands-on programs and mentorship. For financial transparency, review the{' '}
+              <a
+                href="https://hcb.hackclub.com/pillars-of-tech/transactions"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-cyan-300 underline underline-offset-4 hover:text-cyan-100"
+              >
+                HCB transparency report
+              </a>
+              .
             </p>
             <Link 
               href="/about"

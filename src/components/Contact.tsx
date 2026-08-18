@@ -8,7 +8,6 @@ import { useSearchParams } from 'next/navigation'
 import {
   ArrowUpRight,
   CheckCircle2,
-  Clock3,
   Mail,
   MessageCircle,
   Sparkles,
@@ -48,11 +47,6 @@ const inquiryHighlights = [
 ]
 
 const contactStats = [
-  {
-    label: 'Typical response',
-    value: 'Within 24 hours',
-    icon: Clock3
-  },
   {
     label: 'Best channel',
     value: CONTACT_EMAIL,
@@ -294,7 +288,7 @@ export default function Contact() {
       </section>
 
       <section className="border-b border-white/10 bg-white/5 py-16">
-        <div className="mx-auto grid max-w-7xl gap-4 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
+        <div className="mx-auto grid max-w-7xl gap-4 px-4 sm:px-6 lg:grid-cols-2 lg:px-8">
           {contactStats.map((item, index) => {
             const Icon = item.icon
 
@@ -380,7 +374,7 @@ export default function Contact() {
               <h2 className={`${fredoka.className} text-2xl font-bold text-white sm:text-3xl`}>
                 Send a message
               </h2>
-              <p className="mt-2 text-sm text-blue-100 sm:text-base">We usually reply within one business day.</p>
+              <p className="mt-2 text-sm text-blue-100 sm:text-base">Share a few details to help us understand your message.</p>
             </div>
 
             {errorMessage && (
