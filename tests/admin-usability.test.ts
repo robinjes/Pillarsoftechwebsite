@@ -53,6 +53,8 @@ describe('secure admin usability foundation', () => {
     expect(shell).toContain('disabled={signingOut}')
     expect(shell).toContain('Sign out could not be completed. Please try again.')
     expect(shell).toContain('role="alert"')
+    expect(shell).toContain('<div className="site-shell mx-auto w-full flex-1')
+    expect(shell).not.toContain('<main className="site-shell mx-auto w-full flex-1')
   })
 
   it('keeps protected layout authorization and a legible fail-closed state', () => {

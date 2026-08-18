@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight, ChevronDown, Menu, X } from 'lucide-react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 import BrandMark from '@/components/site/BrandMark'
 
@@ -21,6 +22,7 @@ const supportLinks = [
 ]
 
 export default function Navbar() {
+  const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const openButtonRef = useRef<HTMLButtonElement>(null)
@@ -65,6 +67,10 @@ export default function Navbar() {
   }, [isOpen])
 
   const closeMenu = () => setIsOpen(false)
+
+  if (pathname.startsWith('/admin') || pathname.startsWith('/volunteer/checkin')) {
+    return null
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/20 bg-midnight text-warm">

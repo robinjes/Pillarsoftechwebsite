@@ -7,6 +7,7 @@ const readSource = (relativePath: string) => readFileSync(path.join(sourceRoot, 
 
 const volunteerPage = readSource('app/volunteer/page.tsx')
 const checkinPage = readSource('app/volunteer/checkin/page.tsx')
+const checkinLayout = readSource('app/volunteer/checkin/layout.tsx')
 const memberQr = readSource('components/LocalMemberQr.tsx')
 const memberCard = readSource('components/MemberCard.tsx')
 const publicVolunteerSource = [volunteerPage, checkinPage, memberQr, memberCard].join('\n')
@@ -79,6 +80,10 @@ describe('volunteer and staff check-in experience', () => {
     expect(checkinPage).toContain('searchProfiles')
     expect(checkinPage).toContain('Membership changes remain owner-only operations.')
     expect(checkinPage).toContain('No volunteers are currently checked in.')
+    expect(checkinLayout).toContain('requireVerifiedStaff()')
+    expect(checkinLayout).toContain('No scanner data or mutation was allowed.')
+    expect(checkinLayout).toContain('bg-cream')
+    expect(checkinLayout).not.toMatch(/rounded-3xl|bg-primary/)
   })
 
   it('keeps the redesign accessible, palette-bound, and motion-reduction aware', () => {

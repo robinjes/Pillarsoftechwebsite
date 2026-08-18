@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   title: 'Pillars of Tech | STEM belongs in every student’s hands.',
   description: 'Pillars of Tech brings hands-on STEM learning to students, families, schools, and communities.',
   manifest: '/site.webmanifest',
-  metadataBase: new URL('https://pillarsoftech.org'), // Adding reasonable fallback
+  metadataBase: new URL('https://pillarsoftech.org'),
   openGraph: {
     title: 'Pillars of Tech | STEM belongs in every student’s hands.',
     description: 'Hands-on STEM learning for students, families, schools, and communities.',

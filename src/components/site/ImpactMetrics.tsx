@@ -38,6 +38,10 @@ export default function ImpactMetrics({ metrics }: { metrics: PublicMetric[] }) 
                     View source
                   </a>
                 </p>
+                <details className="mt-4 border-t border-ink/20 pt-3 text-sm text-ink/65">
+                  <summary className="min-h-11 cursor-pointer py-2 font-semibold text-cobalt">How this is counted</summary>
+                  <p className="pb-2 leading-6">{metric.methodologyNote}</p>
+                </details>
               </article>
             ))}
           </div>

@@ -32,13 +32,15 @@ describe('informational and action pages', () => {
   it('preserves the contact endpoint, inquiry choices, honeypot, and states', () => {
     const contact = pageSources.contact
     expect(contact).toContain("fetch('/api/contact'")
-    expect(contact).toContain('honeypot: \'\'')
+    expect(contact).toContain('honeypot,')
+    expect(contact).toContain('setHoneypot(event.target.value)')
     expect(contact).toContain('subjectOptions')
     expect(contact).toContain("'sending'")
     expect(contact).toContain("'success'")
     expect(contact).toContain("'error'")
     expect(contact).toContain('mailto:${CONTACT_EMAIL}')
     expect(contact).toContain('aria-live="polite"')
+    expect(contact).toContain('subjectOptions.some((option) => option.value === reason)')
   })
 
   it('uses native FAQ disclosure controls and keeps a contact route', () => {
@@ -56,6 +58,7 @@ describe('informational and action pages', () => {
     }
     expect(pageSources.team).toContain('https://forms.gle/XqeKkMF4cj5W62yL9')
     expect(pageSources.team).toContain('href="/volunteer"')
+    expect(pageSources.about).toContain('href="/team"')
     expect(pageSources.team).not.toContain('placeholder')
   })
 

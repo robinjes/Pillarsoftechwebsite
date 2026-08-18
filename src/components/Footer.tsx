@@ -1,11 +1,15 @@
+'use client'
+
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { ArrowUpRight } from 'lucide-react'
 
 import BrandMark from '@/components/site/BrandMark'
 
 const exploreLinks = [
   { label: 'About', href: '/about' },
+  { label: 'Team', href: '/team' },
   { label: 'Events', href: '/events' },
   { label: 'Volunteer', href: '/volunteer' },
   { label: 'Fundraiser', href: '/fundraiser' },
@@ -21,6 +25,12 @@ const resourceLinks = [
 const currentYear = new Date().getFullYear()
 
 export default function Footer() {
+  const pathname = usePathname()
+
+  if (pathname.startsWith('/admin') || pathname.startsWith('/volunteer/checkin')) {
+    return null
+  }
+
   return (
     <footer className="border-t border-white/20 bg-midnight text-warm">
       <div className="site-shell mx-auto px-5 py-14 sm:px-8 sm:py-20 lg:px-10">

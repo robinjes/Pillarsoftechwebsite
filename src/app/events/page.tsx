@@ -313,7 +313,7 @@ export default function EventsPage() {
               </section>
             )}
 
-            {filter !== 'upcoming' && filter !== 'completed' && (
+            {filter !== 'upcoming' && filter !== 'completed' && (filter === 'cancelled' || sections.cancelled.length > 0) && (
               <section aria-labelledby="cancelled-heading" className="pt-14">
                 <div className="flex items-end justify-between gap-4">
                   <div>

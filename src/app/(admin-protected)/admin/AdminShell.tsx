@@ -270,9 +270,9 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         />
       ) : null}
 
-      <main className="site-shell mx-auto w-full flex-1 px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
+      <div className="site-shell mx-auto w-full flex-1 px-5 py-8 sm:px-8 sm:py-10 lg:px-10">
         {children}
-      </main>
+      </div>
     </div>
   )
 }

@@ -38,14 +38,14 @@ function HeroSection() {
             <figure className="relative aspect-[4/3] overflow-hidden border border-ink/30 bg-sky">
               <Image
                 src="/Scienceoddyseycover.jpg"
-                alt="Students and families exploring a hands-on science activity"
+                alt="Volunteers guide children building marshmallow structures at outdoor tables"
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 42vw"
                 className="object-cover"
               />
               <figcaption className="absolute bottom-0 left-0 border-t border-r border-ink/30 bg-cream px-3 py-2 text-[0.65rem] font-bold uppercase tracking-[0.14em] text-midnight">
-                Repository photo · Science Odyssey
+                Science Odyssey · Hands-on engineering
               </figcaption>
             </figure>
           </div>

@@ -35,11 +35,13 @@ export default function Contact() {
   })
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
+  const [honeypot, setHoneypot] = useState('')
   const resetTimer = useRef<number | null>(null)
 
   useEffect(() => {
-    if (searchParams.get('reason') === 'wishlist') {
-      setFormData((currentValue) => ({ ...currentValue, subject: 'wishlist' }))
+    const reason = searchParams.get('reason')
+    if (reason && subjectOptions.some((option) => option.value === reason)) {
+      setFormData((currentValue) => ({ ...currentValue, subject: reason as SubjectValue }))
     }
   }, [searchParams])
 
@@ -84,7 +86,7 @@ export default function Contact() {
           schoolName: formData.subject === 'workshop' ? formData.schoolName : '',
           studentCount: formData.subject === 'workshop' ? formData.studentCount : '',
           message: formData.message,
-          honeypot: '',
+          honeypot,
         }),
       })
       const result = await response.json().catch(() => ({}))
@@ -94,6 +96,7 @@ export default function Contact() {
 
       setStatus('success')
       setFormData({ name: '', email: '', subject: 'general', schoolName: '', studentCount: '', message: '' })
+      setHoneypot('')
       scheduleReset()
     } catch (error) {
       setStatus('error')
@@ -201,6 +204,18 @@ export default function Contact() {
             )}
 
             <form onSubmit={handleSubmit} className="mt-7 space-y-5" aria-describedby={errorMessage ? 'contact-error' : undefined}>
+              <div className="absolute left-[-10000px] h-px w-px overflow-hidden" aria-hidden="true">
+                <label htmlFor="contact-website">Website</label>
+                <input
+                  id="contact-website"
+                  name="website"
+                  type="text"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={honeypot}
+                  onChange={(event) => setHoneypot(event.target.value)}
+                />
+              </div>
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
                   <label htmlFor="name" className="mb-2 block font-body text-sm font-bold text-[var(--midnight)]">Name</label>

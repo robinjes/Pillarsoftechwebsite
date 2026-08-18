@@ -36,6 +36,8 @@ describe('public event experience', () => {
     expect(eventDetailPage).toContain('const localHeroVideo = localAsset(event?.heroVideo)')
     expect(eventDetailPage).toContain('<source src={localHeroVideo} />')
     expect(eventDetailPage).toContain('sandbox=""')
+    expect(eventDetailPage).toContain('isCurrent && event.registrationLink')
+    expect(eventDetailPage).toContain('loading="lazy"')
     expect(toYouTubeEmbedUrl('https://www.youtube.com/watch?v=event-test')).toBe('https://www.youtube-nocookie.com/embed/event-test')
     expect(eventDetailPage).toContain('href="/wildcat-tank"')
     expect(eventDetailPage).toContain('href="/photos/wildcat-tank"')
@@ -70,6 +72,8 @@ describe('public event experience', () => {
     expect(gallery).toContain('/images/events/wildcat-tank/Outdoor1.JPG')
     expect(gallery).toContain('/images/events/wildcat-tank/Outdoor2.JPG')
     expect(gallery).toContain('/images/events/wildcat-tank/Judges+Gatty.JPG')
+    expect(gallery).toContain("LOCAL_PHOTO_PATHS[publicId] || buildCloudinaryUrl")
+    expect(gallery).not.toContain('Repository preview images')
     expect(gallery).toContain('next/image')
     expect(gallery).toContain('alt={photo.alt}')
     for (const file of ['Outdoor1.JPG', 'Outdoor2.JPG', 'Judges+Gatty.JPG']) {

@@ -130,7 +130,7 @@ export default function RegisterPage() {
 
         {loading ? (
           <div className="border-b-2 border-[var(--ink)] py-16" role="status">
-            <LoaderCircle className="h-8 w-8 animate-spin text-[var(--cobalt)]" aria-hidden="true" />
+            <LoaderCircle className="h-8 w-8 animate-spin text-[var(--cobalt)] motion-reduce:animate-none" aria-hidden="true" />
             <p className="mt-4 font-display text-2xl text-[var(--midnight)]">Loading the registration form…</p>
           </div>
         ) : error ? (
@@ -273,7 +273,7 @@ export default function RegisterPage() {
                 disabled={submitting}
                 className="inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--cobalt)] px-6 py-3 text-sm font-bold text-[var(--cream)] transition-colors hover:bg-[var(--midnight)] disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]"
               >
-                {submitting ? <><LoaderCircle className="h-4 w-4 animate-spin" aria-hidden="true" /> Sending…</> : <><Send className="h-4 w-4" aria-hidden="true" /> Send registration</>}
+                {submitting ? <><LoaderCircle className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> Sending…</> : <><Send className="h-4 w-4" aria-hidden="true" /> Send registration</>}
               </button>
             </div>
           </form>

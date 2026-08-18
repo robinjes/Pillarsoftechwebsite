@@ -154,8 +154,15 @@ export default function About() {
           </div>
           <div className="flex flex-wrap gap-3">
             <Link
-              href="/events"
+              href="/team"
               className="inline-flex min-h-11 items-center gap-2 border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--midnight)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
+            >
+              Meet the team
+              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
+            <Link
+              href="/events"
+              className="inline-flex min-h-11 items-center gap-2 border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--midnight)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
             >
               Explore events
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />

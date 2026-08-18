@@ -3,7 +3,7 @@ import { ArrowUpRight } from 'lucide-react'
 
 const links = [
   { label: 'Wishlist', href: '/wishlist', description: 'Materials that make the next build possible.' },
-  { label: 'Newsletter', href: '/newsletter', description: 'Occasional notes from the workshop.' },
+  { label: 'Newsletter', href: '/newsletter', description: 'Weekly notes from the workshop.' },
   { label: 'FAQ', href: '/faq', description: 'Quick answers about the work and how to join.' },
 ]
 

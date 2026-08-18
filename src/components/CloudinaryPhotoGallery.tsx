@@ -112,13 +112,6 @@ export default function CloudinaryPhotoGallery({ title, description, folder, pho
           <p className="mt-5 max-w-3xl text-base leading-8 text-[var(--cream)]/80 sm:text-lg">{description}</p>
         </header>
 
-        {!CLOUDINARY_CLOUD_NAME ? (
-          <section className="border-b-2 border-[var(--ink)] bg-[var(--sky)] px-6 py-7 text-[var(--midnight)]" role="status">
-            <p className="text-xs font-bold uppercase tracking-[0.2em]">Repository preview images</p>
-            <p className="mt-3 max-w-2xl text-sm leading-7">This archive is showing the approved repository photographs while the optional Cloudinary delivery is not configured.</p>
-          </section>
-        ) : null}
-
         <section className="border-b-2 border-[var(--ink)] py-10" aria-labelledby="photos-heading">
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div><p className="text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">{photos.length} photographs</p><h2 id="photos-heading" className="mt-2 font-display text-4xl text-[var(--midnight)]">Selected frames</h2></div>
