@@ -35,17 +35,20 @@ export default function AdminDashboard() {
     pastEvents: 0,
   })
   const [events, setEvents] = useState<Event[]>([])
+  const [loadError, setLoadError] = useState('')
 
   useEffect(() => {
     loadDashboardData()
   }, [])
 
   const loadDashboardData = async () => {
+    setLoadError('')
     try {
-      // Load profiles
-      const profiles = await volunteerService.getAllProfiles()
-      const volunteers = profiles.filter(p => p.role === 'volunteer')
-      const staff = profiles.filter(p => p.role === 'staff')
+      const analytics = await volunteerService.getAnalytics()
+      setStats({
+        ...analytics.stats,
+        pastEvents: analytics.stats.completedEvents,
+      })
 
       // Load events
       const res = await fetch('/api/admin/events', { cache: 'no-store' })
@@ -53,29 +56,9 @@ export default function AdminDashboard() {
       const eventData = Array.isArray(eventResult) ? eventResult : eventResult.events || []
       setEvents(eventData || [])
 
-      // Calculate stats
-      const upcoming = eventData.filter((e: Event) => e.status === 'upcoming').length
-      const past = eventData.filter((e: Event) => e.status !== 'upcoming').length
-
-      // Calculate hours (mock calculation from volunteers)
-      let totalHours = 0
-      volunteers.forEach(v => {
-        totalHours += v.totalHours || 0
-      })
-
-      const avgHours = volunteers.length > 0 ? Math.round(totalHours / volunteers.length) : 0
-
-      setStats({
-        totalVolunteers: volunteers.length,
-        totalStaff: staff.length,
-        totalEvents: eventData.length,
-        totalHoursLogged: totalHours,
-        averageHoursPerVolunteer: avgHours,
-        upcomingEvents: upcoming,
-        pastEvents: past,
-      })
     } catch (err) {
       console.error('Failed to load dashboard data:', err)
+      setLoadError('Dashboard facts are temporarily unavailable. Refresh the page to try again.')
     }
   }
 
@@ -83,14 +66,12 @@ export default function AdminDashboard() {
     icon: Icon, 
     label, 
     value, 
-    color, 
-    trend 
+    color
   }: { 
     icon: LucideIcon
     label: string
     value: string | number
     color: string
-    trend?: string
   }) => (
     <motion.div
       whileHover={{ y: -4 }}
@@ -98,7 +79,6 @@ export default function AdminDashboard() {
     >
       <div className="flex items-start justify-between mb-3">
         <Icon className="w-6 h-6" />
-        {trend && <span className="text-xs font-bold text-emerald-400">+{trend}%</span>}
       </div>
       <p className={`${spaceGrotesk.className} text-sm text-blue-200 mb-1 font-medium`}>
         {label}
@@ -131,6 +111,12 @@ export default function AdminDashboard() {
           </div>
         </motion.div>
 
+        {loadError && (
+          <div role="alert" className="mb-8 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
+            {loadError}
+          </div>
+        )}
+
         {/* Stats Grid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -143,7 +129,6 @@ export default function AdminDashboard() {
             label="Total Volunteers"
             value={stats.totalVolunteers}
             color="bg-emerald-500/10 border-emerald-500/20"
-            trend="12"
           />
           <StatCard
             icon={Heart}

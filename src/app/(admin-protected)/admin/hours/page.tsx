@@ -16,7 +16,7 @@ export default function AdminHours() {
   const [volunteers, setVolunteers] = useState<VolunteerProfile[]>([])
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editingHours, setEditingHours] = useState<number>(0)
+  const [editingDelta, setEditingDelta] = useState<number>(0)
   const [editingReason, setEditingReason] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [savingId, setSavingId] = useState<string | null>(null)
@@ -44,13 +44,13 @@ export default function AdminHours() {
     try {
       const result = await volunteerService.updateVolunteerHours(
         userId,
-        editingHours,
-        editingReason || 'Manual adjustment by admin'
+        editingDelta,
+        editingReason
       )
 
       if (result) {
         setVolunteers(volunteers.map(v =>
-          v.id === userId ? { ...v, totalHours: editingHours } : v
+          v.id === userId ? { ...v, totalHours: result.totalHours } : v
         ))
         setEditingId(null)
         setSuccessMessage(`Hours updated for ${result.fullName}`)
@@ -66,7 +66,7 @@ export default function AdminHours() {
 
   const startEdit = (volunteer: VolunteerProfile) => {
     setEditingId(volunteer.id)
-    setEditingHours(volunteer.totalHours || 0)
+    setEditingDelta(0)
     setEditingReason('')
   }
 
@@ -165,7 +165,7 @@ export default function AdminHours() {
                       Email
                     </th>
                     <th className={`${spaceGrotesk.className} text-center py-4 px-6 text-xs font-bold text-blue-200`}>
-                      Hours Logged
+                      Total Hours
                     </th>
                     <th className={`${spaceGrotesk.className} text-center py-4 px-6 text-xs font-bold text-blue-200`}>
                       Actions
@@ -189,14 +189,24 @@ export default function AdminHours() {
                       </td>
                       <td className={`${spaceGrotesk.className} py-4 px-6 text-center`}>
                         {editingId === volunteer.id ? (
-                          <input
-                            type="number"
-                            value={editingHours}
-                            onChange={(e) => setEditingHours(parseFloat(e.target.value) || 0)}
-                            className="w-20 bg-slate-800 border border-white/20 rounded-lg px-2 py-1 text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-400"
-                            step="0.5"
-                            min="0"
-                          />
+                          <div className="flex min-w-44 flex-col items-center gap-2">
+                            <label className="text-[10px] uppercase tracking-wide text-blue-200">Delta to apply</label>
+                            <input
+                              type="number"
+                              value={editingDelta}
+                              onChange={(e) => setEditingDelta(parseFloat(e.target.value) || 0)}
+                              className="w-24 bg-slate-800 border border-white/20 rounded-lg px-2 py-1 text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              step="0.5"
+                            />
+                            <input
+                              type="text"
+                              value={editingReason}
+                              onChange={(e) => setEditingReason(e.target.value)}
+                              placeholder="Reason (required)"
+                              aria-label={`Reason for ${volunteer.fullName}`}
+                              className="w-44 bg-slate-800 border border-white/20 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            />
+                          </div>
                         ) : (
                           <span className={`${fredoka.className} text-2xl font-bold text-amber-400`}>
                             {(volunteer.totalHours || 0).toFixed(1)}h
@@ -208,7 +218,7 @@ export default function AdminHours() {
                           <div className="flex gap-2 justify-center">
                             <button
                               onClick={() => handleSaveHours(volunteer.id)}
-                              disabled={savingId === volunteer.id}
+                              disabled={savingId === volunteer.id || editingDelta === 0 || editingReason.trim().length < 3}
                               className="p-2 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 rounded-lg transition-colors disabled:opacity-50"
                             >
                               <Save className="w-4 h-4" />
@@ -246,7 +256,7 @@ export default function AdminHours() {
         >
           <h3 className={`${fredoka.className} text-lg font-bold text-white mb-2`}>About Hour Management</h3>
           <p className={`${spaceGrotesk.className} text-sm text-blue-200`}>
-            Click the edit button next to any volunteer&apos;s hours to adjust them. You can manually set the total hours if a volunteer needs a correction or if they have extra time to log. All changes are recorded for audit purposes.
+            Click the edit button next to any volunteer&apos;s total to apply a nonzero delta with a meaningful reason. The database returns the new total and records every adjustment for audit purposes.
           </p>
         </motion.div>
       </div>

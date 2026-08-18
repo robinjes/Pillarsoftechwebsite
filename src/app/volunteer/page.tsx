@@ -61,9 +61,11 @@ export default function VolunteerPortalPage() {
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [pageError, setPageError] = useState('')
 
   // Event signup
   const [signingUpEventId, setSigningUpEventId] = useState<string | null>(null)
+  const [cancellingEventId, setCancellingEventId] = useState<string | null>(null)
 
   const formRef = useRef<HTMLDivElement>(null)
 
@@ -93,7 +95,11 @@ export default function VolunteerPortalPage() {
 
       if (!mounted) return
 
-      await loadVolunteerSession()
+      try {
+        await loadVolunteerSession()
+      } catch {
+        if (mounted) setPageError('Volunteer information is temporarily unavailable. Please try again.')
+      }
 
       try {
         const res = await fetch('/api/events')
@@ -122,7 +128,7 @@ export default function VolunteerPortalPage() {
 
   const upcomingEvents = events.filter((e) => e.status === 'upcoming')
 
-  const totalHours = signups
+  const totalHours = user?.totalHours ?? signups
     .filter((s) => s.status === 'attended')
     .reduce((sum, s) => sum + s.hours, 0)
 
@@ -169,13 +175,27 @@ export default function VolunteerPortalPage() {
       return
     }
     setSigningUpEventId(event.id)
+    setPageError('')
     try {
       const newSignup = await volunteerService.registerForEvent(event.id)
       setSignups((prev) => [...prev.filter((s) => s.eventId !== event.id), newSignup])
     } catch (err) {
-      console.error('Error signing up for event:', err)
+      setPageError(err instanceof Error ? err.message : 'Registration could not be completed.')
     } finally {
       setSigningUpEventId(null)
+    }
+  }
+
+  const handleCancelForEvent = async (eventId: string) => {
+    setCancellingEventId(eventId)
+    setPageError('')
+    try {
+      await volunteerService.withdrawFromEvent(eventId)
+      setSignups((previous) => previous.filter((signup) => signup.eventId !== eventId))
+    } catch (err) {
+      setPageError(err instanceof Error ? err.message : 'Registration could not be cancelled.')
+    } finally {
+      setCancellingEventId(null)
     }
   }
 
@@ -198,6 +218,11 @@ export default function VolunteerPortalPage() {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl -z-10 animate-pulse delay-1000" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          {pageError && (
+            <div role="alert" className="mb-6 rounded-2xl border border-rose-400/30 bg-rose-500/10 p-4 text-sm text-rose-100">
+              {pageError}
+            </div>
+          )}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -368,8 +393,12 @@ export default function VolunteerPortalPage() {
                             <CheckCircle2 className="w-4 h-4" /> Attended Event
                           </button>
                         ) : isRegistered ? (
-                          <button disabled className={`${spaceGrotesk.className} w-full py-3 bg-accent/20 text-blue-300 border border-accent/30 rounded-xl font-bold flex items-center justify-center gap-2`}>
-                            <CheckCircle2 className="w-4 h-4" /> Registered ✓
+                          <button
+                            onClick={() => handleCancelForEvent(event.id)}
+                            disabled={cancellingEventId === event.id}
+                            className={`${spaceGrotesk.className} w-full py-3 bg-accent/20 text-blue-300 border border-accent/30 rounded-xl font-bold flex items-center justify-center gap-2 disabled:opacity-60`}
+                          >
+                            {cancellingEventId === event.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />} {cancellingEventId === event.id ? 'Cancelling…' : 'Cancel registration'}
                           </button>
                         ) : (
                           <button

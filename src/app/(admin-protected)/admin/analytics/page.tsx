@@ -7,23 +7,24 @@ import {
   BarChart3, Download, Users, Clock, Filter, RefreshCw
 } from 'lucide-react'
 import { Event } from '@/data/events'
-import { volunteerService, VolunteerProfile } from '@/lib/volunteerService'
+import { volunteerService } from '@/lib/volunteerService'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 
 interface EventStats {
   event: Event
-  attendeeCount: number
+  volunteersAttended: number
   volunteersRegistered: number
   totalHoursAwarded: number
 }
 
 export default function AdminAnalytics() {
   const [eventStats, setEventStats] = useState<EventStats[]>([])
-  const [allProfiles, setAllProfiles] = useState<VolunteerProfile[]>([])
+  const [topVolunteersByHours, setTopVolunteersByHours] = useState<Array<{ id: string; name: string; email: string; totalHours: number }>>([])
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
+  const [analyticsError, setAnalyticsError] = useState('')
   const [selectedEventId, setSelectedEventId] = useState<string>('')
 
   useEffect(() => {
@@ -31,23 +32,27 @@ export default function AdminAnalytics() {
   }, [])
 
   const loadAnalyticsData = async () => {
+    setAnalyticsError('')
+    setLoading(true)
     try {
-      // Load all data
-      const profiles = await volunteerService.getAllProfiles()
-      setAllProfiles(profiles)
+      const analytics = await volunteerService.getAnalytics()
+      setTopVolunteersByHours(analytics.topVolunteers)
 
       const res = await fetch('/api/admin/events', { cache: 'no-store' })
       const eventResult = await res.json()
       const eventData = Array.isArray(eventResult) ? eventResult : eventResult.events || []
       setEvents(eventData || [])
 
-      // Calculate event stats (mock data based on available info)
-      const stats: EventStats[] = eventData.map((event: Event) => ({
-        event,
-        attendeeCount: Math.floor(Math.random() * 50) + 5,
-        volunteersRegistered: Math.floor(Math.random() * 20) + 3,
-        totalHoursAwarded: Math.floor(Math.random() * 100) + 20,
-      }))
+      const analyticsByEvent = new Map(analytics.events.map((stat) => [stat.id, stat]))
+      const stats: EventStats[] = eventData.map((event: Event) => {
+        const stat = analyticsByEvent.get(event.id)
+        return {
+          event,
+          volunteersAttended: stat?.volunteersAttended || 0,
+          volunteersRegistered: stat?.volunteersRegistered || 0,
+          totalHoursAwarded: stat?.totalHoursAwarded || 0,
+        }
+      })
 
       setEventStats(stats)
       if (eventData.length > 0) {
@@ -55,32 +60,19 @@ export default function AdminAnalytics() {
       }
     } catch (err) {
       console.error('Failed to load analytics:', err)
+      setAnalyticsError('Analytics are temporarily unavailable. Refresh to try again.')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleExportCSV = () => {
-    // Create CSV content
-    let csv = 'Event Name,Date,Attendees,Volunteers,Total Hours\n'
-    eventStats.forEach(stat => {
-      csv += `"${stat.event.title}","${stat.event.date}",${stat.attendeeCount},${stat.volunteersRegistered},${stat.totalHoursAwarded}\n`
-    })
-
-    // Download CSV
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `event-analytics-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
-    window.URL.revokeObjectURL(url)
+  const handleExportCSV = async () => {
+    try {
+      await volunteerService.downloadAttendanceCsv(selectedEventId || undefined)
+    } catch (error) {
+      console.error('Failed to export analytics:', error)
+    }
   }
-
-  const topVolunteersByHours = allProfiles
-    .filter(p => p.role === 'volunteer')
-    .sort((a, b) => (b.totalHours || 0) - (a.totalHours || 0))
-    .slice(0, 10)
 
   const selectedEvent = eventStats.find(s => s.event.id === selectedEventId)
 
@@ -125,6 +117,12 @@ export default function AdminAnalytics() {
           </div>
         </motion.div>
 
+        {analyticsError && (
+          <div role="alert" className="mb-8 rounded-2xl border border-amber-400/30 bg-amber-400/10 p-4 text-sm text-amber-100">
+            {analyticsError}
+          </div>
+        )}
+
         {/* Event Filter */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -160,10 +158,10 @@ export default function AdminAnalytics() {
             <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-6">
               <Users className="w-6 h-6 text-blue-400 mb-3" />
               <p className={`${spaceGrotesk.className} text-sm text-blue-200 mb-1`}>
-                Attendees
+                Volunteer attendees
               </p>
               <p className={`${fredoka.className} text-4xl font-bold`}>
-                {selectedEvent.attendeeCount}
+                {selectedEvent.volunteersAttended}
               </p>
             </div>
             <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-6">
@@ -188,6 +186,11 @@ export default function AdminAnalytics() {
         )}
 
         {/* All Events Table */}
+        {!loading && !analyticsError && eventStats.length === 0 && (
+          <div className="mb-8 rounded-2xl border border-dashed border-white/10 bg-white/5 p-8 text-center text-blue-200">
+            No attendance facts are available yet.
+          </div>
+        )}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -205,7 +208,7 @@ export default function AdminAnalytics() {
                   Date
                 </th>
                 <th className={`${spaceGrotesk.className} text-center py-3 px-4 text-xs font-bold text-blue-200`}>
-                  Attendees
+                  Volunteer attendees
                 </th>
                 <th className={`${spaceGrotesk.className} text-center py-3 px-4 text-xs font-bold text-blue-200`}>
                   Volunteers
@@ -231,7 +234,7 @@ export default function AdminAnalytics() {
                     {stat.event.date}
                   </td>
                   <td className={`${spaceGrotesk.className} py-3 px-4 text-center text-blue-300`}>
-                    {stat.attendeeCount}
+                    {stat.volunteersAttended}
                   </td>
                   <td className={`${spaceGrotesk.className} py-3 px-4 text-center text-blue-300`}>
                     {stat.volunteersRegistered}
@@ -268,16 +271,16 @@ export default function AdminAnalytics() {
                   </div>
                   <div>
                     <p className={`${spaceGrotesk.className} font-bold text-white`}>
-                      {volunteer.fullName}
+                      {volunteer.name}
                     </p>
                     <p className={`${spaceGrotesk.className} text-xs text-blue-300`}>
-                      {volunteer.email}
+                      {volunteer.email || 'Email unavailable'}
                     </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className={`${fredoka.className} text-2xl font-bold text-amber-400`}>
-                    {volunteer.totalHours || 0}
+                    {volunteer.totalHours}
                   </p>
                   <p className={`${spaceGrotesk.className} text-xs text-blue-300`}>
                     hours

@@ -319,30 +319,13 @@ export default function CheckinPage() {
     setActiveCheckIns(sessions)
   }
 
-  const exportRosterCsv = () => {
+  const exportRosterCsv = async () => {
     if (!selectedEvent) return
-
-    const rows = [
-      ['Name', 'Email', 'Member Code', 'Status', 'Hours', 'Checked In At'],
-      ...eventRoster.map(({ signup, profile }) => [
-        profile?.fullName || 'Unknown volunteer',
-        profile?.email || '',
-        profile?.memberCode || '',
-        signup.status,
-        signup.hours.toString(),
-        signup.checkedInAt || '',
-      ]),
-    ]
-
-    const csv = rows
-      .map((row) => row.map((value) => `"${value.replace(/"/g, '""')}"`).join(','))
-      .join('\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `${selectedEvent.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-volunteer-roster.csv`
-    link.click()
-    URL.revokeObjectURL(link.href)
+    try {
+      await volunteerService.downloadAttendanceCsv(selectedEvent.id)
+    } catch (error) {
+      setCheckinError(error instanceof Error ? error.message : 'The roster export could not be created.')
+    }
   }
 
   const handleManualProfileSelect = (profile: VolunteerProfile) => {
