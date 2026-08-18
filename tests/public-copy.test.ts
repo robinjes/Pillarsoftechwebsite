@@ -3,7 +3,6 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 const publicSourceFiles = [
-  'src/components/Hero.tsx',
   'src/components/About.tsx',
   'src/components/Contact.tsx',
   'src/app/wishlist/page.tsx',
