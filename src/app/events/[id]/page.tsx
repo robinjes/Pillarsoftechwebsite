@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
+import Image from 'next/image'
 import { Event } from '@/data/events'
 import { ArrowLeft, Calendar, Clock, MapPin, Users, Rocket, Trophy, Target, ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { useRef, useState, useEffect } from 'react'
@@ -36,7 +37,9 @@ export default function EventPage() {
       setEvent(foundEvent || null);
 
       if (Array.isArray(formsData)) {
-        const activeForm = formsData.find((f: any) => f.eventId === id && f.isActive);
+        const activeForm = formsData.find(
+          (f: { eventId?: string; isActive?: boolean }) => f.eventId === id && f.isActive
+        );
         setHasForm(!!activeForm);
       }
       setLoading(false);
@@ -526,11 +529,12 @@ export default function EventPage() {
                       onClick={() => setGalleryActiveImage(img)}
                       className="group relative aspect-square overflow-hidden rounded-2xl border-2 border-white/10 bg-black/30 shadow-lg transition-transform hover:scale-[1.02]"
                     >
-                      <img
+                      <Image
                         src={img}
                         alt={`${event.title} photo`}
+                        fill
+                        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
                         className="h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
-                        loading="lazy"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent" />
                     </button>
@@ -593,9 +597,11 @@ export default function EventPage() {
                             </>
                           )}
 
-                          <img
+                          <Image
                             src={galleryActiveImage}
                             alt={`${event.title} full photo`}
+                            width={1600}
+                            height={1200}
                             className="max-h-[80vh] w-full object-contain"
                           />
                         </div>

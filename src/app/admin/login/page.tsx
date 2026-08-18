@@ -53,7 +53,7 @@ export default function AdminLogin() {
         const data = await res.json();
         setError(data.error || 'Invalid password');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
     } finally {
       setLoading(false);

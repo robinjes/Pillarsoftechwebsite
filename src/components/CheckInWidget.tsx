@@ -24,7 +24,19 @@ export default function CheckInWidget({ user, onHoursUpdated }: CheckInWidgetPro
 
   // Check for active session on mount
   useEffect(() => {
-    checkCurrentSession()
+    const checkCurrentSession = async () => {
+      try {
+        const session = await volunteerService.getCurrentCheckInStatus(user.id)
+        if (session && !session.checkOutTime) {
+          setCurrentSession(session)
+          setIsCheckedIn(true)
+        }
+      } catch (err) {
+        console.error('Failed to check session status:', err)
+      }
+    }
+
+    void checkCurrentSession()
   }, [user.id])
 
   // Update elapsed time every second if checked in
@@ -47,18 +59,6 @@ export default function CheckInWidget({ user, onHoursUpdated }: CheckInWidgetPro
 
     return () => clearInterval(interval)
   }, [isCheckedIn, currentSession])
-
-  const checkCurrentSession = async () => {
-    try {
-      const session = await volunteerService.getCurrentCheckInStatus(user.id)
-      if (session && !session.checkOutTime) {
-        setCurrentSession(session)
-        setIsCheckedIn(true)
-      }
-    } catch (err) {
-      console.error('Failed to check session status:', err)
-    }
-  }
 
   const handleCheckIn = async () => {
     setLoading(true)

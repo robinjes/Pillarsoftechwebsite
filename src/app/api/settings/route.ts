@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const settings = await request.json();
     dataStore.saveSettings(settings);
     return NextResponse.json({ success: true, settings });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to save settings' }, { status: 400 });
   }
 }

@@ -15,7 +15,11 @@
 
 # misc
 .DS_Store
+._*
 *.pem
+
+# local agent scratch
+.superpowers/
 
 # debug
 npm-debug.log*
@@ -30,4 +34,4 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts 
+next-env.d.ts

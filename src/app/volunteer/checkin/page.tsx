@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
@@ -18,8 +18,7 @@ import {
   ArrowLeft, 
   Search, 
   CheckCircle2, 
-  AlertCircle, 
-  Info,
+  AlertCircle,
   Calendar,
   Clock,
   UserCheck,
@@ -78,13 +77,20 @@ export default function CheckinPage() {
   const [showSettings, setShowSettings] = useState(false)
   const [settingsLoading, setSettingsLoading] = useState(false)
 
-  const qrReaderRef = useRef<HTMLDivElement>(null)
-  const beepPlayTimeoutRef = useRef<any>(null)
+  const beepPlayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const handleCodeScanRef = useRef<(code: string) => void>(() => undefined)
 
   // Programmatic synthesizer check-in beep
   const playSuccessBeep = () => {
     try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)()
+      type WindowWithWebkitAudioContext = Window & {
+        webkitAudioContext?: typeof AudioContext
+      }
+      const AudioContextConstructor =
+        window.AudioContext || (window as WindowWithWebkitAudioContext).webkitAudioContext
+      if (!AudioContextConstructor) return
+
+      const audioCtx = new AudioContextConstructor()
       const oscillator = audioCtx.createOscillator()
       const gainNode = audioCtx.createGain()
 
@@ -148,21 +154,7 @@ export default function CheckinPage() {
 
   // Start scanner when cameraActive is true and an event is selected
   useEffect(() => {
-    if (!cameraActive || !selectedEventId) {
-      // Stop scanner if active
-      if (scannerInstance) {
-        if (scannerInstance.isScanning) {
-          scannerInstance.stop().then(() => {
-            scannerInstance.clear()
-            setScannerInstance(null)
-          }).catch(console.error)
-        } else {
-          scannerInstance.clear()
-          setScannerInstance(null)
-        }
-      }
-      return
-    }
+    if (!cameraActive || !selectedEventId) return
 
     // Give react time to mount the qr-reader div element
     const timer = setTimeout(() => {
@@ -180,7 +172,7 @@ export default function CheckinPage() {
         },
         async (decodedText) => {
           // Success callback
-          handleCodeScan(decodedText)
+          handleCodeScanRef.current(decodedText)
         },
         () => {
           // Silent scan failure per frame
@@ -202,6 +194,21 @@ export default function CheckinPage() {
     }
   }, [cameraActive, selectedEventId])
 
+  // Stop the active scanner when the camera is deactivated.
+  useEffect(() => {
+    if (cameraActive || !scannerInstance) return
+
+    if (scannerInstance.isScanning) {
+      scannerInstance.stop().then(() => {
+        scannerInstance.clear()
+        setScannerInstance(null)
+      }).catch(console.error)
+    } else {
+      scannerInstance.clear()
+      setScannerInstance(null)
+    }
+  }, [cameraActive, scannerInstance])
+
   // Stop scanner on unmount
   useEffect(() => {
     return () => {
@@ -211,14 +218,22 @@ export default function CheckinPage() {
     }
   }, [scannerInstance])
 
+  const loadEventRoster = useCallback(async (eventId = selectedEventId) => {
+    if (!eventId) return
+    setRosterLoading(true)
+    const roster = await volunteerService.getEventRoster(eventId)
+    setEventRoster(roster)
+    setRosterLoading(false)
+  }, [selectedEventId])
+
   useEffect(() => {
     if (!selectedEventId) {
       setEventRoster([])
       return
     }
 
-    loadEventRoster(selectedEventId)
-  }, [selectedEventId])
+    void loadEventRoster(selectedEventId)
+  }, [selectedEventId, loadEventRoster])
 
   useEffect(() => {
     let mounted = true
@@ -263,13 +278,15 @@ export default function CheckinPage() {
       beepPlayTimeoutRef.current = setTimeout(() => {
         setRecentScan(null)
       }, 4000)
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err)
-      setCheckinError(err.message || 'Check-in failed. Check member code.')
+      setCheckinError(err instanceof Error ? err.message : 'Check-in failed. Check member code.')
     } finally {
       setCheckinLoading(false)
     }
   }
+
+  handleCodeScanRef.current = handleCodeScan
 
   const handleManualCheckIn = (e: React.FormEvent) => {
     e.preventDefault()
@@ -288,14 +305,6 @@ export default function CheckinPage() {
   const loadActiveCheckIns = async () => {
     const sessions = await volunteerService.getActiveCheckInSessions()
     setActiveCheckIns(sessions)
-  }
-
-  const loadEventRoster = async (eventId = selectedEventId) => {
-    if (!eventId) return
-    setRosterLoading(true)
-    const roster = await volunteerService.getEventRoster(eventId)
-    setEventRoster(roster)
-    setRosterLoading(false)
   }
 
   const exportRosterCsv = () => {

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import WildcatTankPodium from '@/components/WildcatTankPodium'
 
 export const metadata: Metadata = {
@@ -220,9 +221,11 @@ export default function WildcatTankPage() {
 
                   <div className="relative flex min-h-[21rem] items-center justify-center bg-gradient-to-br from-blue-300/20 via-white/10 to-slate-950/40 p-8">
                     {judge.image ? (
-                      <img
+                      <Image
                         src={judge.image}
                         alt={judge.name}
+                        width={224}
+                        height={224}
                         className="h-56 w-56 rounded-3xl object-cover shadow-2xl transition-transform duration-300 group-hover:scale-[1.02]"
                       />
                     ) : (

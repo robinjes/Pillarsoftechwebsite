@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     dataStore.saveForms(forms);
     
     return NextResponse.json({ success: true, form: newForm });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to save form' }, { status: 400 });
   }
 }
@@ -57,7 +57,7 @@ export async function DELETE(request: Request) {
     
     dataStore.saveForms(newForms);
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to delete form' }, { status: 400 });
   }
 }

@@ -54,8 +54,8 @@ export default function EventsPage() {
       
       const activeFormEventIds = new Set<string>();
       if (Array.isArray(formsData)) {
-        formsData.forEach((form: any) => {
-          if (form.isActive) {
+        formsData.forEach((form: { eventId?: string; isActive?: boolean }) => {
+          if (form.isActive && form.eventId) {
             activeFormEventIds.add(form.eventId);
           }
         });

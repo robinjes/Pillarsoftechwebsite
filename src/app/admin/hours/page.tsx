@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
 import {
-  Clock, LogIn, LogOut, Edit2, Save, X, Trash2,
+  Clock, Edit2, Save, X,
   RefreshCw, AlertCircle, CheckCircle2
 } from 'lucide-react'
 import { volunteerService, VolunteerProfile } from '@/lib/volunteerService'
@@ -246,7 +246,7 @@ export default function AdminHours() {
         >
           <h3 className={`${fredoka.className} text-lg font-bold text-white mb-2`}>About Hour Management</h3>
           <p className={`${spaceGrotesk.className} text-sm text-blue-200`}>
-            Click the edit button next to any volunteer's hours to adjust them. You can manually set the total hours if a volunteer needs a correction or if they have extra time to log. All changes are recorded for audit purposes.
+            Click the edit button next to any volunteer&apos;s hours to adjust them. You can manually set the total hours if a volunteer needs a correction or if they have extra time to log. All changes are recorded for audit purposes.
           </p>
         </motion.div>
       </div>

@@ -301,7 +301,7 @@ export default function Hero() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.15 }}
             >
-              We're a student-led organization dedicated to making STEM education accessible to all. Through hands-on events, mentorship, and community programs, we're building the next generation of STEM leaders.
+              We&apos;re a student-led organization dedicated to making STEM education accessible to all. Through hands-on events, mentorship, and community programs, we&apos;re building the next generation of STEM leaders.
             </motion.p>
 
             <motion.div
@@ -438,7 +438,7 @@ export default function Hero() {
               Who We Are
             </h2>
             <p className="text-lg text-blue-100 leading-relaxed mb-6">
-              We're a passionate group of high school students committed to spreading STEM education to underserved communities. Every member of our team believes that every student deserves access to technology education, regardless of their background.
+              We&apos;re a passionate group of high school students committed to spreading STEM education to underserved communities. Every member of our team believes that every student deserves access to technology education, regardless of their background.
             </p>
             <p className="text-lg text-blue-100 leading-relaxed mb-8">
               <span className="text-cyan-300 font-semibold">Fiscally sponsored by Hack Club</span>, we operate under their 501(c)(3) status, ensuring all donations go directly to our mission. Our goal? Empower 1000+ students by 2026.

@@ -84,7 +84,7 @@ export default function AdminSettings() {
                 <li>Execute as: <strong>Me</strong></li>
                 <li>Who has access: <strong>Anyone</strong></li>
                 <li>Click <strong>Deploy</strong>, authorize access (click Advanced {'>'} Go to script if warned)</li>
-                <li>Copy the <strong>Web app URL</strong> and paste it into the Webhook URL field for that specific event's form!</li>
+                <li>Copy the <strong>Web app URL</strong> and paste it into the Webhook URL field for that specific event&apos;s form!</li>
               </ol>
             </div>
           </div>

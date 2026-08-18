@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     dataStore.saveEvents(events);
     
     return NextResponse.json({ success: true, event: newEvent });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create event' }, { status: 400 });
   }
 }
@@ -40,7 +40,7 @@ export async function PUT(request: Request) {
     }
     
     return NextResponse.json({ error: 'Event not found' }, { status: 404 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to update event' }, { status: 400 });
   }
 }
@@ -63,7 +63,7 @@ export async function DELETE(request: Request) {
     
     dataStore.saveEvents(newEvents);
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to delete event' }, { status: 400 });
   }
 }

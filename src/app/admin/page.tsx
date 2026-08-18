@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
 import { 
-  BarChart3, Users, Calendar, Clock, TrendingUp, 
-  Activity, Heart, Trophy, ArrowRight
+  BarChart3, Users, Calendar, Clock, TrendingUp,
+  Activity, Heart, Trophy, ArrowRight, type LucideIcon
 } from 'lucide-react'
 import Link from 'next/link'
 import { Event } from '@/data/events'
-import { volunteerService, VolunteerProfile, VolunteerSignup } from '@/lib/volunteerService'
+import { volunteerService } from '@/lib/volunteerService'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
@@ -35,7 +35,6 @@ export default function AdminDashboard() {
     pastEvents: 0,
   })
   const [events, setEvents] = useState<Event[]>([])
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadDashboardData()
@@ -76,8 +75,6 @@ export default function AdminDashboard() {
       })
     } catch (err) {
       console.error('Failed to load dashboard data:', err)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -88,7 +85,7 @@ export default function AdminDashboard() {
     color, 
     trend 
   }: { 
-    icon: any
+    icon: LucideIcon
     label: string
     value: string | number
     color: string
@@ -277,4 +274,3 @@ export default function AdminDashboard() {
     </main>
   )
 }
-

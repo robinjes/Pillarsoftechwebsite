@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
-import { Users, Search, Shield, Heart, RefreshCw, Loader2, Copy, Check } from 'lucide-react'
+import { Users, Search, Shield, RefreshCw, Loader2, Copy, Check } from 'lucide-react'
 import { volunteerService, VolunteerProfile } from '@/lib/volunteerService'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
@@ -19,7 +19,27 @@ export default function AdminVolunteers() {
   const [copiedId, setCopiedId] = useState<string | null>(null)
 
   useEffect(() => {
-    loadVolunteers()
+    let mounted = true
+
+    const loadInitialVolunteers = async () => {
+      setLoading(true)
+      try {
+        const profiles = await volunteerService.getAllProfiles()
+        if (!mounted) return
+        setVolunteers(profiles)
+        setFilteredVolunteers(profiles)
+      } catch (err) {
+        console.error('Failed to load volunteers:', err)
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+
+    void loadInitialVolunteers()
+
+    return () => {
+      mounted = false
+    }
   }, [])
 
   const loadVolunteers = async () => {

@@ -128,7 +128,7 @@ export default function About() {
                 <Target className="w-12 h-12 text-cyan-400 mb-4" />
                 <h3 className={`${fredoka.className} text-3xl font-bold text-white mb-4`}>Our Mission</h3>
                 <p className="text-lg text-blue-100 leading-relaxed">
-                  To make technology education accessible and engaging for all students, particularly those in underserved communities. We believe every student has the potential to excel in STEM, and we're committed to providing the opportunities, mentorship, and resources to help them succeed.
+                  To make technology education accessible and engaging for all students, particularly those in underserved communities. We believe every student has the potential to excel in STEM, and we&apos;re committed to providing the opportunities, mentorship, and resources to help them succeed.
                 </p>
               </div>
             </motion.div>
@@ -146,7 +146,7 @@ export default function About() {
                 <Rocket className="w-12 h-12 text-purple-400 mb-4" />
                 <h3 className={`${fredoka.className} text-3xl font-bold text-white mb-4`}>Our Vision</h3>
                 <p className="text-lg text-blue-100 leading-relaxed">
-                  By 2026, we envision a world where 1000+ students have been empowered through our programs, equipped with the skills, confidence, and networks to pursue careers in technology. We're building a generation of innovators, leaders, and changemakers who will shape the future.
+                  By 2026, we envision a world where 1000+ students have been empowered through our programs, equipped with the skills, confidence, and networks to pursue careers in technology. We&apos;re building a generation of innovators, leaders, and changemakers who will shape the future.
                 </p>
               </div>
             </motion.div>
@@ -329,10 +329,10 @@ export default function About() {
                 <span className="text-cyan-300 font-semibold">Fiscally sponsored by Hack Club</span>, a nonprofit organization supporting student technologists worldwide, we operate under their 501(c)(3) status. This partnership means every donation is tax-deductible and goes directly to our programs — no overhead, no bureaucracy, just impact.
               </p>
               <p>
-                What sets us apart is our student-led approach. We don't just teach STEM; we create experiences that inspire. Through engaging events, meaningful mentorship, and genuine community support, we're building the next generation of STEM leaders, innovators, and changemakers.
+                What sets us apart is our student-led approach. We don&apos;t just teach STEM; we create experiences that inspire. Through engaging events, meaningful mentorship, and genuine community support, we&apos;re building the next generation of STEM leaders, innovators, and changemakers.
               </p>
               <p>
-                Our commitment extends beyond the classroom. We're actively working to bridge the digital divide, ensure equitable access to technology education, and create pathways for students from underrepresented communities to succeed in tech careers.
+                Our commitment extends beyond the classroom. We&apos;re actively working to bridge the digital divide, ensure equitable access to technology education, and create pathways for students from underrepresented communities to succeed in tech careers.
               </p>
             </div>
 
@@ -369,7 +369,7 @@ export default function About() {
               Join Our Mission
             </h2>
             <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-              Whether you're a student looking to learn, an educator wanting to volunteer, or a company interested in supporting tech education, there's a place for you in our community.
+              Whether you&apos;re a student looking to learn, an educator wanting to volunteer, or a company interested in supporting tech education, there&apos;s a place for you in our community.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link

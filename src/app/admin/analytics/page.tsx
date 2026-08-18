@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
 import { 
-  BarChart3, Download, Calendar, Users, Clock, Filter, Search, RefreshCw
+  BarChart3, Download, Users, Clock, Filter, RefreshCw
 } from 'lucide-react'
 import { Event } from '@/data/events'
 import { volunteerService, VolunteerProfile } from '@/lib/volunteerService'
@@ -25,7 +25,6 @@ export default function AdminAnalytics() {
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedEventId, setSelectedEventId] = useState<string>('')
-  const [searchTerm, setSearchTerm] = useState('')
 
   useEffect(() => {
     loadAnalyticsData()

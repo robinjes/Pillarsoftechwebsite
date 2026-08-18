@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Fredoka, Space_Grotesk } from 'next/font/google';
-import { Plus, Trash2, Save, ArrowRight, Settings } from 'lucide-react';
+import { Plus, Trash2, Save, Settings } from 'lucide-react';
 import { Event } from '@/data/events';
 import { FormSchema, FormField } from '@/lib/data-store';
 
@@ -14,7 +14,6 @@ export default function AdminForms() {
   const [events, setEvents] = useState<Event[]>([]);
   const [selectedEventId, setSelectedEventId] = useState<string>('');
   const [currentForm, setCurrentForm] = useState<FormSchema | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -36,8 +35,6 @@ export default function AdminForms() {
       setEvents(data);
     } catch (err) {
       console.error(err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -179,7 +176,7 @@ export default function AdminForms() {
 
           <div className="space-y-4 mb-8">
             <AnimatePresence>
-              {currentForm.fields.map((field, index) => (
+              {currentForm.fields.map((field) => (
                 <motion.div
                   key={field.id}
                   layout
@@ -202,7 +199,7 @@ export default function AdminForms() {
                   <div className="flex-1 space-y-2 w-full">
                     <select
                       value={field.type}
-                      onChange={(e) => handleUpdateField(field.id, { type: e.target.value as any })}
+                      onChange={(e) => handleUpdateField(field.id, { type: e.target.value as FormField['type'] })}
                       className={`w-full bg-slate-900/50 border border-white/10 rounded-lg px-3 py-2 text-white ${spaceGrotesk.className}`}
                     >
                       <option value="text">Short Text</option>

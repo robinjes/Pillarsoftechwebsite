@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Fredoka, Space_Grotesk } from 'next/font/google';
 import { Plus, Edit2, Trash2, Calendar, MapPin, Clock, X, Upload, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Event } from '@/data/events';
-import Image from 'next/image';
 
 const fredoka = Fredoka({ subsets: ['latin'] });
 const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] });
@@ -361,6 +360,7 @@ const handleHeroVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => 
                     <div className="flex items-center gap-4">
                       {formData.image && (
                         <div className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10 shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element -- uploaded assets may be local or external URLs */}
                           <img src={formData.image} alt="Preview" className="w-full h-full object-cover" />
                         </div>
                       )}
@@ -429,7 +429,8 @@ const handleHeroVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => 
                     <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                       {formData.gallery?.map((img, idx) => (
                         <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-white/10 group">
-                          <img src={img} className="w-full h-full object-cover" />
+                          {/* eslint-disable-next-line @next/next/no-img-element -- uploaded assets may be local or external URLs */}
+                          <img src={img} alt={`Gallery image ${idx + 1}`} className="w-full h-full object-cover" />
                           <button
                             type="button"
                             onClick={() => removeGalleryImage(idx)}
