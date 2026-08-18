@@ -18,5 +18,9 @@ describe('event asset utilities', () => {
       'https://www.youtube-nocookie.com/embed/abc123?list=playlist&index=2'
     );
     expect(toYouTubeEmbedUrl('https://example.com/video')).toBeNull();
+    expect(toYouTubeEmbedUrl('https://notyoutube.com/watch?v=abc123')).toBeNull();
+    expect(toYouTubeEmbedUrl('https://youtube.com.evil.example/watch?v=abc123')).toBeNull();
+    expect(toYouTubeEmbedUrl('http://youtube.com/watch?v=abc123')).toBeNull();
+    expect(toYouTubeEmbedUrl('https://youtube.com/watch?v=../escape')).toBeNull();
   });
 });
