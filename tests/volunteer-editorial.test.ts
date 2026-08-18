@@ -14,6 +14,7 @@ const publicVolunteerSource = [volunteerPage, checkinPage, memberQr, memberCard]
 describe('volunteer and staff check-in experience', () => {
   it('keeps volunteer registration open-state gated and preserves the real member workflow', () => {
     expect(volunteerPage).toContain("event.volunteerRegistrationState !== 'open'")
+    expect(volunteerPage).toContain("event.status === 'ongoing'")
     expect(volunteerPage).toContain('disabled={!open || signingUpEventId === event.id}')
     expect(volunteerPage).toContain('Roster full')
     expect(volunteerPage).toContain('Registration closed')
@@ -36,6 +37,17 @@ describe('volunteer and staff check-in experience', () => {
     expect(volunteerPage).toContain("button:not([disabled]), a[href]")
   })
 
+  it('honors event-page deep links with a visible, non-trapping focus target and reduced-motion scroll', () => {
+    expect(volunteerPage).toContain("get('eventId')")
+    expect(volunteerPage).toContain('event.slug === requestedEventId')
+    expect(volunteerPage).toContain('setDeepLinkedEventId')
+    expect(volunteerPage).toContain("window.matchMedia('(prefers-reduced-motion: reduce)')")
+    expect(volunteerPage).toContain("target.scrollIntoView({ behavior: getScrollBehavior(), block: 'center' })")
+    expect(volunteerPage).toContain('target.focus({ preventScroll: true })')
+    expect(volunteerPage).toContain('tabIndex={isDeepLinked ? -1 : undefined}')
+    expect(volunteerPage).toContain('Selected from event page')
+  })
+
   it('keeps locally generated QR codes recoverable when generation fails', () => {
     expect(memberQr).toContain("from 'qrcode'")
     expect(memberQr).toContain('QRCode.toDataURL')
@@ -53,9 +65,12 @@ describe('volunteer and staff check-in experience', () => {
 
   it('keeps staff attendance server-bound and loads the camera only after staff activation', () => {
     expect(checkinPage).toContain("import('html5-qrcode')")
-    expect(checkinPage).not.toMatch(/import\s+\{\s*Html5Qrcode\s*\}\s+from\s+['"]html5-qrcode['"]/)
+    expect(checkinPage).not.toContain("import { Html5Qrcode } from 'html5-qrcode'")
     expect(checkinPage).toContain("profile.role !== 'staff'")
     expect(checkinPage).toContain("router.replace('/volunteer')")
+    expect(checkinPage).toContain("event.status === 'ongoing'")
+    expect(checkinPage).toContain('checkInEvents')
+    expect(checkinPage).toContain('No active events available')
     expect(checkinPage).toContain('getAllProfiles')
     expect(checkinPage).toContain('getEventRoster')
     expect(checkinPage).toContain('downloadAttendanceCsv')

@@ -32,6 +32,8 @@ import {
 
 type ScannerState = 'idle' | 'loading' | 'active' | 'error'
 
+const isCheckInEvent = (event: Event) => event.status === 'upcoming' || event.status === 'ongoing'
+
 async function stopScanner(scanner: Html5Qrcode) {
   try {
     if (scanner.isScanning) await scanner.stop()
@@ -93,6 +95,7 @@ export default function CheckinPage() {
   const handleCodeScanRef = useRef<(code: string) => void>(() => undefined)
 
   const selectedEvent = events.find((event) => event.id === selectedEventId)
+  const checkInEvents = events.filter(isCheckInEvent)
 
   const loadActiveCheckIns = useCallback(async () => {
     setActiveLoading(true)
@@ -150,8 +153,8 @@ export default function CheckinPage() {
         if (mounted) {
           const nextEvents = data as Event[]
           setEvents(nextEvents)
-          const firstUpcoming = nextEvents.find((event) => event.status === 'upcoming')
-          if (firstUpcoming) setSelectedEventId(firstUpcoming.id)
+          const firstActiveEvent = nextEvents.find(isCheckInEvent)
+          if (firstActiveEvent) setSelectedEventId(firstActiveEvent.id)
         }
       } catch {
         if (mounted) setPageError('Event data is temporarily unavailable.')
@@ -425,9 +428,9 @@ export default function CheckinPage() {
               <p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Step one</p>
               <h2 id="event-selection-title" className="mt-2 font-display text-3xl text-[var(--midnight)]">Select a check-in event.</h2>
               <label htmlFor="event-select" className="mt-5 block font-body text-sm font-bold text-[var(--midnight)]">Event</label>
-              <select id="event-select" value={selectedEventId} onChange={(event) => { setSelectedEventId(event.target.value); setCameraActive(false) }} disabled={events.length === 0} className="mt-2 min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--cream)] px-4 py-3 font-body text-[var(--ink)] outline-none focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)] sm:max-w-xl">
-                <option value="" disabled>{events.length === 0 ? 'No events available' : 'Select an event'}</option>
-                {events.filter((event) => event.status === 'upcoming').map((event) => <option key={event.id} value={event.id}>{event.title}</option>)}
+              <select id="event-select" value={selectedEventId} onChange={(event) => { setSelectedEventId(event.target.value); setCameraActive(false) }} disabled={checkInEvents.length === 0} className="mt-2 min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--cream)] px-4 py-3 font-body text-[var(--ink)] outline-none focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)] sm:max-w-xl">
+                <option value="" disabled>{checkInEvents.length === 0 ? 'No active events available' : 'Select an event'}</option>
+                {checkInEvents.map((event) => <option key={event.id} value={event.id}>{event.title}</option>)}
               </select>
             </div>
             {selectedEvent && <div className="border-l-4 border-[var(--sky)] pl-4 lg:max-w-xs"><p className="font-body text-xs font-bold uppercase tracking-[0.18em] text-[var(--cobalt)]">Selected event</p><p className="mt-2 font-display text-2xl text-[var(--midnight)]">{selectedEvent.title}</p><EventMeta event={selectedEvent} /></div>}

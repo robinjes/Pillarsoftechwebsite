@@ -33,6 +33,13 @@ const volunteerDescriptions: Record<string, string> = {
 
 const getVolunteerDescription = (event: Event) => volunteerDescriptions[event.id] ?? `Help with setup, greeting attendees, activity support, and the practical work around ${event.title}.`
 
+const isCurrentVolunteerEvent = (event: Event) => event.status === 'upcoming' || event.status === 'ongoing'
+
+function getScrollBehavior(): ScrollBehavior {
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return 'smooth'
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth'
+}
+
 function EventDetails({ event }: { event: Event }) {
   return (
     <details className="group border-t border-[var(--ink)]/20 pt-4">
@@ -66,10 +73,13 @@ export default function VolunteerPortalPage() {
   const [authError, setAuthError] = useState('')
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [pageError, setPageError] = useState('')
+  const [deepLinkedEventId, setDeepLinkedEventId] = useState<string | null>(null)
   const [signingUpEventId, setSigningUpEventId] = useState<string | null>(null)
   const [cancellingEventId, setCancellingEventId] = useState<string | null>(null)
 
   const formRef = useRef<HTMLElement>(null)
+  const eventRefs = useRef<Record<string, HTMLElement | null>>({})
+  const deepLinkHandledRef = useRef(false)
   const authOpenerRef = useRef<HTMLButtonElement | null>(null)
   const authCloseRef = useRef<HTMLButtonElement | null>(null)
   const authDialogRef = useRef<HTMLDivElement | null>(null)
@@ -108,7 +118,15 @@ export default function VolunteerPortalPage() {
         const response = await fetch('/api/events', { cache: 'no-store' })
         const data: unknown = await response.json()
         if (!response.ok || !Array.isArray(data)) throw new Error('Events unavailable')
-        if (mounted) setEvents(data as Event[])
+        if (mounted) {
+          const nextEvents = data as Event[]
+          const requestedEventId = new URLSearchParams(window.location.search).get('eventId')
+          const matchedEvent = requestedEventId
+            ? nextEvents.find((event) => event.id === requestedEventId || event.slug === requestedEventId)
+            : undefined
+          setEvents(nextEvents)
+          setDeepLinkedEventId(matchedEvent && isCurrentVolunteerEvent(matchedEvent) ? matchedEvent.id : null)
+        }
       } catch {
         if (mounted) setPageError((current) => current || 'Upcoming volunteer events are temporarily unavailable.')
       }
@@ -177,7 +195,17 @@ export default function VolunteerPortalPage() {
     return undefined
   }, [isAuthModalOpen])
 
-  const upcomingEvents = events.filter((event) => event.status === 'upcoming')
+  useEffect(() => {
+    if (!deepLinkedEventId || deepLinkHandledRef.current) return
+    const target = eventRefs.current[deepLinkedEventId]
+    if (!target) return
+
+    target.scrollIntoView({ behavior: getScrollBehavior(), block: 'center' })
+    target.focus({ preventScroll: true })
+    deepLinkHandledRef.current = true
+  }, [deepLinkedEventId, loading, user])
+
+  const currentVolunteerEvents = events.filter(isCurrentVolunteerEvent)
   const totalHours = user?.totalHours ?? signups.filter((signup) => signup.status === 'attended').reduce((sum, signup) => sum + signup.hours, 0)
   const badge = totalHours >= 30
     ? { name: 'Gold Champion', className: 'border-amber-700 bg-amber-100 text-amber-950' }
@@ -239,7 +267,7 @@ export default function VolunteerPortalPage() {
     }
   }
 
-  const scrollToSignup = () => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const scrollToSignup = () => formRef.current?.scrollIntoView({ behavior: getScrollBehavior(), block: 'start' })
 
   if (loading) {
     return (
@@ -362,20 +390,30 @@ export default function VolunteerPortalPage() {
                 <p className="mt-3 font-body text-base leading-7 text-[var(--ink)]/65">Registration status is shown on each event. Closed and full events cannot be joined.</p>
               </div>
 
-              {upcomingEvents.length > 0 ? (
+              {currentVolunteerEvents.length > 0 ? (
                 <div className="divide-y-2 divide-[var(--ink)]/20 border-y-2 border-[var(--ink)]/20">
-                  {upcomingEvents.map((event) => {
+                  {currentVolunteerEvents.map((event) => {
                     const signup = signups.find((item) => item.eventId === event.id)
                     const attended = signup?.status === 'attended'
                     const registered = signup?.status === 'registered'
                     const open = event.volunteerRegistrationState === 'open'
+                    const isDeepLinked = event.id === deepLinkedEventId
 
                     return (
-                      <article key={event.id} className="py-7">
+                      <article
+                        key={event.id}
+                        ref={(node) => { eventRefs.current[event.id] = node }}
+                        tabIndex={isDeepLinked ? -1 : undefined}
+                        aria-labelledby={`volunteer-event-${event.id}`}
+                        className={`py-7 outline-none focus-visible:ring-2 focus-visible:ring-[var(--cobalt)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)] ${isDeepLinked ? 'border-l-4 border-[var(--cobalt)] bg-[var(--sky)]/20 pl-4 sm:pl-6' : ''}`}
+                      >
                         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                           <div>
-                            <RegistrationState state={event.volunteerRegistrationState} />
-                            <h3 className="mt-2 font-display text-2xl leading-tight text-[var(--midnight)] sm:text-3xl">{event.title}</h3>
+                            <div className="flex flex-wrap items-center gap-3">
+                              <RegistrationState state={event.volunteerRegistrationState} />
+                              {isDeepLinked && <span className="border border-[var(--cobalt)] bg-[var(--paper)] px-2 py-1 font-body text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--cobalt)]">Selected from event page</span>}
+                            </div>
+                            <h3 id={`volunteer-event-${event.id}`} className="mt-2 font-display text-2xl leading-tight text-[var(--midnight)] sm:text-3xl">{event.title}</h3>
                             <p className="mt-3 max-w-2xl font-body text-sm leading-6 text-[var(--ink)]/70">{getVolunteerDescription(event)}</p>
                           </div>
                           <div className="shrink-0 sm:pt-1">
@@ -398,7 +436,7 @@ export default function VolunteerPortalPage() {
               ) : (
                 <div className="border-2 border-dashed border-[var(--ink)]/25 px-5 py-16 text-center">
                   <HeartHandshake aria-hidden="true" className="mx-auto h-10 w-10 text-[var(--cobalt)]" />
-                  <h3 className="mt-4 font-display text-2xl text-[var(--midnight)]">No upcoming volunteer events.</h3>
+                  <h3 className="mt-4 font-display text-2xl text-[var(--midnight)]">No current volunteer events.</h3>
                   <p className="mt-2 font-body text-sm text-[var(--ink)]/65">Check back when the next opportunity is published.</p>
                 </div>
               )}
@@ -450,25 +488,35 @@ export default function VolunteerPortalPage() {
           </div>
         </section>
 
-        <section className="py-14" aria-labelledby="upcoming-volunteer-events">
+        <section className="py-14" aria-labelledby="current-volunteer-events">
           <div className="mb-8 flex flex-col gap-4 border-b-2 border-[var(--ink)] pb-5 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Upcoming opportunities</p>
-              <h2 id="upcoming-volunteer-events" className="mt-2 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Choose a place to help.</h2>
+              <p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Current opportunities</p>
+              <h2 id="current-volunteer-events" className="mt-2 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Choose a place to help.</h2>
             </div>
             <p className="max-w-sm font-body text-sm leading-6 text-[var(--ink)]/65">Open events can be joined after you sign in. Closed and full events stay visible with their current status.</p>
           </div>
 
-          {upcomingEvents.length > 0 ? (
+          {currentVolunteerEvents.length > 0 ? (
             <div className="divide-y-2 divide-[var(--ink)]/20 border-y-2 border-[var(--ink)]/20">
-              {upcomingEvents.map((event) => {
+              {currentVolunteerEvents.map((event) => {
                 const open = event.volunteerRegistrationState === 'open'
+                const isDeepLinked = event.id === deepLinkedEventId
                 return (
-                  <article key={event.id} className="py-7">
+                  <article
+                    key={event.id}
+                    ref={(node) => { eventRefs.current[event.id] = node }}
+                    tabIndex={isDeepLinked ? -1 : undefined}
+                    aria-labelledby={`volunteer-event-${event.id}`}
+                    className={`py-7 outline-none focus-visible:ring-2 focus-visible:ring-[var(--cobalt)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)] ${isDeepLinked ? 'border-l-4 border-[var(--cobalt)] bg-[var(--sky)]/20 pl-4 sm:pl-6' : ''}`}
+                  >
                     <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <RegistrationState state={event.volunteerRegistrationState} />
-                        <h3 className="mt-2 font-display text-2xl leading-tight text-[var(--midnight)] sm:text-3xl">{event.title}</h3>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <RegistrationState state={event.volunteerRegistrationState} />
+                          {isDeepLinked && <span className="border border-[var(--cobalt)] bg-[var(--paper)] px-2 py-1 font-body text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--cobalt)]">Selected from event page</span>}
+                        </div>
+                        <h3 id={`volunteer-event-${event.id}`} className="mt-2 font-display text-2xl leading-tight text-[var(--midnight)] sm:text-3xl">{event.title}</h3>
                         <p className="mt-3 max-w-2xl font-body text-sm leading-6 text-[var(--ink)]/70">{getVolunteerDescription(event)}</p>
                       </div>
                       <button
@@ -488,7 +536,7 @@ export default function VolunteerPortalPage() {
           ) : (
             <div className="border-2 border-dashed border-[var(--ink)]/25 px-5 py-16 text-center">
               <Calendar aria-hidden="true" className="mx-auto h-10 w-10 text-[var(--cobalt)]" />
-              <h3 className="mt-4 font-display text-2xl text-[var(--midnight)]">No upcoming volunteer events.</h3>
+              <h3 className="mt-4 font-display text-2xl text-[var(--midnight)]">No current volunteer events.</h3>
               <p className="mt-2 font-body text-sm text-[var(--ink)]/65">Check back when the next opportunity is published.</p>
             </div>
           )}
