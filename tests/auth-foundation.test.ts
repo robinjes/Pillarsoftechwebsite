@@ -9,6 +9,7 @@ vi.mock('@/lib/supabase/server', () => ({
 
 import { getSafeNextPath, isSafeNextPath } from '@/lib/auth/redirect'
 import { GET as handleAuthCallback } from '@/app/auth/callback/route'
+import { POST as handleSignout } from '@/app/auth/signout/route'
 import {
   getVerifiedAuthContext,
   requireVerifiedStaff,
@@ -147,6 +148,35 @@ describe('OAuth callback destination validation', () => {
     expect(response.status).toBe(503)
     if (previousSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL
     else process.env.NEXT_PUBLIC_SITE_URL = previousSiteUrl
+  })
+})
+
+describe('signout origin validation', () => {
+  it('rejects a cross-origin request before mutating the Supabase session', async () => {
+    const signOut = vi.fn().mockResolvedValue({ error: null })
+    mockedCreateServerClient.mockResolvedValue({ auth: { signOut } } as never)
+
+    const response = await handleSignout(new Request('https://pillarsoftech.org/auth/signout', {
+      method: 'POST',
+      headers: { origin: 'https://evil.example' },
+    }))
+
+    expect(response.status).toBe(403)
+    expect(signOut).not.toHaveBeenCalled()
+    await expect(response.json()).resolves.toEqual({
+      error: 'same_origin_required',
+      message: 'This request must come from the site.',
+    })
+  })
+
+  it('keeps no-origin server/tool compatibility while signing out', async () => {
+    const signOut = vi.fn().mockResolvedValue({ error: null })
+    mockedCreateServerClient.mockResolvedValue({ auth: { signOut } } as never)
+
+    const response = await handleSignout(new Request('https://pillarsoftech.org/auth/signout', { method: 'POST' }))
+
+    expect(response.status).toBe(200)
+    expect(signOut).toHaveBeenCalledOnce()
   })
 })
 

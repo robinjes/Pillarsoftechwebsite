@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { sameOrigin, sameOriginFailure } from '@/lib/volunteer-api'
 
-export async function POST() {
+export async function POST(request: Request) {
+  if (!sameOrigin(request)) return sameOriginFailure()
+
   const client = await createSupabaseServerClient()
   if (!client) {
     return NextResponse.json(
