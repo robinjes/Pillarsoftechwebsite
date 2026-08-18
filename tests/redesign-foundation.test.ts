@@ -28,7 +28,7 @@ describe('editorial homepage foundation', () => {
     expect(metrics).toContain('Verified impact data is being prepared')
     expect(metrics).toContain('metric.methodologyNote')
     expect(metrics).toContain('How this is counted')
-    expect(page).toContain('Volunteers guide children building marshmallow structures at outdoor tables')
+    expect(page).toContain('Students crowd around an outdoor table building marshmallow structures at Science Odyssey.')
   })
 
   it('keeps the signature workshop motion restrained and object-only', () => {
@@ -38,7 +38,12 @@ describe('editorial homepage foundation', () => {
     expect(workshop).toContain('useReducedMotion')
     expect(workshop).toContain('Access → Build → Lead.')
     expect(workshop).not.toMatch(/https?:\/\//)
-    expect(workshop).not.toContain("from 'next/image'")
+    expect(workshop).toContain("import Image from 'next/image'")
+    for (const asset of ['access.webp', 'build.webp', 'lead.webp']) {
+      expect(workshop).toContain(`/images/workshop/${asset}`)
+    }
+    expect(workshop).toContain('role="img"')
+    expect(workshop).toContain('aria-hidden="true"')
     expect(workshop).not.toMatch(/people|student|human|avatar/i)
     expect(workshop).toContain('lg:hidden')
     expect(workshop).toContain('lg:block')

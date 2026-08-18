@@ -1,49 +1,49 @@
 'use client'
 
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import Image from 'next/image'
+import { motion, type MotionValue, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { useRef } from 'react'
 
 type AssemblyState = 1 | 2 | 3
 
-const stages = [
+const stages: Array<{ number: string; title: string; text: string }> = [
   { number: '01', title: 'Access', text: 'Start with a question, a table, and room to try.' },
   { number: '02', title: 'Build', text: 'Turn the idea into something you can test and tune.' },
   { number: '03', title: 'Lead', text: 'Carry the confidence into the next challenge.' },
 ]
 
-function RoverSvg({ state }: { state: AssemblyState }) {
-  return (
-    <svg viewBox="0 0 640 460" role="img" aria-label={`Rover assembly state ${state}`} className="h-auto w-full">
-      <rect x="28" y="24" width="584" height="412" fill="#F3EBDD" stroke="#101114" strokeWidth="2" />
-      <path d="M52 78H588M52 382H588M92 44V416M548 44V416" stroke="#2B5DA8" strokeOpacity=".28" strokeWidth="1" />
-      <g fill="none" stroke="#101114" strokeWidth="2">
-        <circle cx="118" cy="112" r="5" fill="#A9D8F2" />
-        <circle cx="522" cy="112" r="5" fill="#A9D8F2" />
-        <circle cx="118" cy="348" r="5" fill="#A9D8F2" />
-        <circle cx="522" cy="348" r="5" fill="#A9D8F2" />
-      </g>
-      <g opacity={state >= 1 ? 1 : 0.3}>
-        <rect x="184" y="138" width="272" height="184" rx="10" fill="#0B1F3A" stroke="#101114" strokeWidth="3" />
-        <rect x="212" y="166" width="216" height="128" rx="6" fill="#2B5DA8" stroke="#A9D8F2" strokeWidth="2" />
-        <rect x="242" y="192" width="156" height="76" rx="4" fill="#0B1F3A" stroke="#A9D8F2" strokeWidth="2" />
-        <circle cx="320" cy="230" r="18" fill="#A9D8F2" stroke="#101114" strokeWidth="2" />
-        <path d="M310 230h20M320 220v20" stroke="#0B1F3A" strokeWidth="3" />
-      </g>
-      <g opacity={state >= 2 ? 1 : 0.16}>
-        <rect x="146" y="176" width="34" height="108" rx="4" fill="#A9D8F2" stroke="#101114" strokeWidth="2" />
-        <rect x="460" y="176" width="34" height="108" rx="4" fill="#A9D8F2" stroke="#101114" strokeWidth="2" />
-        <circle cx="163" cy="158" r="18" fill="#2B5DA8" stroke="#101114" strokeWidth="2" />
-        <circle cx="477" cy="158" r="18" fill="#2B5DA8" stroke="#101114" strokeWidth="2" />
-        <path d="M163 140v-32M477 140v-32M163 108h44M477 108h-44" stroke="#101114" strokeWidth="4" />
-      </g>
-      <g opacity={state >= 3 ? 1 : 0.16}>
-        <circle cx="216" cy="338" r="34" fill="#101114" stroke="#A9D8F2" strokeWidth="5" />
-        <circle cx="424" cy="338" r="34" fill="#101114" stroke="#A9D8F2" strokeWidth="5" />
-        <circle cx="216" cy="338" r="12" fill="#A9D8F2" />
-        <circle cx="424" cy="338" r="12" fill="#A9D8F2" />
-      </g>
-    </svg>
-  )
+const visualStates: Array<{ state: AssemblyState; src: string; alt: string }> = [
+  {
+    state: 1,
+    src: '/images/workshop/access.webp',
+    alt: 'A closed workshop kit ready to open for a STEM project.',
+  },
+  {
+    state: 2,
+    src: '/images/workshop/build.webp',
+    alt: 'An open STEM kit with wheels, sensors, wiring, and rover parts ready to assemble.',
+  },
+  {
+    state: 3,
+    src: '/images/workshop/lead.webp',
+    alt: 'A completed rover with its components assembled and ready to test.',
+  },
+]
+
+const desktopVisualLabel = 'A rover project moves from a closed kit to organized components and a completed build through Access, Build, and Lead.'
+
+function desktopVisualStyle(
+  opacity: MotionValue<number>,
+  y: MotionValue<number>,
+  scale: MotionValue<number>,
+  reducedMotion: boolean | null,
+  reducedOpacity: number,
+) {
+  return {
+    opacity: reducedMotion ? reducedOpacity : opacity,
+    scale: reducedMotion ? 1 : scale,
+    y: reducedMotion ? 0 : y,
+  }
 }
 
 export default function WorkshopAssembly() {
@@ -53,15 +53,21 @@ export default function WorkshopAssembly() {
     target: sectionRef,
     offset: ['start start', 'end end'],
   })
-  const chassisY = useTransform(scrollYProgress, [0, 0.4], [36, 0])
-  const chassisOpacity = useTransform(scrollYProgress, [0, 0.24, 0.42], [0.3, 0.75, 1])
-  const partsY = useTransform(scrollYProgress, [0.18, 0.68], [-64, 0])
-  const partsOpacity = useTransform(scrollYProgress, [0.18, 0.42, 0.7], [0.05, 0.6, 1])
-  const wheelsY = useTransform(scrollYProgress, [0.5, 0.98], [80, 0])
-  const wheelsOpacity = useTransform(scrollYProgress, [0.5, 0.85], [0.08, 1])
+  const accessOpacity = useTransform(scrollYProgress, [0, 0.2, 0.42], [1, 0.9, 0])
+  const buildOpacity = useTransform(scrollYProgress, [0.16, 0.36, 0.64, 0.8], [0, 1, 1, 0.12])
+  const leadOpacity = useTransform(scrollYProgress, [0.56, 0.78, 1], [0, 0.92, 1])
+  const accessY = useTransform(scrollYProgress, [0, 0.42], [12, 0])
+  const buildY = useTransform(scrollYProgress, [0.16, 0.64], [18, 0])
+  const leadY = useTransform(scrollYProgress, [0.56, 1], [20, 0])
+  const accessScale = useTransform(scrollYProgress, [0, 0.42], [0.98, 1])
+  const buildScale = useTransform(scrollYProgress, [0.16, 0.64], [0.98, 1])
+  const leadScale = useTransform(scrollYProgress, [0.56, 1], [0.98, 1])
 
-  const motionValue = (value: typeof chassisY) => (reducedMotion ? 0 : value)
-  const opacityValue = (value: typeof chassisOpacity) => (reducedMotion ? 1 : value)
+  const visualStyles = [
+    desktopVisualStyle(accessOpacity, accessY, accessScale, reducedMotion, 0),
+    desktopVisualStyle(buildOpacity, buildY, buildScale, reducedMotion, 0),
+    desktopVisualStyle(leadOpacity, leadY, leadScale, reducedMotion, 1),
+  ]
 
   return (
     <>
@@ -91,30 +97,25 @@ export default function WorkshopAssembly() {
 
               <div className="col-span-7 border-l border-midnight/20 pl-8 xl:pl-16">
                 <div className="mx-auto max-w-2xl">
-                  <svg viewBox="0 0 640 460" role="img" aria-label="Top-down rover assembling from parts" className="h-auto w-full">
-                    <rect x="28" y="24" width="584" height="412" fill="#F3EBDD" stroke="#101114" strokeWidth="2" />
-                    <path d="M52 78H588M52 382H588M92 44V416M548 44V416" stroke="#2B5DA8" strokeOpacity=".28" strokeWidth="1" />
-                    <motion.g style={{ y: motionValue(chassisY), opacity: opacityValue(chassisOpacity) }}>
-                      <rect x="184" y="138" width="272" height="184" rx="10" fill="#0B1F3A" stroke="#101114" strokeWidth="3" />
-                      <rect x="212" y="166" width="216" height="128" rx="6" fill="#2B5DA8" stroke="#A9D8F2" strokeWidth="2" />
-                      <rect x="242" y="192" width="156" height="76" rx="4" fill="#0B1F3A" stroke="#A9D8F2" strokeWidth="2" />
-                      <circle cx="320" cy="230" r="18" fill="#A9D8F2" stroke="#101114" strokeWidth="2" />
-                      <path d="M310 230h20M320 220v20" stroke="#0B1F3A" strokeWidth="3" />
-                    </motion.g>
-                    <motion.g style={{ y: motionValue(partsY), opacity: opacityValue(partsOpacity) }}>
-                      <rect x="146" y="176" width="34" height="108" rx="4" fill="#A9D8F2" stroke="#101114" strokeWidth="2" />
-                      <rect x="460" y="176" width="34" height="108" rx="4" fill="#A9D8F2" stroke="#101114" strokeWidth="2" />
-                      <circle cx="163" cy="158" r="18" fill="#2B5DA8" stroke="#101114" strokeWidth="2" />
-                      <circle cx="477" cy="158" r="18" fill="#2B5DA8" stroke="#101114" strokeWidth="2" />
-                      <path d="M163 140v-32M477 140v-32M163 108h44M477 108h-44" stroke="#101114" strokeWidth="4" />
-                    </motion.g>
-                    <motion.g style={{ y: motionValue(wheelsY), opacity: opacityValue(wheelsOpacity) }}>
-                      <circle cx="216" cy="338" r="34" fill="#101114" stroke="#A9D8F2" strokeWidth="5" />
-                      <circle cx="424" cy="338" r="34" fill="#101114" stroke="#A9D8F2" strokeWidth="5" />
-                      <circle cx="216" cy="338" r="12" fill="#A9D8F2" />
-                      <circle cx="424" cy="338" r="12" fill="#A9D8F2" />
-                    </motion.g>
-                  </svg>
+                  <div className="relative aspect-[640/460] w-full" role="img" aria-label={desktopVisualLabel}>
+                    {visualStates.map((visual, index) => (
+                      <motion.div
+                        key={visual.state}
+                        className="absolute inset-0"
+                        style={visualStyles[index]}
+                        aria-hidden="true"
+                      >
+                        <Image
+                          src={visual.src}
+                          alt=""
+                          fill
+                          sizes="(min-width: 1280px) 42vw, 50vw"
+                          priority={index === 0}
+                          className="object-contain"
+                        />
+                      </motion.div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -127,18 +128,27 @@ export default function WorkshopAssembly() {
           <p className="mb-4 font-display text-sm font-bold uppercase tracking-[0.2em] text-midnight">Workshop Assembly</p>
           <h2 id="workshop-mobile-heading" className="display-heading text-4xl text-midnight sm:text-5xl">Access → Build → Lead.</h2>
           <div className="mt-10 grid gap-10">
-            {stages.map((stage) => (
-              <article key={stage.number} className="border-t border-midnight/30 pt-5">
-                <div className="flex items-baseline justify-between gap-5">
-                  <h3 className="font-display text-2xl font-semibold text-midnight">{stage.title}</h3>
-                  <span className="font-display text-sm font-bold text-midnight">{stage.number}</span>
-                </div>
-                <div className="mt-6 border border-midnight/30 p-3">
-                  <RoverSvg state={Number(stage.number) as AssemblyState} />
-                </div>
-                <p className="mt-5 text-base leading-7 text-midnight/75">{stage.text}</p>
-              </article>
-            ))}
+            {stages.map((stage, index) => {
+              const visual = visualStates[index]
+              return (
+                <article key={stage.number} className="border-t border-midnight/30 pt-5">
+                  <div className="flex items-baseline justify-between gap-5">
+                    <h3 className="font-display text-2xl font-semibold text-midnight">{stage.title}</h3>
+                    <span className="font-display text-sm font-bold text-midnight">{stage.number}</span>
+                  </div>
+                  <div className="relative mt-6 aspect-[640/460] border border-midnight/30 p-3">
+                    <Image
+                      src={visual.src}
+                      alt={visual.alt}
+                      fill
+                      sizes="(max-width: 640px) calc(100vw - 3rem), 40rem"
+                      className="object-contain p-3"
+                    />
+                  </div>
+                  <p className="mt-5 text-base leading-7 text-midnight/75">{stage.text}</p>
+                </article>
+              )
+            })}
           </div>
         </div>
       </section>
