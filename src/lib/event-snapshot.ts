@@ -16,9 +16,12 @@ type LegacyEvent = {
   description?: unknown
   status?: unknown
   image?: unknown
+  imageAlt?: unknown
   heroImage?: unknown
+  heroImageAlt?: unknown
   heroVideo?: unknown
   gallery?: unknown
+  galleryAlts?: unknown
   registrationLink?: unknown
   registrationNote?: unknown
   pdfUrl?: unknown
@@ -35,6 +38,12 @@ function stringList(value: unknown): string[] | undefined {
   return values.length > 0 ? values : undefined
 }
 
+function textList(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined
+  const values = value.filter((item): item is string => typeof item === 'string').map((item) => item.trim())
+  return values.some(Boolean) ? values : undefined
+}
+
 function status(value: unknown): EventRecord['status'] {
   if (value === 'past') return 'completed'
   if (value === 'upcoming' || value === 'ongoing' || value === 'completed' || value === 'cancelled') return value
@@ -48,9 +57,12 @@ export function legacyEventToRecord(input: LegacyEvent): EventRecord | null {
 
   const dateTime = normalizeLegacyDateTime(input.date, input.time)
   const image = text(input.image) || undefined
+  const imageAlt = text(input.imageAlt) || undefined
   const heroImage = text(input.heroImage) || image
+  const heroImageAlt = text(input.heroImageAlt) || undefined
   const heroVideo = text(input.heroVideo) || undefined
   const gallery = stringList(input.gallery)
+  const galleryAlts = textList(input.galleryAlts)
   const youtubeVideos = stringList(input.youtubeVideos)
   const description = text(input.description)
   const parsed = eventRecordSchema.safeParse({
@@ -67,7 +79,7 @@ export function legacyEventToRecord(input: LegacyEvent): EventRecord | null {
     location: text(input.location),
     programCategory: 'general',
     status: status(input.status),
-    media: { image, heroImage, heroVideo, gallery, youtubeVideos },
+    media: { image, imageAlt, heroImage, heroImageAlt, heroVideo, gallery, galleryAlts, youtubeVideos },
     resources: {
       pdfUrl: text(input.pdfUrl) || undefined,
       registrationLink: text(input.registrationLink) || undefined,
@@ -115,9 +127,12 @@ export function toPublicEvent(event: EventRecord): PublicEvent | null {
     date: event.startLabel,
     time: event.endLabel,
     image: event.media.image,
+    imageAlt: event.media.imageAlt,
     heroImage: event.media.heroImage,
+    heroImageAlt: event.media.heroImageAlt,
     heroVideo: event.media.heroVideo,
     gallery: event.media.gallery,
+    galleryAlts: event.media.galleryAlts,
     pdfUrl: event.resources.pdfUrl,
     youtubeVideos: event.media.youtubeVideos,
     registrationLink: event.resources.registrationLink,

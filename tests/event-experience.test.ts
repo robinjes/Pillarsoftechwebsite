@@ -8,6 +8,7 @@ const readSource = (relativePath: string) => readFileSync(path.join(sourceRoot, 
 
 const eventsPage = readSource('app/events/page.tsx')
 const eventDetailPage = readSource('app/events/[id]/page.tsx')
+const adminEventsPage = readSource('app/(admin-protected)/admin/events/page.tsx')
 const registrationPage = readSource('app/register/[eventId]/page.tsx')
 const wildcatPage = readSource('app/wildcat-tank/page.tsx')
 const photosPage = readSource('app/photos/wildcat-tank/page.tsx')
@@ -41,6 +42,10 @@ describe('public event experience', () => {
     expect(toYouTubeEmbedUrl('https://www.youtube.com/watch?v=event-test')).toBe('https://www.youtube-nocookie.com/embed/event-test')
     expect(eventDetailPage).toContain('href="/wildcat-tank"')
     expect(eventDetailPage).toContain('href="/photos/wildcat-tank"')
+    expect(eventsPage).toContain("resolveEventImageAlt(event, 'image', image)")
+    expect(eventDetailPage).toContain("resolveEventImageAlt(event, 'hero', heroImage)")
+    expect(eventDetailPage).toContain("resolveEventImageAlt(event, 'gallery', image, index)")
+    expect(eventDetailPage).toContain("resolveEventImageAlt(event, 'gallery', galleryActiveImage, activeGalleryIndex)")
   })
 
   it('keeps registration dynamic, validated, and limited to exact answers', () => {
@@ -101,6 +106,14 @@ describe('public event experience', () => {
     expect(gallery).toContain('closeButtonRef')
     expect(gallery).toContain('aria-describedby="photo-viewer-description"')
     expect(gallery).toContain('id="photo-viewer-description"')
+  })
+
+  it('keeps event media descriptions editable without requiring descriptions for legacy images', () => {
+    expect(adminEventsPage).toContain('Primary image alt text')
+    expect(adminEventsPage).toContain('Hero image alt text')
+    expect(adminEventsPage).toContain('Gallery image alt text')
+    expect(adminEventsPage).toContain('draft.media.galleryAlts?.[index]')
+    expect(adminEventsPage).toContain('Leave a field blank when the title fallback is sufficient.')
   })
 
   it('keeps the redesign within the editorial visual contract', () => {

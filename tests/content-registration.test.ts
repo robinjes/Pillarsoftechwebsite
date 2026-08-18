@@ -13,7 +13,7 @@ import {
   validateParticipantAnswers,
   type FormDefinition,
 } from '@/lib/content-contracts'
-import { getPublicEventSnapshot } from '@/lib/event-snapshot'
+import { getPublicEventSnapshot, legacyEventToRecord, toPublicEvent } from '@/lib/event-snapshot'
 
 const validEvent = {
   title: 'STEM Night',
@@ -61,6 +61,28 @@ describe('Task 03 content contracts', () => {
     expect(isApprovedResourceUrl('http://localhost:3000/file')).toBe(false)
     expect(isApprovedResourceUrl('/uploads/reviewed.png')).toBe(true)
     expect(isApprovedResourceUrl('https://docs.google.com/forms/d/e/example/viewform')).toBe(true)
+  })
+
+  it('bounds and trims optional media descriptions without requiring legacy data to change', () => {
+    const parsed = eventWriteSchema.safeParse({
+      ...validEvent,
+      media: {
+        ...validEvent.media,
+        imageAlt: '  Primary image description  ',
+        heroImageAlt: 'Hero image description',
+        gallery: ['/images/one.png', '/images/two.png'],
+        galleryAlts: ['First gallery description', '  Second gallery description  '],
+      },
+    })
+    expect(parsed.success).toBe(true)
+    if (parsed.success) {
+      expect(parsed.data.media.imageAlt).toBe('Primary image description')
+      expect(parsed.data.media.galleryAlts).toEqual(['First gallery description', 'Second gallery description'])
+    }
+    expect(eventWriteSchema.safeParse({ ...validEvent, media: { ...validEvent.media, galleryAlts: ['orphan description'] } }).success).toBe(false)
+    expect(eventWriteSchema.safeParse({ ...validEvent, media: { ...validEvent.media, gallery: ['/images/one.png'], galleryAlts: ['', 'description'] } }).success).toBe(true)
+    expect(eventWriteSchema.safeParse({ ...validEvent, media: { ...validEvent.media, imageAlt: 'x'.repeat(501) } }).success).toBe(false)
+    expect(eventWriteSchema.safeParse({ ...validEvent, media: { ...validEvent.media, gallery: ['/images/one.png'], galleryAlts: ['', ''] } }).success).toBe(true)
   })
 
   it('bounds form fields, rejects destinations, and requires unique IDs', () => {
@@ -150,6 +172,29 @@ describe('Task 03 content contracts', () => {
       expect(event).not.toHaveProperty('participantCapacity')
       expect(event).not.toHaveProperty('outcomes')
     }
+  })
+
+  it('carries optional legacy media descriptions through the canonical and public projections', () => {
+    const record = legacyEventToRecord({
+      id: 'media-alt-event',
+      title: 'Media Alt Event',
+      image: '/images/media-alt.jpg',
+      imageAlt: 'Primary image description',
+      heroImage: '/images/media-alt-hero.jpg',
+      heroImageAlt: 'Hero image description',
+      gallery: ['/images/media-alt-one.jpg', '/images/media-alt-two.jpg'],
+      galleryAlts: ['First gallery description', 'Second gallery description'],
+    })
+    expect(record?.media).toMatchObject({
+      imageAlt: 'Primary image description',
+      heroImageAlt: 'Hero image description',
+      galleryAlts: ['First gallery description', 'Second gallery description'],
+    })
+    expect(record ? toPublicEvent(record) : null).toMatchObject({
+      imageAlt: 'Primary image description',
+      heroImageAlt: 'Hero image description',
+      galleryAlts: ['First gallery description', 'Second gallery description'],
+    })
   })
 
   it('keeps production content mutation off local JSON and public-disk writers', () => {

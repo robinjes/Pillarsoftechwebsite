@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 
 import type { PublicEvent } from '@/lib/content-contracts'
+import { resolveEventImageAlt } from '@/lib/event-media'
 
 function localPhoto(event: PublicEvent): string | null {
   const candidate = event.media.heroImage || event.media.image || event.heroImage || event.image
@@ -29,7 +30,7 @@ function EventRow({ event, label }: { event: PublicEvent; label: string }) {
       </div>
       {photo ? (
         <div className="relative aspect-[4/3] overflow-hidden border border-ink/20 bg-cream">
-          <Image src={photo} alt={`${event.title} event photography`} fill sizes="(max-width: 768px) 100vw, 384px" className="object-cover" />
+          <Image src={photo} alt={resolveEventImageAlt(event, 'image', photo)} fill sizes="(max-width: 768px) 100vw, 384px" className="object-cover" />
         </div>
       ) : (
         <div className="flex aspect-[4/3] items-end border border-ink/20 bg-sky p-5 text-sm font-semibold text-midnight">Photography will be added when a repository image is approved.</div>

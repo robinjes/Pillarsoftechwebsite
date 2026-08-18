@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Clock3, ExternalLink, FileText, MapPin, Play, X } from 'lucide-react'
 import type { PublicEvent } from '@/lib/content-contracts'
+import { resolveEventImageAlt } from '@/lib/event-media'
 import { toYouTubeEmbedUrl } from '@/lib/event-utils'
 
 function localAsset(value?: string | null): string | null {
@@ -292,7 +293,7 @@ export default function EventPage() {
                 <source src={localHeroVideo} />
               </video>
             ) : heroImage ? (
-              <Image src={heroImage} alt={`${event.title} event photo`} fill sizes="(max-width: 1024px) 100vw, 42vw" className="object-cover" priority />
+              <Image src={heroImage} alt={resolveEventImageAlt(event, 'hero', heroImage)} fill sizes="(max-width: 1024px) 100vw, 42vw" className="object-cover" priority />
             ) : (
               <div className="flex h-full min-h-[20rem] items-end p-6 text-sm font-bold uppercase tracking-[0.2em] text-[var(--midnight)]">Event documentation</div>
             )}
@@ -342,7 +343,7 @@ export default function EventPage() {
             <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {galleryImages.map((image, index) => (
                 <button key={image} type="button" onClick={(clickEvent) => { galleryTriggerRef.current = clickEvent.currentTarget; setGalleryActiveImage(image) }} className="group relative aspect-square overflow-hidden border border-[var(--ink)] bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]" aria-label={'Open event image ' + (index + 1)}>
-                  <Image src={image} alt={`${event.title} event image ${index + 1}`} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+                  <Image src={image} alt={resolveEventImageAlt(event, 'gallery', image, index)} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
                 </button>
               ))}
             </div>
@@ -376,7 +377,7 @@ export default function EventPage() {
             <h2 id="event-image-viewer-title" className="sr-only">Event image viewer</h2>
             <button ref={galleryCloseButtonRef} type="button" onClick={() => setGalleryActiveImage(null)} className="absolute right-4 top-4 z-10 inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Close image viewer"><X className="h-5 w-5" aria-hidden="true" /></button>
             {galleryImages.length > 1 ? <><button type="button" onClick={() => setGalleryActiveImage(galleryImages[(activeGalleryIndex - 1 + galleryImages.length) % galleryImages.length])} className="absolute left-4 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] rounded-[10px]" aria-label="Previous event image"><ChevronLeft className="h-5 w-5" aria-hidden="true" /></button><button type="button" onClick={() => setGalleryActiveImage(galleryImages[(activeGalleryIndex + 1) % galleryImages.length])} className="absolute right-4 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] rounded-[10px]" aria-label="Next event image"><ChevronRight className="h-5 w-5" aria-hidden="true" /></button></> : null}
-            <div className="relative aspect-[4/3] max-h-[82vh] w-full"><Image src={galleryActiveImage} alt={`${event.title} enlarged event image`} fill sizes="100vw" className="object-contain" priority /></div>
+            <div className="relative aspect-[4/3] max-h-[82vh] w-full"><Image src={galleryActiveImage} alt={resolveEventImageAlt(event, 'gallery', galleryActiveImage, activeGalleryIndex)} fill sizes="100vw" className="object-contain" priority /></div>
           </div>
         </div>
       ) : null}

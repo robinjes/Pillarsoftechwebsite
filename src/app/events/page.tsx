@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, CalendarDays, MapPin, Search, UsersRound } from 'lucide-react'
 import type { PublicEvent } from '@/lib/content-contracts'
+import { resolveEventImageAlt } from '@/lib/event-media'
 
 type EventFilter = 'all' | 'upcoming' | 'completed' | 'cancelled'
 
@@ -79,7 +80,7 @@ function EventRow({ event }: { event: PublicEvent }) {
             {image ? (
               <Image
                 src={image}
-                alt={`${event.title} event photo`}
+                alt={resolveEventImageAlt(event, 'image', image)}
                 fill
                 sizes="(max-width: 640px) 100vw, 9rem"
                 className="object-cover transition-transform duration-300 group-hover:scale-[1.03]"

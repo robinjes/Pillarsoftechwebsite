@@ -93,11 +93,20 @@ const isoDate = z.string().trim().refine((value) => {
 
 const mediaSchema = z.object({
   image: safeResourceUrlSchema.optional(),
+  imageAlt: optionalText(500).optional(),
   heroImage: safeResourceUrlSchema.optional(),
+  heroImageAlt: optionalText(500).optional(),
   heroVideo: safeResourceUrlSchema.optional(),
   gallery: z.array(safeResourceUrlSchema).max(40).optional(),
+  galleryAlts: z.array(optionalText(500)).max(40).optional(),
   youtubeVideos: z.array(safeResourceUrlSchema).max(20).optional(),
-}).strict()
+}).strict().superRefine((media, context) => {
+  const galleryAltCount = (media.galleryAlts ?? []).filter((alt) => alt.length > 0).length
+  const galleryCount = media.gallery?.length ?? 0
+  if (galleryAltCount > galleryCount) {
+    context.addIssue({ code: 'custom', path: ['galleryAlts'], message: 'Gallery alt text cannot outnumber gallery images.' })
+  }
+})
 
 const resourcesSchema = z.object({
   pdfUrl: safeResourceUrlSchema.optional(),
@@ -183,9 +192,12 @@ export const publicEventSchema = z.object({
   date: optionalText(240),
   time: optionalText(240),
   image: safeResourceUrlSchema.optional(),
+  imageAlt: optionalText(500).optional(),
   heroImage: safeResourceUrlSchema.optional(),
+  heroImageAlt: optionalText(500).optional(),
   heroVideo: safeResourceUrlSchema.optional(),
   gallery: z.array(safeResourceUrlSchema).max(40).optional(),
+  galleryAlts: z.array(optionalText(500)).max(40).optional(),
   pdfUrl: safeResourceUrlSchema.optional(),
   youtubeVideos: z.array(safeResourceUrlSchema).max(20).optional(),
   registrationLink: safeResourceUrlSchema.optional(),
