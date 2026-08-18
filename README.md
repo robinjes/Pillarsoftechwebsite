@@ -3,7 +3,7 @@ Its domain is on porkbun and run through vercel.
 
 ## Local verification
 
-Use Node.js 20 or newer (an active LTS release is recommended) with npm 10 or newer. Install the locked dependency set before running checks:
+Use Node.js 24.15 or newer with npm 11 or newer. The test stack relies on web-platform APIs that are not available in Node 20. Install the locked dependency set before running checks:
 
 ```sh
 npm ci
