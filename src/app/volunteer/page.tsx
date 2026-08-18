@@ -7,7 +7,6 @@ import { Fredoka, Space_Grotesk } from 'next/font/google'
 import Link from 'next/link'
 import { Event } from '@/data/events'
 import { volunteerService, VolunteerProfile, VolunteerSignup } from '@/lib/volunteerService'
-import { supabase } from '@/lib/supabaseClient'
 import {
   Heart,
   Sparkles,
@@ -15,7 +14,6 @@ import {
   Clock,
   Calendar,
   CheckCircle2,
-  Info,
   ChevronDown,
   ChevronUp,
   LogOut,
@@ -24,8 +22,6 @@ import {
   Award,
   Clock8,
   Camera,
-  Mail,
-  Lock,
   Loader2,
   Wrench,
   HandshakeIcon,
@@ -61,10 +57,6 @@ export default function VolunteerPortalPage() {
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set())
 
   // Auth
-  const [authTab, setAuthTab] = useState<'signin' | 'signup'>('signin')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [fullName, setFullName] = useState('')
   const [authLoading, setAuthLoading] = useState(false)
   const [authError, setAuthError] = useState('')
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
@@ -82,7 +74,7 @@ export default function VolunteerPortalPage() {
         return profile
       }
       setUser(profile)
-      setSignups(await volunteerService.getMySignups(profile.id))
+      setSignups(await volunteerService.getMySignups())
       return profile
     }
     setUser(null)
@@ -97,8 +89,6 @@ export default function VolunteerPortalPage() {
       if (typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('error') === 'auth') {
         setAuthError('Google sign-in failed. Please try again.')
       }
-
-      await volunteerService.handleAuthCallback()
 
       if (!mounted) return
 
@@ -117,16 +107,14 @@ export default function VolunteerPortalPage() {
 
     init()
 
-    if (!supabase) return () => { mounted = false }
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
-      if (!mounted || event !== 'SIGNED_IN') return
+    const unsubscribe = volunteerService.onAuthStateChange(async () => {
+      if (!mounted) return
       await loadVolunteerSession()
     })
 
     return () => {
       mounted = false
-      subscription.unsubscribe()
+      unsubscribe()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -157,34 +145,11 @@ export default function VolunteerPortalPage() {
     })
   }
 
-  const handleAuthSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setAuthLoading(true)
-    setAuthError('')
-    try {
-      if (authTab === 'signin') {
-        const profile = await volunteerService.signInWithEmail(email, password)
-        setUser(profile)
-        setSignups(await volunteerService.getMySignups(profile.id))
-      } else {
-        if (!fullName) throw new Error('Please enter your full name.')
-        const profile = await volunteerService.signUpWithEmail(email, password, fullName)
-        setUser(profile)
-        setSignups([])
-      }
-      setIsAuthModalOpen(false)
-    } catch (err: unknown) {
-      setAuthError(err instanceof Error ? err.message : 'Authentication failed.')
-    } finally {
-      setAuthLoading(false)
-    }
-  }
-
   const handleGoogleSSO = async () => {
     setAuthLoading(true)
     setAuthError('')
     try {
-      await volunteerService.signInWithGoogle()
+      await volunteerService.signInWithGoogle('/volunteer')
     } catch (err: unknown) {
       setAuthError(err instanceof Error ? err.message : 'Google SSO failed.')
       setAuthLoading(false)
@@ -204,7 +169,7 @@ export default function VolunteerPortalPage() {
     }
     setSigningUpEventId(event.id)
     try {
-      const newSignup = await volunteerService.registerForEvent(user.id, event.id, event.title)
+      const newSignup = await volunteerService.registerForEvent(event.id)
       setSignups((prev) => [...prev.filter((s) => s.eventId !== event.id), newSignup])
     } catch (err) {
       console.error('Error signing up for event:', err)
@@ -700,36 +665,12 @@ export default function VolunteerPortalPage() {
                 transition={{ duration: 0.22, ease: 'easeOut' }}
                 className="relative z-10 w-full max-w-md overflow-hidden rounded-3xl border border-white/10 bg-slate-950/95 p-6 md:p-8 shadow-2xl"
               >
-                {volunteerService.isMockMode() && (
-                  <div className="mb-6 flex gap-2.5 rounded-xl border border-blue-500/20 bg-blue-500/10 p-3 text-xs text-blue-200">
-                    <Info className="mt-0.5 h-4 w-4 flex-shrink-0 text-accent" />
-                    <div>
-                      <strong>Mock Mode Active:</strong> No Supabase project detected. Data saves locally so you can test instantly.
-                    </div>
-                  </div>
-                )}
-
                 <div className="mb-8 text-center">
                   <Heart className="mx-auto mb-4 h-10 w-10 animate-pulse fill-rose-500 text-rose-500" />
                   <h2 className={`${fredoka.className} text-3xl font-bold text-white`}>Join the Roster</h2>
                   <p className={`${spaceGrotesk.className} mt-2 text-sm text-blue-200`}>
-                    Create an account to get added to our volunteer list and receive a QR check-in code.
+                    Sign in with Google to join our volunteer list and receive a QR check-in code.
                   </p>
-                </div>
-
-                <div className="mb-6 flex rounded-xl border border-white/10 bg-black/40 p-1">
-                  {(['signin', 'signup'] as const).map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => setAuthTab(tab)}
-                      className={`${spaceGrotesk.className} flex-1 rounded-lg py-2.5 text-sm font-bold transition-all duration-200 ease-in-out ${
-                        authTab === tab ? 'bg-accent text-white' : 'text-blue-200 hover:text-white'
-                      }`}
-                    >
-                      {tab === 'signin' ? 'Sign In' : 'Sign Up'}
-                    </button>
-                  ))}
                 </div>
 
                 <button
@@ -744,90 +685,22 @@ export default function VolunteerPortalPage() {
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
                   </svg>
-                  Sign in with Google
+                  Continue with Google
                 </button>
 
-                <div className="mb-6 flex items-center gap-3">
-                  <div className="h-px flex-grow bg-white/10" />
-                  <span className={`${spaceGrotesk.className} text-xs font-bold uppercase tracking-wider text-blue-300`}>or email</span>
-                  <div className="h-px flex-grow bg-white/10" />
-                </div>
-
-                <form onSubmit={handleAuthSubmit} className={`space-y-4 ${spaceGrotesk.className}`}>
-                  {authTab === 'signup' && (
-                    <div className="space-y-1.5">
-                      <label htmlFor="auth-name" className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
-                        <User className="h-3.5 w-3.5 text-accent" /> Full Name
-                      </label>
-                      <input
-                        id="auth-name"
-                        type="text"
-                        placeholder="Jane Doe"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        className="w-full rounded-xl border border-white/10 bg-slate-800/80 px-4 py-2.5 text-white focus:outline-none focus:ring-1 focus:ring-accent"
-                        required
-                      />
-                    </div>
-                  )}
-                  <div className="space-y-1.5">
-                    <label htmlFor="auth-email" className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
-                      <Mail className="h-3.5 w-3.5 text-accent" /> Email Address
-                    </label>
-                    <input
-                      id="auth-email"
-                      type="email"
-                      placeholder="jane@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-slate-800/80 px-4 py-2.5 text-white focus:outline-none focus:ring-1 focus:ring-accent"
-                      required
-                    />
+                {authError && (
+                  <div role="alert" className="mt-4 rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs font-bold text-rose-400">
+                    {authError}
                   </div>
-                  <div className="space-y-1.5">
-                    <label htmlFor="auth-pw" className="flex items-center gap-1.5 text-xs font-semibold text-slate-300">
-                      <Lock className="h-3.5 w-3.5 text-accent" /> Password
-                    </label>
-                    <input
-                      id="auth-pw"
-                      type="password"
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full rounded-xl border border-white/10 bg-slate-800/80 px-4 py-2.5 text-white focus:outline-none focus:ring-1 focus:ring-accent"
-                      required
-                    />
-                  </div>
+                )}
 
-                  {authError && (
-                    <div className="rounded-xl border border-rose-500/20 bg-rose-500/10 p-3 text-xs font-bold text-rose-400">
-                      {authError}
-                    </div>
-                  )}
-
-                  <div className="flex gap-3 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => setIsAuthModalOpen(false)}
-                      className={`${spaceGrotesk.className} flex-1 rounded-xl border border-white/10 bg-white/5 py-3 font-bold text-blue-200 transition-all duration-200 ease-in-out hover:bg-white/10 hover:text-white`}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={authLoading}
-                      className="flex-1 rounded-xl bg-accent py-3 font-bold text-white transition-all duration-200 ease-in-out hover:-translate-y-0.5 hover:bg-blue-600 disabled:opacity-50"
-                    >
-                      {authLoading ? (
-                        <Loader2 className="mx-auto h-5 w-5 animate-spin" />
-                      ) : authTab === 'signin' ? (
-                        'Sign In'
-                      ) : (
-                        'Sign Up & Join the Roster'
-                      )}
-                    </button>
-                  </div>
-                </form>
+                <button
+                  type="button"
+                  onClick={() => setIsAuthModalOpen(false)}
+                  className={`${spaceGrotesk.className} mt-4 w-full rounded-xl border border-white/10 bg-white/5 py-3 font-bold text-blue-200 transition-all duration-200 ease-in-out hover:bg-white/10 hover:text-white`}
+                >
+                  Cancel
+                </button>
               </motion.div>
             </motion.div>
           )}

@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server';
 import { dataStore } from '@/lib/data-store';
 import { Event } from '@/data/events';
 import { normalizeEvent } from '@/lib/event-utils';
+import { authFailureResponse } from '@/lib/auth/http';
+import { requireVerifiedStaff } from '@/lib/auth/server';
 
 export async function GET() {
   const events = dataStore.getEvents();
@@ -9,6 +11,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireVerifiedStaff();
+  if (!auth.ok) return authFailureResponse(auth);
+
   try {
     const newEvent: Event = normalizeEvent(await request.json());
     const events = dataStore.getEvents();
@@ -28,6 +33,9 @@ export async function POST(request: Request) {
 }
 
 export async function PUT(request: Request) {
+  const auth = await requireVerifiedStaff();
+  if (!auth.ok) return authFailureResponse(auth);
+
   try {
     const updatedEvent: Event = normalizeEvent(await request.json());
     const events = dataStore.getEvents();
@@ -46,6 +54,9 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const auth = await requireVerifiedStaff();
+  if (!auth.ok) return authFailureResponse(auth);
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');

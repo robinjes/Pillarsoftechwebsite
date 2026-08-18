@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { authFailureResponse } from '@/lib/auth/http';
+import { requireVerifiedStaff } from '@/lib/auth/server';
 
 export async function POST(request: Request) {
+  const auth = await requireVerifiedStaff();
+  if (!auth.ok) return authFailureResponse(auth);
+
   try {
     const formData = await request.formData();
     const file = formData.get('file') as File;

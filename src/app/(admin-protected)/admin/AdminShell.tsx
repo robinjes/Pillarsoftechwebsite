@@ -22,7 +22,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth', { method: 'DELETE' });
+      await fetch('/auth/signout', { method: 'POST', cache: 'no-store' });
       router.push('/admin/login');
       router.refresh();
     } catch (err) {

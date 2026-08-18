@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { dataStore, FormSchema } from '@/lib/data-store';
+import { authFailureResponse } from '@/lib/auth/http';
+import { requireVerifiedStaff } from '@/lib/auth/server';
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -19,6 +21,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireVerifiedStaff();
+  if (!auth.ok) return authFailureResponse(auth);
+
   try {
     const newForm: FormSchema = await request.json();
     const forms = dataStore.getForms();
@@ -44,6 +49,9 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  const auth = await requireVerifiedStaff();
+  if (!auth.ok) return authFailureResponse(auth);
+
   try {
     const { searchParams } = new URL(request.url);
     const eventId = searchParams.get('eventId');

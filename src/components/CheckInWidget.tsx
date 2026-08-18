@@ -26,7 +26,7 @@ export default function CheckInWidget({ user, onHoursUpdated }: CheckInWidgetPro
   useEffect(() => {
     const checkCurrentSession = async () => {
       try {
-        const session = await volunteerService.getCurrentCheckInStatus(user.id)
+        const session = await volunteerService.getCurrentCheckInStatus()
         if (session && !session.checkOutTime) {
           setCurrentSession(session)
           setIsCheckedIn(true)
@@ -64,9 +64,7 @@ export default function CheckInWidget({ user, onHoursUpdated }: CheckInWidgetPro
     setLoading(true)
     setError('')
     try {
-      // Default event ID - in real app, this would be selected
-      const eventId = 'general-checkin'
-      const session = await volunteerService.startCheckIn(user.id, eventId)
+      const session = await volunteerService.startCheckIn()
       setCurrentSession(session)
       setIsCheckedIn(true)
       setElapsedTime('00:00:00')
@@ -87,7 +85,7 @@ export default function CheckInWidget({ user, onHoursUpdated }: CheckInWidgetPro
     setLoading(true)
     setError('')
     try {
-      const { hoursAdded } = await volunteerService.checkOut(currentSession.id, user.id)
+      const { hoursAdded } = await volunteerService.checkOut()
       setIsCheckedIn(false)
       setCurrentSession(null)
       setElapsedTime('00:00:00')

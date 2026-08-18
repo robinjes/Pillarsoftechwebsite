@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import GlobalShortcut from '@/components/GlobalShortcut'
 import { quicksand } from '@/lib/fonts'
 
 export const metadata: Metadata = {
@@ -52,7 +51,6 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={quicksand.className} suppressHydrationWarning>
-        <GlobalShortcut />
         <Navbar />
         {children}
         <Footer />

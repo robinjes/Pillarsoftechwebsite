@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
-import { Users, Search, Shield, RefreshCw, Loader2, Copy, Check } from 'lucide-react'
+import { Users, Search, RefreshCw, Loader2, Copy, Check } from 'lucide-react'
 import { volunteerService, VolunteerProfile } from '@/lib/volunteerService'
 
 const fredoka = Fredoka({ subsets: ['latin'] })
@@ -13,7 +13,6 @@ export default function AdminVolunteers() {
   const [volunteers, setVolunteers] = useState<VolunteerProfile[]>([])
   const [filteredVolunteers, setFilteredVolunteers] = useState<VolunteerProfile[]>([])
   const [loading, setLoading] = useState(true)
-  const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState<'all' | 'volunteer' | 'staff'>('all')
   const [copiedId, setCopiedId] = useState<string | null>(null)
@@ -84,24 +83,6 @@ export default function AdminVolunteers() {
     filterVolunteers(volunteers, searchTerm, role)
   }
 
-  const handleToggleRole = async (userId: string, currentRole: 'volunteer' | 'staff') => {
-    const newRole = currentRole === 'volunteer' ? 'staff' : 'volunteer'
-    setUpdatingId(userId)
-
-    try {
-      const result = await volunteerService.updateUserRole(userId, newRole)
-      if (result) {
-        const updatedVolunteers = volunteers.map(v => v.id === userId ? result : v)
-        setVolunteers(updatedVolunteers)
-        filterVolunteers(updatedVolunteers, searchTerm, roleFilter)
-      }
-    } catch (err) {
-      console.error('Failed to update role:', err)
-    } finally {
-      setUpdatingId(null)
-    }
-  }
-
   const handleCopyCode = (code: string, id: string) => {
     navigator.clipboard.writeText(code)
     setCopiedId(id)
@@ -128,7 +109,7 @@ export default function AdminVolunteers() {
               <div>
                 <h1 className={`${fredoka.className} text-4xl font-bold`}>Volunteers & Staff</h1>
                 <p className={`${spaceGrotesk.className} text-blue-200 text-sm mt-1`}>
-                  Manage volunteer roles and permissions
+                  View volunteer profiles and server-controlled staff membership
                 </p>
               </div>
             </div>
@@ -268,30 +249,9 @@ export default function AdminVolunteers() {
                     </div>
                   </div>
 
-                  {/* Role Toggle Button */}
-                  <button
-                    onClick={() => handleToggleRole(volunteer.id, volunteer.role)}
-                    disabled={updatingId === volunteer.id}
-                    className={`${spaceGrotesk.className} px-6 py-2 rounded-xl font-bold text-sm transition-all whitespace-nowrap flex items-center gap-2 ${
-                      volunteer.role === 'staff'
-                        ? 'bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30'
-                        : 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30'
-                    } disabled:opacity-50`}
-                  >
-                    {updatingId === volunteer.id ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : volunteer.role === 'staff' ? (
-                      <>
-                        <Shield className="w-4 h-4" />
-                        Make Volunteer
-                      </>
-                    ) : (
-                      <>
-                        <Shield className="w-4 h-4" />
-                        Make Staff
-                      </>
-                    )}
-                  </button>
+                  <span className={`${spaceGrotesk.className} text-xs text-slate-400`}>
+                    Membership changes require an owner-only SQL operation.
+                  </span>
                 </div>
               </motion.div>
             ))

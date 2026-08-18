@@ -115,7 +115,6 @@ export default function CheckinPage() {
     let mounted = true
 
     const init = async () => {
-      await volunteerService.handleAuthCallback()
       const profile = await volunteerService.getCurrentUser()
 
       if (!mounted) return
@@ -339,13 +338,6 @@ export default function CheckinPage() {
     setManualSearchResults([])
   }
 
-  const handleUpdateRole = async (userId: string, newRole: 'volunteer' | 'staff') => {
-    const result = await volunteerService.updateUserRole(userId, newRole)
-    if (result) {
-      setAllProfiles(allProfiles.map(p => p.id === userId ? result : p))
-    }
-  }
-
   const handleLogout = async () => {
     if (confirm('Are you sure you want to log out?')) {
       await volunteerService.signOut()
@@ -431,7 +423,7 @@ export default function CheckinPage() {
             Staff Settings
           </h2>
           <p className={`${spaceGrotesk.className} text-sm text-blue-200`}>
-            Manage who is staff and who is a volunteer.
+            View server-controlled staff membership. Membership changes are owner-only SQL operations.
           </p>
         </div>
 
@@ -486,19 +478,6 @@ export default function CheckinPage() {
                   {profile.role}
                 </span>
 
-                <select
-                  value={profile.role}
-                  onChange={(e) =>
-                    handleUpdateRole(
-                      profile.id,
-                      e.target.value as 'volunteer' | 'staff'
-                    )
-                  }
-                  className={`${spaceGrotesk.className} bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-accent`}
-                >
-                  <option value="volunteer">Volunteer</option>
-                  <option value="staff">Staff</option>
-                </select>
               </div>
             </div>
           ))}
