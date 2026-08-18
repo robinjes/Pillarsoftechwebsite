@@ -281,8 +281,11 @@ export const publicImpactMetricSchema = z.object({
 
 export const participantSubmissionSchema = z.object({
   eventId: safeId,
-  answers: z.record(z.string(), z.union([z.string().trim().max(MAX_PARTICIPANT_ANSWER), z.boolean()])),
-  consent: z.boolean().optional(),
+  answers: z.record(safeFieldId, z.union([z.string().trim().max(MAX_PARTICIPANT_ANSWER), z.boolean()])).superRefine((answers, context) => {
+    if (Object.keys(answers).length > MAX_FORM_FIELDS) {
+      context.addIssue({ code: 'custom', message: `A maximum of ${MAX_FORM_FIELDS} answers is allowed.` })
+    }
+  }),
   honeypot: z.string().trim().max(100).default(''),
 }).strict().superRefine((payload, context) => {
   if (payload.honeypot !== '') {
@@ -321,7 +324,10 @@ export type ContentDocument = z.infer<typeof contentDocumentSchema>
 
 export function toSafeCsvCell(value: unknown): string {
   const text = String(value ?? '')
-  const formulaSafe = /^[=+\-@]/.test(text) ? `'${text}` : text
+  // Spreadsheet formula prefixes remain dangerous when preceded by tabs,
+  // spaces, or other control characters. Keep the original value intact while
+  // adding a literal prefix before the first potentially executable marker.
+  const formulaSafe = /^[\s\p{Cc}]*[=+\-@]/u.test(text) ? `'${text}` : text
   return /[",\r\n]/.test(formulaSafe) ? `"${formulaSafe.replace(/"/g, '""')}"` : formulaSafe
 }
 
@@ -339,7 +345,7 @@ export function validateParticipantAnswers(form: FormDefinition, payload: Partic
   for (const id of actual) if (!expected.has(id)) issues.push(`Unknown answer: ${id}`)
   for (const field of form.fields) {
     if (!actual.has(field.id)) {
-      issues.push(`Missing answer: ${field.id}`)
+      if (field.required) issues.push(`Missing answer: ${field.id}`)
       continue
     }
     const value = payload.answers[field.id]

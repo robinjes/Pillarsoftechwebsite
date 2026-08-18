@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server'
 
 import { readJson } from '@/lib/admin-api'
 import { contactSubmissionSchema } from '@/lib/content-contracts'
-import { allowContactAttempt } from '@/lib/contact-abuse'
+import { allowContactAttempt, normalizeContactIdentity } from '@/lib/contact-abuse'
 import { insertContactSubmission } from '@/lib/content-repository'
 
 function requestIdentity(request: Request): string {
   const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-  return forwarded || request.headers.get('x-real-ip')?.trim() || 'unknown-client'
+  return normalizeContactIdentity(forwarded || request.headers.get('x-real-ip')?.trim() || 'unknown-client')
 }
 
 export async function POST(request: Request) {

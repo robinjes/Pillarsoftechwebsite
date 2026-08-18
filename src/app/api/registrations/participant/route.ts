@@ -3,9 +3,9 @@ import { NextResponse } from 'next/server'
 import { readJson } from '@/lib/admin-api'
 import { participantSubmissionSchema, validateParticipantAnswers } from '@/lib/content-contracts'
 import {
+  ContentRepositoryError,
   getParticipantRegistrationContext,
   insertParticipantRegistration,
-  participantRegistrationCount,
 } from '@/lib/content-repository'
 
 export async function POST(request: Request) {
@@ -24,15 +24,19 @@ export async function POST(request: Request) {
     const issues = validateParticipantAnswers(context.form, parsed.data)
     if (issues.length > 0) return NextResponse.json({ error: 'Answers do not match this form.', issues }, { status: 400 })
 
-    const capacity = context.event.participant_capacity == null ? null : Number(context.event.participant_capacity)
-    if (capacity !== null && (await participantRegistrationCount(parsed.data.eventId)) >= capacity) {
-      return NextResponse.json({ error: 'Registration is full.' }, { status: 409 })
-    }
-    const submittedData: Record<string, unknown> = { ...parsed.data.answers }
-    if (parsed.data.consent !== undefined) submittedData.consent = parsed.data.consent
-    const confirmationId = await insertParticipantRegistration(parsed.data.eventId, submittedData)
+    // The RPC repeats publication/form/state checks and locks the event row;
+    // this preflight only supplies the active form needed for answer validation.
+    const confirmationId = await insertParticipantRegistration(parsed.data.eventId, parsed.data.answers)
     return NextResponse.json({ confirmationId }, { status: 201, headers: { 'Cache-Control': 'no-store' } })
-  } catch {
+  } catch (error) {
+    if (error instanceof ContentRepositoryError && (error.status === 400 || error.status === 404 || error.status === 409)) {
+      const message = error.status === 400
+        ? 'Invalid registration answers.'
+        : error.status === 404
+        ? 'Event registration is unavailable.'
+        : 'Registration is closed or full.'
+      return NextResponse.json({ error: message }, { status: error.status })
+    }
     return NextResponse.json({ error: 'Registration is temporarily unavailable.' }, { status: 503 })
   }
 }

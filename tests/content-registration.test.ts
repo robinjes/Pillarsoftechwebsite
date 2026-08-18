@@ -102,7 +102,22 @@ describe('Task 03 content contracts', () => {
   it('requires exact participant answer keys/types and rejects caller destinations', () => {
     const base = { eventId: validForm.eventId, answers: { full_name: 'Ada', email: 'ada@example.com', consent: true }, honeypot: '' }
     expect(participantSubmissionSchema.safeParse({ ...base, destination: 'https://evil.example' }).success).toBe(false)
+    expect(participantSubmissionSchema.safeParse({ ...base, consent: true }).success).toBe(false)
+    expect(participantSubmissionSchema.safeParse({ ...base, unexpected: true }).success).toBe(false)
+    expect(participantSubmissionSchema.safeParse({ ...base, answers: { ...base.answers, 'unsafe.field': 'nope' } }).success).toBe(false)
+    expect(participantSubmissionSchema.safeParse({
+      ...base,
+      answers: Object.fromEntries(Array.from({ length: 41 }, (_, index) => [`field_${index}`, 'value'])),
+    }).success).toBe(false)
     expect(validateParticipantAnswers(validForm, participantSubmissionSchema.parse(base))).toEqual([])
+    const optionalForm: FormDefinition = {
+      ...validForm,
+      fields: [...validForm.fields, { id: 'nickname', type: 'text', label: 'Nickname', required: false }],
+    }
+    expect(validateParticipantAnswers(optionalForm, participantSubmissionSchema.parse({
+      ...base,
+      answers: { full_name: 'Ada', email: 'ada@example.com', consent: true },
+    }))).toEqual([])
     expect(validateParticipantAnswers(validForm, participantSubmissionSchema.parse({ ...base, answers: { full_name: 'Ada', email: 'ada@example.com' } }))).toContain('Missing answer: consent')
     expect(validateParticipantAnswers(validForm, participantSubmissionSchema.parse({ ...base, answers: { full_name: 'Ada', email: 'ada@example.com', consent: 'yes' } as never }))).toContain('Checkbox answer must be boolean: consent')
     expect(participantSubmissionSchema.safeParse({ ...base, honeypot: 'bot' }).success).toBe(false)
@@ -112,11 +127,15 @@ describe('Task 03 content contracts', () => {
     const csv = toCsv([
       { name: '=SUM(A1:A2)', note: 'quoted, value', message: 'line one\nline two' },
       { name: '+cmd', note: '@mention', message: '-not-a-formula' },
+      { name: '\t=SUM(A1:A2)', note: ' \u0000@cmd', message: '\n-unsafe' },
     ], ['name', 'note', 'message'])
     expect(csv).toContain("'=SUM(A1:A2)")
     expect(csv).toContain("'+cmd")
     expect(csv).toContain("'@mention")
     expect(csv).toContain("'-not-a-formula")
+    expect(csv).toContain("'\t=SUM(A1:A2)")
+    expect(csv).toContain("' \u0000@cmd")
+    expect(csv).toContain("'\n-unsafe")
     expect(csv).toContain('"quoted, value"')
     expect(csv).toContain('"line one\nline two"')
   })
@@ -149,5 +168,29 @@ describe('Task 03 content contracts', () => {
     expect(source).not.toContain('@emailjs/browser')
     expect(source).not.toContain('/api/settings')
     expect(source).not.toContain('script.google.com')
+  })
+
+  it('keeps public repository reads on a cookie-free anonymous client', () => {
+    const repository = readFileSync(join(process.cwd(), 'src/lib/content-repository.ts'), 'utf8')
+    const publicClient = readFileSync(join(process.cwd(), 'src/lib/supabase/public.ts'), 'utf8')
+    expect(repository).toContain("createSupabasePublicClient")
+    expect(repository).not.toContain("createSupabaseServerClient")
+    expect(publicClient).toContain('persistSession: false')
+    expect(publicClient).toContain('autoRefreshToken: false')
+    expect(publicClient).not.toContain("from 'next/headers'")
+  })
+
+  it('keeps repository error messages safe for API responses', () => {
+    const repository = readFileSync(join(process.cwd(), 'src/lib/content-repository.ts'), 'utf8')
+    expect(repository).toContain('safeRepositoryMessage')
+    expect(repository).not.toContain('error.message ||')
+  })
+
+  it('bounds import local paths against traversal and encoded-dot variants', () => {
+    const importer = readFileSync(join(process.cwd(), 'scripts/import-content.mjs'), 'utf8')
+    expect(importer).toContain("!value.split('/').includes('..')")
+    expect(importer).toContain("!/%2e/i.test(value)")
+    expect(importer).toContain("!/[\\u0000-\\u001f\\u007f]/.test(value)")
+    expect(importer).toContain("!value.includes('\\\\')")
   })
 })

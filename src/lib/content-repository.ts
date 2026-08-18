@@ -17,22 +17,52 @@ import {
   type PublicEvent,
 } from '@/lib/content-contracts'
 import { getPublicEventSnapshot, toPublicEvent } from '@/lib/event-snapshot'
-import { createSupabaseServerClient } from '@/lib/supabase/server'
+import { createSupabasePublicClient } from '@/lib/supabase/public'
 import { createSupabaseServiceRoleClient } from '@/lib/supabase/service'
+
+const safeRepositoryMessages = new Set([
+  'Content storage is temporarily unavailable.',
+  'Stored event content is invalid.',
+  'Stored form content is invalid.',
+  'Stored impact content is invalid.',
+  'Stored site content is invalid.',
+  'The event is not public.',
+  'Supabase write storage is not configured.',
+  'An event with this identifier already exists.',
+  'Event not found.',
+  'Form not found.',
+  'A form already exists for this event and kind.',
+  'Impact metric not found.',
+  'An impact metric with this key already exists.',
+  'Site content with this key already exists.',
+  'Event registration is unavailable.',
+  'Registration is closed or full.',
+  'Registration is full.',
+  'Invalid registration answers.',
+  'Registration is temporarily unavailable.',
+  'Registration could not be confirmed.',
+])
+
+function safeRepositoryMessage(message: string, status: ContentRepositoryError['status']): string {
+  if (safeRepositoryMessages.has(message)) return message
+  if (status === 400) return 'Invalid content operation.'
+  if (status === 404) return 'Content not found.'
+  if (status === 409) return 'Content conflict.'
+  return 'Content storage is temporarily unavailable.'
+}
 
 export class ContentRepositoryError extends Error {
   readonly status: 400 | 404 | 409 | 503
 
   constructor(message: string, status: 400 | 404 | 409 | 503 = 503) {
-    super(message)
+    super(safeRepositoryMessage(message, status))
     this.name = 'ContentRepositoryError'
     this.status = status
   }
 }
 
-function rowError(error: unknown, fallback = 'Content storage is temporarily unavailable.'): never {
-  const message = error && typeof error === 'object' && 'message' in error ? String(error.message) : fallback
-  throw new ContentRepositoryError(message, 503)
+function rowError(_error: unknown, fallback = 'Content storage is temporarily unavailable.'): never {
+  throw new ContentRepositoryError(fallback, 503)
 }
 
 function text(value: unknown): string {
@@ -132,8 +162,8 @@ function asRows(data: unknown): Record<string, unknown>[] {
   return Array.isArray(data) ? data as Record<string, unknown>[] : []
 }
 
-async function publicClient(): Promise<SupabaseClient | null> {
-  return createSupabaseServerClient()
+function publicClient(): SupabaseClient | null {
+  return createSupabasePublicClient()
 }
 
 function serviceClient(): SupabaseClient {
@@ -145,7 +175,7 @@ function serviceClient(): SupabaseClient {
 }
 
 export async function listPublicEvents(): Promise<PublicEvent[]> {
-  const client = await publicClient()
+  const client = publicClient()
   if (!client) return getPublicEventSnapshot()
 
   const { data, error } = await client
@@ -163,7 +193,7 @@ export async function getPublicEvent(eventId: string): Promise<PublicEvent | nul
 }
 
 export async function getPublicParticipantForm(eventId: string): Promise<FormDefinition | null> {
-  const client = await publicClient()
+  const client = publicClient()
   if (!client) return null
   const { data, error } = await client
     .from('registration_forms')
@@ -177,7 +207,7 @@ export async function getPublicParticipantForm(eventId: string): Promise<FormDef
 }
 
 export async function listPublicImpact(): Promise<ReturnType<typeof publicImpactMetricSchema.parse>[]> {
-  const client = await publicClient()
+  const client = publicClient()
   if (!client) return []
   const { data, error } = await client
     .from('impact_metrics')
@@ -245,7 +275,12 @@ export async function createAdminEvent(input: EventWrite, userId: string): Promi
   const client = serviceClient()
   const payload = eventDbPayload(input, userId, true)
   const { data, error } = await client.from('events').insert(payload).select('*').single()
-  if (error) throw new ContentRepositoryError(error.message || 'Event could not be created.', error.code === '23505' ? 409 : 503)
+  if (error) {
+    throw new ContentRepositoryError(
+      error.code === '23505' ? 'An event with this identifier already exists.' : 'Event could not be created.',
+      error.code === '23505' ? 409 : 503,
+    )
+  }
   return eventFromRow(data as Record<string, unknown>)
 }
 
@@ -290,7 +325,6 @@ function formDbPayload(form: FormDefinition, userId: string): Record<string, unk
     fields: form.fields,
     is_active: form.isActive,
     updated_by: userId,
-    created_by: userId,
     ...(uuid ? { id: form.id } : {}),
   }
 }
@@ -309,7 +343,12 @@ export async function saveAdminForm(form: FormDefinition, userId: string): Promi
   const client = serviceClient()
   const payload = formDbPayload(form, userId)
   const { data, error } = await client.from('registration_forms').upsert(payload, { onConflict: 'event_id,kind' }).select('*').single()
-  if (error) throw new ContentRepositoryError(error.message || 'Form could not be saved.', error.code === '23505' ? 409 : 503)
+  if (error) {
+    throw new ContentRepositoryError(
+      error.code === '23505' ? 'A form already exists for this event and kind.' : 'Form could not be saved.',
+      error.code === '23505' ? 409 : 503,
+    )
+  }
   return formFromRow(data as Record<string, unknown>)
 }
 
@@ -341,10 +380,14 @@ export async function saveAdminImpact(metric: ImpactMetric, userId: string): Pro
     approval_status: metric.approvalStatus,
     display_order: metric.displayOrder,
     updated_by: userId,
-    created_by: userId,
   }
   const { data, error } = await client.from('impact_metrics').upsert(payload).select('*').single()
-  if (error) throw new ContentRepositoryError(error.message || 'Impact metric could not be saved.', error.code === '23505' ? 409 : 503)
+  if (error) {
+    throw new ContentRepositoryError(
+      error.code === '23505' ? 'An impact metric with this key already exists.' : 'Impact metric could not be saved.',
+      error.code === '23505' ? 409 : 503,
+    )
+  }
   return impactFromRow(data as Record<string, unknown>)
 }
 
@@ -374,9 +417,13 @@ export async function saveAdminContent(document: ContentDocument, userId: string
     publication_state: document.publicationState,
     safe_for_public: document.safeForPublic,
     updated_by: userId,
-    created_by: userId,
   }).select('*').single()
-  if (error) throw new ContentRepositoryError(error.message || 'Content could not be saved.', error.code === '23505' ? 409 : 503)
+  if (error) {
+    throw new ContentRepositoryError(
+      error.code === '23505' ? 'Site content with this key already exists.' : 'Content could not be saved.',
+      error.code === '23505' ? 409 : 503,
+    )
+  }
   return contentFromRow(data as Record<string, unknown>)
 }
 
@@ -401,18 +448,26 @@ export async function getParticipantRegistrationContext(eventId: string): Promis
   return { event: event as Record<string, unknown>, form: formFromRow(form as Record<string, unknown>) }
 }
 
-export async function participantRegistrationCount(eventId: string): Promise<number> {
-  const client = serviceClient()
-  const { count, error } = await client.from('participant_registrations').select('id', { count: 'exact', head: true }).eq('event_id', eventId)
-  if (error) rowError(error)
-  return count ?? 0
-}
-
 export async function insertParticipantRegistration(eventId: string, submittedData: Record<string, unknown>): Promise<string> {
   const client = serviceClient()
-  const { data, error } = await client.from('participant_registrations').insert({ event_id: eventId, submitted_data: submittedData }).select('id').single()
-  if (error) rowError(error)
-  const id = data && typeof data === 'object' && 'id' in data ? String(data.id) : ''
+  const { data, error } = await client.rpc('register_participant', {
+    p_event_id: eventId,
+    p_submitted_data: submittedData,
+  })
+  if (error) {
+    // The registration RPC intentionally uses stable SQLSTATEs. Never expose
+    // its database message, which may contain schema or constraint details.
+    if (error.code === 'P0002') throw new ContentRepositoryError('Event registration is unavailable.', 404)
+    if (error.code === 'P0003') throw new ContentRepositoryError('Registration is closed or full.', 409)
+    if (error.code === 'P0004') throw new ContentRepositoryError('Registration is full.', 409)
+    if (error.code === 'P0005') throw new ContentRepositoryError('Invalid registration answers.', 400)
+    throw new ContentRepositoryError('Registration is temporarily unavailable.', 503)
+  }
+  const id = typeof data === 'string'
+    ? data
+    : data && typeof data === 'object' && 'id' in data
+    ? String(data.id)
+    : ''
   if (!id) throw new ContentRepositoryError('Registration could not be confirmed.', 503)
   return id
 }

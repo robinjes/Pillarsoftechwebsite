@@ -1,6 +1,12 @@
 import { describe, expect, beforeEach, it } from 'vitest'
 
-import { allowContactAttempt, resetContactAbuseForTests } from '@/lib/contact-abuse'
+import {
+  allowContactAttempt,
+  CONTACT_ABUSE_MAX_IDENTITIES,
+  CONTACT_ABUSE_MAX_IDENTITY_LENGTH,
+  normalizeContactIdentity,
+  resetContactAbuseForTests,
+} from '@/lib/contact-abuse'
 import { contactSubmissionSchema } from '@/lib/content-contracts'
 
 describe('contact submission protection', () => {
@@ -26,5 +32,17 @@ describe('contact submission protection', () => {
     expect(allowContactAttempt('client-a', 5)).toBe(false)
     expect(allowContactAttempt('client-b', 5)).toBe(true)
     expect(allowContactAttempt('client-a', 10 * 60 * 1_000 + 1)).toBe(true)
+  })
+
+  it('normalizes and bounds identities while pruning the global map', () => {
+    const normalized = normalizeContactIdentity('  EXAMPLE\u0000.CLIENT\t')
+    expect(normalized).toBe('example.client')
+    expect(normalizeContactIdentity('x'.repeat(CONTACT_ABUSE_MAX_IDENTITY_LENGTH + 20))).toHaveLength(CONTACT_ABUSE_MAX_IDENTITY_LENGTH)
+
+    for (let index = 0; index <= CONTACT_ABUSE_MAX_IDENTITIES; index += 1) {
+      expect(allowContactAttempt(`identity-${index}`, index)).toBe(true)
+    }
+    // The oldest identity was evicted once the global bound was reached.
+    expect(allowContactAttempt('identity-0', CONTACT_ABUSE_MAX_IDENTITIES + 1)).toBe(true)
   })
 })

@@ -31,7 +31,7 @@ function sql(value) {
 function safeUrl(value) {
   if (typeof value !== 'string' || !value.trim()) return null
   const trimmed = value.trim()
-  if (trimmed.startsWith('/') && !trimmed.startsWith('//') && !trimmed.includes('\\')) return trimmed
+  if (trimmed.startsWith('/') && !trimmed.startsWith('//') && isSafeLocalPath(trimmed)) return trimmed
   try {
     const parsed = new URL(trimmed)
     if (parsed.protocol !== 'https:' || parsed.username || parsed.password || !approvedHosts.has(parsed.hostname.toLowerCase())) return null
@@ -39,6 +39,17 @@ function safeUrl(value) {
   } catch {
     return null
   }
+}
+
+function isSafeLocalPath(value) {
+  return (
+    value.startsWith('/') &&
+    !value.startsWith('//') &&
+    !value.includes('\\') &&
+    !value.split('/').includes('..') &&
+    !/%2e/i.test(value) &&
+    !/[\u0000-\u001f\u007f]/.test(value)
+  )
 }
 
 function safeList(value) {
