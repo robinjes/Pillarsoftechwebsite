@@ -37,8 +37,8 @@ function HeroSection() {
           <div className="col-span-12 lg:col-span-5 lg:col-start-8">
             <figure className="relative ml-auto aspect-video w-full max-w-[14rem] overflow-hidden border border-ink/30 bg-sky sm:max-w-none sm:aspect-[4/3]">
               <Image
-                src="/Scienceoddyseycover.jpg"
-                alt="Volunteers guide children building marshmallow structures at outdoor tables"
+                src="/images/events/science-odyssey/drive-01.webp"
+                alt="Students crowd around an outdoor table building marshmallow structures at Science Odyssey."
                 fill
                 priority
                 fetchPriority="high"

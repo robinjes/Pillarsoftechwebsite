@@ -9,8 +9,8 @@ export default function FamilyScienceStory() {
         <div className="editorial-grid items-center gap-y-10">
           <div className="relative col-span-12 aspect-[4/3] overflow-hidden border border-white/20 lg:col-span-7">
             <Image
-              src="/images/events/family-science-night/IMG_5880.jpg"
-              alt="A child operates a VEX robot at Family Science Night"
+              src="/images/events/family-science-night-altamont/drive-01.webp"
+              alt="Students drive VEX robots through a taped floor course at Family Science Night."
               fill
               sizes="(max-width: 1024px) 100vw, 58vw"
               className="object-cover"
