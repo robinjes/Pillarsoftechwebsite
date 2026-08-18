@@ -35,13 +35,14 @@ function HeroSection() {
           </div>
 
           <div className="col-span-12 lg:col-span-5 lg:col-start-8">
-            <figure className="relative aspect-[4/3] overflow-hidden border border-ink/30 bg-sky">
+            <figure className="relative ml-auto aspect-video w-full max-w-[14rem] overflow-hidden border border-ink/30 bg-sky sm:max-w-none sm:aspect-[4/3]">
               <Image
                 src="/Scienceoddyseycover.jpg"
                 alt="Volunteers guide children building marshmallow structures at outdoor tables"
                 fill
                 priority
                 fetchPriority="high"
+                quality={60}
                 sizes="(max-width: 1024px) 100vw, 42vw"
                 className="object-cover"
               />

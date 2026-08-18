@@ -9,6 +9,7 @@ export const displayFont = Familjen_Grotesk({
 export const bodyFont = IBM_Plex_Sans({
   subsets: ['latin'],
   display: 'swap',
+  preload: false,
   variable: '--font-body',
   weight: ['400', '500', '600', '700'],
 })
