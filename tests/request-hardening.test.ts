@@ -92,12 +92,42 @@ describe('state-changing admin request hardening', () => {
     expect(signMediaUploadMock).not.toHaveBeenCalled()
   })
 
-  it('allows server-style requests without an Origin and rejects opaque Origin null', () => {
+  it('uses the configured canonical origin across a proxy hostname mismatch', () => {
+    vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'http://127.0.0.1:4173')
+    expect(sameOrigin(new Request('http://localhost:4173/api/admin/events', {
+      method: 'POST',
+      headers: { Origin: 'http://127.0.0.1:4173' },
+    }))).toBe(true)
+    expect(sameOrigin(new Request('http://localhost:4173/api/admin/events', {
+      method: 'POST',
+      headers: { Origin: 'http://evil.example:4173' },
+    }))).toBe(false)
+    vi.unstubAllEnvs()
+  })
+
+  it('fails closed for malformed, opaque, and path-bearing Origin values', () => {
+    vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://pillarsoftech.org')
+    for (const origin of ['null', '', 'not-an-origin', 'https://pillarsoftech.org/path', 'https://pillarsoftech.org?query=1']) {
+      expect(sameOrigin(new Request('http://localhost:4173/api/admin/events', {
+        method: 'POST',
+        headers: { Origin: origin },
+      })), origin || 'empty Origin').toBe(false)
+    }
+    vi.unstubAllEnvs()
+  })
+
+  it('allows missing Origin and falls back to request.url when canonical config is absent', () => {
+    vi.stubEnv('NEXT_PUBLIC_SITE_URL', '')
     expect(sameOrigin(new Request('https://pillarsoftech.org/api/admin/events', { method: 'POST' }))).toBe(true)
     expect(sameOrigin(new Request('https://pillarsoftech.org/api/admin/events', {
       method: 'POST',
-      headers: { Origin: 'null' },
+      headers: { Origin: 'https://pillarsoftech.org' },
+    }))).toBe(true)
+    expect(sameOrigin(new Request('https://pillarsoftech.org/api/admin/events', {
+      method: 'POST',
+      headers: { Origin: 'https://evil.example' },
     }))).toBe(false)
+    vi.unstubAllEnvs()
   })
 })
 

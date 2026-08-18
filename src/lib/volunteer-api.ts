@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { getSiteUrl } from '@/lib/supabase/config'
 
 export function safeNoStoreHeaders(): HeadersInit {
   return { 'Cache-Control': 'private, no-store' }
@@ -12,9 +13,25 @@ export function sameOrigin(request: Request): boolean {
   const origin = request.headers.get('origin')
   // Missing Origin is retained for server-to-server/non-browser callers.
   // An explicit opaque Origin is browser-supplied and must fail closed.
-  if (!origin) return true
+  if (origin === null) return true
   try {
-    return new URL(origin).origin === new URL(request.url).origin
+    const parsedOrigin = new URL(origin)
+    if (
+      parsedOrigin.origin === 'null'
+      || parsedOrigin.username
+      || parsedOrigin.password
+      || parsedOrigin.pathname !== '/'
+      || parsedOrigin.search
+      || parsedOrigin.hash
+    ) {
+      return false
+    }
+
+    // Reverse proxies can normalize request.url to a different hostname than
+    // the browser-facing site. Prefer the validated canonical origin when it
+    // is configured; only use request.url as the local/server fallback.
+    const expectedOrigin = getSiteUrl() || new URL(request.url).origin
+    return parsedOrigin.origin === expectedOrigin
   } catch {
     return false
   }
