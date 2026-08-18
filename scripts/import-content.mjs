@@ -57,6 +57,21 @@ function safeList(value) {
   return value.map(safeUrl).filter(Boolean)
 }
 
+function safeAlt(value) {
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return trimmed ? trimmed.slice(0, 500) : null
+}
+
+function safeGalleryEntries(value, altValue) {
+  if (!Array.isArray(value)) return []
+  const alts = Array.isArray(altValue) ? altValue : []
+  return value.flatMap((candidate, index) => {
+    const url = safeUrl(candidate)
+    return url ? [{ url, alt: safeAlt(alts[index]) }] : []
+  })
+}
+
 function json(value) {
   return sql(JSON.stringify(value)) + '::jsonb'
 }
@@ -82,9 +97,22 @@ for (const event of events) {
   const image = safeUrl(event.image)
   const heroImage = safeUrl(event.heroImage)
   const heroVideo = safeUrl(event.heroVideo)
-  const gallery = safeList(event.gallery)
+  const galleryEntries = safeGalleryEntries(event.gallery, event.galleryAlts)
+  const gallery = galleryEntries.map(({ url }) => url)
+  const galleryAlts = galleryEntries.map(({ alt }) => alt ?? '')
   const youtubeVideos = safeList(event.youtubeVideos)
-  const media = { ...(image ? { image } : {}), ...(heroImage ? { heroImage } : {}), ...(heroVideo ? { heroVideo } : {}), ...(gallery.length ? { gallery } : {}), ...(youtubeVideos.length ? { youtubeVideos } : {}) }
+  const imageAlt = image ? safeAlt(event.imageAlt) : null
+  const heroImageAlt = heroImage ? safeAlt(event.heroImageAlt) : null
+  const media = {
+    ...(image ? { image } : {}),
+    ...(imageAlt ? { imageAlt } : {}),
+    ...(heroImage ? { heroImage } : {}),
+    ...(heroImageAlt ? { heroImageAlt } : {}),
+    ...(heroVideo ? { heroVideo } : {}),
+    ...(gallery.length ? { gallery } : {}),
+    ...(gallery.length && galleryAlts.some(Boolean) ? { galleryAlts } : {}),
+    ...(youtubeVideos.length ? { youtubeVideos } : {}),
+  }
   const resources = {}
   const startLabel = dateLabel(event.date)
   const endLabel = dateLabel(event.time)

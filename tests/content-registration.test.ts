@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -237,5 +238,40 @@ describe('Task 03 content contracts', () => {
     expect(importer).toContain("!/%2e/i.test(value)")
     expect(importer).toContain("!/[\\u0000-\\u001f\\u007f]/.test(value)")
     expect(importer).toContain("!value.includes('\\\\')")
+  })
+
+  it('imports curated media alt text while keeping every row unpublished and review metadata offline', () => {
+    const output = execFileSync(process.execPath, [join(process.cwd(), 'scripts/import-content.mjs')], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    })
+    const statements = output.split('insert into public.events ').slice(1)
+    const stockmens = statements.find((statement) => statement.includes("'foil-boat-stockmens'"))
+    expect(stockmens).toBeDefined()
+    expect(stockmens).toContain('"imageAlt":"People stand beside the outdoor Build-a-Boat Competition table at Stockmens Park."')
+    expect(stockmens).toContain('"heroImageAlt":"People stand beside the outdoor Build-a-Boat Competition table at Stockmens Park."')
+    expect(stockmens).toContain('"galleryAlts":["People stand beside the outdoor Build-a-Boat Competition table at Stockmens Park.","Students gather around water tubs to test hand-built foil boats at Stockmens Park.","An older student helps children test a foil boat in a water tub."]')
+
+    expect(statements.length).toBeGreaterThan(0)
+    for (const statement of statements) {
+      expect(statement).toContain("'unpublished') on conflict")
+      expect(statement).toContain("publication_state = 'unpublished'")
+    }
+    expect(output).not.toContain("publication_state = 'published'")
+
+    const review = JSON.parse(readFileSync(join(process.cwd(), 'docs/event-photo-review.json'), 'utf8')) as {
+      records: Array<{ sourceFilename: string; sourceSha256: string; outputSha256: string }>
+    }
+    for (const record of review.records) {
+      expect(record).not.toHaveProperty('sourceId')
+      expect(output).not.toContain(record.sourceFilename)
+      expect(output).not.toContain(record.sourceSha256)
+      expect(output).not.toContain(record.outputSha256)
+    }
+    expect(output).not.toContain('pending-leadership-and-parental-review')
+    expect(output).not.toContain('sourceSha256')
+    expect(output).not.toContain('outputSha256')
+    expect(output).not.toContain('captureTimestamp')
+    expect(output).not.toContain('metadataStripped')
   })
 })
