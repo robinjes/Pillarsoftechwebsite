@@ -112,6 +112,10 @@ describe('OAuth callback destination validation', () => {
     expect(isSafeNextPath('https://evil.example/steal')).toBe(false)
     expect(isSafeNextPath('//evil.example/steal')).toBe(false)
     expect(isSafeNextPath('\\\\evil.example\\steal')).toBe(false)
+    expect(isSafeNextPath('/\n/evil.example')).toBe(false)
+    expect(isSafeNextPath('/\r/evil.example')).toBe(false)
+    expect(isSafeNextPath('/\t/evil.example')).toBe(false)
+    expect(isSafeNextPath('/admin%0A')).toBe(true)
     expect(getSafeNextPath('https://evil.example/steal')).toBe('/admin')
   })
 

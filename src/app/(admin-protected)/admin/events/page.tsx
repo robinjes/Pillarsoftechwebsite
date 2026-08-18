@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Calendar, Edit2, Plus, Trash2, X } from 'lucide-react'
+import { Calendar, Edit2, Plus, Trash2, Upload, X } from 'lucide-react'
 
 import type { EventRecord, EventWrite } from '@/lib/content-contracts'
+import { supabase } from '@/lib/supabase/client'
 
 const blankEvent: EventWrite = {
   title: '',
@@ -61,6 +62,9 @@ export default function AdminEvents() {
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [uploadKind, setUploadKind] = useState<'image' | 'document' | 'video'>('image')
+  const [uploading, setUploading] = useState(false)
+  const [uploadMessage, setUploadMessage] = useState('')
 
   const loadEvents = async () => {
     setLoading(true)
@@ -135,6 +139,59 @@ export default function AdminEvents() {
     }
   }
 
+  const uploadMedia = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setUploading(true)
+    setUploadMessage('Checking file and requesting a secure upload…')
+    setError('')
+
+    try {
+      if (!supabase) throw new Error('Browser Supabase configuration is unavailable.')
+      const signResponse = await fetch('/api/admin/media/sign', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: file.name, contentType: file.type, size: file.size }),
+      })
+      const signResult = await signResponse.json().catch(() => ({}))
+      if (!signResponse.ok) throw new Error(signResult.message || signResult.error || 'Media upload could not be started.')
+
+      setUploadMessage('Uploading directly to private storage…')
+      const { error: uploadError } = await supabase.storage
+        .from(signResult.upload.bucket)
+        .uploadToSignedUrl(signResult.upload.path, signResult.upload.token, file, {
+          contentType: file.type,
+          upsert: false,
+        })
+      if (uploadError) throw new Error('The direct storage upload failed.')
+
+      setUploadMessage('Validating, sanitizing, and finalizing…')
+      const finalizeResponse = await fetch('/api/admin/media/finalize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mediaId: signResult.media.id }),
+      })
+      const finalizeResult = await finalizeResponse.json().catch(() => ({}))
+      if (!finalizeResponse.ok) throw new Error(finalizeResult.message || finalizeResult.error || 'Media finalization failed.')
+
+      const finalUrl = uploadKind === 'document' ? `/api/media/${finalizeResult.media.id}` : finalizeResult.url
+      if (uploadKind === 'image') {
+        setDraft((current) => ({ ...current, media: { ...current.media, image: finalUrl, heroImage: finalUrl } }))
+      } else if (uploadKind === 'video') {
+        setDraft((current) => ({ ...current, media: { ...current.media, heroVideo: finalUrl } }))
+      } else {
+        setDraft((current) => ({ ...current, resources: { ...current.resources, pdfUrl: finalUrl } }))
+      }
+      setUploadMessage(`Finalized ${file.name}. Save the event to keep this approved media reference.`)
+    } catch (uploadError) {
+      setUploadMessage('')
+      setError(uploadError instanceof Error ? uploadError.message : 'Media upload failed.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
   return (
     <section className="space-y-6 text-white">
       <div className="flex items-center justify-between gap-4">
@@ -164,6 +221,18 @@ export default function AdminEvents() {
         <label className="space-y-1 text-sm md:col-span-2">Description<textarea value={draft.description} onChange={(event) => setField('description', event.target.value)} rows={6} className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
         <label className="space-y-1 text-sm">Local/approved image URL<input value={draft.media.image ?? ''} onChange={(event) => setField('media', { ...draft.media, image: event.target.value || undefined })} placeholder="/images/events/..." className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
         <label className="space-y-1 text-sm">Approved video URL<input value={draft.media.heroVideo ?? ''} onChange={(event) => setField('media', { ...draft.media, heroVideo: event.target.value || undefined })} placeholder="https://www.youtube.com/..." className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
+        <div className="md:col-span-2 rounded-lg border border-cyan-300/20 bg-cyan-400/5 p-4">
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="text-sm">Approved media type<select value={uploadKind} onChange={(event) => setUploadKind(event.target.value as typeof uploadKind)} className="ml-2 rounded border border-white/10 bg-slate-800 p-2"><option value="image">Image</option><option value="video">Video</option><option value="document">Private PDF</option></select></label>
+            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-cyan-300/40 px-3 py-2 text-sm font-semibold hover:bg-cyan-300/10">
+              <Upload className="h-4 w-4" />
+              {uploading ? 'Processing…' : 'Choose and upload'}
+              <input type="file" className="sr-only" disabled={uploading} accept={uploadKind === 'image' ? 'image/jpeg,image/png,image/webp,image/avif' : uploadKind === 'video' ? 'video/mp4,video/webm,video/quicktime' : 'application/pdf'} onChange={(event) => void uploadMedia(event)} />
+            </label>
+          </div>
+          <p className="mt-2 text-xs text-blue-200">Files are checked again on the server; picker filters are only a convenience.</p>
+          {uploadMessage && <p className="mt-2 text-sm text-cyan-100">{uploadMessage}</p>}
+        </div>
         <div className="md:col-span-2"><button disabled={saving} className="rounded-lg bg-accent px-5 py-2 font-semibold text-slate-900 disabled:opacity-50">{saving ? 'Saving…' : 'Save event'}</button></div>
       </form>
 

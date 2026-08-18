@@ -644,6 +644,7 @@ export default function EventPage() {
                       </div>
                       <iframe
                         src={event.pdfUrl}
+                        sandbox=""
                         className="w-full"
                         style={{ height: '800px' }}
                         title={`${event.title} document`}
@@ -699,6 +700,7 @@ export default function EventPage() {
                       <div className="flex-1">
                         <iframe
                           src={event.pdfUrl}
+                          sandbox=""
                           className="w-full h-full"
                           title={`${event.title} document fullscreen`}
                         />

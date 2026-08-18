@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
 import Link from 'next/link'
-import { Html5Qrcode } from 'html5-qrcode'
+import type { Html5Qrcode } from 'html5-qrcode'
 import {
   volunteerService,
   EventRosterEntry,
@@ -155,33 +155,42 @@ export default function CheckinPage() {
   useEffect(() => {
     if (!cameraActive || !selectedEventId) return
 
-    // Give react time to mount the qr-reader div element
+    let cancelled = false
+    let localScanner: Html5Qrcode | null = null
+
+    // Give react time to mount the qr-reader div element. The scanner bundle is
+    // loaded only after the already-verified staff member activates the camera.
     const timer = setTimeout(() => {
       const qrCodeId = 'qr-reader'
-      const html5QrCode = new Html5Qrcode(qrCodeId)
-      
-      html5QrCode.start(
-        { facingMode: 'environment' },
-        {
-          fps: 10,
-          qrbox: (width, height) => {
-            const size = Math.min(width, height) * 0.7
-            return { width: size, height: size }
+      void import('html5-qrcode').then(({ Html5Qrcode }) => {
+        if (cancelled) return
+        const html5QrCode = new Html5Qrcode(qrCodeId)
+        localScanner = html5QrCode
+
+        return html5QrCode.start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: (width, height) => {
+              const size = Math.min(width, height) * 0.7
+              return { width: size, height: size }
+            }
+          },
+          (decodedText) => {
+            handleCodeScanRef.current(decodedText)
+          },
+          () => {
+            // Silent scan failure per frame
           }
-        },
-        async (decodedText) => {
-          // Success callback
-          handleCodeScanRef.current(decodedText)
-        },
-        () => {
-          // Silent scan failure per frame
-        }
-      )
-      .then(() => {
-        setScannerInstance(html5QrCode)
-        setCameraError('')
-      })
-      .catch(err => {
+        ).then(() => {
+          if (cancelled) {
+            return html5QrCode.stop().then(() => html5QrCode.clear())
+          }
+          setScannerInstance(html5QrCode)
+          setCameraError('')
+        })
+      }).catch(err => {
+        if (cancelled) return
         console.error('Camera start failed:', err)
         setCameraError('Camera access denied or device busy.')
         setCameraActive(false)
@@ -189,7 +198,11 @@ export default function CheckinPage() {
     }, 100)
 
     return () => {
+      cancelled = true
       clearTimeout(timer)
+      if (localScanner?.isScanning) {
+        void localScanner.stop().then(() => localScanner?.clear()).catch(() => undefined)
+      }
     }
   }, [cameraActive, selectedEventId])
 
