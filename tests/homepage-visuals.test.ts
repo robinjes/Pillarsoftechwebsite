@@ -20,9 +20,10 @@ describe('image-led homepage proof surfaces', () => {
 
   it('keeps real event photography and a bounded hero scale', () => {
     const page = readSource('app/page.tsx')
+    const heroVisual = readSource('components/site/HeroVisual.tsx')
     const eventProof = readSource('components/site/EventProof.tsx')
     const familyStory = readSource('components/site/FamilyScienceStory.tsx')
-    const imagePaths = `${page}\n${eventProof}\n${familyStory}`.match(/\/images\/events\/[^'"`\s)]+/g) ?? []
+    const imagePaths = `${page}\n${heroVisual}\n${eventProof}\n${familyStory}`.match(/\/images\/events\/[^'"`\s)]+/g) ?? []
 
     expect(new Set(imagePaths).size).toBeGreaterThanOrEqual(8)
     expect(page).toContain('text-[5.8rem]')
@@ -31,5 +32,8 @@ describe('image-led homepage proof surfaces', () => {
     expect(familyStory.match(/src=\"\/images\/events/g)?.length).toBe(2)
     expect(eventProof).toContain('motion-reduce:transform-none')
     expect(eventProof).toContain('motion-reduce:transition-none')
+    expect(heroVisual).toContain("clipPath: 'inset(0 100% 0 0)'")
+    expect(heroVisual).toContain('drive-02.webp')
+    expect(heroVisual).toContain('drive-04.webp')
   })
 })

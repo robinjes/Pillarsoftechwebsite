@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 
@@ -7,6 +6,8 @@ import type { PublicEvent } from '@/lib/content-contracts'
 import AudienceRoutes from '@/components/site/AudienceRoutes'
 import EventProof from '@/components/site/EventProof'
 import FamilyScienceStory from '@/components/site/FamilyScienceStory'
+import HeroMotion, { HeroMotionText } from '@/components/site/HeroMotion'
+import HeroVisual from '@/components/site/HeroVisual'
 import ImpactMetrics, { type PublicMetric } from '@/components/site/ImpactMetrics'
 import SupportLinks from '@/components/site/SupportLinks'
 import WorkshopAssembly from '@/components/site/WorkshopAssembly'
@@ -14,53 +15,32 @@ import WorkshopAssembly from '@/components/site/WorkshopAssembly'
 function HeroSection() {
   return (
     <section className="bg-midnight text-warm" aria-labelledby="hero-heading">
-      <div className="site-shell mx-auto px-5 pb-16 pt-14 sm:px-8 sm:pb-24 sm:pt-20 lg:px-10 lg:pb-24 lg:pt-24">
-        <div className="editorial-grid items-center gap-y-12">
-          <div className="col-span-12 lg:col-span-6">
-            <h1 id="hero-heading" className="display-heading max-w-[12ch] text-[3.6rem] text-warm sm:text-[4.7rem] lg:text-[5.8rem]">
-              STEM belongs in every student’s hands.
-            </h1>
-            <p className="body-copy mt-7 max-w-xl text-lg text-warm/75 sm:text-xl">
-              We make STEM practical, welcoming, and open to more young people through events, mentorship, and community.
-            </p>
-            <div className="mt-9 flex flex-wrap gap-3">
-              <Link href="/events" className="inline-flex min-h-12 items-center gap-2 border border-sky bg-sky px-5 text-sm font-bold text-midnight transition-colors hover:bg-warm">
-                Find an Event <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-              <Link href="/volunteer" className="inline-flex min-h-12 items-center gap-2 border border-warm/70 px-5 text-sm font-bold text-warm transition-colors hover:bg-warm hover:text-midnight">
-                Volunteer <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
-            </div>
-          </div>
+      <HeroMotion>
+        <div className="site-shell mx-auto px-5 pb-16 pt-14 sm:px-8 sm:pb-24 sm:pt-20 lg:px-10 lg:pb-24 lg:pt-24">
+          <div className="editorial-grid items-center gap-y-12">
+            <HeroMotionText className="col-span-12 lg:col-span-6">
+              <h1 id="hero-heading" className="display-heading max-w-[12ch] text-[3.6rem] text-warm sm:text-[4.7rem] lg:text-[5.8rem]">
+                STEM belongs in every student’s hands.
+              </h1>
+              <p className="body-copy mt-7 max-w-xl text-lg text-warm/75 sm:text-xl">
+                We make STEM practical, welcoming, and open to more young people through events, mentorship, and community.
+              </p>
+              <div className="mt-9 flex flex-wrap gap-3">
+                <Link href="/events" className="inline-flex min-h-12 items-center gap-2 border border-sky bg-sky px-5 text-sm font-bold text-midnight transition-colors hover:bg-warm">
+                  Find an Event <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+                <Link href="/volunteer" className="inline-flex min-h-12 items-center gap-2 border border-warm/70 px-5 text-sm font-bold text-warm transition-colors hover:bg-warm hover:text-midnight">
+                  Volunteer <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+              </div>
+            </HeroMotionText>
 
-          <div className="col-span-12 lg:col-span-6 lg:col-start-7">
-            <div className="relative mx-auto max-w-2xl pb-8 pl-0 sm:pb-10 sm:pl-8">
-              <figure className="relative aspect-[4/3] w-full overflow-hidden border border-warm/30 bg-sky">
-              <Image
-                src="/images/events/science-odyssey/drive-02.webp"
-                alt="Students compare and test marshmallow structures at the Science Odyssey engineering table."
-                fill
-                priority
-                sizes="(max-width: 1024px) 100vw, 42vw"
-                className="object-cover"
-              />
-                <figcaption className="absolute bottom-0 left-0 border-t border-r border-warm/30 bg-midnight px-3 py-2 text-xs font-semibold text-warm">
-                  Science Odyssey · Engineering in public
-              </figcaption>
-              </figure>
-              <figure className="absolute bottom-0 right-0 hidden aspect-[4/3] w-40 overflow-hidden border-4 border-midnight bg-sky shadow-[6px_6px_0_#A9D8F2] sm:block sm:w-48 lg:w-52">
-                <Image
-                  src="/images/events/pedrozzi-connect-egg-drop/drive-04.webp"
-                  alt="Student organizers gather outdoors after the Pedrozzi CONNECT Egg Drop."
-                  fill
-                  sizes="208px"
-                  className="object-cover"
-                />
-              </figure>
+            <div className="col-span-12 lg:col-span-6 lg:col-start-7">
+              <HeroVisual />
             </div>
           </div>
         </div>
-      </div>
+      </HeroMotion>
     </section>
   )
 }

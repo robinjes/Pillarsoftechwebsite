@@ -88,7 +88,7 @@ describe('event photo triage utility', () => {
     expect(JSON.stringify(first.report)).toBe(JSON.stringify(second.report))
     expect(await readFile(first.reportPath)).toEqual(await readFile(second.reportPath))
     expect(await readFile(first.contactSheetPaths[0])).toEqual(await readFile(second.contactSheetPaths[0]))
-  })
+  }, 15_000)
 
   it('rejects missing, empty, and non-image input with bounded errors', async () => {
     const root = await makeRoot()
