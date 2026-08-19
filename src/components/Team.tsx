@@ -69,15 +69,15 @@ export default function Team() {
 
           <figure className="relative aspect-[5/4] overflow-hidden border border-[var(--cream)]/35 bg-[var(--sky)] sm:aspect-[16/10]">
             <Image
-              src="/images/events/pedrozzi-connect-egg-drop/drive-04.webp"
-              alt="Seven student volunteers stand outdoors together, with one holding a small controller."
+              src="/images/events/family-science-night/IMG_0551.jpg"
+              alt="Pillars volunteers and adult partners smiling together outside Family Science Night."
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 58vw"
               className="object-cover transition-transform duration-500 motion-safe:hover:scale-[1.02] motion-reduce:transition-none motion-reduce:hover:scale-100"
             />
             <figcaption className="absolute inset-x-0 bottom-0 border-t border-[var(--cream)]/35 bg-[var(--midnight)]/90 px-4 py-3 text-sm font-semibold text-[var(--cream)]">
-              A real team moment · Pedrozzi CONNECT
+              Family Science Night · team moment
             </figcaption>
           </figure>
         </div>

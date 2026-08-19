@@ -11,6 +11,7 @@ import { desktopVisualLabel, stages } from '@/components/site/workshopAssemblyDa
 type ProgressTarget = { current: number }
 type StageIndex = 0 | 1 | 2 | 3
 type Vector3Tuple = [number, number, number]
+type AssemblyStage = 'FRAME' | 'MOTION' | 'SENSE' | 'LEAD'
 
 const WORKSHOP_HEIGHT_CLASSES = 'min-h-[320vh] max-lg:min-h-[175vh] motion-reduce:min-h-screen'
 
@@ -23,9 +24,9 @@ const stageForProgress = (progress: number): StageIndex => {
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
 
-const smoothstep = (start: number, end: number, value: number) => {
+const quinticEase = (start: number, end: number, value: number) => {
   const normalized = clamp01((value - start) / Math.max(0.0001, end - start))
-  return normalized * normalized * (3 - 2 * normalized)
+  return normalized * normalized * normalized * (normalized * (normalized * 6 - 15) + 10)
 }
 
 const damp = (current: number, target: number, lambda: number, delta: number) =>
@@ -58,11 +59,17 @@ function useScrollProgress(sectionRef: RefObject<HTMLElement | null>) {
 
 function useCurrentStage(progressTarget: ProgressTarget, reducedMotion: boolean) {
   const [stageIndex, setStageIndex] = useState<StageIndex>(() => (reducedMotion ? 3 : 0))
+  const [isReady, setIsReady] = useState(reducedMotion)
 
   useEffect(() => {
     const updateStage = () => {
-      const nextStage = stageForProgress(reducedMotion ? 1 : progressTarget.current)
+      const currentProgress = reducedMotion ? 1 : progressTarget.current
+      const nextStage = stageForProgress(currentProgress)
       setStageIndex((currentStage) => (currentStage === nextStage ? currentStage : nextStage))
+      setIsReady((currentReady) => {
+        const nextReady = currentProgress >= 0.82
+        return currentReady === nextReady ? currentReady : nextReady
+      })
     }
 
     updateStage()
@@ -75,7 +82,7 @@ function useCurrentStage(progressTarget: ProgressTarget, reducedMotion: boolean)
     }
   }, [progressTarget, reducedMotion])
 
-  return stages[stageIndex].title
+  return { title: stages[stageIndex].title, isReady }
 }
 
 function EnvironmentLighting() {
@@ -120,50 +127,62 @@ type TransformSnapshot = {
   scale: THREE.Vector3
   offset: THREE.Vector3
   explodedRotation: THREE.Quaternion
+  start: number
+  end: number
   targetPosition: THREE.Vector3
   targetQuaternion: THREE.Quaternion
 }
 
 type AssemblyPlan = {
-  names: string[]
+  name: string
+  stage: AssemblyStage
   start: number
   end: number
   offset: Vector3Tuple
   rotation: Vector3Tuple
 }
 
+const makeAssemblyPlans = (
+  stage: AssemblyStage,
+  names: string[],
+  start: number,
+  stagger: number,
+  duration: number,
+  direction: Vector3Tuple,
+  rotation: Vector3Tuple,
+): AssemblyPlan[] => names.map((name, index) => {
+  // Stable, restrained variation keeps a system coherent without making every unit move identically.
+  const lateral = ((index % 3) - 1) * 0.075
+  const vertical = (index % 2 === 0 ? 1 : -1) * 0.045
+  const depth = (((index + 1) % 3) - 1) * 0.06
+  const tilt = ((index % 3) - 1) * 0.022
+
+  return {
+    name,
+    stage,
+    start: start + index * stagger,
+    end: start + index * stagger + duration,
+    offset: [direction[0] + lateral, direction[1] + vertical, direction[2] + depth],
+    rotation: [rotation[0] + tilt, rotation[1] - tilt * 0.7, rotation[2] + tilt * 0.5],
+  }
+})
+
 const ASSEMBLY_PLANS: AssemblyPlan[] = [
-  {
-    names: ['Body', 'Body_Parts', 'Body_Parts.001', 'base'],
-    start: 0.08,
-    end: 0.34,
-    offset: [-0.55, 0.45, 0.24],
-    rotation: [0.14, -0.12, 0.1],
-  },
-  {
-    names: ['Wheels_objs', 'suspension', 'Body.002', 'Body.003'],
-    start: 0.28,
-    end: 0.56,
-    offset: [0.72, -0.24, 0.46],
-    rotation: [-0.12, 0.2, 0.05],
-  },
-  {
-    names: ['head', 'Mastcam_Z_cams', 'NavCams', 'antenna_uhf', 'antenna_hg', 'antenna_lg', 'lab', 'hazcams_front', 'hazcams_rear'],
-    start: 0.5,
-    end: 0.78,
-    offset: [-0.38, 0.72, -0.58],
-    rotation: [0.2, -0.22, 0.12],
-  },
-  {
-    names: ['arm', 'arm.001', 'arm.003', 'arm_01_joint', 'arm_02_joint', 'rtg', 'Name_Chips'],
-    start: 0.7,
-    end: 0.94,
-    offset: [0.7, 0.42, 0.62],
-    rotation: [-0.24, 0.28, -0.16],
-  },
+  ...makeAssemblyPlans('FRAME', ['Body', 'Body_Parts', 'Body_Parts.001', 'base', 'box', 'part_01', 'Armature', 'Empty'], 0.05, 0.018, 0.23, [-0.42, 0.34, 0.28], [0.08, -0.1, 0.06]),
+  ...makeAssemblyPlans('MOTION', ['suspension', 'Wheels_objs', 'Body.002', 'Body.003'], 0.2, 0.035, 0.24, [0.46, -0.2, 0.38], [-0.08, 0.13, 0.04]),
+  ...makeAssemblyPlans('SENSE', ['Cylinder', 'lab', 'rtg', 'antenna_uhf', 'antenna_hg', 'antenna_lg', 'RIMFAX', 'hazcams_front', 'hazcams_front_cover', 'hazcams_rear', 'hazcams_rear_cover_l', 'hazcams_rear_cover_r', 'hazcams_rear_wiring', 'microphones', 'Up_Look_Camera', 'Down_Look_Camera', 'calibration_target', 'calibration_target_bracket'], 0.34, 0.014, 0.24, [-0.32, 0.52, -0.42], [0.12, -0.16, 0.08]),
+  ...makeAssemblyPlans('LEAD', ['arm.001', 'arm.003', 'arm_01_joint', 'arm_02_joint', 'pan_end cover', 'arm_cable_etc', 'Name_Chips', 'probe'], 0.48, 0.018, 0.21, [0.42, 0.3, 0.5], [-0.12, 0.18, -0.1]),
 ]
 
-function prepareModel(scene: THREE.Group) {
+function setAssemblyState(snapshot: TransformSnapshot, progress: number) {
+  const assemblyBlend = quinticEase(snapshot.start, snapshot.end, progress)
+  const explodedAmount = 1 - assemblyBlend
+  snapshot.targetPosition.copy(snapshot.position).addScaledVector(snapshot.offset, explodedAmount)
+  snapshot.targetQuaternion.copy(snapshot.quaternion)
+  if (explodedAmount > 0) snapshot.targetQuaternion.multiply(snapshot.explodedRotation)
+}
+
+function prepareModel(scene: THREE.Group, initialProgress: number) {
   const bounds = new THREE.Box3().setFromObject(scene)
   const center = bounds.getCenter(new THREE.Vector3())
   const size = bounds.getSize(new THREE.Vector3())
@@ -185,28 +204,32 @@ function prepareModel(scene: THREE.Group) {
   const snapshots: TransformSnapshot[] = []
   const seen = new Set<string>()
   for (const plan of ASSEMBLY_PLANS) {
-    for (const name of plan.names) {
-      const node = scene.getObjectByName(name)
-      if (!node || seen.has(node.uuid)) continue
-      seen.add(node.uuid)
-      snapshots.push({
-        node,
-        position: node.position.clone(),
-        quaternion: node.quaternion.clone(),
-        scale: node.scale.clone(),
-        offset: new THREE.Vector3(...plan.offset),
-        explodedRotation: new THREE.Quaternion().setFromEuler(new THREE.Euler(...plan.rotation)),
-        targetPosition: new THREE.Vector3(),
-        targetQuaternion: new THREE.Quaternion(),
-      })
-      node.userData.workshopRange = [plan.start, plan.end]
+    const node = scene.getObjectByName(plan.name)
+    // Only animate independent scene roots; never move a selected child of another selected unit.
+    if (!node || node.parent !== scene || seen.has(node.uuid)) continue
+    seen.add(node.uuid)
+    const snapshot: TransformSnapshot = {
+      node,
+      position: node.position.clone(),
+      quaternion: node.quaternion.clone(),
+      scale: node.scale.clone(),
+      offset: new THREE.Vector3(...plan.offset),
+      explodedRotation: new THREE.Quaternion().setFromEuler(new THREE.Euler(...plan.rotation)),
+      start: plan.start,
+      end: plan.end,
+      targetPosition: new THREE.Vector3(),
+      targetQuaternion: new THREE.Quaternion(),
     }
+    setAssemblyState(snapshot, initialProgress)
+    node.position.copy(snapshot.targetPosition)
+    node.quaternion.copy(snapshot.targetQuaternion)
+    snapshots.push(snapshot)
   }
 
   return { scene, snapshots }
 }
 
-function usePerseveranceModel() {
+function usePerseveranceModel(progressTarget: ProgressTarget, reducedMotion: boolean) {
   const [model, setModel] = useState<{ scene: THREE.Group; snapshots: TransformSnapshot[] } | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -218,7 +241,7 @@ function usePerseveranceModel() {
       '/models/perseverance/perseverance-runtime.glb',
       (gltf: GLTF) => {
         if (cancelled) return
-        setModel(prepareModel(gltf.scene))
+        setModel(prepareModel(gltf.scene, reducedMotion ? 1 : clamp01(progressTarget.current)))
       },
       undefined,
       () => {
@@ -229,7 +252,7 @@ function usePerseveranceModel() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [progressTarget, reducedMotion])
 
   return { model, error }
 }
@@ -244,47 +267,53 @@ function PerseveranceModel({
   reducedMotion: boolean
 }) {
   const presentationRef = useRef<THREE.Group>(null)
-  const progress = useRef(reducedMotion ? 1 : 0)
+  const progress = useRef(reducedMotion ? 1 : clamp01(progressTarget.current))
+  const idleSpinAngle = useRef(0)
+  const idleSpinVelocity = useRef(0)
   const { size, camera } = useThree()
 
   useFrame((_, delta) => {
     const value = reducedMotion ? 1 : (progress.current = damp(progress.current, clamp01(progressTarget.current), 6, delta))
-    const interpolation = reducedMotion ? 1 : 1 - Math.exp(-10 * delta)
+    const interpolation = reducedMotion ? 1 : 1 - Math.exp(-7 * delta)
 
-    for (const plan of ASSEMBLY_PLANS) {
-      const assemblyProgress = reducedMotion ? 1 : smoothstep(plan.start, plan.end, value)
-      const explodedAmount = 1 - assemblyProgress
+    for (const snapshot of model.snapshots) {
+      setAssemblyState(snapshot, value)
 
-      for (const snapshot of model.snapshots) {
-        if (snapshot.node.userData.workshopRange?.[0] !== plan.start || snapshot.node.userData.workshopRange?.[1] !== plan.end) continue
-
-        snapshot.targetPosition.copy(snapshot.position).addScaledVector(snapshot.offset, explodedAmount)
-        snapshot.targetQuaternion.copy(snapshot.quaternion)
-        if (explodedAmount > 0) snapshot.targetQuaternion.multiply(snapshot.explodedRotation)
-
-        if (reducedMotion) {
-          snapshot.node.position.copy(snapshot.targetPosition)
-          snapshot.node.quaternion.copy(snapshot.targetQuaternion)
-          snapshot.node.scale.copy(snapshot.scale)
-        } else {
-          snapshot.node.position.lerp(snapshot.targetPosition, interpolation)
-          snapshot.node.quaternion.slerp(snapshot.targetQuaternion, interpolation)
-        }
+      if (reducedMotion) {
+        snapshot.node.position.copy(snapshot.targetPosition)
+        snapshot.node.quaternion.copy(snapshot.targetQuaternion)
+        snapshot.node.scale.copy(snapshot.scale)
+      } else {
+        snapshot.node.position.lerp(snapshot.targetPosition, interpolation)
+        snapshot.node.quaternion.slerp(snapshot.targetQuaternion, interpolation)
       }
+    }
+
+    const spinBlend = reducedMotion ? 0 : quinticEase(0.8, 0.88, value)
+    const targetSpinVelocity = spinBlend * ((Math.PI * 2) / 24)
+    if (reducedMotion) {
+      idleSpinAngle.current = 0
+      idleSpinVelocity.current = 0
+    } else {
+      // The velocity damps to zero on reverse scroll; the accumulated angle keeps the rover in view.
+      idleSpinVelocity.current = damp(idleSpinVelocity.current, targetSpinVelocity, 3.8, delta)
+      idleSpinAngle.current += idleSpinVelocity.current * delta
     }
 
     if (presentationRef.current) {
       const responsiveScale = size.width < 700
         ? Math.min(0.66, Math.max(0.52, size.width / 690))
         : Math.min(1.08, Math.max(0.68, size.width / 900))
-      const finalSettle = smoothstep(0.8, 1, value)
+      const finalSettle = quinticEase(0.8, 1, value)
       presentationRef.current.scale.setScalar(reducedMotion ? responsiveScale : damp(presentationRef.current.scale.x, responsiveScale, 4, delta))
-      presentationRef.current.rotation.y = reducedMotion ? 0.22 : damp(presentationRef.current.rotation.y, finalSettle * 0.22, 2.4, delta)
+      presentationRef.current.rotation.y = reducedMotion
+        ? 0.22
+        : damp(presentationRef.current.rotation.y, finalSettle * 0.22 + idleSpinAngle.current, 2.8, delta)
       presentationRef.current.rotation.x = reducedMotion ? -0.02 : damp(presentationRef.current.rotation.x, finalSettle * -0.02, 2.4, delta)
     }
 
     const narrow = size.width < 700
-    const finalOrbit = smoothstep(0.78, 1, value)
+    const finalOrbit = quinticEase(0.78, 1, value)
     const cameraX = narrow ? 5.7 : 6.1
     const cameraZ = narrow ? 8.2 : 7.4
     const cameraTargetX = cameraX + finalOrbit * 0.34
@@ -320,7 +349,7 @@ function WorkshopCanvas({
   reducedMotion: boolean
   isMobile: boolean
 }) {
-  const { model, error } = usePerseveranceModel()
+  const { model, error } = usePerseveranceModel(progressTarget, reducedMotion)
 
   return (
     <>
@@ -393,7 +422,7 @@ export default function WorkshopAssemblyDesktop() {
           </div>
 
           <div className="max-w-xl">
-            <p className="font-display text-sm font-semibold tracking-[0.12em] text-sky" aria-live="polite">{currentStage}</p>
+            <p className="font-display text-sm font-semibold tracking-[0.12em] text-sky" aria-live="polite">{currentStage.isReady ? 'ROVER READY' : currentStage.title}</p>
             <p className="mt-3 text-[0.65rem] uppercase tracking-[0.16em] text-warm/50">Reference model · NASA/JPL-Caltech · no endorsement</p>
           </div>
         </div>

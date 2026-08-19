@@ -6,4 +6,4 @@ export const stages: Array<{ number: string; title: string; text: string }> = [
 ]
 
 export const desktopVisualLabel =
-  'A NASA and JPL-Caltech Perseverance rover reference model moves from an exploded arrangement into an assembled rover, system by system: Frame, Motion, Sense, and Lead.'
+  'A NASA and JPL-Caltech Perseverance rover reference model moves from an exploded arrangement into an assembled rover, system by system: Frame, Motion, Sense, and Lead. When motion is enabled, the final ready rover turns slowly; reduced motion presents it stable.'

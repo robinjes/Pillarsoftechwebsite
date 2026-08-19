@@ -170,13 +170,13 @@ function FeaturedProgram({ upcoming, archive }: { upcoming: PublicEvent | null; 
   const featureEvent = upcoming || archive
   if (!featureEvent) return null
 
-  const image = directImage || archiveImage || '/images/events/science-odyssey/drive-01.webp'
+  const image = directImage || archiveImage || '/images/events/family-science-night/IMG_8332.JPG'
   const imageSourceEvent = directImage ? upcoming : archive
   const imageIsArchive = Boolean(upcoming && !directImage)
   const eventPath = `/events/${featureEvent.slug || featureEvent.id}`
   const imageAlt = imageSourceEvent
     ? resolveEventImageAlt(imageSourceEvent, 'hero', image)
-    : 'Students build marshmallow structures together at the Science Odyssey workshop.'
+    : 'A Pillars of Tech volunteer and participant operate a VEX robot during Family Science Night.'
 
   return (
     <section className="border-b border-[var(--ink)]/25 py-10 sm:py-14" aria-labelledby="featured-program-heading">

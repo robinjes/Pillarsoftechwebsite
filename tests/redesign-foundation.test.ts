@@ -62,10 +62,35 @@ describe('editorial homepage foundation', () => {
     expect(desktopWorkshop).toContain('ACESFilmicToneMapping')
     expect(desktopWorkshop).toContain('SRGBColorSpace')
     expect(desktopWorkshop).toContain('/models/perseverance/perseverance-runtime.glb')
-    expect(desktopWorkshop).toContain('Wheels_objs')
-    expect(desktopWorkshop).toContain('suspension')
-    expect(desktopWorkshop).toContain('Mastcam_Z_cams')
-    expect(desktopWorkshop).toContain('rtg')
+    for (const unit of [
+      'Body', 'Body_Parts', 'Body_Parts.001', 'base', 'box', 'part_01', 'Armature', 'Empty',
+      'suspension', 'Wheels_objs', 'Body.002', 'Body.003',
+      'Cylinder', 'lab', 'rtg', 'antenna_uhf', 'antenna_hg', 'antenna_lg', 'RIMFAX',
+      'hazcams_front', 'hazcams_front_cover', 'hazcams_rear', 'hazcams_rear_cover_l',
+      'hazcams_rear_cover_r', 'hazcams_rear_wiring', 'microphones', 'Up_Look_Camera',
+      'Down_Look_Camera', 'calibration_target', 'calibration_target_bracket',
+      'arm.001', 'arm.003', 'arm_01_joint', 'arm_02_joint', 'pan_end cover', 'arm_cable_etc',
+      'Name_Chips', 'probe',
+    ]) expect(desktopWorkshop).toContain(`'${unit}'`)
+    expect(desktopWorkshop).toContain('makeAssemblyPlans')
+    expect(desktopWorkshop).toContain('node.parent !== scene')
+    expect(desktopWorkshop).toContain('start + index * stagger')
+    expect(desktopWorkshop).toContain('0.018, 0.23')
+    expect(desktopWorkshop).toContain('0.035, 0.24')
+    expect(desktopWorkshop).toContain('0.014, 0.24')
+    expect(desktopWorkshop).toContain('0.018, 0.21')
+    expect(desktopWorkshop).toContain('quinticEase')
+    expect(desktopWorkshop).toContain('setAssemblyState(snapshot, value)')
+    expect(desktopWorkshop).toContain('initialProgress')
+    expect(desktopWorkshop).toContain('idleSpinAngle')
+    expect(desktopWorkshop).toContain('idleSpinVelocity')
+    expect(desktopWorkshop).toContain('(Math.PI * 2) / 24')
+    expect(desktopWorkshop).toContain('idleSpinAngle.current += idleSpinVelocity.current * delta')
+    expect(desktopWorkshop).toContain('idleSpinAngle.current = 0')
+    expect(desktopWorkshop).toContain('ROVER READY')
+    expect(desktopWorkshop).toContain("currentStage.isReady ? 'ROVER READY' : currentStage.title")
+    expect(desktopWorkshop).not.toContain('mt-2 font-display text-[0.65rem]')
+    expect(workshopData).toContain('When motion is enabled')
     expect(desktopWorkshop).toContain('ref={sectionRef}')
     expect(desktopWorkshop).toContain('min-h-[320vh]')
     expect(desktopWorkshop).toContain('min-h-[175vh]')

@@ -49,15 +49,15 @@ export default function NewsletterPage() {
           </div>
           <figure className="relative mt-8 aspect-[16/7] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:mt-10">
             <Image
-              src="/images/events/wildcat-carnival/drive-04.webp"
-              alt="Two children handle a white stretchy mixture over a pink bowl during a Wildcat Carnival activity."
+              src="/images/events/wildcat-carnival/drive-05.webp"
+              alt="A student volunteer prepares an outdoor activity table in late-afternoon light."
               fill
               priority
               sizes="(min-width: 1024px) 90vw, 100vw"
               className="object-cover object-center"
             />
             <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--midnight)]/85 px-4 py-3 font-body text-xs leading-5 text-[var(--cream)]">
-              An experiment worth writing down, from a real community workshop.
+              Wildcat Carnival · prepare the next activity
             </figcaption>
           </figure>
         </div>

@@ -89,15 +89,15 @@ export default function WishlistPage() {
 
           <figure className="relative min-h-[19rem] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:min-h-[27rem]">
             <Image
-              src="/images/events/family-science-night-altamont/drive-01.webp"
-              alt="A student-built rover moving through a taped robotics course during a STEM event."
+              src="/images/events/family-science-night/IMG_5880.jpg"
+              alt="A young participant holds a controller beside a VEX robot."
               fill
               priority
               sizes="(min-width: 1024px) 55vw, 100vw"
               className="object-cover object-center"
             />
             <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--midnight)]/85 px-4 py-3 font-body text-xs leading-5 text-[var(--cream)]">
-              The goal: more kits that can move from a storage bin to a student-built project.
+              Family Science Night · a controller in hand
             </figcaption>
           </figure>
         </div>

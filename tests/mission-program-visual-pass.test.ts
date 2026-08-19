@@ -10,12 +10,15 @@ describe('mission and program visual pass', () => {
 
     expect(about).toContain("import Image from 'next/image'")
     for (const photo of [
-      '/images/events/science-odyssey/drive-01.webp',
-      '/images/events/science-odyssey/drive-03.webp',
-      '/images/events/family-science-night-altamont/drive-02.webp',
+      '/images/events/altamont-creek-open-house/cover.png',
+      '/images/events/wildcat-tank-altamont/drive-01.webp',
+      '/images/events/pedrozzi-connect-egg-drop/drive-01.webp',
     ]) {
       expect(about).toContain(photo)
     }
+    expect(about).toContain('Altamont Creek Open House · test the idea')
+    expect(about).toContain('Wildcat Tank · present the idea')
+    expect(about).toContain('Pedrozzi CONNECT · learn and build together')
     expect(about).toContain('Our mission')
     expect(about).not.toContain('border-l-4')
     expect(about).not.toMatch(/uppercase tracking/)
@@ -27,8 +30,9 @@ describe('mission and program visual pass', () => {
     for (const portrait of ['/robin.jpg', '/yashas.jpg', '/rahul.jpg', '/jaden.jpg', '/rohan.jpg', '/nolan.jpg', '/nikhil.jpg', '/arya.jpg']) {
       expect(team).toContain(`image: '${portrait}'`)
     }
-    expect(team).toContain('/images/events/pedrozzi-connect-egg-drop/drive-04.webp')
-    expect(team).toContain('Seven student volunteers stand outdoors together')
+    expect(team).toContain('/images/events/family-science-night/IMG_0551.jpg')
+    expect(team).toContain('Pillars volunteers and adult partners smiling together outside Family Science Night.')
+    expect(team).toContain('Family Science Night · team moment')
     expect(team).toContain('portraitLayouts')
     expect(team).not.toContain('border-l-4')
     expect(team).not.toMatch(/uppercase tracking/)
@@ -44,7 +48,8 @@ describe('mission and program visual pass', () => {
     expect(events).toContain("filter === 'completed'")
     expect(events).toContain("filter === 'cancelled'")
     expect(events).toContain('Completed programs')
-    expect(events).toContain("/images/events/science-odyssey/drive-01.webp")
+    expect(events).toContain("/images/events/family-science-night/IMG_8332.JPG")
+    expect(events).toContain('A Pillars of Tech volunteer and participant operate a VEX robot during Family Science Night.')
     expect(events).not.toContain('pt-24')
     expect(events).not.toMatch(/uppercase tracking/)
   })
@@ -53,6 +58,8 @@ describe('mission and program visual pass', () => {
     const detail = read('src/app/events/[id]/page.tsx')
 
     expect(detail).toContain('archiveHeroFallback')
+    expect(detail).toContain('/images/events/family-science-night/IMG_8332.JPG')
+    expect(detail).toContain('A Pillars of Tech volunteer and participant operate a VEX robot during Family Science Night.')
     expect(detail).toContain('From a recent Pillars workshop')
     expect(detail).toContain('galleryTriggerRef')
     expect(detail).toContain('pdfTriggerRef')

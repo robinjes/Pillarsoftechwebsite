@@ -24,21 +24,21 @@ const workingMethods = [
 
 const workshopPhotos = [
   {
-    src: '/images/events/science-odyssey/drive-01.webp',
-    alt: 'Students and families build marshmallow structures together at Science Odyssey.',
-    caption: 'Science Odyssey · build together',
+    src: '/images/events/altamont-creek-open-house/cover.png',
+    alt: 'A student tries a hands-on activity while volunteers staff colorful classroom tables at Altamont Creek Open House.',
+    caption: 'Altamont Creek Open House · test the idea',
     className: 'col-span-7 aspect-[4/5] sm:col-span-6 lg:col-span-7',
   },
   {
-    src: '/images/events/science-odyssey/drive-03.webp',
-    alt: 'Students test marshmallow structures on engineering challenge sheets at Science Odyssey.',
-    caption: 'Science Odyssey · test the idea',
+    src: '/images/events/wildcat-tank-altamont/drive-01.webp',
+    alt: 'A student presents a project to seated judges at Wildcat Tank.',
+    caption: 'Wildcat Tank · present the idea',
     className: 'col-span-5 mt-10 aspect-[4/5] sm:col-span-4 sm:mt-16 lg:col-span-5 lg:mt-20',
   },
   {
-    src: '/images/events/family-science-night-altamont/drive-02.webp',
-    alt: 'Students and a mentor gather around a VEX robot during Family Science Night.',
-    caption: 'Family Science Night · try it again',
+    src: '/images/events/pedrozzi-connect-egg-drop/drive-01.webp',
+    alt: 'Students and volunteers gather outdoors for the Pedrozzi CONNECT egg-drop activity.',
+    caption: 'Pedrozzi CONNECT · learn and build together',
     className: 'col-span-8 col-start-5 -mt-8 aspect-[5/3] sm:col-span-7 sm:col-start-6 sm:-mt-14 lg:col-span-8 lg:col-start-5',
   },
 ] as const

@@ -14,8 +14,8 @@ function localAsset(value?: string | null): string | null {
   return value
 }
 
-const archiveHeroFallback = '/images/events/science-odyssey/drive-01.webp'
-const archiveHeroFallbackAlt = 'Students and families build marshmallow structures together at Science Odyssey.'
+const archiveHeroFallback = '/images/events/family-science-night/IMG_8332.JPG'
+const archiveHeroFallbackAlt = 'A Pillars of Tech volunteer and participant operate a VEX robot during Family Science Night.'
 
 function paragraphs(description: string): string[] {
   return description.split('\n\n').map((paragraph) => paragraph.trim()).filter(Boolean)

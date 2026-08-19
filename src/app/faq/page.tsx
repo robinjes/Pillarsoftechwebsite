@@ -53,16 +53,16 @@ const faqSections = [
 
 const photoRibbon = [
   {
-    src: '/images/events/family-science-night/IMG_0547.jpg',
-    alt: 'Student volunteers and an adult pose around several VEX robots and controllers indoors.',
+    src: '/images/events/family-science-night/IMG_6049.jpg',
+    alt: 'A mentor and younger participant operate a robot together.',
   },
   {
-    src: '/images/events/science-odyssey/drive-01.webp',
-    alt: 'Children and families build small structures from marshmallows and toothpicks at a crowded outdoor table.',
+    src: '/images/events/foil-boat-stockmens/drive-03.webp',
+    alt: 'A student volunteer speaks with families at an outdoor foil-boat station.',
   },
   {
-    src: '/images/events/pedrozzi-connect-egg-drop/drive-04.webp',
-    alt: 'Seven student volunteers pose outdoors; one holds a small drone and controller.',
+    src: '/images/events/wildcat-tank-altamont/drive-03.webp',
+    alt: 'The Pillars team gathers in front of the Wildcat Tank presentation screen.',
   },
 ] as const
 

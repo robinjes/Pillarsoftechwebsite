@@ -30,14 +30,17 @@ export default function FundraiserPage() {
 
       <section className="relative isolate min-h-[30rem] overflow-hidden bg-[var(--midnight)] text-[var(--cream)] sm:min-h-[36rem]">
         <Image
-          src="/images/events/science-odyssey/drive-01.webp"
-          alt="Children and families build small structures from marshmallows and toothpicks at a crowded outdoor table during Science Odyssey."
+          src="/images/events/wildcat-tank/Outdoor2.JPG"
+          alt="A student volunteer helps a younger participant at an outdoor foil-boat activity table."
           fill
           priority
           sizes="100vw"
           className="object-cover object-center"
         />
-        <div className="absolute inset-0 bg-[var(--midnight)]/70" aria-hidden="true" />
+        <div
+          className="absolute inset-0 bg-[linear-gradient(90deg,rgba(11,31,58,0.92)_0%,rgba(11,31,58,0.78)_48%,rgba(11,31,58,0.48)_100%)]"
+          aria-hidden="true"
+        />
         <div className="relative mx-auto flex min-h-[30rem] max-w-7xl items-end px-5 py-12 sm:min-h-[36rem] sm:px-8 sm:py-16 lg:px-12 lg:py-20">
           <div className="max-w-2xl">
             <p className="font-body text-sm font-semibold text-[var(--sky)]">A gift becomes a workshop</p>

@@ -471,15 +471,15 @@ export default function VolunteerPortalPage() {
           </div>
           <figure className="relative min-h-[18rem] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:min-h-[27rem]">
             <Image
-              src="/images/events/family-science-night-altamont/drive-04.webp"
-              alt="A student volunteer demonstrates a robot controller to a younger student beside a VEX robot while an adult watches."
+              src="/images/events/family-science-night/IMG_5898.jpg"
+              alt="A student volunteer guides two younger students with a robot controller."
               fill
               priority
               sizes="(min-width: 1024px) 60vw, 100vw"
               className="object-cover object-center"
             />
             <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--midnight)]/85 px-4 py-3 font-body text-xs leading-5 text-[var(--cream)]">
-              A shift can be as practical as setup, greeting, or keeping a build moving.
+              Family Science Night · volunteer guidance
             </figcaption>
           </figure>
         </div>
