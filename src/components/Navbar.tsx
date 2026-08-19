@@ -130,17 +130,19 @@ export default function Navbar() {
             {isSupportOpen ? (
               <div
                 id="support-navigation"
-                className="absolute right-0 top-full mt-2 min-w-48 border border-midnight/20 bg-warm p-2 text-ink shadow-[4px_4px_0_#101114]"
+                className="absolute right-0 top-full min-w-48 pt-2"
               >
-                {supportLinks.map((link) => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="flex min-h-11 items-center px-3 text-sm font-semibold transition-colors hover:bg-sky"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
+                <div className="border border-midnight/20 bg-warm p-2 text-ink shadow-[4px_4px_0_#101114]">
+                  {supportLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="flex min-h-11 items-center px-3 text-sm font-semibold transition-colors hover:bg-sky"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
             ) : null}
           </div>

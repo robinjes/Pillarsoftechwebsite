@@ -28,6 +28,13 @@ describe('public events and navigation regressions', () => {
     expect(navbar).not.toContain('<details')
   })
 
+  it('keeps the visual gap inside the Support menu hover target', () => {
+    const navbar = readFileSync(join(process.cwd(), 'src/components/Navbar.tsx'), 'utf8')
+
+    expect(navbar).toContain('className="absolute right-0 top-full min-w-48 pt-2"')
+    expect(navbar).not.toContain('top-full mt-2')
+  })
+
   it('uses the safe checked-in event snapshot when the public Supabase read fails', async () => {
     const order = vi.fn().mockResolvedValue({
       data: null,
