@@ -57,9 +57,9 @@ export default function WorkshopAssemblyDesktopLoader() {
         <div className="max-w-xl">
           <p className="font-display text-sm font-bold uppercase tracking-[0.2em] text-sky">Workshop assembly</p>
           <h2 id="workshop-loading-heading" className="display-heading mt-4 text-4xl sm:text-5xl">
-            Open it. Build it. Pass it on.
+            Every part has a purpose.
           </h2>
-          <p className="mt-6 max-w-md text-base leading-7 text-warm/70">Loading the interactive rover workshop.</p>
+          <p className="mt-6 max-w-md text-base leading-7 text-warm/70">Loading the interactive rover reference model.</p>
         </div>
       </div>
     </section>

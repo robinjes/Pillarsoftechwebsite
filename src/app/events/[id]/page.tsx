@@ -14,6 +14,9 @@ function localAsset(value?: string | null): string | null {
   return value
 }
 
+const archiveHeroFallback = '/images/events/science-odyssey/drive-01.webp'
+const archiveHeroFallbackAlt = 'Students and families build marshmallow structures together at Science Odyssey.'
+
 function paragraphs(description: string): string[] {
   return description.split('\n\n').map((paragraph) => paragraph.trim()).filter(Boolean)
 }
@@ -112,6 +115,8 @@ export default function EventPage() {
   }, [event])
   const localPdf = localAsset(event?.pdfUrl)
   const localHeroVideo = localAsset(event?.heroVideo)
+  const heroUsesArchiveFallback = !heroImage && (!localHeroVideo || !heroVideoOk)
+  const heroImageToShow = heroImage || archiveHeroFallback
   const activeGalleryIndex = galleryActiveImage ? galleryImages.indexOf(galleryActiveImage) : -1
   const galleryOpen = galleryActiveImage !== null
   const pdfOpen = pdfFullscreen
@@ -225,12 +230,12 @@ export default function EventPage() {
   }, [pdfOpen])
 
   if (loading) {
-    return <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-40 text-[var(--ink)]"><p className="mx-auto max-w-5xl font-display text-3xl" role="status">Loading event story…</p></main>
+    return <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-12 text-[var(--ink)] sm:pt-16"><p className="mx-auto max-w-5xl font-display text-3xl" role="status">Loading event story…</p></main>
   }
 
   if (loadError) {
     return (
-      <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-40 text-[var(--ink)]">
+      <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-12 text-[var(--ink)] sm:pt-16">
         <div className="mx-auto max-w-5xl border-y-2 border-[var(--ink)] py-14" role="alert">
           <h1 className="font-display text-4xl text-[var(--midnight)]">The event story is temporarily unavailable.</h1>
           <button type="button" onClick={() => router.push('/events')} className="mt-7 inline-flex min-h-11 items-center gap-2 bg-[var(--cobalt)] px-5 py-2 text-sm font-bold text-[var(--cream)] rounded-[10px]">
@@ -243,9 +248,9 @@ export default function EventPage() {
 
   if (!event || !participant || !volunteer) {
     return (
-      <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-40 text-[var(--ink)]">
+      <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-12 text-[var(--ink)] sm:pt-16">
         <div className="mx-auto max-w-5xl border-y-2 border-[var(--ink)] py-14">
-          <p className="text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">404 / story not found</p>
+          <p className="text-sm font-semibold text-[var(--cobalt)]">404 / story not found</p>
           <h1 className="mt-4 font-display text-5xl text-[var(--midnight)]">That event is not in the public archive.</h1>
           <button type="button" onClick={() => router.push('/events')} className="mt-7 inline-flex min-h-11 items-center gap-2 bg-[var(--cobalt)] px-5 py-2 text-sm font-bold text-[var(--cream)] rounded-[10px]">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
@@ -261,25 +266,25 @@ export default function EventPage() {
   const volunteerHref = `/volunteer?eventId=${encodeURIComponent(event.slug || event.id)}`
 
   return (
-    <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-24 text-[var(--ink)] sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 text-[var(--ink)] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <header className="grid gap-0 border-y-2 border-[var(--ink)] bg-[var(--midnight)] text-[var(--cream)] lg:grid-cols-[1.15fr_0.85fr]">
-          <div className="flex flex-col justify-between px-6 py-10 sm:px-10 sm:py-14">
+        <header className="grid gap-0 border-y border-[var(--ink)] bg-[var(--midnight)] text-[var(--cream)] lg:grid-cols-[0.86fr_1.14fr]">
+          <div className="order-2 flex flex-col justify-between px-6 py-9 sm:px-10 sm:py-12 lg:order-1 lg:py-14">
             <div>
               <button type="button" onClick={() => router.push('/events')} className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[var(--sky)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]">
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
               </button>
-              <p className="mt-10 text-xs font-bold uppercase tracking-[0.28em] text-[var(--sky)]">{event.programCategory} / {isCurrent ? 'Now & next' : 'Archive'}</p>
-              <h1 className="mt-5 max-w-4xl font-display text-5xl leading-[0.94] sm:text-7xl">{event.title}</h1>
-              <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--cream)]/80">{event.summary || eventParagraphs[0]}</p>
+              <p className="mt-8 text-sm font-semibold text-[var(--sky)]">{event.programCategory} · {isCurrent ? 'Now & next' : 'Archive'}</p>
+              <h1 className="mt-4 max-w-3xl font-display text-4xl leading-[0.98] tracking-[-0.04em] sm:text-5xl lg:text-6xl">{event.title}</h1>
+              <p className="mt-6 max-w-2xl text-base leading-7 text-[var(--cream)]/80 sm:text-lg sm:leading-8">{event.summary || eventParagraphs[0]}</p>
             </div>
-            <div className="mt-10 flex flex-wrap gap-2 text-xs font-bold uppercase tracking-[0.14em]">
-              <span className="border border-[var(--sky)] px-3 py-2 rounded-[10px]">{event.status === 'ongoing' ? 'In progress' : event.status}</span>
-              {isCurrent && event.registrationNote ? <span className="border border-[var(--cream)]/60 px-3 py-2 rounded-[10px]">{event.registrationNote}</span> : null}
+            <div className="mt-9 flex flex-wrap gap-2 text-sm font-semibold">
+              <span className="border border-[var(--sky)] px-3 py-2">{event.status === 'ongoing' ? 'In progress' : event.status}</span>
+              {isCurrent && event.registrationNote ? <span className="border border-[var(--cream)]/60 px-3 py-2">{event.registrationNote}</span> : null}
             </div>
           </div>
 
-          <div className="relative min-h-[20rem] border-t-2 border-[var(--sky)] bg-[var(--paper)] lg:border-l-2 lg:border-t-0">
+          <figure className="relative order-1 min-h-[20rem] overflow-hidden border-b border-[var(--sky)] bg-[var(--paper)] lg:order-2 lg:min-h-[34rem] lg:border-b-0 lg:border-l">
             {localHeroVideo && heroVideoOk ? (
               <video
                 className="absolute inset-0 h-full w-full object-cover"
@@ -292,58 +297,61 @@ export default function EventPage() {
               >
                 <source src={localHeroVideo} />
               </video>
-            ) : heroImage ? (
-              <Image src={heroImage} alt={resolveEventImageAlt(event, 'hero', heroImage)} fill sizes="(max-width: 1024px) 100vw, 42vw" className="object-cover" priority />
+            ) : heroImageToShow ? (
+              <Image src={heroImageToShow} alt={heroImage ? resolveEventImageAlt(event, 'hero', heroImage) : archiveHeroFallbackAlt} fill sizes="(max-width: 1024px) 100vw, 58vw" className="object-cover" priority />
             ) : (
-              <div className="flex h-full min-h-[20rem] items-end p-6 text-sm font-bold uppercase tracking-[0.2em] text-[var(--midnight)]">Event documentation</div>
+              <div className="flex h-full min-h-[20rem] items-end p-6 text-sm font-semibold text-[var(--midnight)]">Event documentation</div>
             )}
             {heroImages.length > 1 && !localHeroVideo ? (
-              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between border-t-2 border-[var(--ink)] bg-[var(--cream)]/95 p-3">
-                <button type="button" onClick={() => setHeroSlideIndex((current) => (current - 1 + heroImages.length) % heroImages.length)} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--ink)] text-[var(--midnight)] rounded-[10px]" aria-label="Previous event image"><ChevronLeft className="h-5 w-5" aria-hidden="true" /></button>
-                <span className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--ink)]">Image {heroSlideIndex + 1} / {heroImages.length}</span>
-                <button type="button" onClick={() => setHeroSlideIndex((current) => (current + 1) % heroImages.length)} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--ink)] text-[var(--midnight)] rounded-[10px]" aria-label="Next event image"><ChevronRight className="h-5 w-5" aria-hidden="true" /></button>
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between border-t border-[var(--ink)] bg-[var(--midnight)]/90 p-3 text-[var(--cream)]">
+                <button type="button" onClick={() => setHeroSlideIndex((current) => (current - 1 + heroImages.length) % heroImages.length)} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--cream)] text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Previous event image"><ChevronLeft className="h-5 w-5" aria-hidden="true" /></button>
+                <span className="text-sm font-semibold">Image {heroSlideIndex + 1} / {heroImages.length}</span>
+                <button type="button" onClick={() => setHeroSlideIndex((current) => (current + 1) % heroImages.length)} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--cream)] text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Next event image"><ChevronRight className="h-5 w-5" aria-hidden="true" /></button>
               </div>
             ) : null}
-          </div>
+            <figcaption className="absolute left-4 top-4 border border-[var(--cream)]/50 bg-[var(--midnight)]/90 px-3 py-2 text-sm font-semibold text-[var(--cream)]">
+              {heroUsesArchiveFallback ? 'From a recent Pillars workshop' : isCurrent ? 'Program image' : 'From the event archive'}
+            </figcaption>
+          </figure>
         </header>
 
-        <section className="grid border-b-2 border-[var(--ink)] lg:grid-cols-4" aria-label="Event details">
-          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><CalendarDays className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-xs font-bold uppercase tracking-[0.16em] text-[var(--cobalt)]">Date</p><p className="mt-1 font-semibold">{dateLabel(event)}</p></div>
-          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><Clock3 className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-xs font-bold uppercase tracking-[0.16em] text-[var(--cobalt)]">Time</p><p className="mt-1 font-semibold">{timeLabel(event)}</p></div>
-          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><MapPin className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-xs font-bold uppercase tracking-[0.16em] text-[var(--cobalt)]">Location</p><p className="mt-1 font-semibold">{event.location || 'Location to be announced'}</p></div>
-          <div className="p-5"><p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--cobalt)]">Registration</p><p className={`mt-3 inline-flex border px-3 py-2 text-sm font-bold rounded-[10px] ${participant.tone}`}>{participant.label}</p></div>
+        <section className="grid border-b border-[var(--ink)]/35 lg:grid-cols-4" aria-label="Event details">
+          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><CalendarDays className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Date</p><p className="mt-1 font-semibold">{dateLabel(event)}</p></div>
+          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><Clock3 className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Time</p><p className="mt-1 font-semibold">{timeLabel(event)}</p></div>
+          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><MapPin className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Location</p><p className="mt-1 font-semibold">{event.location || 'Location to be announced'}</p></div>
+          <div className="p-5"><p className="text-sm font-semibold text-[var(--cobalt)]">Registration</p><p className={`mt-3 inline-flex border px-3 py-2 text-sm font-bold ${participant.tone}`}>{participant.label}</p></div>
         </section>
 
-        <div className="grid gap-12 border-b-2 border-[var(--ink)] py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
+        <div className="grid gap-12 border-b border-[var(--ink)]/35 py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
           <article className="max-w-3xl">
-            <p className="text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">The story</p>
-            <h2 className="mt-3 font-display text-4xl text-[var(--midnight)]">What happened here</h2>
+            <p className="text-sm font-semibold text-[var(--cobalt)]">What participants practiced</p>
+            <h2 className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">What happened here</h2>
             <div className="mt-7 space-y-6 text-base leading-8 text-[var(--ink)]/85">
-              {eventParagraphs.map((paragraph, index) => <p key={`${paragraph.slice(0, 24)}-${index}`}>{paragraph}</p>)}
+              {eventParagraphs.map((paragraph, index) => <p key={`${paragraph.slice(0, 24)}-${index}`} className={index === 0 ? 'text-lg leading-8 text-[var(--midnight)]' : undefined}>{paragraph}</p>)}
             </div>
           </article>
 
-          <aside className="h-fit border-t-2 border-[var(--ink)] pt-5 lg:border-l-2 lg:border-t-0 lg:pl-6">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--cobalt)]">Make a plan</p>
+          <aside className="h-fit border-t border-[var(--ink)] pt-5 lg:border-l lg:border-t-0 lg:pl-6">
+            <p className="text-sm font-semibold text-[var(--cobalt)]">Make a plan</p>
             <div className="mt-5 space-y-3">
-              {participant.canRegister ? <a href={registrationHref} className="flex min-h-11 items-center justify-between gap-3 bg-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]">Register as a participant <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75 rounded-[10px]">{participant.label}</p>}
-              {volunteer.canRegister ? <a href={volunteerHref} className="flex min-h-11 items-center justify-between gap-3 border-2 border-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cobalt)] hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]">Volunteer at this event <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75 rounded-[10px]">{volunteer.label}</p>}
-              {isCurrent && event.registrationLink ? <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]">External event link <ExternalLink className="h-4 w-4" aria-hidden="true" /></a> : null}
-              {event.id === 'wildcat-tank-altamont' ? <><a href="/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]">Results &amp; presentation record <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a><a href="/photos/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]">Open photo archive <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a></> : null}
+              {participant.canRegister ? <a href={registrationHref} className="flex min-h-11 items-center justify-between gap-3 bg-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register as a participant <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{participant.label}</p>}
+              {volunteer.canRegister ? <a href={volunteerHref} className="flex min-h-11 items-center justify-between gap-3 border border-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cobalt)] hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Volunteer at this event <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{volunteer.label}</p>}
+              {isCurrent && event.registrationLink ? <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">External event link <ExternalLink className="h-4 w-4" aria-hidden="true" /></a> : null}
+              {event.id === 'wildcat-tank-altamont' ? <><a href="/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Results &amp; presentation record <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a><a href="/photos/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Open photo archive <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a></> : null}
             </div>
           </aside>
         </div>
 
         {galleryImages.length > 0 ? (
-          <section className="border-b-2 border-[var(--ink)] py-12" aria-labelledby="gallery-heading">
+          <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="gallery-heading">
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <div><p className="text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Field images</p><h2 id="gallery-heading" className="mt-3 font-display text-4xl text-[var(--midnight)]">From the day</h2></div>
+              <div><p className="text-sm font-semibold text-[var(--cobalt)]">Field images</p><h2 id="gallery-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">From the day</h2></div>
               <p className="text-sm text-[var(--ink)]/65">Select an image to enlarge it.</p>
             </div>
             <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {galleryImages.map((image, index) => (
-                <button key={image} type="button" onClick={(clickEvent) => { galleryTriggerRef.current = clickEvent.currentTarget; setGalleryActiveImage(image) }} className="group relative aspect-square overflow-hidden border border-[var(--ink)] bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]" aria-label={'Open event image ' + (index + 1)}>
-                  <Image src={image} alt={resolveEventImageAlt(event, 'gallery', image, index)} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" />
+                <button key={image} type="button" onClick={(clickEvent) => { galleryTriggerRef.current = clickEvent.currentTarget; setGalleryActiveImage(image) }} className="group relative aspect-square overflow-hidden border border-[var(--ink)] bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]" aria-label={'Open event image ' + (index + 1)}>
+                  <Image src={image} alt={resolveEventImageAlt(event, 'gallery', image, index)} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
                 </button>
               ))}
             </div>
@@ -351,19 +359,19 @@ export default function EventPage() {
         ) : null}
 
         {(event.pdfUrl || embedVideos.length > 0) ? (
-          <section className="border-b-2 border-[var(--ink)] py-12" aria-labelledby="resources-heading">
-            <div><p className="text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Approved resources</p><h2 id="resources-heading" className="mt-3 font-display text-4xl text-[var(--midnight)]">Keep exploring</h2></div>
+          <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="resources-heading">
+            <div><p className="text-sm font-semibold text-[var(--cobalt)]">Approved resources</p><h2 id="resources-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">Keep exploring</h2></div>
             <div className="mt-7 grid gap-8 lg:grid-cols-2">
               {event.pdfUrl ? (
-                <article className="border border-[var(--ink)] bg-[var(--paper)] rounded-[10px]">
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--ink)] p-4"><div className="flex items-center gap-2 font-bold text-[var(--midnight)]"><FileText className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /> Event document</div><div className="flex flex-wrap gap-2"><a href={event.pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 border border-[var(--cobalt)] px-3 py-2 text-xs font-bold text-[var(--cobalt)] rounded-[10px]">Open PDF <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /></a>{localPdf ? <button type="button" onClick={(clickEvent) => { pdfTriggerRef.current = clickEvent.currentTarget; setPdfFullscreen(true) }} className="inline-flex min-h-11 items-center border border-[var(--ink)] px-3 py-2 text-xs font-bold rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Full screen</button> : null}</div></div>
+                <article className="border border-[var(--ink)] bg-[var(--paper)]">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--ink)] p-4"><div className="flex items-center gap-2 font-bold text-[var(--midnight)]"><FileText className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /> Event document</div><div className="flex flex-wrap gap-2"><a href={event.pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 border border-[var(--cobalt)] px-3 py-2 text-xs font-bold text-[var(--cobalt)]">Open PDF <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /></a>{localPdf ? <button type="button" onClick={(clickEvent) => { pdfTriggerRef.current = clickEvent.currentTarget; setPdfFullscreen(true) }} className="inline-flex min-h-11 items-center border border-[var(--ink)] px-3 py-2 text-xs font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Full screen</button> : null}</div></div>
                   {localPdf ? <iframe src={event.pdfUrl} sandbox="" loading="lazy" className="h-[26rem] w-full" title={`${event.title} event document`} /> : <p className="p-5 text-sm leading-7 text-[var(--ink)]/75">This approved document opens directly in a new tab.</p>}
                 </article>
               ) : null}
               {embedVideos.length > 0 ? (
-                <article className="border border-[var(--ink)] bg-[var(--paper)] rounded-[10px]">
+                <article className="border border-[var(--ink)] bg-[var(--paper)]">
                   <div className="border-b border-[var(--ink)] p-4"><div className="flex items-center gap-2 font-bold text-[var(--midnight)]"><Play className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /> Event video</div></div>
-                  <div className="space-y-7 p-4">{embedVideos.map((video, index) => <div key={video.original}><p className="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-[var(--cobalt)]">{embedVideos.length > 1 ? `Video ${index + 1}` : 'Presentation recording'}</p><div className="aspect-video overflow-hidden border border-[var(--ink)] rounded-[10px]"><iframe src={video.embed} loading="lazy" className="h-full w-full" title={`${event.title} video ${index + 1}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div></div>)}</div>
+                  <div className="space-y-7 p-4">{embedVideos.map((video, index) => <div key={video.original}><p className="mb-3 text-sm font-semibold text-[var(--cobalt)]">{embedVideos.length > 1 ? `Video ${index + 1}` : 'Presentation recording'}</p><div className="aspect-video overflow-hidden border border-[var(--ink)]"><iframe src={video.embed} loading="lazy" className="h-full w-full" title={`${event.title} video ${index + 1}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div></div>)}</div>
                 </article>
               ) : null}
             </div>

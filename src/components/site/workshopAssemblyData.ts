@@ -1,8 +1,9 @@
 export const stages: Array<{ number: string; title: string; text: string }> = [
-  { number: '01', title: 'Access', text: 'Start with a question, a table, and room to try.' },
-  { number: '02', title: 'Build', text: 'Turn the idea into something you can test and tune.' },
-  { number: '03', title: 'Lead', text: 'Carry the confidence into the next challenge.' },
+  { number: '01', title: 'FRAME', text: 'Start with the structure that gives every system a place to work.' },
+  { number: '02', title: 'MOTION', text: 'Bring wheels, suspension, and the drive system into alignment.' },
+  { number: '03', title: 'SENSE', text: 'Set the mast, cameras, antennas, and science instruments in place.' },
+  { number: '04', title: 'LEAD', text: 'See how a working system becomes a platform for the next question.' },
 ]
 
 export const desktopVisualLabel =
-  'A workshop rover moves from a closed tool kit to an assembled chassis, wheels, board, battery, and sensor through Access, Build, and Lead.'
+  'A NASA and JPL-Caltech Perseverance rover reference model moves from an exploded arrangement into an assembled rover, system by system: Frame, Motion, Sense, and Lead.'

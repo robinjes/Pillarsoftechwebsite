@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, Boxes, CircuitBoard, Cpu, Printer, Radio, Wrench } from 'lucide-react'
 
@@ -60,20 +61,16 @@ const wishlistItems = [
 
 export default function WishlistPage() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] pt-16 text-[var(--ink)]">
-      <header className="border-b-2 border-[var(--ink)]/20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:px-12 lg:py-28">
+    <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] text-[var(--ink)]">
+      <header className="border-b border-[var(--ink)]/20">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:px-12 lg:py-16">
           <div>
-            <p className="mb-6 font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Wishlist / Practical support</p>
-            <h1 className="max-w-4xl font-display text-5xl leading-[0.96] tracking-tight text-[var(--midnight)] sm:text-7xl lg:text-[6.8rem]">
-              The tools behind the next workshop.
-            </h1>
-          </div>
-          <div className="border-l-4 border-[var(--cobalt)] pl-6">
-            <p className="font-body text-lg leading-8 text-[var(--ink)]/75 sm:text-xl">
-              These are the supplies our student-led STEM organization is currently collecting for hands-on sessions.
+            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Workshop packing list</p>
+            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-7xl">Pack the next build.</h1>
+            <p className="mt-6 max-w-lg font-body text-base leading-7 text-[var(--ink)]/70 sm:text-lg">
+              These are the practical tools that turn an open table into a hands-on STEM session. Every item has a useful next step.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-7 flex flex-wrap gap-4">
               <Link
                 href="/contact?reason=wishlist"
                 className="inline-flex min-h-11 items-center gap-2 bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
@@ -83,44 +80,58 @@ export default function WishlistPage() {
               </Link>
               <Link
                 href="/faq"
-                className="inline-flex min-h-11 items-center border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
+                className="inline-flex min-h-11 items-center border border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
               >
                 Read the FAQ
               </Link>
             </div>
           </div>
+
+          <figure className="relative min-h-[19rem] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:min-h-[27rem]">
+            <Image
+              src="/images/events/family-science-night-altamont/drive-01.webp"
+              alt="A student-built rover moving through a taped robotics course during a STEM event."
+              fill
+              priority
+              sizes="(min-width: 1024px) 55vw, 100vw"
+              className="object-cover object-center"
+            />
+            <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--midnight)]/85 px-4 py-3 font-body text-xs leading-5 text-[var(--cream)]">
+              The goal: more kits that can move from a storage bin to a student-built project.
+            </figcaption>
+          </figure>
         </div>
       </header>
 
       <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12 lg:py-24">
-          <div className="mb-10 flex flex-col gap-4 border-b-2 border-[var(--ink)] pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-12 lg:py-20">
+          <div className="mb-8 flex flex-col gap-4 border-b border-[var(--ink)]/30 pb-6 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Current list</p>
-              <h2 className="mt-3 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Choose a useful next step.</h2>
+              <p className="font-body text-sm font-semibold text-[var(--cobalt)]">What would help next</p>
+              <h2 className="mt-2 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Choose one useful piece.</h2>
             </div>
             <p className="max-w-sm font-body text-sm leading-6 text-[var(--ink)]/65">
-              Have another item in mind? The same contact route works for that, too.
+              Have another item in mind? Use the same contact route to check fit, condition, and delivery.
             </p>
           </div>
 
           <div className="divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20">
-            {wishlistItems.map((item, index) => {
+            {wishlistItems.map((item) => {
               const Icon = item.icon
 
               return (
-                <article key={item.title} className="grid gap-5 py-7 sm:grid-cols-[4rem_0.8fr_1.2fr_auto] sm:items-center sm:gap-7">
-                  <div className="flex h-14 w-14 items-center justify-center border-2 border-[var(--ink)]/20 bg-[var(--cream)] text-[var(--cobalt)]">
-                    <Icon aria-hidden="true" className="h-7 w-7" strokeWidth={1.7} />
+                <article key={item.title} className="grid gap-5 py-7 sm:grid-cols-[3.5rem_0.8fr_1.2fr_auto] sm:items-center sm:gap-7">
+                  <div className="flex h-12 w-12 items-center justify-center border border-[var(--ink)]/25 bg-[var(--cream)] text-[var(--cobalt)]">
+                    <Icon aria-hidden="true" className="h-6 w-6" strokeWidth={1.7} />
                   </div>
                   <div>
-                    <p className="font-body text-xs font-bold uppercase tracking-[0.2em] text-[var(--cobalt)]">0{index + 1} / {item.useCase}</p>
-                    <h3 className="mt-2 font-display text-2xl leading-tight text-[var(--midnight)]">{item.title}</h3>
+                    <p className="font-body text-xs font-semibold text-[var(--cobalt)]">{item.useCase}</p>
+                    <h3 className="mt-1 font-display text-2xl leading-tight text-[var(--midnight)]">{item.title}</h3>
                   </div>
                   <p className="font-body text-base leading-7 text-[var(--ink)]/70">{item.description}</p>
                   <Link
                     href="/contact?reason=wishlist"
-                    className="inline-flex min-h-11 items-center justify-center gap-2 border-2 border-[var(--midnight)] px-4 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
+                    className="inline-flex min-h-11 items-center justify-center gap-2 border border-[var(--midnight)] px-4 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
                     aria-label={`Coordinate a donation for ${item.title}`}
                   >
                     Coordinate
@@ -136,8 +147,8 @@ export default function WishlistPage() {
       <section className="bg-[var(--sky)]">
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-20">
           <div>
-            <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--midnight)]/70">Something else to donate?</p>
-            <h2 className="mt-4 max-w-2xl font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Tell us what you have in mind.</h2>
+            <p className="font-body text-sm font-semibold text-[var(--midnight)]/70">Something else to donate?</p>
+            <h2 className="mt-3 max-w-2xl font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Tell us what you have in mind.</h2>
             <p className="mt-4 max-w-2xl font-body text-base leading-7 text-[var(--midnight)]/75">
               Share the item, its condition, and any accessories that come with it so we can coordinate the next step.
             </p>

@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight, CheckCircle2, Mail, MessageCircle, Send } from 'lucide-react'
@@ -133,38 +134,51 @@ export default function Contact() {
 
   return (
     <div className="bg-[var(--cream)] text-[var(--ink)]">
-      <header className="border-b-2 border-[var(--ink)]/20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end lg:px-12 lg:py-28">
-          <div>
-            <div className="mb-6 flex items-center gap-3 font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">
-              <MessageCircle aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
-              Contact / Start here
+      <header className="border-b border-[var(--ink)]/20">
+        <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
+          <div className="flex flex-col gap-7 border-y border-[var(--ink)]/25 py-8 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div className="flex items-center gap-3 font-body text-sm font-semibold text-[var(--cobalt)]">
+                <MessageCircle aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
+                Start a conversation
+              </div>
+              <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-7xl">
+                Let&apos;s make the next step clear.
+              </h1>
             </div>
-            <h1 className="max-w-4xl font-display text-5xl leading-[0.96] tracking-tight text-[var(--midnight)] sm:text-7xl lg:text-[6.8rem]">
-              Let&apos;s make the next step clear.
-            </h1>
-            <p className="mt-7 max-w-2xl font-body text-lg leading-8 text-[var(--ink)]/70 sm:text-xl">
-              Tell us what you are working on, what you want to ask, or where you would like to help.
-            </p>
+            <div className="max-w-sm sm:text-right">
+              <p className="font-body text-base leading-7 text-[var(--ink)]/70">
+                Tell us what you are working on, what you want to ask, or where you would like to help.
+              </p>
+              <a
+                href={`mailto:${CONTACT_EMAIL}`}
+                className="mt-5 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
+              >
+                {CONTACT_EMAIL}
+                <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+              </a>
+            </div>
           </div>
-          <div className="border-l-4 border-[var(--cobalt)] pl-6">
-            <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Direct line</p>
-            <p className="mt-4 font-display text-3xl leading-tight text-[var(--midnight)]">Prefer email?</p>
-            <a
-              href={`mailto:${CONTACT_EMAIL}`}
-              className="mt-4 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
-            >
-              {CONTACT_EMAIL}
-              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-            </a>
-          </div>
+          <figure className="relative mt-8 aspect-[16/6] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:mt-10">
+            <Image
+              src="/images/events/pedrozzi-connect-egg-drop/drive-04.webp"
+              alt="Seven student volunteers pose outdoors; one holds a small drone and controller."
+              fill
+              priority
+              sizes="(min-width: 1024px) 90vw, 100vw"
+              className="object-cover object-center"
+            />
+            <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--midnight)]/85 px-4 py-3 font-body text-xs leading-5 text-[var(--cream)]">
+              Bring the idea, question, or next practical step.
+            </figcaption>
+          </figure>
         </div>
       </header>
 
       <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
         <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[0.72fr_1.28fr] lg:px-12 lg:py-24">
           <div>
-            <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Conversation starters</p>
+            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Conversation starters</p>
             <h2 className="mt-4 max-w-sm font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Bring the useful details.</h2>
             <p className="mt-5 max-w-sm font-body text-base leading-7 text-[var(--ink)]/65">
               Choose a subject and include the context that will help us understand what you need.
@@ -177,7 +191,7 @@ export default function Contact() {
                 </li>
               ))}
             </ul>
-            <p className="mt-8 border-l-2 border-[var(--sky)] pl-4 font-body text-sm leading-6 text-[var(--ink)]/65">
+            <p className="mt-8 border-l border-[var(--sky)] pl-4 font-body text-sm leading-6 text-[var(--ink)]/65">
               For an event request, include the date, location, and any relevant constraints.
             </p>
           </div>
@@ -185,20 +199,20 @@ export default function Contact() {
           <section id="contact-form" className="border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-5 sm:p-8">
             <div className="flex flex-col gap-5 border-b-2 border-[var(--ink)] pb-6 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Message form</p>
+                <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Message form</p>
                 <h2 className="mt-3 font-display text-3xl leading-tight text-[var(--midnight)] sm:text-4xl">Send a note.</h2>
               </div>
               <Send aria-hidden="true" className="h-7 w-7 text-[var(--cobalt)]" strokeWidth={1.7} />
             </div>
 
             {errorMessage && (
-              <div id="contact-error" className="mt-6 border-l-4 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950" role="alert" aria-live="polite">
+              <div id="contact-error" className="mt-6 border-l-2 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950" role="alert" aria-live="polite">
                 {errorMessage}
               </div>
             )}
 
             {status === 'success' && (
-              <div className="mt-6 border-l-4 border-[var(--cobalt)] bg-[var(--sky)]/35 px-4 py-3 font-body text-sm leading-6 text-[var(--midnight)]" role="status" aria-live="polite">
+              <div className="mt-6 border-l-2 border-[var(--cobalt)] bg-[var(--sky)]/35 px-4 py-3 font-body text-sm leading-6 text-[var(--midnight)]" role="status" aria-live="polite">
                 Your message was received. We&apos;ll follow up through the email address you provided.
               </div>
             )}

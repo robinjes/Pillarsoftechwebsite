@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, BookOpen, Compass, Hammer, History } from 'lucide-react'
 
@@ -21,35 +22,70 @@ const workingMethods = [
   },
 ] as const
 
+const workshopPhotos = [
+  {
+    src: '/images/events/science-odyssey/drive-01.webp',
+    alt: 'Students and families build marshmallow structures together at Science Odyssey.',
+    caption: 'Science Odyssey · build together',
+    className: 'col-span-7 aspect-[4/5] sm:col-span-6 lg:col-span-7',
+  },
+  {
+    src: '/images/events/science-odyssey/drive-03.webp',
+    alt: 'Students test marshmallow structures on engineering challenge sheets at Science Odyssey.',
+    caption: 'Science Odyssey · test the idea',
+    className: 'col-span-5 mt-10 aspect-[4/5] sm:col-span-4 sm:mt-16 lg:col-span-5 lg:mt-20',
+  },
+  {
+    src: '/images/events/family-science-night-altamont/drive-02.webp',
+    alt: 'Students and a mentor gather around a VEX robot during Family Science Night.',
+    caption: 'Family Science Night · try it again',
+    className: 'col-span-8 col-start-5 -mt-8 aspect-[5/3] sm:col-span-7 sm:col-start-6 sm:-mt-14 lg:col-span-8 lg:col-start-5',
+  },
+] as const
+
 export default function About() {
   return (
     <div className="bg-[var(--cream)] text-[var(--ink)]">
-      <header className="border-b-2 border-[var(--ink)]/20">
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[1.25fr_0.75fr] lg:px-12 lg:py-28">
-          <div>
-            <p className="mb-6 font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">
-              About / Pillars of Tech
-            </p>
-            <h1 className="max-w-4xl font-display text-5xl leading-[0.96] tracking-tight text-[var(--midnight)] sm:text-7xl lg:text-[6.8rem]">
+      <header className="bg-[var(--midnight)] text-[var(--cream)]">
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-[0.78fr_1.22fr] lg:items-center lg:gap-16 lg:px-12 lg:py-24">
+          <div className="max-w-xl">
+            <p className="font-body text-sm font-semibold text-[var(--sky)]">About Pillars of Tech</p>
+            <h1 className="mt-5 max-w-2xl font-display text-5xl leading-[0.97] tracking-[-0.04em] text-[var(--cream)] sm:text-6xl lg:text-[5.6rem]">
               Make room for the next idea.
             </h1>
-          </div>
-          <div className="self-end border-l-4 border-[var(--cobalt)] pl-6 lg:mb-2">
-            <p className="font-body text-lg font-semibold leading-7 text-[var(--midnight)] sm:text-xl">
+            <p className="mt-7 max-w-lg font-body text-lg font-semibold leading-8 text-[var(--cream)]/90 sm:text-xl">
               Pillars of Tech is a student-led STEM organization building practical ways for students to meet technology.
             </p>
-            <p className="mt-5 font-body text-sm leading-6 text-[var(--ink)]/70">
+            <p className="mt-5 max-w-lg font-body text-base leading-7 text-[var(--cream)]/70">
               We learn by making, share what we learn, and keep the door open for the next person.
             </p>
+          </div>
+
+          <div className="grid grid-cols-12 items-start gap-3 sm:gap-4" aria-label="Pillars of Tech workshop moments">
+            {workshopPhotos.map((photo, index) => (
+              <figure key={photo.src} className={`relative overflow-hidden border border-[var(--cream)]/35 bg-[var(--sky)] ${photo.className}`}>
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  fill
+                  priority={index === 0}
+                  sizes="(max-width: 640px) 58vw, (max-width: 1024px) 34vw, 30vw"
+                  className="object-cover transition-transform duration-500 motion-safe:hover:scale-[1.03] motion-reduce:transition-none motion-reduce:hover:scale-100"
+                />
+                <figcaption className="absolute inset-x-0 bottom-0 border-t border-[var(--cream)]/35 bg-[var(--midnight)]/90 px-3 py-2 text-xs font-semibold text-[var(--cream)]">
+                  {photo.caption}
+                </figcaption>
+              </figure>
+            ))}
           </div>
         </div>
       </header>
 
       <section className="border-b border-[var(--ink)]/20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:px-12 lg:py-24">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16 lg:px-12 lg:py-24">
           <div>
-            <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">The mission</p>
-            <h2 className="mt-4 max-w-sm font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">
+            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Our mission</p>
+            <h2 className="mt-4 max-w-sm font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">
               Technology education should feel possible.
             </h2>
           </div>
@@ -66,10 +102,10 @@ export default function About() {
 
       <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
         <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12 lg:py-24">
-          <div className="mb-12 flex flex-col justify-between gap-5 border-b-2 border-[var(--ink)] pb-6 sm:flex-row sm:items-end">
+          <div className="mb-10 flex flex-col justify-between gap-5 border-b border-[var(--ink)]/35 pb-6 sm:flex-row sm:items-end">
             <div>
-              <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">How we work</p>
-              <h2 className="mt-3 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Build, guide, invite.</h2>
+              <p className="font-body text-sm font-semibold text-[var(--cobalt)]">How we work</p>
+              <h2 className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">Build, guide, invite.</h2>
             </div>
             <p className="max-w-sm font-body text-sm leading-6 text-[var(--ink)]/65">
               Three connected practices keep the experience grounded for students, families, and mentors.
@@ -82,10 +118,10 @@ export default function About() {
 
               return (
                 <div key={method.title} className="grid gap-5 py-7 sm:grid-cols-[5rem_0.8fr_1.2fr] sm:items-center">
-                  <p className="font-body text-sm font-bold tabular-nums text-[var(--cobalt)]">0{index + 1}</p>
+                  <p className="font-body text-sm font-semibold tabular-nums text-[var(--cobalt)]">0{index + 1}</p>
                   <div className="flex items-center gap-4">
                     <Icon aria-hidden="true" className="h-7 w-7 text-[var(--cobalt)]" strokeWidth={1.8} />
-                    <h3 className="font-display text-2xl text-[var(--midnight)]">{method.title}</h3>
+                    <h3 className="font-display text-2xl tracking-[-0.02em] text-[var(--midnight)]">{method.title}</h3>
                   </div>
                   <p className="font-body text-base leading-7 text-[var(--ink)]/70">{method.description}</p>
                 </div>
@@ -96,26 +132,26 @@ export default function About() {
       </section>
 
       <section className="bg-[var(--midnight)] text-[var(--cream)]">
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:px-12 lg:py-24">
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16 lg:px-12 lg:py-24">
           <div>
             <div className="flex items-center gap-3 text-[var(--sky)]">
               <History aria-hidden="true" className="h-6 w-6" strokeWidth={1.7} />
-              <p className="font-body text-xs font-bold uppercase tracking-[0.28em]">A living history</p>
+              <p className="font-body text-sm font-semibold">A living history</p>
             </div>
-            <h2 className="mt-5 max-w-sm font-display text-4xl leading-tight sm:text-5xl">A small start, kept in motion.</h2>
+            <h2 className="mt-5 max-w-sm font-display text-4xl leading-[1.02] tracking-[-0.03em] sm:text-5xl">A small start, kept in motion.</h2>
           </div>
           <div className="border-l border-[var(--sky)]/40 pl-6 sm:pl-10">
             <div className="space-y-10 font-body text-base leading-7 text-[var(--cream)]/75 sm:text-lg">
               <div>
-                <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-[var(--sky)]">The beginning</p>
+                <p className="mb-2 text-sm font-semibold text-[var(--sky)]">The beginning</p>
                 <p>Pillars of Tech grew from students asking how to make technology feel less distant and more hands-on.</p>
               </div>
               <div>
-                <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-[var(--sky)]">The practice now</p>
+                <p className="mb-2 text-sm font-semibold text-[var(--sky)]">The practice now</p>
                 <p>Events, mentorship, and community learning turn that question into a repeatable way to welcome people in.</p>
               </div>
               <div>
-                <p className="mb-2 text-xs font-bold uppercase tracking-[0.24em] text-[var(--sky)]">The next chapter</p>
+                <p className="mb-2 text-sm font-semibold text-[var(--sky)]">The next chapter</p>
                 <p>We are continuing to listen, improve the work, and make the next invitation clearer than the last.</p>
               </div>
             </div>
@@ -124,12 +160,12 @@ export default function About() {
       </section>
 
       <section className="border-b border-[var(--ink)]/20 bg-[var(--cream)]">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1fr_1fr] lg:px-12 lg:py-20">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1fr_1fr] lg:gap-16 lg:px-12 lg:py-20">
           <div>
-            <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Financial home</p>
-            <h2 className="mt-4 max-w-md font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Clear enough to follow.</h2>
+            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Financial home</p>
+            <h2 className="mt-4 max-w-md font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">Clear enough to follow.</h2>
           </div>
-          <div className="border-t-2 border-[var(--ink)] pt-5 font-body text-base leading-7 text-[var(--ink)]/75">
+          <div className="border-t border-[var(--ink)] pt-5 font-body text-base leading-7 text-[var(--ink)]/75">
             <p>
               <span className="font-bold text-[var(--midnight)]">Fiscally sponsored through Hack Club</span>, Pillars of Tech shares its HCB transaction record for financial transparency.
             </p>
@@ -149,8 +185,8 @@ export default function About() {
       <section className="bg-[var(--sky)]">
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-20">
           <div>
-            <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--midnight)]/70">Keep exploring</p>
-            <h2 className="mt-3 max-w-2xl font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Find the next useful door.</h2>
+            <p className="font-body text-sm font-semibold text-[var(--midnight)]/70">Keep exploring</p>
+            <h2 className="mt-3 max-w-2xl font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">Find the next useful door.</h2>
           </div>
           <div className="flex flex-wrap gap-3">
             <Link

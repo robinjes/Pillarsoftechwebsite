@@ -5,8 +5,8 @@ export default function WorkshopAssembly() {
     <>
       <DesktopWorkshopAssemblyLoader />
       <p className="sr-only">
-        Workshop assembly sequence: Access → Build → Lead. Scroll the story to open the case and assemble the rover,
-        or enable reduced motion to view the final composition.
+        Every part has a purpose. Scroll to bring a NASA and JPL-Caltech Perseverance rover reference model together one
+        system at a time: Frame, Motion, Sense, and Lead. Enable reduced motion to view the final composition.
       </p>
     </>
   )

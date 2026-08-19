@@ -19,77 +19,97 @@ const teamMembers: TeamMember[] = [
   { name: 'Arya Rajavelu', position: 'Member', image: '/arya.jpg' },
 ]
 
+const portraitLayouts = [
+  'col-span-7 aspect-[4/5] sm:col-span-5 lg:col-span-5',
+  'col-span-5 mt-10 aspect-square sm:col-span-4 sm:mt-14 lg:col-span-3 lg:mt-16',
+  'col-span-6 -mt-6 aspect-[5/6] sm:col-span-4 sm:-mt-10 lg:col-span-4 lg:-mt-16',
+  'col-span-6 mt-8 aspect-[4/5] sm:col-span-4 sm:mt-12 lg:col-span-3 lg:mt-8',
+  'col-span-5 -mt-10 aspect-[3/4] sm:col-span-3 sm:-mt-16 lg:col-span-3 lg:-mt-12',
+  'col-span-7 aspect-[4/5] sm:col-span-5 lg:col-span-4',
+  'col-span-6 mt-8 aspect-square sm:col-span-4 sm:mt-12 lg:col-span-3 lg:mt-20',
+  'col-span-6 -mt-4 aspect-[5/6] sm:col-span-4 sm:-mt-8 lg:col-span-4 lg:-mt-10',
+] as const
+
 const teamJoinUrl = 'https://forms.gle/XqeKkMF4cj5W62yL9'
 
 export default function Team() {
   return (
     <div className="bg-[var(--cream)] text-[var(--ink)]">
-      <header className="border-b-2 border-[var(--ink)]/20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[1fr_0.72fr] lg:items-end lg:px-12 lg:py-28">
-          <div>
-            <div className="mb-6 flex items-center gap-3 font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">
+      <header className="bg-[var(--midnight)] text-[var(--cream)]">
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:gap-16 lg:px-12 lg:py-24">
+          <div className="max-w-xl">
+            <div className="flex items-center gap-3 font-body text-sm font-semibold text-[var(--sky)]">
               <Users aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
-              People directory
+              The people behind the work
             </div>
-            <h1 className="max-w-4xl font-display text-5xl leading-[0.96] tracking-tight text-[var(--midnight)] sm:text-7xl lg:text-[6.8rem]">
-              The people behind the work.
+            <h1 className="mt-5 max-w-2xl font-display text-5xl leading-[0.97] tracking-[-0.04em] text-[var(--cream)] sm:text-6xl lg:text-[5.4rem]">
+              Make room for more people to build.
             </h1>
-          </div>
-          <div className="border-l-4 border-[var(--cobalt)] pl-6">
-            <p className="font-body text-lg font-semibold leading-7 text-[var(--midnight)] sm:text-xl">
+            <p className="mt-7 max-w-lg font-body text-lg font-semibold leading-8 text-[var(--cream)]/90 sm:text-xl">
               Meet the students and team members who make room for technology, questions, and shared momentum.
             </p>
-            <div className="mt-6 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap gap-3">
               <a
                 href={teamJoinUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center gap-2 bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
+                className="inline-flex min-h-11 items-center gap-2 bg-[var(--sky)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
               >
                 Join the team
                 <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
               </a>
               <Link
                 href="/volunteer"
-                className="inline-flex min-h-11 items-center border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
+                className="inline-flex min-h-11 items-center border border-[var(--cream)]/75 px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
               >
                 Volunteer
               </Link>
             </div>
           </div>
+
+          <figure className="relative aspect-[5/4] overflow-hidden border border-[var(--cream)]/35 bg-[var(--sky)] sm:aspect-[16/10]">
+            <Image
+              src="/images/events/pedrozzi-connect-egg-drop/drive-04.webp"
+              alt="Seven student volunteers stand outdoors together, with one holding a small controller."
+              fill
+              priority
+              sizes="(max-width: 1024px) 100vw, 58vw"
+              className="object-cover transition-transform duration-500 motion-safe:hover:scale-[1.02] motion-reduce:transition-none motion-reduce:hover:scale-100"
+            />
+            <figcaption className="absolute inset-x-0 bottom-0 border-t border-[var(--cream)]/35 bg-[var(--midnight)]/90 px-4 py-3 text-sm font-semibold text-[var(--cream)]">
+              A real team moment · Pedrozzi CONNECT
+            </figcaption>
+          </figure>
         </div>
       </header>
 
       <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12 lg:py-24">
-          <div className="mb-10 flex flex-col gap-4 border-b-2 border-[var(--ink)] pb-6 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Current directory</p>
-              <h2 className="mt-3 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Names, roles, and faces.</h2>
-            </div>
-            <p className="max-w-sm font-body text-sm leading-6 text-[var(--ink)]/65">
-              A simple directory for the people who shape the organization today.
+        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16 lg:px-12 lg:py-24">
+          <div className="max-w-sm">
+            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">The current team</p>
+            <h2 className="mt-4 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">Names, roles, and faces.</h2>
+            <p className="mt-5 font-body text-base leading-7 text-[var(--ink)]/65">
+              A living directory for the people who shape the organization today.
             </p>
           </div>
 
-          <ul className="divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20">
+          <ul className="grid grid-cols-12 items-start gap-x-3 gap-y-6 sm:gap-x-4 sm:gap-y-8" aria-label="Pillars of Tech team">
             {teamMembers.map((member, index) => (
-              <li key={member.name} className="grid gap-5 py-6 sm:grid-cols-[7rem_1fr_auto] sm:items-center sm:gap-8">
-                <div className="relative h-28 w-24 overflow-hidden border-2 border-[var(--ink)]/20 bg-[var(--cream)]">
+              <li key={member.name} className={`group ${portraitLayouts[index]}`}>
+                <figure className="relative aspect-[4/5] overflow-hidden border border-[var(--ink)]/25 bg-[var(--cream)]">
                   <Image
                     src={member.image}
                     alt={`Portrait of ${member.name}, ${member.position} at Pillars of Tech`}
                     fill
-                    sizes="96px"
-                    className="object-cover"
-                    priority={index < 2}
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 18vw"
+                    className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                    priority={index < 3}
                   />
-                </div>
-                <div>
-                  <h3 className="font-display text-2xl leading-tight text-[var(--midnight)] sm:text-3xl">{member.name}</h3>
-                  <p className="mt-2 font-body text-sm font-bold uppercase tracking-[0.16em] text-[var(--cobalt)]">{member.position}</p>
-                </div>
-                <p className="font-body text-xs font-bold uppercase tracking-[0.2em] text-[var(--ink)]/45 sm:text-right">Pillars of Tech</p>
+                  <figcaption className="absolute inset-x-0 bottom-0 border-t border-[var(--cream)]/35 bg-[var(--midnight)]/90 px-3 py-3 text-[var(--cream)]">
+                    <span className="block font-display text-lg leading-tight">{member.name}</span>
+                    <span className="mt-1 block font-body text-xs font-semibold text-[var(--sky)]">{member.position}</span>
+                  </figcaption>
+                </figure>
               </li>
             ))}
           </ul>
@@ -99,8 +119,8 @@ export default function Team() {
       <section className="bg-[var(--midnight)] text-[var(--cream)]">
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-20">
           <div>
-            <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--sky)]">There is room for you</p>
-            <h2 className="mt-4 max-w-2xl font-display text-4xl leading-tight sm:text-5xl">Bring your curiosity to the next project.</h2>
+            <p className="font-body text-sm font-semibold text-[var(--sky)]">There is room for you</p>
+            <h2 className="mt-4 max-w-2xl font-display text-4xl leading-[1.02] tracking-[-0.03em] sm:text-5xl">Bring your curiosity to the next project.</h2>
           </div>
           <div className="flex flex-wrap gap-3">
             <a
@@ -114,7 +134,7 @@ export default function Team() {
             </a>
             <Link
               href="/volunteer"
-              className="inline-flex min-h-11 items-center border-2 border-[var(--cream)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
+              className="inline-flex min-h-11 items-center border border-[var(--cream)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
             >
               Volunteer with us
             </Link>

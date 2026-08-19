@@ -84,7 +84,7 @@ summary:focus-visible {
 
 .display-heading {
   font-family: var(--font-display-stack);
-  letter-spacing: -0.045em;
+  letter-spacing: -0.035em;
   line-height: 0.95;
 }
 

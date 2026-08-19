@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -274,7 +275,7 @@ export default function VolunteerPortalPage() {
 
   if (loading) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[var(--cream)] px-5 pt-16 text-[var(--ink)]">
+      <main className="flex min-h-screen items-center justify-center bg-[var(--cream)] px-5 text-[var(--ink)]">
         <div className="flex max-w-md flex-col items-center text-center">
           <Loader2 aria-hidden="true" className="h-8 w-8 animate-spin text-[var(--cobalt)] motion-reduce:animate-none" />
           <p className="mt-4 font-body text-sm text-[var(--ink)]/70">Loading the volunteer portal…</p>
@@ -285,12 +286,12 @@ export default function VolunteerPortalPage() {
 
   if (user) {
     return (
-      <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] pt-16 text-[var(--ink)]">
-        <header className="border-b-2 border-[var(--ink)]/20">
-          <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-16 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-24">
+      <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] text-[var(--ink)]">
+        <header className="border-b border-[var(--ink)]/20">
+          <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-12 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-16">
             <div>
-              <p className="mb-5 font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Volunteer portal / Dashboard</p>
-              <h1 className="max-w-4xl font-display text-5xl leading-[0.96] tracking-tight text-[var(--midnight)] sm:text-7xl">Welcome back, {user.fullName}.</h1>
+              <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Volunteer dashboard</p>
+              <h1 className="mt-3 max-w-3xl font-display text-4xl leading-tight text-[var(--midnight)] sm:text-6xl">Your volunteer shift, in one place.</h1>
               <p className="mt-5 font-body text-base leading-7 text-[var(--ink)]/65">Manage your event registrations, member code, and volunteer history.</p>
             </div>
             <button
@@ -305,7 +306,7 @@ export default function VolunteerPortalPage() {
         </header>
 
         <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-12 lg:py-16">
-          {pageError && <div role="alert" className="mb-8 border-l-4 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950">{pageError}</div>}
+          {pageError && <div role="alert" className="mb-8 border-l-2 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950">{pageError}</div>}
 
           <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr]">
             <div className="space-y-8">
@@ -408,7 +409,7 @@ export default function VolunteerPortalPage() {
                         ref={(node) => { eventRefs.current[event.id] = node }}
                         tabIndex={isDeepLinked ? -1 : undefined}
                         aria-labelledby={`volunteer-event-${event.id}`}
-                        className={`py-7 outline-none focus-visible:ring-2 focus-visible:ring-[var(--cobalt)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)] ${isDeepLinked ? 'border-l-4 border-[var(--cobalt)] bg-[var(--sky)]/20 pl-4 sm:pl-6' : ''}`}
+                        className={`py-7 outline-none focus-visible:ring-2 focus-visible:ring-[var(--cobalt)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)] ${isDeepLinked ? 'border-l-2 border-[var(--cobalt)] bg-[var(--sky)]/20 pl-4 sm:pl-6' : ''}`}
                       >
                         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                           <div>
@@ -451,43 +452,74 @@ export default function VolunteerPortalPage() {
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] pt-16 text-[var(--ink)]">
-      <header className="border-b-2 border-[var(--ink)]/20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:px-12 lg:py-28">
+    <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] text-[var(--ink)]">
+      <header className="border-b border-[var(--ink)]/20">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:px-12 lg:py-16">
           <div>
-            <p className="mb-6 font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Volunteer portal / Event support</p>
-            <h1 className="max-w-4xl font-display text-5xl leading-[0.96] tracking-tight text-[var(--midnight)] sm:text-7xl lg:text-[6.8rem]">Bring your hands to the work.</h1>
-            <p className="mt-7 max-w-2xl font-body text-lg leading-8 text-[var(--ink)]/70 sm:text-xl">Help with the practical details that make a STEM event welcoming: setup, greeting, activity support, and check-in.</p>
-          </div>
-          <div className="border-l-4 border-[var(--cobalt)] pl-6">
-            <p className="font-body text-lg font-semibold leading-7 text-[var(--midnight)]">Event volunteering is a clear first step. Create an account to manage signups and receive a member code.</p>
+            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Volunteer with the next workshop</p>
+            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-7xl">Bring your hands to the work.</h1>
+            <p className="mt-6 max-w-lg font-body text-base leading-7 text-[var(--ink)]/70 sm:text-lg">Help with the practical details that make a STEM event welcoming: setup, greeting, activity support, and check-in.</p>
             <a
               href={teamJoinUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body text-sm font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
+              className="mt-7 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body text-sm font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
             >
               Join the team application
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
             </a>
           </div>
+          <figure className="relative min-h-[18rem] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:min-h-[27rem]">
+            <Image
+              src="/images/events/family-science-night-altamont/drive-04.webp"
+              alt="A student volunteer demonstrates a robot controller to a younger student beside a VEX robot while an adult watches."
+              fill
+              priority
+              sizes="(min-width: 1024px) 60vw, 100vw"
+              className="object-cover object-center"
+            />
+            <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--midnight)]/85 px-4 py-3 font-body text-xs leading-5 text-[var(--cream)]">
+              A shift can be as practical as setup, greeting, or keeping a build moving.
+            </figcaption>
+          </figure>
         </div>
       </header>
 
       <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12 lg:py-24">
-        {pageError && <div role="alert" className="mb-8 border-l-4 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950">{pageError}</div>}
+        {pageError && <div role="alert" className="mb-8 border-l-2 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950">{pageError}</div>}
 
-        <section className="border-b-2 border-[var(--ink)] pb-14">
+        <section className="border-b border-[var(--ink)]/25 pb-14">
           <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr]">
             <div>
-              <p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">What volunteers do</p>
-              <h2 className="mt-3 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Make the room work.</h2>
+              <p className="font-body text-sm font-semibold text-[var(--cobalt)]">A simple shift journey</p>
+              <h2 className="mt-3 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Show up, help out, leave a path behind.</h2>
+              <p className="mt-4 max-w-sm font-body text-base leading-7 text-[var(--ink)]/65">
+                Pick an open opportunity, sign in with Google, then bring your member code to the event.
+              </p>
             </div>
-            <div className="grid gap-0 divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-              <div className="py-5 sm:px-5 sm:py-2 sm:first:pl-0"><Wrench aria-hidden="true" className="h-6 w-6 text-[var(--cobalt)]" /><h3 className="mt-4 font-display text-2xl text-[var(--midnight)]">Set up</h3><p className="mt-2 font-body text-sm leading-6 text-[var(--ink)]/65">Prepare materials and help the space feel ready.</p></div>
-              <div className="py-5 sm:px-5 sm:py-2"><Users aria-hidden="true" className="h-6 w-6 text-[var(--cobalt)]" /><h3 className="mt-4 font-display text-2xl text-[var(--midnight)]">Welcome</h3><p className="mt-2 font-body text-sm leading-6 text-[var(--ink)]/65">Greet attendees and help them find their way.</p></div>
-              <div className="py-5 sm:pl-5 sm:py-2 sm:last:pr-0"><HeartHandshake aria-hidden="true" className="h-6 w-6 text-[var(--cobalt)]" /><h3 className="mt-4 font-display text-2xl text-[var(--midnight)]">Support</h3><p className="mt-2 font-body text-sm leading-6 text-[var(--ink)]/65">Assist activity leaders and keep the event moving.</p></div>
-            </div>
+            <ol className="divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20">
+              <li className="grid gap-4 py-5 sm:grid-cols-[3rem_1fr] sm:items-start">
+                <span className="font-body text-sm font-bold text-[var(--cobalt)]">01</span>
+                <div className="flex gap-4">
+                  <Wrench aria-hidden="true" className="mt-1 h-6 w-6 flex-none text-[var(--cobalt)]" />
+                  <div><h3 className="font-display text-2xl text-[var(--midnight)]">Choose a shift</h3><p className="mt-1 font-body text-sm leading-6 text-[var(--ink)]/65">Find an open event and read what the room needs.</p></div>
+                </div>
+              </li>
+              <li className="grid gap-4 py-5 sm:grid-cols-[3rem_1fr] sm:items-start">
+                <span className="font-body text-sm font-bold text-[var(--cobalt)]">02</span>
+                <div className="flex gap-4">
+                  <Users aria-hidden="true" className="mt-1 h-6 w-6 flex-none text-[var(--cobalt)]" />
+                  <div><h3 className="font-display text-2xl text-[var(--midnight)]">Make the room welcoming</h3><p className="mt-1 font-body text-sm leading-6 text-[var(--ink)]/65">Set up materials, greet attendees, and support the activity lead.</p></div>
+                </div>
+              </li>
+              <li className="grid gap-4 py-5 sm:grid-cols-[3rem_1fr] sm:items-start">
+                <span className="font-body text-sm font-bold text-[var(--cobalt)]">03</span>
+                <div className="flex gap-4">
+                  <HeartHandshake aria-hidden="true" className="mt-1 h-6 w-6 flex-none text-[var(--cobalt)]" />
+                  <div><h3 className="font-display text-2xl text-[var(--midnight)]">Check in and keep going</h3><p className="mt-1 font-body text-sm leading-6 text-[var(--ink)]/65">Show your QR code, help students get unstuck, and keep your history in one place.</p></div>
+                </div>
+              </li>
+            </ol>
           </div>
         </section>
 
@@ -511,7 +543,7 @@ export default function VolunteerPortalPage() {
                     ref={(node) => { eventRefs.current[event.id] = node }}
                     tabIndex={isDeepLinked ? -1 : undefined}
                     aria-labelledby={`volunteer-event-${event.id}`}
-                    className={`py-7 outline-none focus-visible:ring-2 focus-visible:ring-[var(--cobalt)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)] ${isDeepLinked ? 'border-l-4 border-[var(--cobalt)] bg-[var(--sky)]/20 pl-4 sm:pl-6' : ''}`}
+                    className={`py-7 outline-none focus-visible:ring-2 focus-visible:ring-[var(--cobalt)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)] ${isDeepLinked ? 'border-l-2 border-[var(--cobalt)] bg-[var(--sky)]/20 pl-4 sm:pl-6' : ''}`}
                   >
                     <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                       <div>
@@ -582,7 +614,7 @@ export default function VolunteerPortalPage() {
               {authLoading ? <Loader2 aria-hidden="true" className="h-5 w-5 animate-spin motion-reduce:animate-none" /> : <span aria-hidden="true" className="font-bold text-[var(--cobalt)]">G</span>}
               {authLoading ? 'Connecting to Google…' : 'Continue with Google'}
             </button>
-            {authError && <div role="alert" aria-live="polite" className="mt-5 border-l-4 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950">{authError}</div>}
+            {authError && <div role="alert" aria-live="polite" className="mt-5 border-l-2 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950">{authError}</div>}
             <p className="mt-5 font-body text-xs leading-5 text-[var(--ink)]/55">You can close this window at any time. Your focus will return to the account button.</p>
           </div>
         </div>

@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, ChevronDown } from 'lucide-react'
 
@@ -50,19 +51,32 @@ const faqSections = [
   },
 ] as const
 
+const photoRibbon = [
+  {
+    src: '/images/events/family-science-night/IMG_0547.jpg',
+    alt: 'Student volunteers and an adult pose around several VEX robots and controllers indoors.',
+  },
+  {
+    src: '/images/events/science-odyssey/drive-01.webp',
+    alt: 'Children and families build small structures from marshmallows and toothpicks at a crowded outdoor table.',
+  },
+  {
+    src: '/images/events/pedrozzi-connect-egg-drop/drive-04.webp',
+    alt: 'Seven student volunteers pose outdoors; one holds a small drone and controller.',
+  },
+] as const
+
 export default function FAQPage() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] pt-16 text-[var(--ink)]">
-      <header className="border-b-2 border-[var(--ink)]/20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-20 sm:px-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:px-12 lg:py-28">
+    <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] text-[var(--ink)]">
+      <header className="border-b border-[var(--ink)]/20">
+        <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:px-12 lg:py-16">
           <div>
-            <p className="mb-6 font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">FAQ / Field notes</p>
-            <h1 className="max-w-4xl font-display text-5xl leading-[0.96] tracking-tight text-[var(--midnight)] sm:text-7xl lg:text-[6.8rem]">
-              The useful answers, in one place.
-            </h1>
+            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Questions, made useful</p>
+            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-7xl">Find your next clear step.</h1>
           </div>
-          <div className="border-l-4 border-[var(--cobalt)] pl-6">
-            <p className="font-body text-lg leading-8 text-[var(--ink)]/75 sm:text-xl">
+          <div className="max-w-xl lg:justify-self-end">
+            <p className="font-body text-base leading-7 text-[var(--ink)]/70 sm:text-lg">
               Browse by audience, open the question that matches your situation, and keep the contact route close if you need a human answer.
             </p>
             <Link
@@ -76,14 +90,23 @@ export default function FAQPage() {
         </div>
       </header>
 
+      <section aria-label="Scenes from Pillars of Tech events" className="border-b border-[var(--ink)]/20 bg-[var(--midnight)]">
+        <div className="mx-auto grid max-w-7xl grid-cols-3 gap-1 px-1 py-1 sm:gap-2 sm:px-8 sm:py-8 lg:px-12">
+          {photoRibbon.map((photo) => (
+            <figure key={photo.src} className="relative aspect-[4/3] overflow-hidden bg-[var(--ink)]">
+              <Image src={photo.src} alt={photo.alt} fill sizes="(min-width: 1024px) 33vw, 33vw" className="object-cover" />
+            </figure>
+          ))}
+        </div>
+      </section>
+
       <section className="bg-[var(--paper)]">
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12 lg:py-24">
-          <div className="divide-y-2 divide-[var(--ink)]/20 border-y-2 border-[var(--ink)]/20">
-            {faqSections.map((section, sectionIndex) => (
+        <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-12 lg:py-20">
+          <div className="divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20">
+            {faqSections.map((section) => (
               <section key={section.title} className="grid gap-8 py-10 lg:grid-cols-[0.42fr_1fr] lg:gap-16 lg:py-14">
                 <div>
-                  <p className="font-body text-xs font-bold uppercase tracking-[0.26em] text-[var(--cobalt)]">0{sectionIndex + 1}</p>
-                  <h2 className="mt-3 font-display text-3xl leading-tight text-[var(--midnight)] sm:text-4xl">{section.title}</h2>
+                  <h2 className="font-display text-3xl leading-tight text-[var(--midnight)] sm:text-4xl">{section.title}</h2>
                   <p className="mt-3 max-w-xs font-body text-sm leading-6 text-[var(--ink)]/65">{section.intro}</p>
                 </div>
 
@@ -107,8 +130,8 @@ export default function FAQPage() {
       <section className="bg-[var(--midnight)] text-[var(--cream)]">
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-20">
           <div>
-            <p className="font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--sky)]">Still curious?</p>
-            <h2 className="mt-4 max-w-2xl font-display text-4xl leading-tight sm:text-5xl">A good question is a good start.</h2>
+            <p className="font-body text-sm font-semibold text-[var(--sky)]">Still curious?</p>
+            <h2 className="mt-3 max-w-2xl font-display text-4xl leading-tight sm:text-5xl">A good question is a good start.</h2>
           </div>
           <Link
             href="/contact"
