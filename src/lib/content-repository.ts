@@ -184,7 +184,7 @@ export async function listPublicEvents(): Promise<PublicEvent[]> {
     .select('id,slug,title,summary,description,starts_at,ends_at,timezone,start_label,end_label,location,program_category,status,media,resources,participant_registration_state,volunteer_registration_state')
     .neq('status', 'draft')
     .order('starts_at', { ascending: true, nullsFirst: false })
-  if (error) rowError(error)
+  if (error) return getPublicEventSnapshot()
   return asRows(data).map(publicEventFromRow)
 }
 

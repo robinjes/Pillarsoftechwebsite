@@ -23,9 +23,15 @@ const supportLinks = [
 export default function Navbar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
+  const [isSupportOpen, setIsSupportOpen] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const openButtonRef = useRef<HTMLButtonElement>(null)
+  const supportButtonRef = useRef<HTMLButtonElement>(null)
   const wasOpenRef = useRef(false)
+
+  useEffect(() => {
+    setIsSupportOpen(false)
+  }, [pathname])
 
   useEffect(() => {
     if (!isOpen) {
@@ -87,23 +93,57 @@ export default function Navbar() {
             </Link>
           ))}
 
-          <details className="group relative">
-            <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1 px-4 text-sm font-semibold transition-colors hover:text-sky [&::-webkit-details-marker]:hidden">
+          <div
+            className="relative"
+            onMouseEnter={() => setIsSupportOpen(true)}
+            onMouseLeave={() => setIsSupportOpen(false)}
+            onFocusCapture={() => setIsSupportOpen(true)}
+            onBlurCapture={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+                setIsSupportOpen(false)
+              }
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                setIsSupportOpen(false)
+                supportButtonRef.current?.focus()
+              }
+            }}
+          >
+            <button
+              ref={supportButtonRef}
+              type="button"
+              className="flex min-h-11 items-center gap-1 px-4 text-sm font-semibold transition-colors hover:text-sky"
+              aria-expanded={isSupportOpen}
+              aria-controls="support-navigation"
+              onClick={(event) => {
+                if (event.detail === 0) setIsSupportOpen((open) => !open)
+                else setIsSupportOpen(true)
+              }}
+            >
               Support
-              <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" aria-hidden="true" />
-            </summary>
-            <div className="absolute right-0 top-full mt-2 min-w-48 border border-midnight/20 bg-warm p-2 text-ink shadow-[4px_4px_0_#101114]">
-              {supportLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="flex min-h-11 items-center px-3 text-sm font-semibold transition-colors hover:bg-sky"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
-          </details>
+              <ChevronDown
+                className={`h-4 w-4 transition-transform ${isSupportOpen ? 'rotate-180' : ''}`}
+                aria-hidden="true"
+              />
+            </button>
+            {isSupportOpen ? (
+              <div
+                id="support-navigation"
+                className="absolute right-0 top-full mt-2 min-w-48 border border-midnight/20 bg-warm p-2 text-ink shadow-[4px_4px_0_#101114]"
+              >
+                {supportLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="flex min-h-11 items-center px-3 text-sm font-semibold transition-colors hover:bg-sky"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            ) : null}
+          </div>
 
           <Link
             href="/events"
