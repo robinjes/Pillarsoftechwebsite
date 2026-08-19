@@ -1,719 +1,400 @@
 'use client'
 
-import { useParams, useRouter } from 'next/navigation'
-import { AnimatePresence, motion, useScroll, useTransform } from 'framer-motion'
-import { Fredoka, Space_Grotesk } from 'next/font/google'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
-import { Event } from '@/data/events'
-import { ArrowLeft, Calendar, Clock, MapPin, Users, Rocket, Trophy, Target, ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { useRef, useState, useEffect } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import { ArrowLeft, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Clock3, ExternalLink, FileText, MapPin, Play, X } from 'lucide-react'
+import type { PublicEvent } from '@/lib/content-contracts'
+import { resolveEventImageAlt } from '@/lib/event-media'
 import { toYouTubeEmbedUrl } from '@/lib/event-utils'
 
-const fredoka = Fredoka({ subsets: ['latin'] })
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
+function localAsset(value?: string | null): string | null {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return null
+  if (value.includes('..') || value.includes('\\') || /[\u0000-\u001f\u007f]/.test(value)) return null
+  return value
+}
+
+const archiveHeroFallback = '/images/events/family-science-night/IMG_8332.JPG'
+const archiveHeroFallbackAlt = 'A Pillars of Tech volunteer and participant operate a VEX robot during Family Science Night.'
+
+function paragraphs(description: string): string[] {
+  return description.split('\n\n').map((paragraph) => paragraph.trim()).filter(Boolean)
+}
+
+function participantState(event: PublicEvent): { label: string; tone: string; canRegister: boolean } {
+  if (event.status === 'completed' || event.status === 'cancelled') return { label: 'Registration closed', tone: 'border-[var(--ink)] text-[var(--ink)]/70', canRegister: false }
+  if (event.participantRegistrationState === 'open') return { label: 'Participant registration open', tone: 'border-[var(--cobalt)] bg-[var(--sky)] text-[var(--midnight)]', canRegister: true }
+  if (event.participantRegistrationState === 'full') return { label: 'Participant list is full', tone: 'border-[var(--ink)] bg-[var(--paper)] text-[var(--ink)]/75', canRegister: false }
+  return { label: 'Participant registration closed', tone: 'border-[var(--ink)] bg-[var(--paper)] text-[var(--ink)]/75', canRegister: false }
+}
+
+function volunteerState(event: PublicEvent): { label: string; canRegister: boolean } {
+  if (event.status === 'completed' || event.status === 'cancelled') return { label: 'Volunteer sign-up closed', canRegister: false }
+  if (event.volunteerRegistrationState === 'open') return { label: 'Volunteer sign-up open', canRegister: true }
+  if (event.volunteerRegistrationState === 'full') return { label: 'Volunteer list is full', canRegister: false }
+  return { label: 'Volunteer sign-up closed', canRegister: false }
+}
+
+function dateLabel(event: PublicEvent): string {
+  return event.date || event.startLabel || 'Date to be announced'
+}
+
+function timeLabel(event: PublicEvent): string {
+  return event.time || event.endLabel || 'Time to be announced'
+}
+
+function getFocusableElements(dialog: HTMLDivElement | null): HTMLElement[] {
+  if (!dialog) return []
+  return Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], iframe, [tabindex]:not([tabindex="-1"])'))
+}
 
 export default function EventPage() {
-  const params = useParams()
+  const params = useParams<{ id: string | string[] }>()
   const router = useRouter()
-  const id = Array.isArray(params?.id) ? params.id[0] : params?.id
-  const containerRef = useRef(null)
-
-  const [event, setEvent] = useState<Event | null>(null)
-  const [hasForm, setHasForm] = useState(false)
+  const id = Array.isArray(params?.id) ? params.id[0] : params?.id || ''
+  const [event, setEvent] = useState<PublicEvent | null>(null)
   const [loading, setLoading] = useState(true)
-  const [pdfFullscreen, setPdfFullscreen] = useState(false)
-  const [heroVideoOk, setHeroVideoOk] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [heroSlideIndex, setHeroSlideIndex] = useState(0)
+  const [heroVideoOk, setHeroVideoOk] = useState(true)
   const [galleryActiveImage, setGalleryActiveImage] = useState<string | null>(null)
+  const [pdfFullscreen, setPdfFullscreen] = useState(false)
+  const galleryTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const galleryDialogRef = useRef<HTMLDivElement>(null)
+  const galleryCloseButtonRef = useRef<HTMLButtonElement>(null)
+  const galleryIndexRef = useRef(-1)
+  const pdfTriggerRef = useRef<HTMLButtonElement | null>(null)
+  const pdfDialogRef = useRef<HTMLDivElement>(null)
+  const pdfCloseButtonRef = useRef<HTMLButtonElement>(null)
 
   useEffect(() => {
-    if (!id) return;
-    fetch('/api/events')
-    .then(res => res.json())
-    .then((eventsData) => {
-      const foundEvent = eventsData.find((e: Event) => e.id === id);
-      setEvent(foundEvent || null);
-      setHasForm(foundEvent?.participantRegistrationState === 'open');
-      setLoading(false);
-    })
-    .catch(err => {
-      console.error(err);
-      setLoading(false);
-    });
-  }, [id]);
+    let mounted = true
+    if (!id) {
+      setLoading(false)
+      return
+    }
 
-  const heroSlides = Array.from(
-    new Set(
-      [event?.heroImage, event?.image].filter((image): image is string => Boolean(image))
-    )
-  )
-  const hasHeroCarousel = !event?.heroVideo && heroSlides.length > 1
-  const galleryImages = Array.from(
-    new Set(
-      [event?.image, ...(event?.gallery || [])].filter(
-        (image): image is string => Boolean(image)
-      )
-    )
-  )
+    fetch('/api/events')
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Events unavailable')
+        const data: unknown = await response.json()
+        return Array.isArray(data) ? data as PublicEvent[] : []
+      })
+      .then((events) => {
+        if (!mounted) return
+        setEvent(events.find((item) => item.id === id || item.slug === id) || null)
+        setLoading(false)
+      })
+      .catch(() => {
+        if (!mounted) return
+        setLoadError(true)
+        setLoading(false)
+      })
+
+    return () => {
+      mounted = false
+    }
+  }, [id])
+
+  const heroImages = useMemo(() => {
+    if (!event) return []
+    return Array.from(new Set([event.heroImage, event.image, ...(event.gallery || [])].map(localAsset).filter((value): value is string => Boolean(value))))
+  }, [event])
+  const galleryImages = useMemo(() => {
+    if (!event) return []
+    return Array.from(new Set([event.image, ...(event.gallery || [])].map(localAsset).filter((value): value is string => Boolean(value))))
+  }, [event])
+  const heroImage = heroImages[heroSlideIndex] || heroImages[0]
+  const participant = event ? participantState(event) : null
+  const volunteer = event ? volunteerState(event) : null
+  const embedVideos = useMemo(() => {
+    if (!event) return []
+    return (event.youtubeVideos || [])
+      .map((original) => ({ original, embed: toYouTubeEmbedUrl(original) }))
+      .filter((video): video is { original: string; embed: string } => Boolean(video.embed))
+  }, [event])
+  const localPdf = localAsset(event?.pdfUrl)
+  const localHeroVideo = localAsset(event?.heroVideo)
+  const heroUsesArchiveFallback = !heroImage && (!localHeroVideo || !heroVideoOk)
+  const heroImageToShow = heroImage || archiveHeroFallback
+  const activeGalleryIndex = galleryActiveImage ? galleryImages.indexOf(galleryActiveImage) : -1
+  const galleryOpen = galleryActiveImage !== null
+  const pdfOpen = pdfFullscreen
+  galleryIndexRef.current = activeGalleryIndex
 
   useEffect(() => {
     setHeroSlideIndex(0)
-  }, [event?.id])
-
-  useEffect(() => {
     setHeroVideoOk(true)
-  }, [event?.id, event?.heroVideo])
-
-  useEffect(() => {
     setGalleryActiveImage(null)
+    setPdfFullscreen(false)
   }, [event?.id])
 
   useEffect(() => {
-    if (!galleryActiveImage) return
+    if (!galleryOpen) {
+      const opener = galleryTriggerRef.current
+      if (opener) {
+        window.requestAnimationFrame(() => opener.focus())
+        galleryTriggerRef.current = null
+      }
+      return
+    }
 
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const initialFocus = window.requestAnimationFrame(() => galleryCloseButtonRef.current?.focus())
+
+    const onKeyDown = (keyboardEvent: KeyboardEvent) => {
+      if (keyboardEvent.key === 'Escape') {
+        keyboardEvent.preventDefault()
         setGalleryActiveImage(null)
+        return
+      }
+      if (keyboardEvent.key === 'ArrowLeft' || keyboardEvent.key === 'ArrowRight') {
+        keyboardEvent.preventDefault()
+        const currentIndex = galleryIndexRef.current
+        if (currentIndex < 0 || galleryImages.length < 2) return
+        const direction = keyboardEvent.key === 'ArrowLeft' ? -1 : 1
+        setGalleryActiveImage(galleryImages[(currentIndex + direction + galleryImages.length) % galleryImages.length])
+        return
+      }
+      if (keyboardEvent.key !== 'Tab') return
+
+      const focusable = getFocusableElements(galleryDialogRef.current)
+      if (focusable.length === 0) {
+        keyboardEvent.preventDefault()
+        return
+      }
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (keyboardEvent.shiftKey && document.activeElement === first) {
+        keyboardEvent.preventDefault()
+        last.focus()
+      } else if (!keyboardEvent.shiftKey && document.activeElement === last) {
+        keyboardEvent.preventDefault()
+        first.focus()
       }
     }
 
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [galleryActiveImage])
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.cancelAnimationFrame(initialFocus)
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [galleryOpen, galleryImages])
 
   useEffect(() => {
-    if (!hasHeroCarousel) return
+    if (!pdfOpen) {
+      const opener = pdfTriggerRef.current
+      if (opener) {
+        window.requestAnimationFrame(() => opener.focus())
+        pdfTriggerRef.current = null
+      }
+      return
+    }
 
-    const intervalId = window.setInterval(() => {
-      setHeroSlideIndex((current) => (current + 1) % heroSlides.length)
-    }, 4200)
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const initialFocus = window.requestAnimationFrame(() => pdfCloseButtonRef.current?.focus())
 
-    return () => window.clearInterval(intervalId)
-  }, [hasHeroCarousel, heroSlides.length])
-  
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start start", "end start"]
-  })
-  
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"])
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+    const onKeyDown = (keyboardEvent: KeyboardEvent) => {
+      if (keyboardEvent.key === 'Escape') {
+        keyboardEvent.preventDefault()
+        setPdfFullscreen(false)
+        return
+      }
+      if (keyboardEvent.key !== 'Tab') return
+
+      const focusable = getFocusableElements(pdfDialogRef.current)
+      if (focusable.length === 0) {
+        keyboardEvent.preventDefault()
+        return
+      }
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (keyboardEvent.shiftKey && document.activeElement === first) {
+        keyboardEvent.preventDefault()
+        last.focus()
+      } else if (!keyboardEvent.shiftKey && document.activeElement === last) {
+        keyboardEvent.preventDefault()
+        first.focus()
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.cancelAnimationFrame(initialFocus)
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [pdfOpen])
 
   if (loading) {
+    return <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-12 text-[var(--ink)] sm:pt-16"><p className="mx-auto max-w-5xl font-display text-3xl" role="status">Loading event story…</p></main>
+  }
+
+  if (loadError) {
     return (
-      <div className="min-h-screen pt-24 pb-20 flex flex-col items-center justify-center bg-primary">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-accent"></div>
-      </div>
+      <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-12 text-[var(--ink)] sm:pt-16">
+        <div className="mx-auto max-w-5xl border-y-2 border-[var(--ink)] py-14" role="alert">
+          <h1 className="font-display text-4xl text-[var(--midnight)]">The event story is temporarily unavailable.</h1>
+          <button type="button" onClick={() => router.push('/events')} className="mt-7 inline-flex min-h-11 items-center gap-2 bg-[var(--cobalt)] px-5 py-2 text-sm font-bold text-[var(--cream)] rounded-[10px]">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
+          </button>
+        </div>
+      </main>
     )
   }
 
-  if (!event) {
+  if (!event || !participant || !volunteer) {
     return (
-      <div className="min-h-screen pt-24 pb-20 flex flex-col items-center justify-center bg-primary">
-        <h1 className={`${fredoka.className} text-4xl font-bold mb-4`}>Adventure Not Found</h1>
-        <button onClick={() => router.push('/events')} className="text-accent underline flex items-center">
-          <ArrowLeft className="w-5 h-5 mr-2" /> Back
-        </button>
-      </div>
+      <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-12 text-[var(--ink)] sm:pt-16">
+        <div className="mx-auto max-w-5xl border-y-2 border-[var(--ink)] py-14">
+          <p className="text-sm font-semibold text-[var(--cobalt)]">404 / story not found</p>
+          <h1 className="mt-4 font-display text-5xl text-[var(--midnight)]">That event is not in the public archive.</h1>
+          <button type="button" onClick={() => router.push('/events')} className="mt-7 inline-flex min-h-11 items-center gap-2 bg-[var(--cobalt)] px-5 py-2 text-sm font-bold text-[var(--cream)] rounded-[10px]">
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
+          </button>
+        </div>
+      </main>
     )
   }
 
-  const isCompleted = event.status === 'completed' || event.status === 'cancelled'
-  const accentColor = isCompleted ? 'text-emerald-500' : 'text-accent'
-  const registrationNote = event.registrationNote?.trim()
-  const showRegistrationTbd = registrationNote === 'TBD'
-  const showRegistrationComingSoon = registrationNote === 'Coming Soon'
-  const registrationStatus = isCompleted
-    ? 'Completed'
-    : hasForm
-    ? 'Register Now!'
-    : showRegistrationComingSoon
-    ? 'Coming Soon'
-    : showRegistrationTbd
-    ? 'TBD'
-    : 'Registration Ended'
-  const heroImage = heroSlides[heroSlideIndex] || heroSlides[0] || event.gallery?.[0]
-  const heroVideo = event.heroVideo
-  const activeGalleryIndex = galleryActiveImage ? galleryImages.indexOf(galleryActiveImage) : -1
-  const galleryCaption =
-    event.id === 'family-science-night-altamont' &&
-    galleryActiveImage === '/images/events/family-science-night/IMG_0551.jpg'
-      ? [
-          'Left to right:',
-          'Yashas Jeedi (VP of PoT)',
-          'Jaden Jirasevijinda (VP of PoT)',
-          'Robin Deepak (President of PoT)',
-          'Christina Rocha (Science Teacher at Altamont Creek)',
-          'Fenna Gatty (Science Teacher at Altamont Creek)',
-        ].join('\n')
-      : null
-  const embedVideos = (event.youtubeVideos || [])
-    .map((url) => ({
-      original: url,
-      embed: toYouTubeEmbedUrl(url),
-    }))
-    .filter((video): video is { original: string; embed: string } => Boolean(video.embed))
-  const resourceVideos = embedVideos.map((video, index) => ({
-    ...video,
-    label:
-      event.id === 'wildcat-tank-altamont'
-        ? index === 0
-          ? 'What Is Wildcat Tank?'
-          : index === 1
-          ? 'Full Event Recording'
-          : `Wildcat Tank Video ${index + 1}`
-        : embedVideos.length > 1
-        ? `Event Video ${index + 1}`
-        : 'Event Video',
-  }))
-  const centerContentEvents = new Set([
-    'science-odyssey',
-    'pedrozzi-connect-egg-drop',
-    'foil-boat-stockmens',
-    'wildcat-carnival',
-    'altamont-creek-open-house',
-  ])
-  const centerContent = centerContentEvents.has(event.id)
-  const showPresentationDayLink = event.id === 'wildcat-tank-altamont'
-  const missionBlocks = event.description
-    .split('\n\n')
-    .map((block) => block.trim())
-    .filter(Boolean)
-
-  const isMissionHeading = (block: string) =>
-    /^what is (the )?.+\?$/i.test(block) || /^what is the gea\?$/i.test(block)
-  const geaUrl =
-    'https://livermorehigh.livermoreschools.org/academics/green-engineering-academy/about-gea'
+  const eventParagraphs = paragraphs(event.description)
+  const isCurrent = event.status === 'upcoming' || event.status === 'ongoing'
+  const registrationHref = `/register/${event.slug || event.id}`
+  const volunteerHref = `/volunteer?eventId=${encodeURIComponent(event.slug || event.id)}`
 
   return (
-    <main ref={containerRef} className="min-h-screen bg-primary transition-colors duration-300">
-      {/* Hero Section */}
-      <div className="relative h-[68vh] min-h-[520px] w-full overflow-hidden bg-slate-900 border-b border-white/10">
-        <motion.div style={{ y, opacity }} className="absolute inset-0 w-full h-full">
-          {heroVideo && heroVideoOk ? (
-            <div className="w-full h-full">
+    <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 text-[var(--ink)] sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl">
+        <header className="grid gap-0 border-y border-[var(--ink)] bg-[var(--midnight)] text-[var(--cream)] lg:grid-cols-[0.86fr_1.14fr]">
+          <div className="order-2 flex flex-col justify-between px-6 py-9 sm:px-10 sm:py-12 lg:order-1 lg:py-14">
+            <div>
+              <button type="button" onClick={() => router.push('/events')} className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[var(--sky)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]">
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
+              </button>
+              <p className="mt-8 text-sm font-semibold text-[var(--sky)]">{event.programCategory} · {isCurrent ? 'Now & next' : 'Archive'}</p>
+              <h1 className="mt-4 max-w-3xl font-display text-4xl leading-[0.98] tracking-[-0.04em] sm:text-5xl lg:text-6xl">{event.title}</h1>
+              <p className="mt-6 max-w-2xl text-base leading-7 text-[var(--cream)]/80 sm:text-lg sm:leading-8">{event.summary || eventParagraphs[0]}</p>
+            </div>
+            <div className="mt-9 flex flex-wrap gap-2 text-sm font-semibold">
+              <span className="border border-[var(--sky)] px-3 py-2">{event.status === 'ongoing' ? 'In progress' : event.status}</span>
+              {isCurrent && event.registrationNote ? <span className="border border-[var(--cream)]/60 px-3 py-2">{event.registrationNote}</span> : null}
+            </div>
+          </div>
+
+          <figure className="relative order-1 min-h-[20rem] overflow-hidden border-b border-[var(--sky)] bg-[var(--paper)] lg:order-2 lg:min-h-[34rem] lg:border-b-0 lg:border-l">
+            {localHeroVideo && heroVideoOk ? (
               <video
-                className="w-full h-full object-cover opacity-60"
-                autoPlay
-                muted
-                loop
+                className="absolute inset-0 h-full w-full object-cover"
+                controls
                 playsInline
                 preload="metadata"
-                poster={heroImage}
+                poster={heroImage || undefined}
                 onError={() => setHeroVideoOk(false)}
+                aria-label={`${event.title} event video`}
               >
-                <source src={heroVideo} />
+                <source src={localHeroVideo} />
               </video>
-            </div>
-          ) : heroImage ? (
-            <div className="relative w-full h-full">
-              <AnimatePresence initial={false} mode="wait">
-                <motion.img
-                  key={heroImage}
-                  src={heroImage}
-                  alt={event.title}
-                  className="absolute inset-0 w-full h-full object-cover opacity-60"
-                  initial={{ opacity: 0, scale: 1.05 }}
-                  animate={{ opacity: 0.6, scale: 1 }}
-                  exit={{ opacity: 0, scale: 1.03 }}
-                  transition={{ duration: 0.7, ease: 'easeOut' }}
-                />
-              </AnimatePresence>
-            </div>
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-primary via-dark to-purple-900 opacity-80" />
-          )}
-        </motion.div>
-        
-        {/* Decorative Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-50 from-primary via-transparent to-transparent" />
-
-        {hasHeroCarousel && (
-          <>
-            <div className="absolute left-4 top-4 z-20 rounded-full border border-white/15 bg-slate-950/45 px-4 py-2 text-sm font-semibold text-white backdrop-blur-md shadow-lg sm:left-6 sm:top-6">
-              {heroSlideIndex + 1} / {heroSlides.length}
-            </div>
-
-            <div className="absolute inset-x-0 bottom-5 z-20 flex items-center justify-center gap-3 px-4 sm:bottom-7">
-              <button
-                type="button"
-                onClick={() => setHeroSlideIndex((current) => (current - 1 + heroSlides.length) % heroSlides.length)}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-slate-950/45 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-slate-950/65"
-                aria-label="Show previous event photo"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-
-              <div className="flex items-center gap-2 rounded-full border border-white/15 bg-slate-950/45 px-4 py-3 backdrop-blur-md shadow-lg">
-                {heroSlides.map((image, index) => (
-                  <button
-                    key={image}
-                    type="button"
-                    onClick={() => setHeroSlideIndex(index)}
-                    className={`h-2.5 rounded-full transition-all ${
-                      index === heroSlideIndex
-                        ? 'w-10 bg-white shadow-[0_0_18px_rgba(255,255,255,0.65)]'
-                        : 'w-2.5 bg-white/45 hover:bg-white/75'
-                    }`}
-                    aria-label={`Show event photo ${index + 1}`}
-                    aria-pressed={index === heroSlideIndex}
-                  />
-                ))}
+            ) : heroImageToShow ? (
+              <Image src={heroImageToShow} alt={heroImage ? resolveEventImageAlt(event, 'hero', heroImage) : archiveHeroFallbackAlt} fill sizes="(max-width: 1024px) 100vw, 58vw" className="object-cover" priority />
+            ) : (
+              <div className="flex h-full min-h-[20rem] items-end p-6 text-sm font-semibold text-[var(--midnight)]">Event documentation</div>
+            )}
+            {heroImages.length > 1 && !localHeroVideo ? (
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-between border-t border-[var(--ink)] bg-[var(--midnight)]/90 p-3 text-[var(--cream)]">
+                <button type="button" onClick={() => setHeroSlideIndex((current) => (current - 1 + heroImages.length) % heroImages.length)} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--cream)] text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Previous event image"><ChevronLeft className="h-5 w-5" aria-hidden="true" /></button>
+                <span className="text-sm font-semibold">Image {heroSlideIndex + 1} / {heroImages.length}</span>
+                <button type="button" onClick={() => setHeroSlideIndex((current) => (current + 1) % heroImages.length)} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--cream)] text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Next event image"><ChevronRight className="h-5 w-5" aria-hidden="true" /></button>
               </div>
+            ) : null}
+            <figcaption className="absolute left-4 top-4 border border-[var(--cream)]/50 bg-[var(--midnight)]/90 px-3 py-2 text-sm font-semibold text-[var(--cream)]">
+              {heroUsesArchiveFallback ? 'From a recent Pillars workshop' : isCurrent ? 'Program image' : 'From the event archive'}
+            </figcaption>
+          </figure>
+        </header>
 
-              <button
-                type="button"
-                onClick={() => setHeroSlideIndex((current) => (current + 1) % heroSlides.length)}
-                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-slate-950/45 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-slate-950/65"
-                aria-label="Show next event photo"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
+        <section className="grid border-b border-[var(--ink)]/35 lg:grid-cols-4" aria-label="Event details">
+          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><CalendarDays className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Date</p><p className="mt-1 font-semibold">{dateLabel(event)}</p></div>
+          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><Clock3 className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Time</p><p className="mt-1 font-semibold">{timeLabel(event)}</p></div>
+          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><MapPin className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Location</p><p className="mt-1 font-semibold">{event.location || 'Location to be announced'}</p></div>
+          <div className="p-5"><p className="text-sm font-semibold text-[var(--cobalt)]">Registration</p><p className={`mt-3 inline-flex border px-3 py-2 text-sm font-bold ${participant.tone}`}>{participant.label}</p></div>
+        </section>
+
+        <div className="grid gap-12 border-b border-[var(--ink)]/35 py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
+          <article className="max-w-3xl">
+            <p className="text-sm font-semibold text-[var(--cobalt)]">What participants practiced</p>
+            <h2 className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">What happened here</h2>
+            <div className="mt-7 space-y-6 text-base leading-8 text-[var(--ink)]/85">
+              {eventParagraphs.map((paragraph, index) => <p key={`${paragraph.slice(0, 24)}-${index}`} className={index === 0 ? 'text-lg leading-8 text-[var(--midnight)]' : undefined}>{paragraph}</p>)}
             </div>
-          </>
-        )}
-        
-        <div className="absolute inset-0 flex items-center justify-center px-4 pt-24 pb-28">
-          <div className="max-w-5xl mx-auto px-4 w-full text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, type: "spring" }}
-            >
-              <span className={`inline-block px-4 py-1.5 rounded-full font-bold text-sm tracking-wider uppercase mb-6 shadow-lg ${isCompleted ? 'bg-emerald-500 text-white' : 'bg-accent text-white'}`}>
-                {isCompleted ? 'Completed Event' : 'Upcoming Event'}
-              </span>
-              <h1 className={`${fredoka.className} mx-auto max-w-6xl text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white drop-shadow-2xl mb-6`}>
-                {event.title}
-              </h1>
-            </motion.div>
-          </div>
+          </article>
+
+          <aside className="h-fit border-t border-[var(--ink)] pt-5 lg:border-l lg:border-t-0 lg:pl-6">
+            <p className="text-sm font-semibold text-[var(--cobalt)]">Make a plan</p>
+            <div className="mt-5 space-y-3">
+              {participant.canRegister ? <a href={registrationHref} className="flex min-h-11 items-center justify-between gap-3 bg-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register as a participant <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{participant.label}</p>}
+              {volunteer.canRegister ? <a href={volunteerHref} className="flex min-h-11 items-center justify-between gap-3 border border-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cobalt)] hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Volunteer at this event <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{volunteer.label}</p>}
+              {isCurrent && event.registrationLink ? <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">External event link <ExternalLink className="h-4 w-4" aria-hidden="true" /></a> : null}
+              {event.id === 'wildcat-tank-altamont' ? <><a href="/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Results &amp; presentation record <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a><a href="/photos/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Open photo archive <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a></> : null}
+            </div>
+          </aside>
         </div>
-      </div>
 
-      <div className="max-w-[1430px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-10 relative z-10 -mt-10 sm:-mt-12 lg:-mt-14 pb-20">
-        <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div className="bg-blue-900/80 backdrop-blur-xl border-2 border-white/20 rounded-[2rem] p-6 sm:p-10 shadow-2xl mb-8">
-            <button 
-              onClick={() => router.push('/events')}
-              className="text-blue-200 hover:text-white mb-8 flex items-center transition-colors font-bold group bg-black/20 px-4 py-2 rounded-full w-fit"
-            >
-              <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" /> 
-              Back to Awesome Events
-            </button>
-
-            {/* Core Info Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-              {[
-                { icon: Calendar, label: "Date", value: event.date },
-                { icon: Clock, label: "Time", value: event.time },
-                { icon: MapPin, label: "Location", value: event.location },
-                { icon: Rocket, label: "Status", value: registrationStatus }
-              ].map((info, idx) => (
-                <div key={idx} className="bg-black/20 rounded-2xl p-4 flex flex-col items-center justify-center text-center border border-white/5 hover:scale-105 transition-transform">
-                  <info.icon className={`w-8 h-8 ${accentColor} mb-2`} />
-                  <span className="text-blue-200 text-xs font-bold uppercase tracking-wider">{info.label}</span>
-                  <span className={`${spaceGrotesk.className} font-bold text-white leading-tight mt-1`}>{info.value}</span>
-                </div>
+        {galleryImages.length > 0 ? (
+          <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="gallery-heading">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div><p className="text-sm font-semibold text-[var(--cobalt)]">Field images</p><h2 id="gallery-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">From the day</h2></div>
+              <p className="text-sm text-[var(--ink)]/65">Select an image to enlarge it.</p>
+            </div>
+            <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {galleryImages.map((image, index) => (
+                <button key={image} type="button" onClick={(clickEvent) => { galleryTriggerRef.current = clickEvent.currentTarget; setGalleryActiveImage(image) }} className="group relative aspect-square overflow-hidden border border-[var(--ink)] bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]" aria-label={'Open event image ' + (index + 1)}>
+                  <Image src={image} alt={resolveEventImageAlt(event, 'gallery', image, index)} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
+                </button>
               ))}
             </div>
+          </section>
+        ) : null}
 
-            {/* Two Column Content */}
-            <div className={`grid grid-cols-1 gap-10 ${centerContent ? 'lg:grid-cols-1' : 'lg:grid-cols-3'}`}>
-              {/* Left Column - Main Details */}
-              <div className={`${centerContent ? 'max-w-5xl mx-auto space-y-10' : 'lg:col-span-2 space-y-10'}`}>
-                <section className={centerContent ? 'max-w-3xl mx-auto' : undefined}>
-                  <h2
-                    className={`${fredoka.className} flex items-center text-3xl font-bold text-white mb-6 ${
-                      centerContent ? 'justify-center text-center' : ''
-                    }`}
-                  >
-                    <Target className={`w-8 h-8 mr-3 ${accentColor}`} />
-                    The Mission
-                  </h2>
-                  <div
-                    className={`max-w-none text-blue-100/90 font-medium leading-relaxed ${
-                      centerContent ? 'text-center' : ''
-                    }`}
-                  >
-                    <div className="space-y-6">
-                      {missionBlocks.map((block, index) => {
-                        const isHeading = isMissionHeading(block)
-                        const isGeaHeading =
-                          event.id === 'family-science-night-altamont' && /^what is the gea\?$/i.test(block)
-                        const previousBlock = missionBlocks[index - 1]
-                        const afterGeaHeading =
-                          event.id === 'family-science-night-altamont' &&
-                          typeof previousBlock === 'string' &&
-                          /^what is the gea\?$/i.test(previousBlock)
-
-                        if (isHeading) {
-                          return (
-                            <h3
-                              key={`${block}-${index}`}
-                              className={`${fredoka.className} text-2xl sm:text-3xl font-bold ${
-                                isGeaHeading ? accentColor : 'text-white'
-                              } pt-6`}
-                            >
-                              <strong>{block}</strong>
-                            </h3>
-                          )
-                        }
-
-                        return (
-                          <div key={`${block}-${index}`} className="space-y-3">
-                            <p className="text-lg leading-relaxed">{block}</p>
-                            {afterGeaHeading && (
-                              <p className="text-base font-semibold">
-                                <a
-                                  href={geaUrl}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-white underline underline-offset-4 hover:opacity-90"
-                                >
-                                  Click here to learn more about the GEA!
-                                </a>
-                              </p>
-                            )}
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </section>
-
-                {event.stats && (
-                  <section className={centerContent ? 'max-w-4xl mx-auto' : undefined}>
-                    <h2
-                      className={`${fredoka.className} flex items-center text-3xl font-bold text-white mb-6 ${
-                        centerContent ? 'justify-center text-center' : ''
-                      }`}
-                    >
-                      <Trophy className={`w-8 h-8 mr-3 ${accentColor}`} />
-                      Impact & Results
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {event.stats.map((stat, idx) => (
-                        <div key={idx} className="bg-white/5 border-2 border-white/10 rounded-2xl p-6 text-center">
-                          <div className={`${fredoka.className} text-4xl font-black ${accentColor} mb-2`}>{stat.value}</div>
-                          <div className="font-bold text-blue-200">{stat.label}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                )}
-              </div>
-
-              {/* Right Column - Logistics & Tasks */}
-              <div className={`${centerContent ? 'hidden' : 'space-y-6'}`}>
-                {showPresentationDayLink && (
-                  <div className="rounded-3xl border-2 border-emerald-300/20 bg-emerald-400/10 p-6 shadow-xl shadow-black/10">
-                    <h3 className={`${fredoka.className} text-xl font-bold text-white`}>
-                      Presentation Day Hub
-                    </h3>
-                    <p className="mt-3 text-sm font-medium leading-7 text-emerald-50/90">
-                      Jump to the Wildcat Tank page for the judges, final scores, ranked results,
-                      and presentation-day highlights.
-                    </p>
-                    <button
-                      onClick={() => router.push('/wildcat-tank')}
-                      className="mt-5 w-full rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-md transition-all hover:-translate-y-0.5 hover:bg-emerald-50"
-                    >
-                      View Judges & Scores
-                    </button>
-                  </div>
-                )}
-
-                {event.guests && event.guests.length > 0 && (
-                  <div className="rounded-3xl border-2 border-fuchsia-300/30 bg-fuchsia-950/45 p-6 shadow-[0_18px_45px_rgba(76,29,149,0.22)] backdrop-blur-sm">
-                    <h3 className={`${fredoka.className} mb-4 flex items-center text-xl font-bold text-fuchsia-100`}>
-                      <Users className="w-5 h-5 mr-2 flex-shrink-0" /> Special Guests
-                    </h3>
-                    <ul className="space-y-2">
-                      {event.guests.map((g, i) => (
-                        <li key={i} className="flex items-center font-semibold text-fuchsia-50">
-                          <span className="mr-2 h-1.5 w-1.5 rounded-full bg-fuchsia-300" />
-                          {g}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {!isCompleted && (
-                  <div className="bg-blue-900/20 border-2 border-blue-200 border-blue-700/50 rounded-3xl p-6 mt-6">
-                    <h3 className={`${fredoka.className} flex items-center text-xl font-bold text-white mb-4`}>
-                      <span className="w-8 h-8 rounded-full bg-blue-100 bg-blue-800 flex items-center justify-center mr-3">
-                        <Rocket className="w-4 h-4 text-blue-600 text-blue-300" />
-                      </span>
-                      Get Involved
-                    </h3>
-                    <p className="text-white/90 font-medium mb-4">
-                      Interested in participating, mentoring, or sponsoring this event? We would love to have your support!
-                    </p>
-                    {hasForm ? (
-                      <div className="flex flex-col gap-3">
-                        <button onClick={() => router.push(`/register/${event.id}`)} className="w-full py-3 bg-accent hover:bg-amber-400 text-slate-900 font-bold rounded-xl transition-colors shadow-md text-center block">
-                          Register Now
-                        </button>
-                        {event.registrationLink && (
-                          <a
-                            href={event.registrationLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-colors shadow-md text-center block border border-white/10"
-                          >
-                            Open External Form
-                          </a>
-                        )}
-                        <button onClick={() => router.push('/contact')} className="w-full py-3 bg-blue-800/50 hover:bg-blue-800 text-white font-bold rounded-xl transition-colors shadow-md text-center inline-block mt-2">
-                          Contact Us
-                        </button>
-                        {registrationNote && !showRegistrationTbd && (
-                          <p className="rounded-2xl border border-amber-300/20 bg-amber-400/10 px-4 py-3 text-sm font-medium text-amber-100">
-                            {registrationNote}
-                          </p>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-3">
-                        {event.registrationLink && !isCompleted && (
-                          <a
-                            href={event.registrationLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-full py-3 bg-accent hover:bg-amber-400 text-slate-900 font-bold rounded-xl transition-colors shadow-md text-center block"
-                          >
-                            Open Registration Form
-                          </a>
-                        )}
-                        <button onClick={() => router.push('/contact')} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-colors shadow-md text-center inline-block">
-                          Contact Us
-                        </button>
-                        {registrationNote && !showRegistrationTbd && (
-                          <p className="rounded-2xl border border-amber-300/20 bg-amber-400/10 px-4 py-3 text-sm font-medium text-amber-100">
-                            {registrationNote}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+        {(event.pdfUrl || embedVideos.length > 0) ? (
+          <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="resources-heading">
+            <div><p className="text-sm font-semibold text-[var(--cobalt)]">Approved resources</p><h2 id="resources-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">Keep exploring</h2></div>
+            <div className="mt-7 grid gap-8 lg:grid-cols-2">
+              {event.pdfUrl ? (
+                <article className="border border-[var(--ink)] bg-[var(--paper)]">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--ink)] p-4"><div className="flex items-center gap-2 font-bold text-[var(--midnight)]"><FileText className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /> Event document</div><div className="flex flex-wrap gap-2"><a href={event.pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 border border-[var(--cobalt)] px-3 py-2 text-xs font-bold text-[var(--cobalt)]">Open PDF <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /></a>{localPdf ? <button type="button" onClick={(clickEvent) => { pdfTriggerRef.current = clickEvent.currentTarget; setPdfFullscreen(true) }} className="inline-flex min-h-11 items-center border border-[var(--ink)] px-3 py-2 text-xs font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Full screen</button> : null}</div></div>
+                  {localPdf ? <iframe src={event.pdfUrl} sandbox="" loading="lazy" className="h-[26rem] w-full" title={`${event.title} event document`} /> : <p className="p-5 text-sm leading-7 text-[var(--ink)]/75">This approved document opens directly in a new tab.</p>}
+                </article>
+              ) : null}
+              {embedVideos.length > 0 ? (
+                <article className="border border-[var(--ink)] bg-[var(--paper)]">
+                  <div className="border-b border-[var(--ink)] p-4"><div className="flex items-center gap-2 font-bold text-[var(--midnight)]"><Play className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /> Event video</div></div>
+                  <div className="space-y-7 p-4">{embedVideos.map((video, index) => <div key={video.original}><p className="mb-3 text-sm font-semibold text-[var(--cobalt)]">{embedVideos.length > 1 ? `Video ${index + 1}` : 'Presentation recording'}</p><div className="aspect-video overflow-hidden border border-[var(--ink)]"><iframe src={video.embed} loading="lazy" className="h-full w-full" title={`${event.title} video ${index + 1}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div></div>)}</div>
+                </article>
+              ) : null}
             </div>
-            {/* Event documents and videos */}
-            {(event.gallery?.length || 0) > 0 && (
-              <section className="mt-20 pt-20 border-t border-white/10">
-                <h2 className={`${fredoka.className} flex items-center text-4xl font-bold text-white mb-6 justify-center`}>
-                  <span className="mr-3">📸</span>
-                  Photo Gallery
-                </h2>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {galleryImages.map((img) => (
-                    <button
-                      key={img}
-                      type="button"
-                      onClick={() => setGalleryActiveImage(img)}
-                      className="group relative aspect-square overflow-hidden rounded-2xl border-2 border-white/10 bg-black/30 shadow-lg transition-transform hover:scale-[1.02]"
-                    >
-                      <Image
-                        src={img}
-                        alt={`${event.title} photo`}
-                        fill
-                        sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
-                        className="h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/35 via-transparent to-transparent" />
-                    </button>
-                  ))}
-                </div>
-
-                <AnimatePresence>
-                  {galleryActiveImage && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
-                      onClick={() => setGalleryActiveImage(null)}
-                    >
-                      <motion.div
-                        initial={{ scale: 0.98, opacity: 0, y: 10 }}
-                        animate={{ scale: 1, opacity: 1, y: 0 }}
-                        exit={{ scale: 0.98, opacity: 0, y: 10 }}
-                        transition={{ type: 'spring', stiffness: 260, damping: 24 }}
-                        className="relative w-full max-w-5xl overflow-hidden rounded-3xl border border-white/15 bg-slate-950/70 shadow-2xl"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <button
-                          type="button"
-                          onClick={() => setGalleryActiveImage(null)}
-                          className="absolute right-4 top-4 z-10 rounded-full border border-white/15 bg-slate-950/60 p-2 text-white backdrop-blur-md hover:bg-slate-950/80"
-                          aria-label="Close photo viewer"
-                        >
-                          <X className="h-5 w-5" />
-                        </button>
-
-                        <div className="relative flex items-center justify-center bg-black/40">
-                          {galleryImages.length > 1 && (
-                            <>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (activeGalleryIndex < 0) return
-                                  const nextIndex = (activeGalleryIndex - 1 + galleryImages.length) % galleryImages.length
-                                  setGalleryActiveImage(galleryImages[nextIndex])
-                                }}
-                                className="absolute left-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-slate-950/55 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-slate-950/75"
-                                aria-label="Previous photo"
-                              >
-                                <ChevronLeft className="h-6 w-6" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  if (activeGalleryIndex < 0) return
-                                  const nextIndex = (activeGalleryIndex + 1) % galleryImages.length
-                                  setGalleryActiveImage(galleryImages[nextIndex])
-                                }}
-                                className="absolute right-3 z-10 flex h-11 w-11 items-center justify-center rounded-full border border-white/15 bg-slate-950/55 text-white backdrop-blur-md transition-all hover:scale-105 hover:bg-slate-950/75"
-                                aria-label="Next photo"
-                              >
-                                <ChevronRight className="h-6 w-6" />
-                              </button>
-                            </>
-                          )}
-
-                          <Image
-                            src={galleryActiveImage}
-                            alt={`${event.title} full photo`}
-                            width={1600}
-                            height={1200}
-                            className="max-h-[80vh] w-full object-contain"
-                          />
-                        </div>
-
-                        {galleryCaption && (
-                          <div className="border-t border-white/10 bg-slate-950/40 px-6 py-4">
-                            <p className="whitespace-pre-line text-sm font-semibold text-white/90">
-                              {galleryCaption}
-                            </p>
-                          </div>
-                        )}
-                      </motion.div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </section>
-            )}
-
-            {(event.pdfUrl || resourceVideos.length > 0 || event.id === 'wildcat-tank-altamont') && (
-              <section className="mt-20 pt-20 border-t border-white/10">
-                <h2 className={`${fredoka.className} flex items-center text-4xl font-bold text-white mb-6 justify-center`}>
-                  <span className="mr-3">📄</span>
-                  Event Resources
-                </h2>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {event.pdfUrl && (
-                    <div className="rounded-2xl overflow-hidden border-2 border-white/10 shadow-xl bg-black/30">
-                      <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between gap-4">
-                        <h3 className={`${fredoka.className} text-2xl font-bold text-white`}>
-                          Event Document
-                        </h3>
-                        <div className="flex items-center gap-3">
-                          <button
-                            onClick={() => setPdfFullscreen(true)}
-                            className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold transition-colors"
-                          >
-                            Full screen
-                          </button>
-                          <a
-                            href={event.pdfUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-4 py-2 rounded-xl bg-accent hover:bg-amber-400 text-slate-900 font-bold transition-colors"
-                          >
-                            Open in new tab
-                          </a>
-                        </div>
-                      </div>
-                      <iframe
-                        src={event.pdfUrl}
-                        sandbox=""
-                        className="w-full"
-                        style={{ height: '800px' }}
-                        title={`${event.title} document`}
-                      />
-                    </div>
-                  )}
-
-                  {resourceVideos.length > 0 && (
-                    <div className="rounded-2xl overflow-hidden border-2 border-white/10 shadow-xl bg-black/30">
-                      <div className="px-5 py-4 border-b border-white/10">
-                        <h3 className={`${fredoka.className} text-2xl font-bold text-white flex items-center`}>
-                          <span className="mr-3 text-red-400">▶</span>
-                          Event Videos
-                        </h3>
-                      </div>
-                      <div className="p-4 space-y-4">
-                        {resourceVideos.map((video, index) => (
-                          <div key={video.original}>
-                            <p className="mb-3 text-sm font-bold uppercase tracking-[0.24em] text-blue-200/85">
-                              {video.label}
-                            </p>
-                            <div className="relative w-full rounded-xl overflow-hidden border border-white/10" style={{ paddingBottom: '56.25%', height: 0 }}>
-                              <iframe
-                                src={video.embed}
-                                className="absolute top-0 left-0 w-full h-full"
-                                allowFullScreen
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                title={`${event.title} video ${index + 1}`}
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Fullscreen PDF overlay */}
-                {pdfFullscreen && event.pdfUrl && (
-                  <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm p-4 sm:p-6">
-                    <div className="w-full h-full bg-slate-950/70 border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col">
-                      <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-white/10">
-                        <div className={`${fredoka.className} text-white font-bold text-lg`}>
-                          {event.title} Document
-                        </div>
-                        <button
-                          onClick={() => setPdfFullscreen(false)}
-                          className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold transition-colors"
-                        >
-                          Close
-                        </button>
-                      </div>
-                      <div className="flex-1">
-                        <iframe
-                          src={event.pdfUrl}
-                          sandbox=""
-                          className="w-full h-full"
-                          title={`${event.title} document fullscreen`}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </section>
-            )}
-
-          </div>
-        </motion.div>
+          </section>
+        ) : null}
       </div>
+
+      {galleryActiveImage ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--midnight)]/95 p-4" role="dialog" aria-modal="true" aria-labelledby="event-image-viewer-title" onClick={() => setGalleryActiveImage(null)}>
+          <div ref={galleryDialogRef} className="relative w-full max-w-5xl border-2 border-[var(--cream)] bg-[var(--midnight)] p-3 rounded-[10px]" onClick={(clickEvent) => clickEvent.stopPropagation()}>
+            <h2 id="event-image-viewer-title" className="sr-only">Event image viewer</h2>
+            <button ref={galleryCloseButtonRef} type="button" onClick={() => setGalleryActiveImage(null)} className="absolute right-4 top-4 z-10 inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Close image viewer"><X className="h-5 w-5" aria-hidden="true" /></button>
+            {galleryImages.length > 1 ? <><button type="button" onClick={() => setGalleryActiveImage(galleryImages[(activeGalleryIndex - 1 + galleryImages.length) % galleryImages.length])} className="absolute left-4 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] rounded-[10px]" aria-label="Previous event image"><ChevronLeft className="h-5 w-5" aria-hidden="true" /></button><button type="button" onClick={() => setGalleryActiveImage(galleryImages[(activeGalleryIndex + 1) % galleryImages.length])} className="absolute right-4 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] rounded-[10px]" aria-label="Next event image"><ChevronRight className="h-5 w-5" aria-hidden="true" /></button></> : null}
+            <div className="relative aspect-[4/3] max-h-[82vh] w-full"><Image src={galleryActiveImage} alt={resolveEventImageAlt(event, 'gallery', galleryActiveImage, activeGalleryIndex)} fill sizes="100vw" className="object-contain" priority /></div>
+          </div>
+        </div>
+      ) : null}
+
+      {pdfFullscreen && localPdf ? (
+        <div className="fixed inset-0 z-50 bg-[var(--midnight)]/95 p-4 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="event-document-viewer-title" onClick={() => setPdfFullscreen(false)}>
+          <div ref={pdfDialogRef} className="flex h-full flex-col border-2 border-[var(--cream)] bg-[var(--paper)] rounded-[10px]" onClick={(clickEvent) => clickEvent.stopPropagation()}><div className="flex min-h-14 items-center justify-between border-b border-[var(--ink)] px-4"><h2 id="event-document-viewer-title" className="font-bold text-[var(--midnight)]">{event.title} document</h2><button ref={pdfCloseButtonRef} type="button" onClick={() => setPdfFullscreen(false)} className="inline-flex min-h-11 items-center gap-2 border border-[var(--ink)] px-3 py-2 text-xs font-bold rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Close <X className="h-4 w-4" aria-hidden="true" /></button></div><iframe src={event.pdfUrl} sandbox="" loading="lazy" className="min-h-0 flex-1 w-full" title={event.title + ' document full screen'} /></div>
+        </div>
+      ) : null}
     </main>
   )
 }

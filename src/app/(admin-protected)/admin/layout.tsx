@@ -21,10 +21,11 @@ export default async function ProtectedAdminLayout({
     }
 
     return (
-      <main className="min-h-screen bg-slate-950 px-6 py-24 text-white">
-        <div className="mx-auto max-w-xl rounded-3xl border border-amber-400/30 bg-amber-400/10 p-8">
-          <h1 className="text-2xl font-bold">Staff access is temporarily unavailable</h1>
-          <p className="mt-3 text-amber-100">
+      <main className="min-h-screen bg-cream px-5 py-20 text-ink sm:px-8 sm:py-28">
+        <div className="site-shell mx-auto max-w-xl border border-midnight/25 bg-warm p-7 shadow-[8px_8px_0_#0B1F3A] sm:p-10">
+          <p className="font-display text-xs font-bold uppercase tracking-[0.18em] text-cobalt">Staff workspace</p>
+          <h1 className="mt-3 font-display text-3xl font-semibold tracking-[-0.04em] text-midnight sm:text-4xl">Staff access is temporarily unavailable</h1>
+          <p className="mt-4 text-base leading-7 text-ink/75">
             Supabase authentication is not configured or could not verify staff membership. No
             administrative data or mutation was allowed.
           </p>

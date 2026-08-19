@@ -107,17 +107,68 @@ describe('verified server authorization', () => {
 })
 
 describe('OAuth callback destination validation', () => {
-  it('accepts only same-origin root-relative paths', () => {
+  it('accepts only the intended post-auth paths and rejects encoded controls', () => {
     expect(isSafeNextPath('/admin')).toBe(true)
-    expect(isSafeNextPath('/volunteer?next=%2Fadmin')).toBe(true)
+    expect(isSafeNextPath('/volunteer')).toBe(true)
+    expect(isSafeNextPath('/volunteer?eventId=family-science-night-altamont')).toBe(true)
+    expect(isSafeNextPath('/volunteer?next=%2Fadmin')).toBe(false)
+    expect(isSafeNextPath('/events')).toBe(false)
     expect(isSafeNextPath('https://evil.example/steal')).toBe(false)
     expect(isSafeNextPath('//evil.example/steal')).toBe(false)
     expect(isSafeNextPath('\\\\evil.example\\steal')).toBe(false)
     expect(isSafeNextPath('/\n/evil.example')).toBe(false)
     expect(isSafeNextPath('/\r/evil.example')).toBe(false)
     expect(isSafeNextPath('/\t/evil.example')).toBe(false)
-    expect(isSafeNextPath('/admin%0A')).toBe(true)
+    expect(isSafeNextPath('/admin%0A')).toBe(false)
+    expect(isSafeNextPath('/admin%250A')).toBe(false)
+    expect(isSafeNextPath('/volunteer?eventId=bad%250A')).toBe(false)
     expect(getSafeNextPath('https://evil.example/steal')).toBe('/admin')
+  })
+
+  it('routes a volunteer callback failure back to the volunteer surface', async () => {
+    const previousSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://pillarsoftech.org'
+
+    const response = await handleAuthCallback(
+      new Request('https://attacker.example/auth/callback?next=%2Fvolunteer%3FeventId%3Dfamily-science-night-altamont')
+    )
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe('https://pillarsoftech.org/volunteer?eventId=family-science-night-altamont&error=auth')
+    if (previousSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL
+    else process.env.NEXT_PUBLIC_SITE_URL = previousSiteUrl
+  })
+
+  it('routes an admin callback failure to admin login with the specific error', async () => {
+    const previousSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://pillarsoftech.org'
+    mockedCreateServerClient.mockResolvedValue({
+      auth: { exchangeCodeForSession: vi.fn().mockResolvedValue({ error: new Error('exchange failed') }) },
+    } as never)
+
+    const response = await handleAuthCallback(
+      new Request('https://pillarsoftech.org/auth/callback?code=test&next=%2Fadmin')
+    )
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe('https://pillarsoftech.org/admin/login?error=callback')
+    if (previousSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL
+    else process.env.NEXT_PUBLIC_SITE_URL = previousSiteUrl
+  })
+
+  it('routes a volunteer configuration failure to the volunteer surface', async () => {
+    const previousSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://pillarsoftech.org'
+    mockedCreateServerClient.mockResolvedValue(null)
+
+    const response = await handleAuthCallback(
+      new Request('https://pillarsoftech.org/auth/callback?code=test&next=%2Fvolunteer')
+    )
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe('https://pillarsoftech.org/volunteer?error=auth')
+    if (previousSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL
+    else process.env.NEXT_PUBLIC_SITE_URL = previousSiteUrl
   })
 
   it('uses the configured canonical origin instead of a request Host value', async () => {
@@ -133,6 +184,23 @@ describe('OAuth callback destination validation', () => {
 
     expect(response.status).toBe(307)
     expect(response.headers.get('location')).toBe('https://pillarsoftech.org/admin')
+    if (previousSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL
+    else process.env.NEXT_PUBLIC_SITE_URL = previousSiteUrl
+  })
+
+  it('preserves a successful volunteer destination and event deep link', async () => {
+    const previousSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    process.env.NEXT_PUBLIC_SITE_URL = 'https://pillarsoftech.org'
+    mockedCreateServerClient.mockResolvedValue({
+      auth: { exchangeCodeForSession: vi.fn().mockResolvedValue({ error: null }) },
+    } as never)
+
+    const response = await handleAuthCallback(
+      new Request('https://pillarsoftech.org/auth/callback?code=test&next=%2Fvolunteer%3FeventId%3Dfamily-science-night-altamont')
+    )
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe('https://pillarsoftech.org/volunteer?eventId=family-science-night-altamont')
     if (previousSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL
     else process.env.NEXT_PUBLIC_SITE_URL = previousSiteUrl
   })

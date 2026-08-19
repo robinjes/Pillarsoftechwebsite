@@ -45,7 +45,7 @@ export function buildContentSecurityPolicy(
     "style-src-attr 'unsafe-inline'",
     `img-src 'self' data: blob:${cloudinarySource}${supabaseSource}`,
     `media-src 'self' blob:${supabaseSource}`,
-    `connect-src 'self'${supabaseSource}`,
+    `connect-src 'self' blob:${supabaseSource}`,
     `frame-src 'self' https://hcb.hackclub.com https://docs.google.com https://forms.gle https://www.youtube-nocookie.com https://youtube-nocookie.com${supabaseSource}`,
     "object-src 'none'",
     "base-uri 'self'",

@@ -18,7 +18,7 @@ const blankEvent: EventWrite = {
   location: '',
   programCategory: 'general',
   status: 'upcoming',
-  media: { gallery: [], youtubeVideos: [] },
+  media: { gallery: [], galleryAlts: [], youtubeVideos: [] },
   resources: {},
   participantRegistrationState: 'closed',
   volunteerRegistrationState: 'closed',
@@ -220,7 +220,31 @@ export default function AdminEvents() {
         <label className="space-y-1 text-sm md:col-span-2">Summary<textarea value={draft.summary} onChange={(event) => setField('summary', event.target.value)} rows={2} className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
         <label className="space-y-1 text-sm md:col-span-2">Description<textarea value={draft.description} onChange={(event) => setField('description', event.target.value)} rows={6} className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
         <label className="space-y-1 text-sm">Local/approved image URL<input value={draft.media.image ?? ''} onChange={(event) => setField('media', { ...draft.media, image: event.target.value || undefined })} placeholder="/images/events/..." className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
+        <label className="space-y-1 text-sm">Primary image alt text<input maxLength={500} value={draft.media.imageAlt ?? ''} onChange={(event) => setField('media', { ...draft.media, imageAlt: event.target.value || undefined })} placeholder="Describe the primary event image" className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
+        <label className="space-y-1 text-sm">Hero image alt text<input maxLength={500} value={draft.media.heroImageAlt ?? ''} onChange={(event) => setField('media', { ...draft.media, heroImageAlt: event.target.value || undefined })} placeholder="Describe the hero event image" className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
         <label className="space-y-1 text-sm">Approved video URL<input value={draft.media.heroVideo ?? ''} onChange={(event) => setField('media', { ...draft.media, heroVideo: event.target.value || undefined })} placeholder="https://www.youtube.com/..." className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
+        {(draft.media.gallery ?? []).length > 0 ? (
+          <fieldset className="space-y-3 rounded-lg border border-white/10 p-4 md:col-span-2">
+            <legend className="px-1 text-sm font-semibold">Gallery image alt text</legend>
+            <p className="text-xs text-blue-200">Add one optional description for each existing gallery image. Leave a field blank when the title fallback is sufficient.</p>
+            {(draft.media.gallery ?? []).map((image, index) => (
+              <label key={`${image}-${index}`} className="block space-y-1 text-sm">
+                Gallery image {index + 1} alt text
+                <input
+                  maxLength={500}
+                  value={draft.media.galleryAlts?.[index] ?? ''}
+                  onChange={(event) => {
+                    const galleryAlts = [...(draft.media.galleryAlts ?? [])]
+                    galleryAlts[index] = event.target.value
+                    setField('media', { ...draft.media, galleryAlts })
+                  }}
+                  placeholder={`Describe gallery image ${index + 1}`}
+                  className="w-full rounded border border-white/10 bg-slate-800 p-2"
+                />
+              </label>
+            ))}
+          </fieldset>
+        ) : null}
         <div className="md:col-span-2 rounded-lg border border-cyan-300/20 bg-cyan-400/5 p-4">
           <div className="flex flex-wrap items-center gap-3">
             <label className="text-sm">Approved media type<select value={uploadKind} onChange={(event) => setUploadKind(event.target.value as typeof uploadKind)} className="ml-2 rounded border border-white/10 bg-slate-800 p-2"><option value="image">Image</option><option value="video">Video</option><option value="document">Private PDF</option></select></label>

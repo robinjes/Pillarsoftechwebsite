@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process'
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -13,7 +14,7 @@ import {
   validateParticipantAnswers,
   type FormDefinition,
 } from '@/lib/content-contracts'
-import { getPublicEventSnapshot } from '@/lib/event-snapshot'
+import { getPublicEventSnapshot, legacyEventToRecord, toPublicEvent } from '@/lib/event-snapshot'
 
 const validEvent = {
   title: 'STEM Night',
@@ -61,6 +62,28 @@ describe('Task 03 content contracts', () => {
     expect(isApprovedResourceUrl('http://localhost:3000/file')).toBe(false)
     expect(isApprovedResourceUrl('/uploads/reviewed.png')).toBe(true)
     expect(isApprovedResourceUrl('https://docs.google.com/forms/d/e/example/viewform')).toBe(true)
+  })
+
+  it('bounds and trims optional media descriptions without requiring legacy data to change', () => {
+    const parsed = eventWriteSchema.safeParse({
+      ...validEvent,
+      media: {
+        ...validEvent.media,
+        imageAlt: '  Primary image description  ',
+        heroImageAlt: 'Hero image description',
+        gallery: ['/images/one.png', '/images/two.png'],
+        galleryAlts: ['First gallery description', '  Second gallery description  '],
+      },
+    })
+    expect(parsed.success).toBe(true)
+    if (parsed.success) {
+      expect(parsed.data.media.imageAlt).toBe('Primary image description')
+      expect(parsed.data.media.galleryAlts).toEqual(['First gallery description', 'Second gallery description'])
+    }
+    expect(eventWriteSchema.safeParse({ ...validEvent, media: { ...validEvent.media, galleryAlts: ['orphan description'] } }).success).toBe(false)
+    expect(eventWriteSchema.safeParse({ ...validEvent, media: { ...validEvent.media, gallery: ['/images/one.png'], galleryAlts: ['', 'description'] } }).success).toBe(true)
+    expect(eventWriteSchema.safeParse({ ...validEvent, media: { ...validEvent.media, imageAlt: 'x'.repeat(501) } }).success).toBe(false)
+    expect(eventWriteSchema.safeParse({ ...validEvent, media: { ...validEvent.media, gallery: ['/images/one.png'], galleryAlts: ['', ''] } }).success).toBe(true)
   })
 
   it('bounds form fields, rejects destinations, and requires unique IDs', () => {
@@ -152,6 +175,29 @@ describe('Task 03 content contracts', () => {
     }
   })
 
+  it('carries optional legacy media descriptions through the canonical and public projections', () => {
+    const record = legacyEventToRecord({
+      id: 'media-alt-event',
+      title: 'Media Alt Event',
+      image: '/images/media-alt.jpg',
+      imageAlt: 'Primary image description',
+      heroImage: '/images/media-alt-hero.jpg',
+      heroImageAlt: 'Hero image description',
+      gallery: ['/images/media-alt-one.jpg', '/images/media-alt-two.jpg'],
+      galleryAlts: ['First gallery description', 'Second gallery description'],
+    })
+    expect(record?.media).toMatchObject({
+      imageAlt: 'Primary image description',
+      heroImageAlt: 'Hero image description',
+      galleryAlts: ['First gallery description', 'Second gallery description'],
+    })
+    expect(record ? toPublicEvent(record) : null).toMatchObject({
+      imageAlt: 'Primary image description',
+      heroImageAlt: 'Hero image description',
+      galleryAlts: ['First gallery description', 'Second gallery description'],
+    })
+  })
+
   it('keeps production content mutation off local JSON and public-disk writers', () => {
     const sourceRoot = join(process.cwd(), 'src')
     const files: string[] = []
@@ -192,5 +238,40 @@ describe('Task 03 content contracts', () => {
     expect(importer).toContain("!/%2e/i.test(value)")
     expect(importer).toContain("!/[\\u0000-\\u001f\\u007f]/.test(value)")
     expect(importer).toContain("!value.includes('\\\\')")
+  })
+
+  it('imports curated media alt text while keeping every row unpublished and review metadata offline', () => {
+    const output = execFileSync(process.execPath, [join(process.cwd(), 'scripts/import-content.mjs')], {
+      cwd: process.cwd(),
+      encoding: 'utf8',
+    })
+    const statements = output.split('insert into public.events ').slice(1)
+    const stockmens = statements.find((statement) => statement.includes("'foil-boat-stockmens'"))
+    expect(stockmens).toBeDefined()
+    expect(stockmens).toContain('"imageAlt":"People stand beside the outdoor Build-a-Boat Competition table at Stockmens Park."')
+    expect(stockmens).toContain('"heroImageAlt":"People stand beside the outdoor Build-a-Boat Competition table at Stockmens Park."')
+    expect(stockmens).toContain('"galleryAlts":["People stand beside the outdoor Build-a-Boat Competition table at Stockmens Park.","Students gather around water tubs to test hand-built foil boats at Stockmens Park.","An older student helps children test a foil boat in a water tub."]')
+
+    expect(statements.length).toBeGreaterThan(0)
+    for (const statement of statements) {
+      expect(statement).toContain("'unpublished') on conflict")
+      expect(statement).toContain("publication_state = 'unpublished'")
+    }
+    expect(output).not.toContain("publication_state = 'published'")
+
+    const review = JSON.parse(readFileSync(join(process.cwd(), 'docs/event-photo-review.json'), 'utf8')) as {
+      records: Array<{ sourceFilename: string; sourceSha256: string; outputSha256: string }>
+    }
+    for (const record of review.records) {
+      expect(record).not.toHaveProperty('sourceId')
+      expect(output).not.toContain(record.sourceFilename)
+      expect(output).not.toContain(record.sourceSha256)
+      expect(output).not.toContain(record.outputSha256)
+    }
+    expect(output).not.toContain('pending-leadership-and-parental-review')
+    expect(output).not.toContain('sourceSha256')
+    expect(output).not.toContain('outputSha256')
+    expect(output).not.toContain('captureTimestamp')
+    expect(output).not.toContain('metadataStripped')
   })
 })

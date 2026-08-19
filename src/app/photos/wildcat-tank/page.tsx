@@ -7,7 +7,7 @@ const gallery = photoGalleries.wildcatTank
 export const metadata: Metadata = {
   title: 'Wildcat Tank Photos | Pillars of Tech',
   description:
-    'Browse photos from Wildcat Tank 2026 in a responsive Cloudinary-powered gallery.',
+    'Browse selected repository photographs from Wildcat Tank 2026 in an accessible responsive gallery.',
 }
 
 export default function WildcatTankPhotosPage() {

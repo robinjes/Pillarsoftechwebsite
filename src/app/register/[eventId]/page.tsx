@@ -1,284 +1,284 @@
 'use client'
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { Fredoka, Space_Grotesk } from 'next/font/google';
-import { Send, CheckCircle2, ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
-import type { FormField } from '@/lib/content-contracts';
-import Link from 'next/link';
+import { FormEvent, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
+import { useParams } from 'next/navigation'
+import { ArrowLeft, Check, LoaderCircle, Send } from 'lucide-react'
+import type { FormField } from '@/lib/content-contracts'
 
-const fredoka = Fredoka({ subsets: ['latin'] });
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] });
+type FormResponse = {
+  eventId: string
+  kind: 'participant'
+  fields: FormField[]
+  isActive: boolean
+}
+
+type Answer = string | boolean
+
+function responseMessage(status: number): string {
+  if (status === 404) return 'This event does not have an active participant registration form.'
+  if (status === 409) return 'Registration for this event is currently closed or full.'
+  if (status >= 500) return 'Registration is temporarily unavailable. Please try again shortly.'
+  return 'The registration form could not be loaded. Please try again.'
+}
+
+function submissionMessage(status: number): string {
+  if (status === 404) return 'This event is no longer available for registration.'
+  if (status === 409) return 'Registration is currently closed or full.'
+  if (status >= 500) return 'Registration is temporarily unavailable. Please try again shortly.'
+  return 'Please check the form and try again.'
+}
+
+function initialAnswers(fields: FormField[]): Record<string, Answer> {
+  return Object.fromEntries(fields.map((field) => [field.id, field.type === 'checkbox' ? false : '']))
+}
 
 export default function RegisterPage() {
-  const params = useParams();
-  const eventId = params.eventId as string;
-  const [formSchema, setFormSchema] = useState<{ eventId: string; kind: 'participant'; fields: FormField[]; isActive: boolean } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Form State Values
-  const [formData, setFormData] = useState<Record<string, string | boolean>>({});
-
-  const getFormValue = (id: string) => {
-    const value = formData[id];
-    return typeof value === 'string' ? value : '';
-  };
+  const params = useParams<{ eventId: string | string[] }>()
+  const eventId = Array.isArray(params?.eventId) ? params.eventId[0] : params?.eventId || ''
+  const [formSchema, setFormSchema] = useState<FormResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [formData, setFormData] = useState<Record<string, Answer>>({})
+  const [honeypot, setHoneypot] = useState('')
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const formRes = await fetch(`/api/forms?eventId=${encodeURIComponent(eventId)}`);
+    let mounted = true
 
-        if (!formRes.ok) throw new Error('Registration form not found for this event.');
-
-        const form = await formRes.json();
-
-        if (!form.isActive) throw new Error('Registration for this event is currently closed.');
-
-        setFormSchema(form);
-        setFormData(Object.fromEntries(form.fields.map((field: FormField) => [field.id, field.type === 'checkbox' ? false : ''])));
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : 'Failed to load registration form.');
-      } finally {
-        setLoading(false);
+    const fetchForm = async () => {
+      if (!eventId) {
+        setError('This event could not be identified.')
+        setLoading(false)
+        return
       }
-    };
 
-    void fetchData();
-  }, [eventId]);
+      try {
+        const response = await fetch(`/api/forms?eventId=${encodeURIComponent(eventId)}`)
+        if (!response.ok) throw new Error(responseMessage(response.status))
+        const data = (await response.json()) as FormResponse
+        if (!data.isActive || !Array.isArray(data.fields)) {
+          throw new Error('Registration for this event is currently closed.')
+        }
+        if (!mounted) return
+        setFormSchema(data)
+        setFormData(initialAnswers(data.fields))
+      } catch (requestError: unknown) {
+        if (!mounted) return
+        setError(requestError instanceof Error ? requestError.message : 'The registration form could not be loaded.')
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
 
-  const handleInputChange = (id: string, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [id]: value }));
-  };
+    void fetchForm()
+    return () => {
+      mounted = false
+    }
+  }, [eventId])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError(null);
+  const getFormValue = (id: string): string => {
+    const value = formData[id]
+    return typeof value === 'string' ? value : ''
+  }
+
+  const handleInputChange = (id: string, value: Answer) => {
+    setFormData((previous) => ({ ...previous, [id]: value }))
+  }
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setSubmitting(true)
+    setError(null)
 
     try {
       const response = await fetch('/api/registrations/participant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId, answers: formData, honeypot: '' })
-      });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(result.error || 'Registration could not be submitted.');
-      setSuccess(true);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Registration could not be submitted.');
+        body: JSON.stringify({ eventId, answers: formData, honeypot }),
+      })
+      if (!response.ok) throw new Error(submissionMessage(response.status))
+      setSuccess(true)
+    } catch (submissionError: unknown) {
+      setError(submissionError instanceof Error ? submissionError.message : 'Registration could not be submitted.')
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-primary flex items-center justify-center p-6">
-        <RefreshCw className="w-12 h-12 text-accent animate-spin" />
-      </div>
-    );
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-6 text-center">
-        <AlertCircle className="w-16 h-16 text-rose-400 mb-6" />
-        <h1 className={`${fredoka.className} text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-rose-400 to-rose-600 mb-4`}>
-          Oops!
-        </h1>
-        <p className={`${spaceGrotesk.className} text-xl text-blue-200 mb-8 max-w-md`}>
-          {error}
-        </p>
-        <Link 
-          href="/events"
-          className={`${spaceGrotesk.className} inline-flex items-center px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-xl transition-colors font-bold`}
-        >
-          <ArrowLeft className="w-5 h-5 mr-3" />
-          Back to Events
-        </Link>
-      </div>
-    );
-  }
-
-  if (success) {
-    return (
-      <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-6 text-center pt-24 pb-20 overflow-hidden relative">
-        <div className="absolute top-20 left-10 w-64 h-64 bg-accent/10 rounded-full blur-3xl -z-10 animate-pulse"></div>
-        <div className="absolute top-40 right-10 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl -z-10 animate-pulse delay-1000"></div>
-
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ type: 'spring', bounce: 0.5 }}
-        >
-          <CheckCircle2 className="w-24 h-24 text-emerald-400 mx-auto mb-8 drop-shadow-[0_0_15px_rgba(52,211,153,0.5)]" />
-        </motion.div>
-        
-        <motion.h1 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className={`${fredoka.className} text-5xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 to-emerald-600 mb-6 pb-2`}
-        >
-          You&apos;re Registered!
-        </motion.h1>
-        
-        <motion.p 
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className={`${spaceGrotesk.className} text-xl md:text-2xl text-blue-100 opacity-90 mb-10 max-w-lg`}
-        >
-          Thank you for signing up. We&apos;ve successfully received your information and look forward to seeing you there.
-        </motion.p>
-        
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Link 
-            href="/events"
-            className={`${spaceGrotesk.className} inline-flex items-center px-8 py-4 bg-white/10 hover:bg-white/20 border border-white/20 text-white rounded-2xl transition-all duration-300 font-bold hover:scale-105 shadow-xl`}
-          >
-            <ArrowLeft className="w-5 h-5 mr-3" />
-            Discover More Events
-          </Link>
-        </motion.div>
-      </div>
-    );
-  }
+  const formReady = Boolean(formSchema?.isActive && formSchema.fields.length > 0)
+  const pageKicker = useMemo(() => (success ? 'Registration received' : 'Participant registration'), [success])
 
   return (
-    <div className="min-h-screen bg-primary pt-24 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden text-white">
-      <div className="absolute top-20 left-10 w-64 h-64 bg-accent/10 rounded-full blur-3xl -z-10 animate-pulse"></div>
-      <div className="absolute bottom-40 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl -z-10 animate-pulse delay-1000"></div>
-
-      <div className="max-w-2xl mx-auto relative z-10">
-        <Link 
-          href="/events" 
-          className="inline-flex items-center text-blue-200 hover:text-white transition-colors mb-8 group"
+    <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-24 text-[var(--ink)] sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl">
+        <Link
+          href="/events"
+          className="inline-flex min-h-11 items-center gap-2 py-2 text-sm font-bold text-[var(--cobalt)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
         >
-          <ArrowLeft className="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" />
-          Back to Events
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
         </Link>
-        
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-10"
-        >
-          <h1 className={`${fredoka.className} text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-accent to-purple-500 pb-2`}>
-            Event Registration
-          </h1>
-          <p className={`${spaceGrotesk.className} mt-4 text-xl text-blue-100 opacity-90`}>
-            Fill out the form below to secure your spot!
+
+        <header className="mt-7 border-y-2 border-[var(--ink)] bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10">
+          <p className="text-xs font-bold uppercase tracking-[0.28em] text-[var(--sky)]">{pageKicker}</p>
+          <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.95] sm:text-6xl">Save your place in the room.</h1>
+          <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--cream)]/80">
+            Share the details we need for this event. Your answers are sent only to the registration record for the selected program.
           </p>
-        </motion.div>
+        </header>
 
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="bg-slate-900/60 backdrop-blur-xl border border-white/10 p-6 md:p-10 rounded-3xl shadow-2xl"
-        >
-          <form onSubmit={handleSubmit} className={`space-y-6 ${spaceGrotesk.className}`}>
-            {formSchema?.fields.map((field) => (
-              <div key={field.id} className="space-y-2">
-                <label htmlFor={field.id} className="block text-sm font-semibold text-slate-300">
-                  {field.label} {field.required && <span className="text-rose-400 ml-1">*</span>}
-                </label>
-                
-                {field.type === 'text' || field.type === 'email' ? (
-                  <input
-                    id={field.id}
-                    type={field.type}
-                    required={field.required}
-                    className="w-full bg-slate-800/80 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-accent focus:bg-slate-800 transition-colors"
-                    value={getFormValue(field.id)}
-                    onChange={e => handleInputChange(field.id, e.target.value)}
-                  />
-                ) : field.type === 'textarea' ? (
-                  <textarea
-                    id={field.id}
-                    required={field.required}
-                    rows={4}
-                    className="w-full bg-slate-800/80 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-accent focus:bg-slate-800 transition-colors resize-none"
-                    value={getFormValue(field.id)}
-                    onChange={e => handleInputChange(field.id, e.target.value)}
-                  />
-                ) : field.type === 'select' ? (
-                  <select
-                    id={field.id}
-                    required={field.required}
-                    className="w-full bg-slate-800/80 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-accent focus:bg-slate-800 transition-colors appearance-none"
-                    value={getFormValue(field.id)}
-                    onChange={e => handleInputChange(field.id, e.target.value)}
-                  >
-                    <option value="" disabled>-- Select an option --</option>
-                    {field.options?.map((opt, i) => (
-                      <option key={i} value={opt}>{opt}</option>
-                    ))}
-                  </select>
-                ) : field.type === 'radio' ? (
-                  <div className="space-y-2 mt-2">
-                    {field.options?.map((opt, i) => (
-                      <label key={i} className="flex items-center space-x-3 cursor-pointer">
-                        <input
-                          type="radio"
-                          name={field.id}
-                          required={field.required}
-                          value={opt}
-                          checked={formData[field.id] === opt}
-                          onChange={e => handleInputChange(field.id, e.target.value)}
-                          className="w-5 h-5 accent-accent bg-slate-800 border-white/10 cursor-pointer"
-                        />
-                        <span className="text-white font-medium">{opt}</span>
-                      </label>
-                    ))}
+        {loading ? (
+          <div className="border-b-2 border-[var(--ink)] py-16" role="status">
+            <LoaderCircle className="h-8 w-8 animate-spin text-[var(--cobalt)] motion-reduce:animate-none" aria-hidden="true" />
+            <p className="mt-4 font-display text-2xl text-[var(--midnight)]">Loading the registration form…</p>
+          </div>
+        ) : error ? (
+          <div className="border-b-2 border-[var(--ink)] py-16" role="alert">
+            <p className="font-display text-3xl text-[var(--midnight)]">Registration is not available.</p>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--ink)]/80">{error}</p>
+            <Link
+              href="/events"
+              className="mt-7 inline-flex min-h-11 items-center gap-2 bg-[var(--cobalt)] px-5 py-2 text-sm font-bold text-[var(--cream)] hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]"
+            >
+              Browse other events <ArrowLeft className="h-4 w-4 rotate-180" aria-hidden="true" />
+            </Link>
+          </div>
+        ) : success ? (
+          <section className="border-b-2 border-[var(--ink)] py-16" aria-live="polite">
+            <div className="flex h-12 w-12 items-center justify-center bg-[var(--cobalt)] text-[var(--cream)] rounded-[10px]">
+              <Check className="h-7 w-7" aria-hidden="true" />
+            </div>
+            <h2 className="mt-6 font-display text-4xl text-[var(--midnight)]">You&apos;re on the list.</h2>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--ink)]/80">
+              Your registration was received. Keep the event details handy, and return to the events archive for more programs.
+            </p>
+            <Link
+              href="/events"
+              className="mt-7 inline-flex min-h-11 items-center gap-2 border-2 border-[var(--midnight)] px-5 py-2 text-sm font-bold text-[var(--midnight)] hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]"
+            >
+              Return to events <ArrowLeft className="h-4 w-4 rotate-180" aria-hidden="true" />
+            </Link>
+          </section>
+        ) : !formReady ? (
+          <section className="border-b-2 border-[var(--ink)] py-16">
+            <h2 className="font-display text-3xl text-[var(--midnight)]">The form has no questions yet.</h2>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--ink)]/80">Check the event page for updates or contact the Pillars of Tech team.</p>
+          </section>
+        ) : (
+          <form onSubmit={handleSubmit} className="border-b-2 border-[var(--ink)] py-10 sm:py-14" noValidate={false}>
+            <div className="grid gap-x-10 gap-y-8 lg:grid-cols-2">
+              {formSchema?.fields.map((field) => {
+                const fieldLabel = (
+                  <span className="block text-sm font-bold text-[var(--midnight)]">
+                    {field.label}{field.required ? <span className="ml-1 text-[var(--cobalt)]" aria-hidden="true">*</span> : null}
+                    {field.required ? <span className="sr-only"> (required)</span> : null}
+                  </span>
+                )
+
+                if (field.type === 'checkbox') {
+                  return (
+                    <label key={field.id} htmlFor={field.id} className="flex min-h-11 items-start gap-3 border border-[var(--ink)] bg-[var(--paper)] p-4 sm:col-span-2 rounded-[10px]">
+                      <input
+                        id={field.id}
+                        name={field.id}
+                        type="checkbox"
+                        required={field.required}
+                        checked={Boolean(formData[field.id])}
+                        onChange={(event) => handleInputChange(field.id, event.target.checked)}
+                        className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
+                      />
+                      <span>{fieldLabel}<span className="mt-1 block text-sm font-normal leading-6 text-[var(--ink)]/75">{field.consent ? 'I understand and consent to the event information being used for this registration.' : ''}</span></span>
+                    </label>
+                  )
+                }
+
+                if (field.type === 'radio') {
+                  return (
+                    <fieldset key={field.id} className="space-y-3">
+                      <legend>{fieldLabel}</legend>
+                      <div className="space-y-2 border-l-2 border-[var(--cobalt)] pl-4">
+                        {field.options?.map((option) => (
+                          <label key={option} className="flex min-h-11 items-center gap-3 text-sm font-semibold">
+                            <input
+                              type="radio"
+                              name={field.id}
+                              value={option}
+                              required={field.required}
+                              checked={formData[field.id] === option}
+                              onChange={() => handleInputChange(field.id, option)}
+                              className="h-5 w-5 accent-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
+                            />
+                            {option}
+                          </label>
+                        ))}
+                      </div>
+                    </fieldset>
+                  )
+                }
+
+                const commonClass = 'mt-2 min-h-11 w-full border-2 border-[var(--ink)] bg-[var(--paper)] px-4 py-3 text-sm text-[var(--ink)] placeholder:text-[var(--ink)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]'
+                return (
+                  <div key={field.id}>
+                    <label htmlFor={field.id}>{fieldLabel}</label>
+                    {field.type === 'textarea' ? (
+                      <textarea
+                        id={field.id}
+                        name={field.id}
+                        required={field.required}
+                        rows={5}
+                        value={getFormValue(field.id)}
+                        onChange={(event) => handleInputChange(field.id, event.target.value)}
+                        className={`${commonClass} min-h-32 resize-y`}
+                      />
+                    ) : field.type === 'select' ? (
+                      <select
+                        id={field.id}
+                        name={field.id}
+                        required={field.required}
+                        value={getFormValue(field.id)}
+                        onChange={(event) => handleInputChange(field.id, event.target.value)}
+                        className={commonClass}
+                      >
+                        <option value="">Select an option</option>
+                        {field.options?.map((option) => <option key={option} value={option}>{option}</option>)}
+                      </select>
+                    ) : (
+                      <input
+                        id={field.id}
+                        name={field.id}
+                        type={field.type}
+                        required={field.required}
+                        value={getFormValue(field.id)}
+                        onChange={(event) => handleInputChange(field.id, event.target.value)}
+                        className={commonClass}
+                      />
+                    )}
                   </div>
-                ) : field.type === 'checkbox' ? (
-                  <label className="flex items-center space-x-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      required={field.required}
-                      className="w-5 h-5 accent-accent bg-slate-800 border-white/10 rounded"
-                      checked={!!formData[field.id]}
-                      onChange={e => handleInputChange(field.id, e.target.checked)}
-                    />
-                    <span className="text-white font-medium">{field.label} {field.required && <span className="text-rose-400 ml-1">*</span>}</span>
-                  </label>
-                ) : null}
-              </div>
-            ))}
+                )
+              })}
+            </div>
 
-            <div className="pt-8">
+            <div className="absolute left-[-10000px] h-px w-px overflow-hidden" aria-hidden="true">
+              <label htmlFor="website">Website</label>
+              <input id="website" name="website" tabIndex={-1} autoComplete="off" value={honeypot} onChange={(event) => setHoneypot(event.target.value)} />
+            </div>
+
+            {error ? <p className="mt-8 border-l-4 border-[var(--cobalt)] bg-[var(--sky)] p-4 text-sm font-semibold leading-6 text-[var(--midnight)]" role="alert">{error}</p> : null}
+
+            <div className="mt-10 flex flex-col gap-4 border-t border-[var(--ink)]/30 pt-7 sm:flex-row sm:items-center sm:justify-between">
+              <p className="max-w-md text-xs leading-6 text-[var(--ink)]/65">Fields marked with an asterisk are required. Please submit one registration per participant.</p>
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full flex items-center justify-center px-8 py-4 bg-accent text-slate-900 rounded-2xl font-bold text-lg hover:bg-amber-400 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 shadow-xl shadow-accent/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
+                className="inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--cobalt)] px-6 py-3 text-sm font-bold text-[var(--cream)] transition-colors hover:bg-[var(--midnight)] disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]"
               >
-                {submitting ? (
-                  <div className="flex items-center">
-                    <RefreshCw className="w-6 h-6 mr-3 animate-spin" />
-                    Submitting...
-                  </div>
-                ) : (
-                  <div className="flex items-center">
-                    Submit Registration
-                    <Send className="w-5 h-5 ml-3 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                  </div>
-                )}
+                {submitting ? <><LoaderCircle className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> Sending…</> : <><Send className="h-4 w-4" aria-hidden="true" /> Send registration</>}
               </button>
             </div>
           </form>
-        </motion.div>
+        )}
       </div>
-    </div>
-  );
+    </main>
+  )
 }
