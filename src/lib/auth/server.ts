@@ -122,7 +122,41 @@ export async function getVerifiedAuthContext(): Promise<
   return { ...userResult, isStaff: staffMembership }
 }
 
+/**
+ * Authenticate the volunteer surface without making the staff directory a
+ * dependency for ordinary sign-in. The staff check is only an optional
+ * decoration here: a legacy deployment may not have the server-controlled
+ * membership table yet, but a verified Google user must still be able to see
+ * their own volunteer profile. Staff-only routes continue to use the strict
+ * helpers above and therefore fail closed on the same lookup error.
+ */
+export async function getVerifiedVolunteerAuthContext(): Promise<
+  (VerifiedUser & { isStaff: boolean }) | AuthFailure
+> {
+  const userResult = await requireVerifiedUser()
+  if (!userResult.ok) return userResult
+
+  try {
+    const client = await createSupabaseServerClient()
+    if (!client) return { ...userResult, isStaff: false }
+
+    const { data, error } = await client
+      .from('staff_members')
+      .select('user_id')
+      .eq('user_id', userResult.user.id)
+      .maybeSingle()
+
+    // Staff status is never inferred from email or profile data. If the
+    // optional legacy lookup is unavailable, downgrade this volunteer-only
+    // context to an ordinary volunteer rather than granting privilege.
+    return { ...userResult, isStaff: !error && Boolean(data) }
+  } catch {
+    return { ...userResult, isStaff: false }
+  }
+}
+
 // Short aliases keep route handlers readable while retaining explicit names
 // for tests and code review.
 export const requireUser = requireVerifiedUser
 export const requireStaff = requireVerifiedStaff
+export const getVolunteerAuthContext = getVerifiedVolunteerAuthContext

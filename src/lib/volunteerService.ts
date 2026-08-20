@@ -1,6 +1,7 @@
 'use client'
 
 import { getSafeNextPath } from '@/lib/auth/redirect'
+import { getOAuthCallbackOrigin } from '@/lib/auth/redirect'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase/client'
 import type {
   ActiveAttendanceDto,
@@ -194,7 +195,7 @@ export const volunteerService = {
       throw new Error('Google sign-in is not configured on this deployment.')
     }
     const safeNext = getSafeNextPath(next, '/volunteer')
-    const callback = new URL('/auth/callback', window.location.origin)
+    const callback = new URL('/auth/callback', getOAuthCallbackOrigin(window.location.origin))
     callback.searchParams.set('next', safeNext)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',

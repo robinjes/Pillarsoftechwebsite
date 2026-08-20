@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
   requireUser: vi.fn(),
   requireStaff: vi.fn(),
   authContext: vi.fn(),
+  volunteerAuthContext: vi.fn(),
   createClient: vi.fn(),
   getProfile: vi.fn(),
   getEventTitle: vi.fn(),
@@ -21,6 +22,7 @@ vi.mock('@/lib/auth/server', () => ({
   requireVerifiedUser: mocks.requireUser,
   requireVerifiedStaff: mocks.requireStaff,
   getVerifiedAuthContext: mocks.authContext,
+  getVerifiedVolunteerAuthContext: mocks.volunteerAuthContext,
 }))
 vi.mock('@/lib/supabase/server', () => ({ createSupabaseServerClient: mocks.createClient }))
 vi.mock('@/lib/volunteer-server', () => ({
@@ -79,6 +81,7 @@ describe('verified volunteer and staff route boundaries', () => {
     mocks.requireUser.mockResolvedValue(user)
     mocks.requireStaff.mockResolvedValue(staff)
     mocks.authContext.mockResolvedValue({ ...user, isStaff: false })
+    mocks.volunteerAuthContext.mockResolvedValue({ ...user, isStaff: false })
     mocks.getProfile.mockResolvedValue({
       id: user.user.id, name: 'Ada Volunteer', email: user.user.email,
       memberCode: 'POT-ABCDEF1234567890', createdAt: '2026-08-18T00:00:00.000Z',
@@ -88,6 +91,7 @@ describe('verified volunteer and staff route boundaries', () => {
 
   it('returns 401 for signed-out DTO and volunteer mutation requests', async () => {
     mocks.authContext.mockResolvedValue(failure('unauthenticated'))
+    mocks.volunteerAuthContext.mockResolvedValue(failure('unauthenticated'))
     mocks.requireUser.mockResolvedValue(failure('unauthenticated'))
     expect((await getMe()).status).toBe(401)
     expect((await registrations()).status).toBe(401)
