@@ -7,11 +7,17 @@ vi.mock('@/lib/supabase/server', () => ({
   createSupabaseServerClient: vi.fn(),
 }))
 
-import { getSafeNextPath, isSafeNextPath } from '@/lib/auth/redirect'
+import {
+  getFallbackAuthOrigin,
+  getOAuthCallbackOrigin,
+  getSafeNextPath,
+  isSafeNextPath,
+} from '@/lib/auth/redirect'
 import { GET as handleAuthCallback } from '@/app/auth/callback/route'
 import { POST as handleSignout } from '@/app/auth/signout/route'
 import {
   getVerifiedAuthContext,
+  getVerifiedVolunteerAuthContext,
   requireVerifiedStaff,
   requireVerifiedUser,
 } from '@/lib/auth/server'
@@ -96,6 +102,22 @@ describe('verified server authorization', () => {
     })
   })
 
+  it('downgrades a volunteer context when the optional staff table is unavailable', async () => {
+    mockedCreateServerClient.mockResolvedValue(
+      fakeClient({
+        user: { id: 'user-3', email: 'volunteer@example.test' },
+        staff: null,
+        staffError: new Error('relation does not exist'),
+      }) as never
+    )
+
+    await expect(getVerifiedVolunteerAuthContext()).resolves.toMatchObject({
+      ok: true,
+      isStaff: false,
+      user: { id: 'user-3' },
+    })
+  })
+
   it('fails closed with 503 when server configuration is missing', async () => {
     mockedCreateServerClient.mockResolvedValue(null)
     await expect(requireVerifiedStaff()).resolves.toMatchObject({
@@ -107,6 +129,32 @@ describe('verified server authorization', () => {
 })
 
 describe('OAuth callback destination validation', () => {
+  it('uses the canonical www production fallback when no site URL is configured', async () => {
+    const previousSiteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    delete process.env.NEXT_PUBLIC_SITE_URL
+    mockedCreateServerClient.mockResolvedValue({
+      auth: { exchangeCodeForSession: vi.fn().mockResolvedValue({ error: null }) },
+    } as never)
+
+    const response = await handleAuthCallback(
+      new Request('https://www.pillarsoftech.org/auth/callback?code=test&next=%2Fvolunteer')
+    )
+
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toBe('https://www.pillarsoftech.org/volunteer')
+    if (previousSiteUrl === undefined) delete process.env.NEXT_PUBLIC_SITE_URL
+    else process.env.NEXT_PUBLIC_SITE_URL = previousSiteUrl
+  })
+
+  it('keeps auth callback fallback origins narrow and bridges only canonical production OAuth', () => {
+    expect(getFallbackAuthOrigin(new URL('https://www.pillarsoftech.org/auth/callback'))).toBe('https://www.pillarsoftech.org')
+    expect(getFallbackAuthOrigin(new URL('http://localhost:3000/auth/callback'))).toBe('http://localhost:3000')
+    expect(getFallbackAuthOrigin(new URL('https://preview.example/auth/callback'))).toBeNull()
+    expect(getOAuthCallbackOrigin('https://www.pillarsoftech.org')).toBe('https://pillarsoftech.org')
+    expect(getOAuthCallbackOrigin('https://preview.example')).toBe('https://preview.example')
+    expect(getOAuthCallbackOrigin('http://localhost:3000')).toBe('http://localhost:3000')
+  })
+
   it('accepts only the intended post-auth paths and rejects encoded controls', () => {
     expect(isSafeNextPath('/admin')).toBe(true)
     expect(isSafeNextPath('/volunteer')).toBe(true)

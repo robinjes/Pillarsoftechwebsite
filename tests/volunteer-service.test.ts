@@ -12,12 +12,14 @@ vi.mock('@/lib/supabase/client', () => ({
 }))
 
 import { VolunteerApiError, volunteerService } from '@/lib/volunteerService'
+import { supabase } from '@/lib/supabase/client'
 
 const originalFetch = globalThis.fetch
 
 afterEach(() => {
   globalThis.fetch = originalFetch
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
 })
 
 function jsonResponse(body: unknown, status = 200) {
@@ -25,6 +27,24 @@ function jsonResponse(body: unknown, status = 200) {
 }
 
 describe('volunteerService route client', () => {
+  it('uses the configured apex OAuth bridge only from canonical production', async () => {
+    const signInWithOAuth = vi.mocked(supabase!.auth.signInWithOAuth)
+    signInWithOAuth.mockResolvedValue({ data: { provider: 'google', url: 'https://accounts.google.test' }, error: null } as never)
+    vi.stubGlobal('window', {
+      location: { origin: 'https://www.pillarsoftech.org' },
+    })
+
+    await volunteerService.signInWithGoogle('/volunteer')
+
+    expect(signInWithOAuth).toHaveBeenCalledWith(expect.objectContaining({
+      provider: 'google',
+      options: expect.objectContaining({
+        redirectTo: 'https://pillarsoftech.org/auth/callback?next=%2Fvolunteer',
+      }),
+    }))
+    signInWithOAuth.mockReset()
+  })
+
   it('loads the verified /api/me DTO and does not infer staff from email', async () => {
     const fetchMock = vi.fn().mockResolvedValue(jsonResponse({
       profile: {

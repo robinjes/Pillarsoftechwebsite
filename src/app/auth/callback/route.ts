@@ -1,14 +1,11 @@
 import { NextResponse } from 'next/server'
-import { getSafeNextPath } from '@/lib/auth/redirect'
+import { getFallbackAuthOrigin, getSafeNextPath } from '@/lib/auth/redirect'
 import { getSiteUrl } from '@/lib/supabase/config'
 import { createSupabaseServerClient } from '@/lib/supabase/server'
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
-  const isLocalRequest =
-    requestUrl.protocol === 'http:' &&
-    (requestUrl.hostname === 'localhost' || requestUrl.hostname === '127.0.0.1')
-  const trustedOrigin = getSiteUrl() || (isLocalRequest ? requestUrl.origin : null)
+  const trustedOrigin = getSiteUrl() || getFallbackAuthOrigin(requestUrl)
 
   if (!trustedOrigin) {
     return NextResponse.json(

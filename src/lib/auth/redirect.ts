@@ -1,6 +1,8 @@
 export const DEFAULT_AUTH_NEXT = '/admin'
 
 const AUTH_ORIGIN = 'https://auth.invalid'
+export const PRODUCTION_AUTH_ORIGIN = 'https://www.pillarsoftech.org'
+export const PRODUCTION_OAUTH_BRIDGE_ORIGIN = 'https://pillarsoftech.org'
 const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f]/
 const EVENT_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{0,63}$/
 
@@ -55,4 +57,40 @@ export function getSafeNextPath(
   fallback = DEFAULT_AUTH_NEXT
 ): string {
   return isSafeNextPath(value) ? value : fallback
+}
+
+function isLocalOrigin(url: URL): boolean {
+  return url.protocol === 'http:' && (url.hostname === 'localhost' || url.hostname === '127.0.0.1')
+}
+
+/**
+ * Resolve the only request-origin fallbacks that are safe for an auth callback.
+ *
+ * Production uses the canonical www host. Local development may use either
+ * loopback hostname over HTTP. Every other request host must wait for an
+ * explicit, valid NEXT_PUBLIC_SITE_URL instead of reflecting an attacker host.
+ */
+export function getFallbackAuthOrigin(requestUrl: URL): string | null {
+  if (isLocalOrigin(requestUrl)) return requestUrl.origin
+  if (requestUrl.protocol === 'https:' && requestUrl.hostname === 'www.pillarsoftech.org') {
+    return PRODUCTION_AUTH_ORIGIN
+  }
+  return null
+}
+
+/**
+ * Supabase currently allows the apex callback origin. Keep the browser OAuth
+ * redirect on that bridge only for the canonical production www host; local
+ * and preview deployments must continue to use their own origin.
+ */
+export function getOAuthCallbackOrigin(origin: string): string {
+  try {
+    const parsed = new URL(origin)
+    if (parsed.protocol === 'https:' && parsed.hostname === 'www.pillarsoftech.org') {
+      return PRODUCTION_OAUTH_BRIDGE_ORIGIN
+    }
+    return parsed.origin
+  } catch {
+    return origin
+  }
 }

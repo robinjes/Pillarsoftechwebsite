@@ -1,5 +1,7 @@
 import 'server-only'
 
+import { randomBytes } from 'node:crypto'
+import type { User } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   mapProfileDto,
@@ -27,19 +29,112 @@ function assertNoError(error: { message?: string } | null, fallback: string): vo
   if (error) throw new VolunteerDataError(fallback)
 }
 
+const MODERN_PROFILE_COLUMNS = 'id,full_name,email,member_code,created_at,total_hours'
+const LEGACY_PROFILE_COLUMNS = 'id,full_name,email,member_code,created_at'
+const PROFILE_NAME_LIMIT = 160
+const PROFILE_EMAIL_LIMIT = 320
+
+type VerifiedProfileUser = Pick<User, 'id' | 'email' | 'user_metadata'>
+
+type ProfileLookup = {
+  data: unknown
+}
+
+async function readOwnProfile(
+  client: VolunteerServerClient,
+  userId: string,
+): Promise<ProfileLookup> {
+  const modern = await client
+    .from('profiles')
+    .select(MODERN_PROFILE_COLUMNS)
+    .eq('id', userId)
+    .maybeSingle()
+
+  if (!modern.error) return { data: modern.data }
+
+  // The production project can still be on the original profiles table,
+  // which has no total_hours column. Retry only the safe identity projection;
+  // in particular, never read the legacy role column.
+  const legacy = await client
+    .from('profiles')
+    .select(LEGACY_PROFILE_COLUMNS)
+    .eq('id', userId)
+    .maybeSingle()
+  assertNoError(legacy.error, 'Volunteer profile is temporarily unavailable.')
+  return { data: legacy.data }
+}
+
+async function getVerifiedProfileUser(
+  client: VolunteerServerClient,
+  userId: string,
+  providedUser?: VerifiedProfileUser,
+): Promise<VerifiedProfileUser> {
+  if (providedUser?.id === userId) return providedUser
+
+  if (!client.auth || typeof client.auth.getUser !== 'function') {
+    throw new VolunteerDataError('Volunteer profile is temporarily unavailable.')
+  }
+
+  const { data, error } = await client.auth.getUser()
+  if (error || !data.user || data.user.id !== userId) {
+    throw new VolunteerDataError('Volunteer profile is temporarily unavailable.')
+  }
+  return data.user
+}
+
+function boundedProfileName(user: VerifiedProfileUser): string {
+  const metadata = user.user_metadata && typeof user.user_metadata === 'object'
+    ? user.user_metadata as Record<string, unknown>
+    : {}
+  const fullName = typeof metadata.full_name === 'string' ? metadata.full_name.trim() : ''
+  const fallbackName = typeof metadata.name === 'string' ? metadata.name.trim() : ''
+  const name = (fullName || fallbackName).slice(0, PROFILE_NAME_LIMIT)
+  return name || 'POT Volunteer'
+}
+
+function boundedProfileEmail(user: VerifiedProfileUser): string {
+  return (user.email || '').trim().slice(0, PROFILE_EMAIL_LIMIT)
+}
+
+function newMemberCode(): string {
+  return `POT-${randomBytes(8).toString('hex').toUpperCase()}`
+}
+
 export async function getProfile(
   client: VolunteerServerClient,
   userId: string,
   isStaff: boolean,
+  providedUser?: VerifiedProfileUser,
 ): Promise<VolunteerProfileDto> {
-  const { data, error } = await client
-    .from('profiles')
-    .select('id,full_name,email,member_code,created_at,total_hours')
-    .eq('id', userId)
-    .maybeSingle()
-  assertNoError(error, 'Volunteer profile is temporarily unavailable.')
-  if (!data) throw new VolunteerDataError('Volunteer profile is not available yet.')
-  return mapProfileDto(data, isStaff)
+  const existing = await readOwnProfile(client, userId)
+  if (existing.data) return mapProfileDto(existing.data, isStaff)
+
+  const user = await getVerifiedProfileUser(client, userId, providedUser)
+  const insertPayload = {
+    id: userId,
+    full_name: boundedProfileName(user),
+    email: boundedProfileEmail(user),
+    member_code: newMemberCode(),
+  }
+  const { error: insertError } = await client.from('profiles').insert(insertPayload)
+  if (insertError) {
+    // Another callback can create the auth profile between our read and
+    // insert. Re-read only this verified user's safe projection so that the
+    // losing request can complete without turning the insert into an update
+    // or accepting any client-controlled role data.
+    try {
+      const concurrent = await readOwnProfile(client, userId)
+      if (concurrent.data) return mapProfileDto(concurrent.data, isStaff)
+    } catch {
+      // Preserve the fail-closed response below without exposing database
+      // details or treating an unavailable table as a successful signup.
+    }
+    throw new VolunteerDataError('Volunteer profile is temporarily unavailable.')
+  }
+
+  const created = await readOwnProfile(client, userId)
+  if (!created.data) throw new VolunteerDataError('Volunteer profile is not available yet.')
+  return mapProfileDto(created.data, isStaff)
 }
 
 export async function listStaffProfiles(
@@ -87,15 +182,28 @@ export async function listOwnRegistrations(
   client: VolunteerServerClient,
   userId: string,
 ): Promise<VolunteerRegistrationDto[]> {
-  const { data, error } = await client
+  const modern = await client
     .from('volunteer_registrations')
     .select('id,user_id,event_id,status,hours,checked_in_at,created_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
-  assertNoError(error, 'Volunteer registration history is temporarily unavailable.')
-  const rows = data || []
-  const titles = await eventTitles(client, rows.map((row) => String(row.event_id)))
-  return rows.map((row) => mapRegistrationDto(row, titles.get(String(row.event_id)) || 'Volunteer event'))
+  if (!modern.error) {
+    const rows = modern.data || []
+    const titles = await eventTitles(client, rows.map((row) => String(row.event_id)))
+    return rows.map((row) => mapRegistrationDto(row, titles.get(String(row.event_id)) || 'Volunteer event'))
+  }
+
+  // Legacy deployments expose event_volunteers instead of the versioned
+  // registration table. Keep the ownership predicate server-derived and map
+  // the already stored event_title; never broaden this fallback to a public
+  // or staff-wide read.
+  const legacy = await client
+    .from('event_volunteers')
+    .select('id,user_id,event_id,event_title,status,hours,created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+  assertNoError(legacy.error, 'Volunteer registration history is temporarily unavailable.')
+  return (legacy.data || []).map((row) => mapRegistrationDto(row, String(row.event_title || 'Volunteer event')))
 }
 
 export async function listEventRoster(
