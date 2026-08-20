@@ -78,9 +78,12 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b border-white/20 bg-midnight text-warm">
+    <header className="public-navbar sticky top-0 z-50 border-b border-white/20 bg-midnight text-warm">
       <div className="site-shell mx-auto flex min-h-[4.75rem] items-center justify-between gap-6 px-5 sm:px-8 lg:px-10">
         <BrandMark compact />
+        <span className="public-navbar__note hidden font-display text-[0.58rem] font-bold uppercase tracking-[0.16em] text-warm/45 xl:block" aria-hidden="true">
+          Student-led STEM workshops
+        </span>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
           {primaryLinks.map((link) => (

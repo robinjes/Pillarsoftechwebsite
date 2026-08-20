@@ -14,13 +14,14 @@ import WorkshopAssembly from '@/components/site/WorkshopAssembly'
 
 function HeroSection() {
   return (
-    <section className="bg-midnight text-warm" aria-labelledby="hero-heading">
+    <section className="hero-workshop bg-midnight text-warm" aria-labelledby="hero-heading">
       <HeroMotion>
         <div className="site-shell mx-auto px-5 pb-16 pt-14 sm:px-8 sm:pb-24 sm:pt-20 lg:px-10 lg:pb-24 lg:pt-24">
           <div className="editorial-grid items-center gap-y-12">
             <HeroMotionText className="col-span-12 lg:col-span-6">
-              <h1 id="hero-heading" className="display-heading max-w-[12ch] text-[3.6rem] text-warm sm:text-[4.7rem] lg:text-[5.8rem]">
-                STEM belongs in every student’s hands.
+              <h1 id="hero-heading" aria-label="STEM belongs in every student’s hands." className="display-heading max-w-[11ch] text-[3rem] text-warm sm:text-[3.65rem] lg:text-[4.35rem]">
+                <span className="block">STEM belongs</span>
+                <span className="block text-sky">in every student’s hands.</span>
               </h1>
               <p className="body-copy mt-7 max-w-xl text-lg text-warm/75 sm:text-xl">
                 We make STEM practical, welcoming, and open to more young people through events, mentorship, and community.
@@ -32,6 +33,27 @@ function HeroSection() {
                 <Link href="/volunteer" className="inline-flex min-h-12 items-center gap-2 border border-warm/70 px-5 text-sm font-bold text-warm transition-colors hover:bg-warm hover:text-midnight">
                   Volunteer <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
+              </div>
+              <div className="hero-build-cycle mt-10 max-w-xl" aria-label="Our build cycle: question, build, test, share">
+                <p className="font-display text-[0.65rem] font-bold uppercase tracking-[0.2em] text-sky">The build cycle</p>
+                <ol className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4 sm:gap-x-3">
+                  <li className="hero-build-cycle__step">
+                    <span className="hero-build-cycle__verb">QUESTION</span>
+                    <span className="hero-build-cycle__detail">Choose a problem.</span>
+                  </li>
+                  <li className="hero-build-cycle__step">
+                    <span className="hero-build-cycle__verb">BUILD</span>
+                    <span className="hero-build-cycle__detail">Make a prototype.</span>
+                  </li>
+                  <li className="hero-build-cycle__step">
+                    <span className="hero-build-cycle__verb">TEST</span>
+                    <span className="hero-build-cycle__detail">Try it, notice, adjust.</span>
+                  </li>
+                  <li className="hero-build-cycle__step">
+                    <span className="hero-build-cycle__verb">SHARE</span>
+                    <span className="hero-build-cycle__detail">Teach it forward.</span>
+                  </li>
+                </ol>
               </div>
             </HeroMotionText>
 

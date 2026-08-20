@@ -82,7 +82,7 @@ function useCurrentStage(progressTarget: ProgressTarget, reducedMotion: boolean)
     }
   }, [progressTarget, reducedMotion])
 
-  return { title: stages[stageIndex].title, isReady }
+  return { index: stageIndex, title: stages[stageIndex].title, isReady }
 }
 
 function EnvironmentLighting() {
@@ -407,13 +407,20 @@ export default function WorkshopAssemblyDesktop() {
           <div className="absolute inset-0" role="img" aria-label={desktopVisualLabel}>
             <WorkshopCanvas progressTarget={progressTarget} reducedMotion={reducedMotion} isMobile={isMobile} />
           </div>
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_67%_48%,transparent_0%,rgba(11,31,58,0.08)_38%,rgba(11,31,58,0.68)_100%)]" aria-hidden="true" />
+          <div className="workshop-registration-layer pointer-events-none absolute inset-5 z-10 sm:inset-8" aria-hidden="true">
+            <span className="workshop-registration-mark workshop-registration-mark--top-left" />
+            <span className="workshop-registration-mark workshop-registration-mark--top-right" />
+            <span className="workshop-registration-mark workshop-registration-mark--bottom-left" />
+            <span className="workshop-registration-mark workshop-registration-mark--bottom-right" />
+            <span className="workshop-cut-mark workshop-cut-mark--left" />
+            <span className="workshop-cut-mark workshop-cut-mark--right" />
+          </div>
         </div>
 
         <div className="site-shell relative z-10 mx-auto flex min-h-[calc(100svh-4.75rem)] flex-col justify-between px-5 py-10 sm:px-8 sm:py-14 lg:px-10 lg:py-16">
           <div className="max-w-xl">
             <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-sky">Workshop assembly</p>
-            <h2 id="workshop-heading" className="display-heading mt-4 max-w-md text-4xl text-warm sm:text-5xl lg:text-6xl">
+            <h2 id="workshop-heading" className="display-heading mt-4 max-w-md text-4xl text-warm sm:text-5xl lg:text-5xl">
               Every part has a purpose.
             </h2>
             <p className="mt-6 max-w-sm text-base leading-7 text-warm/70 sm:text-lg">
@@ -422,7 +429,18 @@ export default function WorkshopAssemblyDesktop() {
           </div>
 
           <div className="max-w-xl">
-            <p className="font-display text-sm font-semibold tracking-[0.12em] text-sky" aria-live="polite">{currentStage.isReady ? 'ROVER READY' : currentStage.title}</p>
+            <ol className="workshop-stage-readout" aria-label="Rover assembly stages">
+              {stages.map((stage, index) => (
+                <li key={stage.title} className="workshop-stage-readout__item" data-active={currentStage.index === index} aria-current={currentStage.index === index ? 'step' : undefined}>
+                  <span className="workshop-stage-readout__marker" aria-hidden="true" />
+                  <span>
+                    <span className="workshop-stage-readout__number">{stage.number}</span>
+                    <span className="workshop-stage-readout__title">{stage.title}</span>
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-4 font-display text-sm font-semibold tracking-[0.12em] text-sky" aria-live="polite">{currentStage.isReady ? 'ROVER READY' : currentStage.title}</p>
             <p className="mt-3 text-[0.65rem] uppercase tracking-[0.16em] text-warm/50">Reference model · NASA/JPL-Caltech · no endorsement</p>
           </div>
         </div>

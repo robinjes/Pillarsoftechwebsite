@@ -32,7 +32,7 @@ export default function NewsletterPage() {
                 <span className="text-[var(--ink)]/40" aria-hidden="true">/</span>
                 <span>Field notes for curious builders</span>
               </div>
-              <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-7xl">A small note for the week ahead.</h1>
+              <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">A small note for the week ahead.</h1>
             </div>
             <div className="max-w-md lg:justify-self-end">
               <p className="font-body text-base leading-7 text-[var(--ink)]/70 sm:text-lg">{newsletterPageDescription}</p>

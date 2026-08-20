@@ -42,7 +42,7 @@ export default function Team() {
               <Users aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
               The people behind the work
             </div>
-            <h1 className="mt-5 max-w-2xl font-display text-5xl leading-[0.97] tracking-[-0.04em] text-[var(--cream)] sm:text-6xl lg:text-[5.4rem]">
+            <h1 className="mt-5 max-w-2xl font-display text-5xl leading-[0.97] tracking-[-0.04em] text-[var(--cream)] sm:text-[4.35rem]">
               Make room for more people to build.
             </h1>
             <p className="mt-7 max-w-lg font-body text-lg font-semibold leading-8 text-[var(--cream)]/90 sm:text-xl">

@@ -1,8 +1,8 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 
 import type { PublicEvent } from '@/lib/content-contracts'
+import EventProofPhoto from '@/components/site/EventProofPhoto'
 
 function eventDate(event: PublicEvent): string {
   return event.date || event.startsAt || 'Date to be announced'
@@ -37,7 +37,7 @@ const proofPhotos = [
 
 export default function EventProof({ upcoming, completed }: { upcoming: PublicEvent | null; completed: PublicEvent | null }) {
   return (
-    <section className="bg-cream" aria-labelledby="event-proof-heading">
+    <section className="event-proof bg-cream" aria-labelledby="event-proof-heading">
       <div className="site-shell mx-auto px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
@@ -49,20 +49,9 @@ export default function EventProof({ upcoming, completed }: { upcoming: PublicEv
           </Link>
         </div>
 
-        <div className="mt-10 grid grid-cols-12 gap-3 sm:gap-4">
-          {proofPhotos.map((photo) => (
-            <figure key={photo.src} className={`relative overflow-hidden border border-ink/20 bg-sky ${photo.className}`}>
-              <Image
-                src={photo.src}
-                alt={photo.alt}
-                fill
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 58vw, 40vw"
-                className="object-cover motion-safe:transition motion-safe:duration-500 motion-safe:hover:scale-[1.02] motion-reduce:transform-none motion-reduce:transition-none motion-reduce:hover:scale-100"
-              />
-              <figcaption className="absolute bottom-0 left-0 max-w-[90%] border-t border-r border-ink/20 bg-cream px-3 py-2 text-xs font-semibold text-midnight">
-                {photo.caption}
-              </figcaption>
-            </figure>
+        <div className="event-proof__contact-sheet mt-10 grid grid-cols-12 gap-x-3 gap-y-8 sm:gap-x-4 sm:gap-y-10" data-contact-sheet>
+          {proofPhotos.map((photo, index) => (
+            <EventProofPhoto key={photo.src} {...photo} index={index} />
           ))}
         </div>
 

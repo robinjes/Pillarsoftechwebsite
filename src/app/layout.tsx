@@ -3,6 +3,7 @@ import { connection } from 'next/server'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import PublicAtmosphere from '@/components/site/PublicAtmosphere'
 import { bodyFont, displayFont } from '@/lib/fonts'
 
 export const metadata: Metadata = {
@@ -54,6 +55,7 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${bodyFont.variable} ${displayFont.variable}`} suppressHydrationWarning>
+        <PublicAtmosphere />
         <a href="#main-content" className="skip-link">Skip to content</a>
         <Navbar />
         <div id="main-content" tabIndex={-1}>

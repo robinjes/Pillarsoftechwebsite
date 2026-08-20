@@ -108,7 +108,7 @@ export default function CloudinaryPhotoGallery({ title, description, folder, pho
       <div className="mx-auto max-w-7xl">
         <header className="border-y-2 border-[var(--ink)] bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10 sm:py-14">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--sky)]">Photo archive / {folder}</p>
-          <h1 className="mt-4 font-display text-5xl leading-none sm:text-7xl">{title}</h1>
+          <h1 className="mt-4 font-display text-5xl leading-none sm:text-[4.35rem]">{title}</h1>
           <p className="mt-5 max-w-3xl text-base leading-8 text-[var(--cream)]/80 sm:text-lg">{description}</p>
         </header>
 

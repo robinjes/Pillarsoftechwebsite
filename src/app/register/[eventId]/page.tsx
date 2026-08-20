@@ -122,7 +122,7 @@ export default function RegisterPage() {
 
         <header className="mt-7 border-y-2 border-[var(--ink)] bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10">
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-[var(--sky)]">{pageKicker}</p>
-          <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.95] sm:text-6xl">Save your place in the room.</h1>
+          <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.95] sm:text-[4.35rem]">Save your place in the room.</h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--cream)]/80">
             Share the details we need for this event. Your answers are sent only to the registration record for the selected program.
           </p>

@@ -31,7 +31,7 @@ describe('editorial homepage foundation', () => {
     expect(heroVisual).toContain('/images/events/science-odyssey/drive-02.webp')
     expect(heroVisual).toContain('Students compare and test marshmallow structures at the Science Odyssey engineering table.')
     expect(heroVisual).toContain('priority')
-    expect(heroVisual).toContain('clipPath')
+    expect(heroVisual).toContain('data-hero-contact-sheet')
     expect(heroVisual).toContain('useTransform')
     expect(readSource('components/site/HeroMotion.tsx')).toContain('useReducedMotion')
     expect(page).not.toContain('loading="eager"')

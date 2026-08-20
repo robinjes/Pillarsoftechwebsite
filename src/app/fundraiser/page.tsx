@@ -44,7 +44,7 @@ export default function FundraiserPage() {
         <div className="relative mx-auto flex min-h-[30rem] max-w-7xl items-end px-5 py-12 sm:min-h-[36rem] sm:px-8 sm:py-16 lg:px-12 lg:py-20">
           <div className="max-w-2xl">
             <p className="font-body text-sm font-semibold text-[var(--sky)]">A gift becomes a workshop</p>
-            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--cream)] sm:text-7xl">Keep the learning hands-on.</h1>
+            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--cream)] sm:text-[4.35rem]">Keep the learning hands-on.</h1>
             <p className="mt-6 max-w-xl font-body text-base leading-7 text-[var(--cream)]/80 sm:text-lg">
               Your support helps a student get closer to the tools, people, and projects that make STEM feel possible.
             </p>

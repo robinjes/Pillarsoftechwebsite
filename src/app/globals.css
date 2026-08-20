@@ -68,6 +68,11 @@ summary:focus-visible {
   transition: transform 160ms ease;
 }
 
+#main-content {
+  position: relative;
+  z-index: 2;
+}
+
 .skip-link:focus {
   transform: translateY(0);
 }
@@ -91,6 +96,416 @@ summary:focus-visible {
 .body-copy {
   max-width: 62ch;
   line-height: 1.65;
+}
+
+.public-atmosphere {
+  position: fixed;
+  z-index: 40;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--sky);
+  opacity: 0.08;
+}
+
+.public-atmosphere__dots {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 1.25rem;
+  height: 100%;
+  opacity: 0.9;
+  background-image: radial-gradient(circle, currentColor 0.7px, transparent 0.85px);
+  background-size: 9px 9px;
+}
+
+.public-atmosphere__register,
+.hero-registration-mark,
+.workshop-registration-mark {
+  position: absolute;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid currentColor;
+  opacity: 0.48;
+}
+
+.public-atmosphere__register::before,
+.public-atmosphere__register::after,
+.hero-registration-mark::before,
+.hero-registration-mark::after,
+.workshop-registration-mark::before,
+.workshop-registration-mark::after {
+  position: absolute;
+  content: '';
+  background: currentColor;
+}
+
+.public-atmosphere__register::before,
+.hero-registration-mark::before,
+.workshop-registration-mark::before {
+  top: 50%;
+  left: -0.4rem;
+  width: calc(100% + 0.8rem);
+  height: 1px;
+}
+
+.public-atmosphere__register::after,
+.hero-registration-mark::after,
+.workshop-registration-mark::after {
+  top: -0.4rem;
+  left: 50%;
+  width: 1px;
+  height: calc(100% + 0.8rem);
+}
+
+.public-atmosphere__register--top {
+  top: 5rem;
+  left: 0.75rem;
+}
+
+.public-atmosphere__register--bottom {
+  right: 0.75rem;
+  bottom: 2.5rem;
+}
+
+.public-atmosphere__cut,
+.workshop-cut-mark {
+  position: absolute;
+  width: 1.25rem;
+  height: 1px;
+  background: currentColor;
+  opacity: 0.42;
+}
+
+.public-atmosphere__cut::after,
+.workshop-cut-mark::after {
+  position: absolute;
+  top: -0.35rem;
+  left: 50%;
+  width: 1px;
+  height: 0.7rem;
+  content: '';
+  background: currentColor;
+}
+
+.public-atmosphere__cut--left {
+  top: 48%;
+  left: 0.15rem;
+}
+
+.public-atmosphere__cut--right {
+  top: 68%;
+  right: 0.15rem;
+}
+
+.public-atmosphere__register,
+.public-atmosphere__cut {
+  opacity: 0.88;
+}
+
+.hero-workshop {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.hero-workshop-stage {
+  isolation: isolate;
+}
+
+.hero-print-shutter {
+  position: absolute;
+  z-index: 0;
+  height: 0.8rem;
+  border: 1px solid rgba(11, 31, 58, 0.55);
+  background: var(--warm-white);
+}
+
+.hero-print-shutter--top {
+  top: 1.25rem;
+  right: -0.9rem;
+  width: 6.5rem;
+}
+
+.hero-print-shutter--bottom {
+  bottom: 1.5rem;
+  left: -0.8rem;
+  width: 5.25rem;
+}
+
+.hero-registration-mark {
+  z-index: 3;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--midnight);
+  opacity: 0.7;
+}
+
+.hero-registration-mark--top-left {
+  top: 0.35rem;
+  left: 0.35rem;
+}
+
+.hero-registration-mark--top-right {
+  top: 0.35rem;
+  right: 0.35rem;
+}
+
+.hero-registration-mark--bottom-left {
+  bottom: 0.5rem;
+  left: 0.35rem;
+}
+
+.hero-registration-mark--bottom-right {
+  right: 0.35rem;
+  bottom: 0.5rem;
+}
+
+.hero-cut-mark {
+  position: absolute;
+  z-index: 3;
+  width: 1.1rem;
+  height: 1px;
+  background: var(--midnight);
+  opacity: 0.7;
+}
+
+.hero-cut-mark::after {
+  position: absolute;
+  top: -0.35rem;
+  left: 50%;
+  width: 1px;
+  height: 0.7rem;
+  content: '';
+  background: var(--midnight);
+}
+
+.hero-cut-mark--left {
+  top: 50%;
+  left: 0.3rem;
+}
+
+.hero-cut-mark--right {
+  top: 50%;
+  right: 0.3rem;
+}
+
+.hero-build-cycle {
+  border-top: 1px solid rgba(169, 216, 242, 0.45);
+  border-bottom: 1px solid rgba(169, 216, 242, 0.45);
+  padding: 0.85rem 0 1rem;
+}
+
+.hero-build-cycle__step {
+  min-height: 4.1rem;
+  border-left: 1px solid rgba(169, 216, 242, 0.45);
+  padding-left: 0.65rem;
+}
+
+.hero-build-cycle__verb,
+.hero-build-cycle__detail {
+  display: block;
+}
+
+.hero-build-cycle__verb {
+  color: var(--sky);
+  font-family: var(--font-display-stack);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.hero-build-cycle__detail {
+  margin-top: 0.35rem;
+  color: rgba(255, 253, 248, 0.62);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.field-note-tape {
+  border: 1px solid rgba(16, 17, 20, 0.2);
+  background: rgba(255, 253, 248, 0.96);
+  box-shadow: 3px 3px 0 rgba(16, 17, 20, 0.14);
+}
+
+.field-note-tape::before {
+  position: absolute;
+  top: -0.27rem;
+  left: 0.8rem;
+  width: 2.25rem;
+  height: 0.45rem;
+  content: '';
+  background: rgba(169, 216, 242, 0.72);
+  transform: rotate(-1.5deg);
+}
+
+.field-note-photo {
+  will-change: transform;
+}
+
+.event-proof__contact-sheet {
+  padding: 0.6rem 0.35rem 1.25rem;
+  border-top: 1px solid rgba(16, 17, 20, 0.26);
+  border-bottom: 1px solid rgba(16, 17, 20, 0.26);
+}
+
+.audience-route {
+  position: relative;
+  padding-right: 0.5rem;
+  padding-left: 0.5rem;
+  transition: background-color 180ms ease, transform 180ms ease;
+}
+
+.audience-route:hover,
+.audience-route:focus-within {
+  background: var(--sky);
+  transform: translateX(0.3rem);
+}
+
+.audience-route__role {
+  transition: color 180ms ease;
+}
+
+.audience-route:hover .audience-route__role,
+.audience-route:focus-within .audience-route__role {
+  color: var(--midnight);
+}
+
+.workshop-registration-layer {
+  color: var(--sky);
+}
+
+.workshop-registration-mark--top-left {
+  top: 0;
+  left: 0;
+}
+
+.workshop-registration-mark--top-right {
+  top: 0;
+  right: 0;
+}
+
+.workshop-registration-mark--bottom-left {
+  bottom: 0;
+  left: 0;
+}
+
+.workshop-registration-mark--bottom-right {
+  right: 0;
+  bottom: 0;
+}
+
+.workshop-cut-mark--left {
+  top: 42%;
+  left: 0;
+}
+
+.workshop-cut-mark--right {
+  top: 58%;
+  right: 0;
+}
+
+.workshop-stage-readout {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  max-width: 42rem;
+}
+
+.workshop-stage-readout__item {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: rgba(255, 253, 248, 0.5);
+  transition: color 180ms ease;
+}
+
+.workshop-stage-readout__item[data-active='true'] {
+  color: var(--warm-white);
+}
+
+.workshop-stage-readout__marker {
+  flex: 0 0 auto;
+  width: 0.7rem;
+  height: 0.7rem;
+  margin-top: 0.1rem;
+  border: 1px solid currentColor;
+}
+
+.workshop-stage-readout__item[data-active='true'] .workshop-stage-readout__marker {
+  border-color: var(--sky);
+  background: var(--sky);
+}
+
+.workshop-stage-readout__number,
+.workshop-stage-readout__title {
+  display: block;
+}
+
+.workshop-stage-readout__number {
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  opacity: 0.68;
+}
+
+.workshop-stage-readout__title {
+  margin-top: 0.25rem;
+  font-family: var(--font-display-stack);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.public-navbar,
+.public-footer {
+  position: relative;
+  isolation: isolate;
+}
+
+.public-footer {
+  z-index: 2;
+}
+
+.public-navbar::after,
+.public-footer::before {
+  position: absolute;
+  right: 1rem;
+  left: 1rem;
+  height: 1px;
+  content: '';
+  background: currentColor;
+  opacity: 0.22;
+  pointer-events: none;
+}
+
+.public-navbar::after {
+  bottom: -0.3rem;
+}
+
+.public-footer::before {
+  top: 0.35rem;
+}
+
+.public-footer__colophon {
+  position: relative;
+}
+
+@media (max-width: 639px) {
+  .workshop-stage-readout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 0.8rem;
+  }
+
+  .field-note-tape {
+    box-shadow: 2px 2px 0 rgba(16, 17, 20, 0.12);
+  }
+}
+
+@media (max-width: 1023px) {
+  .public-atmosphere {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

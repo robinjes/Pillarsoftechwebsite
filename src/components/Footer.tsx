@@ -32,7 +32,7 @@ export default function Footer() {
   }
 
   return (
-    <footer className="border-t border-white/20 bg-midnight text-warm">
+    <footer className="public-footer border-t border-white/20 bg-midnight text-warm">
       <div className="site-shell mx-auto px-5 py-14 sm:px-8 sm:py-20 lg:px-10">
         <div className="editorial-grid gap-y-12">
           <div className="col-span-12 lg:col-span-5">
@@ -92,7 +92,7 @@ export default function Footer() {
 
         <div className="mt-14 flex flex-col gap-3 border-t border-white/20 pt-6 text-xs text-warm/60 sm:flex-row sm:items-center sm:justify-between">
           <p>© {currentYear} Pillars of Tech. All rights reserved.</p>
-          <p>Built for curious minds and generous communities.</p>
+          <p className="public-footer__colophon">Built for curious minds and generous communities.</p>
         </div>
       </div>
     </footer>
