@@ -22,16 +22,19 @@ vi.mock('@/lib/media/server', () => {
     signMediaUpload: vi.fn(),
     finalizeMediaUpload: vi.fn(),
     getMediaDelivery: vi.fn(),
+    getPrivatePdfDelivery: vi.fn(),
   }
 })
 
 import { POST as signMedia } from '@/app/api/admin/media/sign/route'
 import { POST as finalizeMedia } from '@/app/api/admin/media/finalize/route'
+import { GET as deliverPrivateMedia } from '@/app/api/admin/media/[id]/route'
 import { GET as deliverMedia } from '@/app/api/media/[id]/route'
 import { requireVerifiedStaff } from '@/lib/auth/server'
 import {
   finalizeMediaUpload,
   getMediaDelivery,
+  getPrivatePdfDelivery,
   MediaPipelineError,
   parseMediaSignRequest,
   signMediaUpload,
@@ -42,7 +45,9 @@ const mockedParse = vi.mocked(parseMediaSignRequest)
 const mockedSign = vi.mocked(signMediaUpload)
 const mockedFinalize = vi.mocked(finalizeMediaUpload)
 const mockedDelivery = vi.mocked(getMediaDelivery)
+const mockedPrivateDelivery = vi.mocked(getPrivatePdfDelivery)
 const staff = { ok: true as const, isStaff: true as const, user: { id: 'staff-1' } }
+const mediaId = '11111111-1111-4111-8111-111111111111'
 
 function jsonRequest(url: string, body: unknown) {
   return new Request(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
@@ -86,8 +91,8 @@ describe('media authorization routes', () => {
     expect(malformed.status).toBe(400)
     expect(mockedFinalize).not.toHaveBeenCalled()
 
-    mockedFinalize.mockResolvedValue({ media: { id: '11111111-1111-4111-8111-111111111111' }, url: '/api/media/11111111-1111-4111-8111-111111111111' } as never)
-    const validId = '11111111-1111-4111-8111-111111111111'
+    mockedFinalize.mockResolvedValue({ media: { id: mediaId }, url: `/api/admin/media/${mediaId}` } as never)
+    const validId = mediaId
     const response = await finalizeMedia(jsonRequest('http://localhost/api/admin/media/finalize', { mediaId: validId }))
     expect(response.status).toBe(200)
     expect(mockedFinalize).toHaveBeenCalledWith(validId, 'staff-1')
@@ -103,13 +108,40 @@ describe('media authorization routes', () => {
     }
   })
 
-  it('redirects only after the service confirms a finalized deliverable', async () => {
-    mockedDelivery.mockResolvedValue({ media: { id: 'media-1' }, url: 'https://project.supabase.co/storage/v1/object/sign/private-documents/final/key.pdf' } as never)
-    const response = await deliverMedia(new Request('http://localhost/api/media/11111111-1111-4111-8111-111111111111'), {
-      params: Promise.resolve({ id: '11111111-1111-4111-8111-111111111111' }),
+  it('redirects finalized public media while preserving private no-store caching', async () => {
+    mockedDelivery.mockResolvedValue({ media: { id: 'media-1' }, url: 'https://project.supabase.co/storage/v1/object/public/public-media/final/key.webp' } as never)
+    const response = await deliverMedia(new Request(`http://localhost/api/media/${mediaId}`), {
+      params: Promise.resolve({ id: mediaId }),
     })
     expect(response.status).toBe(307)
     expect(response.headers.get('location')).toContain('project.supabase.co')
+    expect(response.headers.get('location')).toContain('/object/public/public-media/')
     expect(response.headers.get('cache-control')).toBe('private, no-store')
+  })
+
+  it('rejects anonymous and non-staff private document requests before delivery', async () => {
+    for (const failure of [
+      { ok: false as const, status: 401 as const, code: 'unauthenticated' as const, message: 'Sign in required.' },
+      { ok: false as const, status: 403 as const, code: 'not_staff' as const, message: 'Staff access required.' },
+    ]) {
+      mockedAuth.mockResolvedValue(failure as never)
+      const response = await deliverPrivateMedia(new Request(`http://localhost/api/admin/media/${mediaId}`), {
+        params: Promise.resolve({ id: mediaId }),
+      })
+      expect(response.status).toBe(failure.status)
+      expect(response.headers.get('location')).toBeNull()
+      expect(mockedPrivateDelivery).not.toHaveBeenCalled()
+    }
+  })
+
+  it('redirects verified staff to a finalized private PDF with no-store caching', async () => {
+    mockedPrivateDelivery.mockResolvedValue({ media: { id: mediaId }, url: 'https://project.supabase.co/storage/v1/object/sign/private-documents/final/key.pdf' } as never)
+    const response = await deliverPrivateMedia(new Request(`http://localhost/api/admin/media/${mediaId}`), {
+      params: Promise.resolve({ id: mediaId }),
+    })
+    expect(response.status).toBe(307)
+    expect(response.headers.get('location')).toContain('/object/sign/private-documents/')
+    expect(response.headers.get('cache-control')).toBe('private, no-store')
+    expect(mockedPrivateDelivery).toHaveBeenCalledWith(mediaId)
   })
 })

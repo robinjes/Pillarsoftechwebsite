@@ -175,7 +175,7 @@ export default function AdminEvents() {
       const finalizeResult = await finalizeResponse.json().catch(() => ({}))
       if (!finalizeResponse.ok) throw new Error(finalizeResult.message || finalizeResult.error || 'Media finalization failed.')
 
-      const finalUrl = uploadKind === 'document' ? `/api/media/${finalizeResult.media.id}` : finalizeResult.url
+      const finalUrl = uploadKind === 'document' ? `/api/admin/media/${finalizeResult.media.id}` : finalizeResult.url
       if (uploadKind === 'image') {
         setDraft((current) => ({ ...current, media: { ...current.media, image: finalUrl, heroImage: finalUrl } }))
       } else if (uploadKind === 'video') {

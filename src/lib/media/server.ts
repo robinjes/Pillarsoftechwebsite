@@ -446,7 +446,7 @@ export async function finalizeMediaUpload(mediaId: string, userId: string) {
   await deleteObject(file, claimed.storage_path)
 
   const delivery = outputPolicy.kind === 'document'
-    ? `/api/media/${claimed.id}`
+    ? `/api/admin/media/${claimed.id}`
     : finalFile.getPublicUrl(finalPath).data.publicUrl
   return {
     media: {
@@ -493,10 +493,6 @@ export async function getMediaDelivery(mediaId: string) {
   const media = asPendingMedia(row)
   if (media.status !== 'finalized' || !media.storage_path.startsWith('final/')) {
     throw new MediaPipelineError('This media is not approved for delivery.', 404, 'media_not_deliverable')
-  }
-
-  if (media.content_type === 'application/pdf' && media.visibility === 'private') {
-    return { media, url: await signedUrl(finalStorage(client, 'document'), media.storage_path) }
   }
 
   const policy = MEDIA_POLICIES[media.content_type]

@@ -213,6 +213,25 @@ summary:focus-visible {
   isolation: isolate;
 }
 
+.hero-contact-sheet-frame {
+  --hero-contact-sheet-caption-band: 3rem;
+  padding: 0.5rem;
+  padding-bottom: var(--hero-contact-sheet-caption-band);
+}
+
+.hero-contact-sheet-caption {
+  position: absolute;
+  bottom: 0.125rem;
+  z-index: 2;
+}
+
+@media (min-width: 640px) {
+  .hero-contact-sheet-frame {
+    padding: 0.75rem;
+    padding-bottom: var(--hero-contact-sheet-caption-band);
+  }
+}
+
 .hero-print-shutter {
   position: absolute;
   z-index: 0;
@@ -228,7 +247,7 @@ summary:focus-visible {
 }
 
 .hero-print-shutter--bottom {
-  bottom: 1.5rem;
+  bottom: calc(var(--hero-contact-sheet-caption-band) - 1.5rem);
   left: -0.8rem;
   width: 5.25rem;
 }
@@ -251,14 +270,17 @@ summary:focus-visible {
   right: 0.35rem;
 }
 
+.hero-registration-mark--bottom-left,
+.hero-registration-mark--bottom-right {
+  bottom: calc(var(--hero-contact-sheet-caption-band) - 1.3125rem);
+}
+
 .hero-registration-mark--bottom-left {
-  bottom: 0.5rem;
   left: 0.35rem;
 }
 
 .hero-registration-mark--bottom-right {
   right: 0.35rem;
-  bottom: 0.5rem;
 }
 
 .hero-cut-mark {
@@ -282,12 +304,12 @@ summary:focus-visible {
 
 .hero-cut-mark--left {
   top: 50%;
-  left: 0.3rem;
+  left: -0.5rem;
 }
 
 .hero-cut-mark--right {
   top: 50%;
-  right: 0.3rem;
+  right: -0.5rem;
 }
 
 .hero-build-cycle {

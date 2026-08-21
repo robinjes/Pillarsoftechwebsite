@@ -132,6 +132,11 @@ describe('state-changing admin request hardening', () => {
 })
 
 describe('middleware session refresh resilience', () => {
+  it('does not advertise the framework in response headers', () => {
+    const config = readFileSync(path.resolve(process.cwd(), 'next.config.js'), 'utf8')
+    expect(config).toContain('poweredByHeader: false')
+  })
+
   it('keeps public documents available with security headers when refresh fails', async () => {
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'https://project.supabase.co')
     vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'public-test-key')

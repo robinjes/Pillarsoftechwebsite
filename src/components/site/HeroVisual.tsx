@@ -17,7 +17,7 @@ export default function HeroVisual() {
 
   return (
     <div className="hero-workshop-stage relative mx-auto max-w-2xl pb-8 pl-0 sm:pb-10 sm:pl-8" data-hero-contact-sheet>
-      <div className="relative border border-warm/35 bg-sky p-2 sm:p-3">
+      <div className="hero-contact-sheet-frame relative border border-warm/35 bg-sky">
         <motion.span
           className="hero-print-shutter hero-print-shutter--top"
           aria-hidden="true"
@@ -126,7 +126,7 @@ export default function HeroVisual() {
           animate={reducedMotion ? undefined : { opacity: 0.7 }}
           transition={{ duration: 0.52, ease: 'easeOut', delay: 0.1 }}
         />
-        <p className="absolute bottom-1 left-3 font-display text-[0.58rem] font-bold uppercase tracking-[0.2em] text-midnight/70 sm:left-4">
+        <p className="hero-contact-sheet-caption absolute left-3 font-display text-[0.58rem] font-bold uppercase tracking-[0.2em] text-midnight/70 sm:left-4">
           PILLARS FIELD KIT / CONTACT SHEET 01
         </p>
       </div>

@@ -19,6 +19,7 @@ if (supabaseUrl) {
 }
 
 const nextConfig = {
+  poweredByHeader: false,
   images: {
     remotePatterns: [
       ...(cloudinaryCloudName ? [{
