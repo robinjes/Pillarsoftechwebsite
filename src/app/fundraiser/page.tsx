@@ -37,10 +37,7 @@ export default function FundraiserPage() {
           sizes="100vw"
           className="object-cover object-center"
         />
-        <div
-          className="absolute inset-0 bg-[linear-gradient(90deg,rgba(11,31,58,0.92)_0%,rgba(11,31,58,0.78)_48%,rgba(11,31,58,0.48)_100%)]"
-          aria-hidden="true"
-        />
+        <div className="absolute inset-0 bg-[var(--midnight)]/75" aria-hidden="true" />
         <div className="relative mx-auto flex min-h-[30rem] max-w-7xl items-end px-5 py-12 sm:min-h-[36rem] sm:px-8 sm:py-16 lg:px-12 lg:py-20">
           <div className="max-w-2xl">
             <p className="font-body text-sm font-semibold text-[var(--sky)]">A gift becomes a workshop</p>

@@ -36,7 +36,7 @@ export default function Footer() {
       <div className="site-shell mx-auto px-5 py-14 sm:px-8 sm:py-20 lg:px-10">
         <div className="editorial-grid gap-y-12">
           <div className="col-span-12 lg:col-span-5">
-            <BrandMark />
+            <BrandMark tone="dark" />
             <p className="mt-6 max-w-sm text-lg leading-7 text-warm/80">
               Breaking barriers, building innovators through hands-on STEM learning.
             </p>

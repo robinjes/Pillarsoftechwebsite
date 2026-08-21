@@ -59,6 +59,7 @@ export default function EventPage() {
   const [heroVideoOk, setHeroVideoOk] = useState(true)
   const [galleryActiveImage, setGalleryActiveImage] = useState<string | null>(null)
   const [pdfFullscreen, setPdfFullscreen] = useState(false)
+  const [loadedVideos, setLoadedVideos] = useState<Record<string, boolean>>({})
   const galleryTriggerRef = useRef<HTMLButtonElement | null>(null)
   const galleryDialogRef = useRef<HTMLDivElement>(null)
   const galleryCloseButtonRef = useRef<HTMLButtonElement>(null)
@@ -127,6 +128,7 @@ export default function EventPage() {
     setHeroVideoOk(true)
     setGalleryActiveImage(null)
     setPdfFullscreen(false)
+    setLoadedVideos({})
   }, [event?.id])
 
   useEffect(() => {
@@ -336,8 +338,8 @@ export default function EventPage() {
             <div className="mt-5 space-y-3">
               {participant.canRegister ? <a href={registrationHref} className="flex min-h-11 items-center justify-between gap-3 bg-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register as a participant <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{participant.label}</p>}
               {volunteer.canRegister ? <a href={volunteerHref} className="flex min-h-11 items-center justify-between gap-3 border border-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cobalt)] hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Volunteer at this event <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{volunteer.label}</p>}
-              {isCurrent && event.registrationLink ? <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">External event link <ExternalLink className="h-4 w-4" aria-hidden="true" /></a> : null}
-              {event.id === 'wildcat-tank-altamont' ? <><a href="/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Results &amp; presentation record <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a><a href="/photos/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Open photo archive <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a></> : null}
+              {isCurrent && event.registrationLink ? <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-between gap-3 rounded-[5px] border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">External event link <ExternalLink className="h-4 w-4" aria-hidden="true" /></a> : null}
+              {event.id === 'wildcat-tank-altamont' ? <><a href="/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 rounded-[5px] border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Results &amp; presentation record <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a><a href="/photos/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 rounded-[5px] border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Open photo archive <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a></> : null}
             </div>
           </aside>
         </div>
@@ -350,7 +352,7 @@ export default function EventPage() {
             </div>
             <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {galleryImages.map((image, index) => (
-                <button key={image} type="button" onClick={(clickEvent) => { galleryTriggerRef.current = clickEvent.currentTarget; setGalleryActiveImage(image) }} className="group relative aspect-square overflow-hidden border border-[var(--ink)] bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]" aria-label={'Open event image ' + (index + 1)}>
+                <button key={image} type="button" onClick={(clickEvent) => { galleryTriggerRef.current = clickEvent.currentTarget; setGalleryActiveImage(image) }} className="group relative aspect-square overflow-hidden rounded-[8px] border border-[var(--ink)] bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]" aria-label={'Open event image ' + (index + 1)}>
                   <Image src={image} alt={resolveEventImageAlt(event, 'gallery', image, index)} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
                 </button>
               ))}
@@ -363,15 +365,32 @@ export default function EventPage() {
             <div><p className="text-sm font-semibold text-[var(--cobalt)]">Approved resources</p><h2 id="resources-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">Keep exploring</h2></div>
             <div className="mt-7 grid gap-8 lg:grid-cols-2">
               {event.pdfUrl ? (
-                <article className="border border-[var(--ink)] bg-[var(--paper)]">
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--ink)] p-4"><div className="flex items-center gap-2 font-bold text-[var(--midnight)]"><FileText className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /> Event document</div><div className="flex flex-wrap gap-2"><a href={event.pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 border border-[var(--cobalt)] px-3 py-2 text-xs font-bold text-[var(--cobalt)]">Open PDF <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /></a>{localPdf ? <button type="button" onClick={(clickEvent) => { pdfTriggerRef.current = clickEvent.currentTarget; setPdfFullscreen(true) }} className="inline-flex min-h-11 items-center border border-[var(--ink)] px-3 py-2 text-xs font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Full screen</button> : null}</div></div>
+                <article className="rounded-[8px] border border-[var(--ink)] bg-[var(--paper)]">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--ink)] p-4"><div className="flex items-center gap-2 font-bold text-[var(--midnight)]"><FileText className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /> Event document</div><div className="flex flex-wrap gap-2"><a href={event.pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 rounded-[5px] border border-[var(--cobalt)] px-3 py-2 text-xs font-bold text-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Open PDF <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" /></a>{localPdf ? <button type="button" onClick={(clickEvent) => { pdfTriggerRef.current = clickEvent.currentTarget; setPdfFullscreen(true) }} className="inline-flex min-h-11 items-center rounded-[5px] border border-[var(--ink)] px-3 py-2 text-xs font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Full screen</button> : null}</div></div>
                   {localPdf ? <iframe src={event.pdfUrl} sandbox="" loading="lazy" className="h-[26rem] w-full" title={`${event.title} event document`} /> : <p className="p-5 text-sm leading-7 text-[var(--ink)]/75">This approved document opens directly in a new tab.</p>}
                 </article>
               ) : null}
               {embedVideos.length > 0 ? (
-                <article className="border border-[var(--ink)] bg-[var(--paper)]">
+                <article className="rounded-[8px] border border-[var(--ink)] bg-[var(--paper)]">
                   <div className="border-b border-[var(--ink)] p-4"><div className="flex items-center gap-2 font-bold text-[var(--midnight)]"><Play className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /> Event video</div></div>
-                  <div className="space-y-7 p-4">{embedVideos.map((video, index) => <div key={video.original}><p className="mb-3 text-sm font-semibold text-[var(--cobalt)]">{embedVideos.length > 1 ? `Video ${index + 1}` : 'Presentation recording'}</p><div className="aspect-video overflow-hidden border border-[var(--ink)]"><iframe src={video.embed} loading="lazy" className="h-full w-full" title={`${event.title} video ${index + 1}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div></div>)}</div>
+                  <div className="space-y-7 p-4">
+                    {embedVideos.map((video, index) => {
+                      const frameId = `event-video-${index}`
+                      const isLoaded = Boolean(loadedVideos[video.original])
+                      return (
+                        <div key={video.original}>
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <p className="text-sm font-semibold text-[var(--cobalt)]">{embedVideos.length > 1 ? `Video ${index + 1}` : 'Presentation recording'}</p>
+                            <div className="flex flex-wrap gap-2">
+                              <a href={video.original} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center rounded-[5px] border border-[var(--ink)] px-3 py-2 text-xs font-bold text-[var(--midnight)] hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Open on YouTube <ExternalLink className="ml-2 h-3.5 w-3.5" aria-hidden="true" /></a>
+                              {!isLoaded ? <button type="button" onClick={() => setLoadedVideos((current) => ({ ...current, [video.original]: true }))} aria-controls={frameId} aria-expanded={false} className="inline-flex min-h-11 items-center rounded-[5px] bg-[var(--midnight)] px-3 py-2 text-xs font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Load video</button> : null}
+                            </div>
+                          </div>
+                          {isLoaded ? <div id={frameId} className="mt-4 aspect-video overflow-hidden rounded-[6px] border border-[var(--ink)]"><iframe src={video.embed} loading="lazy" className="h-full w-full" title={`${event.title} video ${index + 1}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div> : <p className="mt-4 border-l-2 border-[var(--cobalt)] bg-[var(--sky)] px-4 py-3 text-sm leading-6 text-[var(--midnight)]">The external video stays closed until you choose to load it.</p>}
+                        </div>
+                      )
+                    })}
+                  </div>
                 </article>
               ) : null}
             </div>
@@ -383,8 +402,8 @@ export default function EventPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--midnight)]/95 p-4" role="dialog" aria-modal="true" aria-labelledby="event-image-viewer-title" onClick={() => setGalleryActiveImage(null)}>
           <div ref={galleryDialogRef} className="relative w-full max-w-5xl border-2 border-[var(--cream)] bg-[var(--midnight)] p-3 rounded-[10px]" onClick={(clickEvent) => clickEvent.stopPropagation()}>
             <h2 id="event-image-viewer-title" className="sr-only">Event image viewer</h2>
-            <button ref={galleryCloseButtonRef} type="button" onClick={() => setGalleryActiveImage(null)} className="absolute right-4 top-4 z-10 inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Close image viewer"><X className="h-5 w-5" aria-hidden="true" /></button>
-            {galleryImages.length > 1 ? <><button type="button" onClick={() => setGalleryActiveImage(galleryImages[(activeGalleryIndex - 1 + galleryImages.length) % galleryImages.length])} className="absolute left-4 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] rounded-[10px]" aria-label="Previous event image"><ChevronLeft className="h-5 w-5" aria-hidden="true" /></button><button type="button" onClick={() => setGalleryActiveImage(galleryImages[(activeGalleryIndex + 1) % galleryImages.length])} className="absolute right-4 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] rounded-[10px]" aria-label="Next event image"><ChevronRight className="h-5 w-5" aria-hidden="true" /></button></> : null}
+            <button ref={galleryCloseButtonRef} type="button" onClick={() => setGalleryActiveImage(null)} className="absolute right-4 top-4 z-10 inline-flex min-h-11 min-w-11 items-center justify-center rounded-[8px] border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Close image viewer"><X className="h-5 w-5" aria-hidden="true" /></button>
+            {galleryImages.length > 1 ? <><button type="button" onClick={() => setGalleryActiveImage(galleryImages[(activeGalleryIndex - 1 + galleryImages.length) % galleryImages.length])} className="absolute left-4 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-[8px] border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Previous event image"><ChevronLeft className="h-5 w-5" aria-hidden="true" /></button><button type="button" onClick={() => setGalleryActiveImage(galleryImages[(activeGalleryIndex + 1) % galleryImages.length])} className="absolute right-4 top-1/2 z-10 inline-flex min-h-11 min-w-11 -translate-y-1/2 items-center justify-center rounded-[8px] border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Next event image"><ChevronRight className="h-5 w-5" aria-hidden="true" /></button></> : null}
             <div className="relative aspect-[4/3] max-h-[82vh] w-full"><Image src={galleryActiveImage} alt={resolveEventImageAlt(event, 'gallery', galleryActiveImage, activeGalleryIndex)} fill sizes="100vw" className="object-contain" priority /></div>
           </div>
         </div>

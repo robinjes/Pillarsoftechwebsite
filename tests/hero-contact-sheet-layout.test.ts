@@ -14,31 +14,27 @@ function cssBlock(styles: string, selector: string) {
   return styles.slice(start, end)
 }
 
-describe('hero contact-sheet caption band', () => {
-  it('reserves caption space and keeps decorations on their own side of the captions', () => {
+describe('hero visual composition', () => {
+  it('keeps one real event photograph with a quiet caption and no print decoration', () => {
     const heroVisual = readSource('components/site/HeroVisual.tsx')
     const styles = readSource('app/globals.css')
 
-    expect(heroVisual).toContain('hero-contact-sheet-frame')
-    expect(heroVisual).toContain('hero-contact-sheet-caption')
+    expect(heroVisual).toContain('hero-visual__frame')
+    expect(heroVisual).toContain('hero-visual__caption')
+    expect(heroVisual).toContain('/images/events/science-odyssey/drive-02.webp')
+    expect(heroVisual.match(/src="\/images\/events\//g)?.length).toBe(1)
+    expect(heroVisual).toContain('priority')
+    expect(heroVisual).not.toContain('contact-sheet')
+    expect(heroVisual).not.toContain('hero-registration-mark')
+    expect(heroVisual).not.toContain('hero-print-shutter')
 
-    const frame = cssBlock(styles, '.hero-contact-sheet-frame')
-    expect(frame).toContain('--hero-contact-sheet-caption-band:')
-    expect(frame).toContain('padding-bottom: var(--hero-contact-sheet-caption-band)')
+    const frame = cssBlock(styles, '.hero-visual__frame')
+    expect(frame).toContain('will-change: transform')
+    expect(frame).toContain('box-shadow:')
 
-    const caption = cssBlock(styles, '.hero-contact-sheet-caption')
-    expect(caption).toContain('position: absolute')
-    expect(caption).toContain('z-index: 2')
-
-    const shutter = cssBlock(styles, '.hero-print-shutter--bottom')
-    expect(shutter).toContain('bottom: calc(var(--hero-contact-sheet-caption-band) -')
-
-    const registration = cssBlock(styles, '.hero-registration-mark--bottom-left,\n.hero-registration-mark--bottom-right')
-    expect(registration).toContain('bottom: calc(var(--hero-contact-sheet-caption-band) -')
-
-    const leftCut = cssBlock(styles, '.hero-cut-mark--left')
-    const rightCut = cssBlock(styles, '.hero-cut-mark--right')
-    expect(leftCut).toMatch(/left:\s*-/)
-    expect(rightCut).toMatch(/right:\s*-/)
+    const caption = cssBlock(styles, '.hero-visual__caption')
+    expect(caption).toContain('min-height: 3.25rem')
+    expect(styles).not.toContain('radial-gradient')
+    expect(styles).not.toContain('hero-contact-sheet')
   })
 })

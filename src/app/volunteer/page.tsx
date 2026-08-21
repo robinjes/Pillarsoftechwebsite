@@ -46,7 +46,7 @@ function EventDetails({ event }: { event: Event }) {
     <details className="group border-t border-[var(--ink)]/20 pt-4">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 font-body text-sm font-bold text-[var(--cobalt)] outline-none transition hover:text-[var(--midnight)] focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
         <span>View event details</span>
-        <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-open:translate-x-1" />
+        <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform motion-reduce:transition-none group-open:translate-x-1" />
       </summary>
       <div className="space-y-3 pb-2 pt-4 font-body text-sm leading-6 text-[var(--ink)]/70">
         <p className="flex items-start gap-3"><Calendar aria-hidden="true" className="mt-1 h-4 w-4 flex-none text-[var(--cobalt)]" /><span><strong className="text-[var(--midnight)]">Date:</strong> {event.date || 'Details coming soon'}</span></p>
@@ -209,10 +209,10 @@ export default function VolunteerPortalPage() {
   const currentVolunteerEvents = events.filter(isCurrentVolunteerEvent)
   const totalHours = user?.totalHours ?? signups.filter((signup) => signup.status === 'attended').reduce((sum, signup) => sum + signup.hours, 0)
   const badge = totalHours >= 30
-    ? { name: 'Gold Champion', className: 'border-amber-700 bg-amber-100 text-amber-950' }
+    ? { name: 'Gold Champion', className: 'border-[var(--midnight)] bg-[var(--midnight)] text-[var(--cream)]' }
     : totalHours >= 10
-      ? { name: 'Silver Leader', className: 'border-slate-500 bg-slate-100 text-slate-900' }
-      : { name: 'Bronze Helper', className: 'border-orange-700 bg-orange-100 text-orange-950' }
+      ? { name: 'Silver Leader', className: 'border-[var(--cobalt)] bg-[var(--sky)] text-[var(--midnight)]' }
+      : { name: 'Bronze Helper', className: 'border-[var(--ink)] bg-[var(--paper)] text-[var(--ink)]' }
 
   const openAuthModal = (event: MouseEvent<HTMLButtonElement>) => {
     authOpenerRef.current = event.currentTarget
@@ -306,11 +306,11 @@ export default function VolunteerPortalPage() {
         </header>
 
         <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-12 lg:py-16">
-          {pageError && <div role="alert" className="mb-8 border-l-2 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950">{pageError}</div>}
+          {pageError && <div role="alert" className="mb-8 rounded-[6px] border-l-2 border-[var(--cobalt)] bg-[var(--sky)] px-4 py-3 font-body text-sm leading-6 text-[var(--midnight)]">{pageError}</div>}
 
           <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr]">
             <div className="space-y-8">
-              <section className="border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7">
+              <section className="rounded-[10px] border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7">
                 <div className="flex items-start justify-between gap-4 border-b-2 border-[var(--ink)] pb-5">
                   <div className="flex items-start gap-4">
                     <User aria-hidden="true" className="mt-1 h-6 w-6 text-[var(--cobalt)]" />
@@ -335,7 +335,7 @@ export default function VolunteerPortalPage() {
                   </div>
                 </div>
 
-                <div className="mt-6 border-2 border-[var(--ink)]/15 bg-[var(--cream)] p-4 text-center">
+                <div className="mt-6 rounded-[8px] border-2 border-[var(--ink)]/15 bg-[var(--cream)] p-4 text-center">
                   <LocalMemberQr value={user.memberCode} size={180} alt={`Volunteer membership QR code for ${user.fullName}`} className="mx-auto select-none" />
                   <p className="mt-4 border-t border-[var(--ink)]/20 pt-3 font-body text-sm font-bold tracking-[0.16em] text-[var(--midnight)]">{user.memberCode}</p>
                   <p className="mt-1 font-body text-xs text-[var(--ink)]/60">Show this code at event check-in.</p>
@@ -352,7 +352,7 @@ export default function VolunteerPortalPage() {
                 )}
               </section>
 
-              <section className="border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7">
+              <section className="rounded-[10px] border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7">
                 <div className="flex items-end justify-between gap-4 border-b-2 border-[var(--ink)] pb-5">
                   <div>
                     <p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">History</p>
@@ -457,7 +457,7 @@ export default function VolunteerPortalPage() {
         <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:px-12 lg:py-16">
           <div>
             <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Volunteer with the next workshop</p>
-            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">Bring your hands to the work.</h1>
+            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.1rem]">Volunteer with Pillars of Tech</h1>
             <p className="mt-6 max-w-lg font-body text-base leading-7 text-[var(--ink)]/70 sm:text-lg">Help with the practical details that make a STEM event welcoming: setup, greeting, activity support, and check-in.</p>
             <a
               href={teamJoinUrl}
@@ -469,7 +469,7 @@ export default function VolunteerPortalPage() {
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
             </a>
           </div>
-          <figure className="relative min-h-[18rem] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:min-h-[27rem]">
+          <figure className="relative min-h-[18rem] overflow-hidden rounded-[10px] border border-[var(--ink)]/25 bg-[var(--midnight)] sm:min-h-[27rem]">
             <Image
               src="/images/events/family-science-night/IMG_5898.jpg"
               alt="A student volunteer guides two younger students with a robot controller."
@@ -486,7 +486,7 @@ export default function VolunteerPortalPage() {
       </header>
 
       <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12 lg:py-24">
-        {pageError && <div role="alert" className="mb-8 border-l-2 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950">{pageError}</div>}
+        {pageError && <div role="alert" className="mb-8 rounded-[6px] border-l-2 border-[var(--cobalt)] bg-[var(--sky)] px-4 py-3 font-body text-sm leading-6 text-[var(--midnight)]">{pageError}</div>}
 
         <section className="border-b border-[var(--ink)]/25 pb-14">
           <div className="grid gap-8 lg:grid-cols-[0.7fr_1.3fr]">
@@ -577,7 +577,7 @@ export default function VolunteerPortalPage() {
           )}
         </section>
 
-        <section ref={formRef} id="volunteer-signup" className="scroll-mt-24 border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-6 text-center sm:p-10">
+        <section ref={formRef} id="volunteer-signup" className="scroll-mt-24 rounded-[10px] border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-6 text-center sm:p-10">
           <HeartHandshake aria-hidden="true" className="mx-auto h-8 w-8 text-[var(--cobalt)]" />
           <p className="mt-4 font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Join the roster</p>
           <h2 className="mt-3 font-display text-4xl leading-tight text-[var(--midnight)]">Create a volunteer account.</h2>
@@ -596,7 +596,7 @@ export default function VolunteerPortalPage() {
       {isAuthModalOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[var(--midnight)]/75 px-5 py-8" role="presentation">
           <div aria-hidden="true" className="absolute inset-0 cursor-default" onClick={() => setIsAuthModalOpen(false)} />
-          <div ref={authDialogRef} role="dialog" aria-modal="true" aria-labelledby="volunteer-auth-title" className="relative z-10 w-full max-w-md border-2 border-[var(--ink)] bg-[var(--cream)] p-6 text-[var(--ink)] shadow-[8px_8px_0_var(--sky)] sm:p-8">
+          <div ref={authDialogRef} role="dialog" aria-modal="true" aria-labelledby="volunteer-auth-title" className="relative z-10 w-full max-w-md rounded-[10px] border-2 border-[var(--ink)] bg-[var(--cream)] p-6 text-[var(--ink)] sm:p-8">
             <div className="flex items-start justify-between gap-4 border-b-2 border-[var(--ink)] pb-5">
               <div>
                 <p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Secure sign-in</p>
@@ -614,7 +614,7 @@ export default function VolunteerPortalPage() {
               {authLoading ? <Loader2 aria-hidden="true" className="h-5 w-5 animate-spin motion-reduce:animate-none" /> : <span aria-hidden="true" className="font-bold text-[var(--cobalt)]">G</span>}
               {authLoading ? 'Connecting to Google…' : 'Continue with Google'}
             </button>
-            {authError && <div role="alert" aria-live="polite" className="mt-5 border-l-2 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950">{authError}</div>}
+            {authError && <div role="alert" aria-live="polite" className="mt-5 rounded-[6px] border-l-2 border-[var(--cobalt)] bg-[var(--sky)] px-4 py-3 font-body text-sm leading-6 text-[var(--midnight)]">{authError}</div>}
             <p className="mt-5 font-body text-xs leading-5 text-[var(--ink)]/55">You can close this window at any time. Your focus will return to the account button.</p>
           </div>
         </div>

@@ -14,47 +14,30 @@ import WorkshopAssembly from '@/components/site/WorkshopAssembly'
 
 function HeroSection() {
   return (
-    <section className="hero-workshop bg-midnight text-warm" aria-labelledby="hero-heading">
+    <section className="hero-workshop bg-warm text-midnight" aria-labelledby="hero-heading">
       <HeroMotion>
-        <div className="site-shell mx-auto px-5 pb-16 pt-14 sm:px-8 sm:pb-24 sm:pt-20 lg:px-10 lg:pb-24 lg:pt-24">
-          <div className="editorial-grid items-center gap-y-12">
+        <div className="site-shell mx-auto px-5 pb-20 pt-14 sm:px-8 sm:pb-28 sm:pt-20 lg:px-10 lg:pb-32 lg:pt-24">
+          <div className="editorial-grid items-center gap-y-14 lg:gap-y-16">
             <HeroMotionText className="col-span-12 lg:col-span-6">
-              <h1 id="hero-heading" aria-label="STEM belongs in every student’s hands." className="display-heading max-w-[11ch] text-[3rem] text-warm sm:text-[3.65rem] lg:text-[4.35rem]">
+              <p className="eyebrow text-cobalt">Hands-on STEM learning</p>
+              <h1 id="hero-heading" aria-label="STEM belongs in every student’s hands." className="display-heading mt-5 max-w-[11ch] text-[3rem] text-midnight sm:text-[3.65rem] lg:text-[4.35rem]">
                 <span className="block">STEM belongs</span>
-                <span className="block text-sky">in every student’s hands.</span>
+                <span className="block text-cobalt">in every student’s hands.</span>
               </h1>
-              <p className="body-copy mt-7 max-w-xl text-lg text-warm/75 sm:text-xl">
+              <p className="body-copy mt-7 max-w-xl text-lg text-ink/70 sm:text-xl">
                 We make STEM practical, welcoming, and open to more young people through events, mentorship, and community.
               </p>
               <div className="mt-9 flex flex-wrap gap-3">
-                <Link href="/events" className="inline-flex min-h-12 items-center gap-2 border border-sky bg-sky px-5 text-sm font-bold text-midnight transition-colors hover:bg-warm">
-                  Find an Event <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+                <Link href="/events" className="inline-flex min-h-12 items-center gap-2 border border-midnight bg-midnight px-5 text-sm font-bold text-warm transition-colors hover:border-cobalt hover:bg-cobalt">
+                  Explore events <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
-                <Link href="/volunteer" className="inline-flex min-h-12 items-center gap-2 border border-warm/70 px-5 text-sm font-bold text-warm transition-colors hover:bg-warm hover:text-midnight">
+                <Link href="/volunteer" className="inline-flex min-h-12 items-center gap-2 border border-midnight/35 px-5 text-sm font-bold text-midnight transition-colors hover:border-midnight hover:bg-cream">
                   Volunteer <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </Link>
               </div>
-              <div className="hero-build-cycle mt-10 max-w-xl" aria-label="Our build cycle: question, build, test, share">
-                <p className="font-display text-[0.65rem] font-bold uppercase tracking-[0.2em] text-sky">The build cycle</p>
-                <ol className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4 sm:gap-x-3">
-                  <li className="hero-build-cycle__step">
-                    <span className="hero-build-cycle__verb">QUESTION</span>
-                    <span className="hero-build-cycle__detail">Choose a problem.</span>
-                  </li>
-                  <li className="hero-build-cycle__step">
-                    <span className="hero-build-cycle__verb">BUILD</span>
-                    <span className="hero-build-cycle__detail">Make a prototype.</span>
-                  </li>
-                  <li className="hero-build-cycle__step">
-                    <span className="hero-build-cycle__verb">TEST</span>
-                    <span className="hero-build-cycle__detail">Try it, notice, adjust.</span>
-                  </li>
-                  <li className="hero-build-cycle__step">
-                    <span className="hero-build-cycle__verb">SHARE</span>
-                    <span className="hero-build-cycle__detail">Teach it forward.</span>
-                  </li>
-                </ol>
-              </div>
+              <p className="mt-10 max-w-md border-l-2 border-sky pl-4 text-sm leading-6 text-ink/60">
+                For students, families, schools, and neighbors who want to make something real.
+              </p>
             </HeroMotionText>
 
             <div className="col-span-12 lg:col-span-6 lg:col-start-7">
@@ -69,13 +52,13 @@ function HeroSection() {
 
 function FinanceSection() {
   return (
-    <section className="bg-cobalt text-cream" aria-labelledby="finance-heading">
+    <section className="bg-sky text-midnight" aria-labelledby="finance-heading">
       <div className="site-shell mx-auto px-5 py-20 sm:px-8 lg:px-10 lg:py-24">
         <div className="editorial-grid items-center gap-y-8">
           <div className="col-span-12 lg:col-span-7">
-            <p className="mb-4 font-display text-sm font-bold uppercase tracking-[0.2em] text-cream">Open by design</p>
+            <p className="eyebrow mb-4 text-cobalt">Open by design</p>
             <h2 id="finance-heading" className="display-heading max-w-3xl text-4xl sm:text-5xl">See the public record.</h2>
-            <p className="body-copy mt-6 text-lg leading-8 text-cream">
+            <p className="body-copy mt-6 text-lg leading-8 text-midnight/75">
               Pillars of Tech is fiscally sponsored by Hack Club. Our public transaction ledger is the clearest place to follow the financial activity behind this work.
             </p>
           </div>
@@ -84,11 +67,11 @@ function FinanceSection() {
               href="https://hcb.hackclub.com/pillars-of-tech/transactions"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex min-h-12 items-center gap-2 border border-cream px-5 text-sm font-bold text-cream transition-colors hover:bg-sky hover:text-midnight"
+              className="inline-flex min-h-12 items-center gap-2 border border-midnight bg-midnight px-5 text-sm font-bold text-warm transition-colors hover:bg-cobalt"
             >
               Open HCB transactions <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
             </a>
-            <p className="mt-4 text-sm leading-6 text-cream">External source · Hack Club bank</p>
+            <p className="mt-4 text-sm leading-6 text-midnight/60">External source · Hack Club bank</p>
           </div>
         </div>
       </div>

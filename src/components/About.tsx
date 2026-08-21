@@ -27,19 +27,19 @@ const workshopPhotos = [
     src: '/images/events/altamont-creek-open-house/cover.png',
     alt: 'A student tries a hands-on activity while volunteers staff colorful classroom tables at Altamont Creek Open House.',
     caption: 'Altamont Creek Open House · test the idea',
-    className: 'col-span-7 aspect-[4/5] sm:col-span-6 lg:col-span-7',
+    className: 'col-span-12 aspect-[16/10] sm:col-span-8 sm:row-span-2 sm:aspect-[4/5] lg:col-span-8',
   },
   {
     src: '/images/events/wildcat-tank-altamont/drive-01.webp',
     alt: 'A student presents a project to seated judges at Wildcat Tank.',
     caption: 'Wildcat Tank · present the idea',
-    className: 'col-span-5 mt-10 aspect-[4/5] sm:col-span-4 sm:mt-16 lg:col-span-5 lg:mt-20',
+    className: 'col-span-6 aspect-[4/3] sm:col-span-4 sm:mt-10 sm:aspect-[4/5] lg:col-span-4 lg:mt-14',
   },
   {
     src: '/images/events/pedrozzi-connect-egg-drop/drive-01.webp',
     alt: 'Students and volunteers gather outdoors for the Pedrozzi CONNECT egg-drop activity.',
     caption: 'Pedrozzi CONNECT · learn and build together',
-    className: 'col-span-8 col-start-5 -mt-8 aspect-[5/3] sm:col-span-7 sm:col-start-6 sm:-mt-14 lg:col-span-8 lg:col-start-5',
+    className: 'col-span-6 aspect-[4/3] sm:col-span-4 sm:mt-3 sm:aspect-[4/5] lg:col-span-4 lg:mt-6',
   },
 ] as const
 
@@ -159,11 +159,11 @@ export default function About() {
         </div>
       </section>
 
-      <section className="border-b border-[var(--ink)]/20 bg-[var(--cream)]">
+      <section id="transparency" aria-labelledby="transparency-heading" className="border-b border-[var(--ink)]/20 bg-[var(--cream)]">
         <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1fr_1fr] lg:gap-16 lg:px-12 lg:py-20">
           <div>
-            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Financial home</p>
-            <h2 className="mt-4 max-w-md font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">Clear enough to follow.</h2>
+            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Hack Club fiscal sponsorship</p>
+            <h2 id="transparency-heading" className="mt-4 max-w-md font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">Clear enough to follow.</h2>
           </div>
           <div className="border-t border-[var(--ink)] pt-5 font-body text-base leading-7 text-[var(--ink)]/75">
             <p>

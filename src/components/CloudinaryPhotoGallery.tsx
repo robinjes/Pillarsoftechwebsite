@@ -117,9 +117,12 @@ export default function CloudinaryPhotoGallery({ title, description, folder, pho
             <div><p className="text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">{photos.length} photographs</p><h2 id="photos-heading" className="mt-2 font-display text-4xl text-[var(--midnight)]">Selected frames</h2></div>
             <p className="text-sm text-[var(--ink)]/65">Select a frame to enlarge it. Use arrow keys in the viewer.</p>
           </div>
-          <div className="mt-7 grid grid-cols-1 gap-px border border-[var(--ink)] bg-[var(--ink)] sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-7 grid grid-cols-12 gap-px border border-[var(--ink)] bg-[var(--ink)]">
             {photos.map((photo, index) => {
               const imageUrl = buildImageUrl(photo.publicId)
+              const layoutClass = index === 0
+                ? 'col-span-12 lg:col-span-7'
+                : 'col-span-12 sm:col-span-6 lg:col-span-5'
               return imageUrl ? (
                 <button
                   key={photo.publicId}
@@ -128,14 +131,14 @@ export default function CloudinaryPhotoGallery({ title, description, folder, pho
                     openerRef.current = event.currentTarget
                     setActiveIndex(index)
                   }}
-                  className="group relative min-h-64 bg-[var(--paper)] text-left focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--cobalt)]"
+                  className={`group relative min-h-64 bg-[var(--paper)] text-left focus-visible:z-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[var(--cobalt)] ${layoutClass}`}
                   aria-label={'Open photo: ' + photo.alt}
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden"><Image src={imageUrl} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw" className="object-cover transition-transform duration-300 group-hover:scale-[1.03]" /></div>
+                  <div className={`relative overflow-hidden ${index === 0 ? 'aspect-[16/10]' : 'aspect-[4/3]'}`}><Image src={imageUrl} alt="" fill sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 58vw" className="object-cover transition-transform duration-300 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" /></div>
                   <span className="block border-t border-[var(--ink)] px-4 py-3 text-sm font-semibold leading-6 text-[var(--midnight)]">{photo.alt}</span>
                 </button>
               ) : (
-                <div key={photo.publicId} className="flex min-h-64 items-center bg-[var(--paper)] p-5 text-sm leading-7 text-[var(--ink)]/75">{photo.alt}</div>
+                <div key={photo.publicId} className={`flex min-h-64 items-center bg-[var(--paper)] p-5 text-sm leading-7 text-[var(--ink)]/75 ${layoutClass}`}>{photo.alt}</div>
               )
             })}
           </div>

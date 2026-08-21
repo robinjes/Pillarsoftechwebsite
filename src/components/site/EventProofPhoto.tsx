@@ -25,13 +25,13 @@ export default function EventProofPhoto({ src, alt, caption, index, className }:
   return (
     <motion.figure
       ref={frameRef}
-      className={`field-note-photo group relative overflow-visible border border-ink/25 bg-sky ${className}`}
+      className={`event-proof-photo group ${className}`}
       data-field-photo={index + 1}
       style={{ y: reducedMotion ? 0 : y, rotate: reducedMotion ? 0 : rotate }}
       whileHover={reducedMotion ? undefined : { y: -4 }}
       transition={{ duration: 0.24, ease: 'easeOut' }}
     >
-      <div className="relative h-full w-full overflow-hidden">
+      <div className="event-proof-photo__image relative overflow-hidden border border-ink/20">
         <Image
           src={src}
           alt={alt}
@@ -40,10 +40,7 @@ export default function EventProofPhoto({ src, alt, caption, index, className }:
           className="object-cover motion-safe:transition motion-safe:duration-500 motion-safe:group-hover:scale-[1.025] motion-reduce:transform-none motion-reduce:transition-none motion-reduce:group-hover:scale-100"
         />
       </div>
-      <figcaption className="field-note-tape absolute bottom-[-0.7rem] left-3 max-w-[90%] px-3 py-2 text-xs font-semibold text-midnight">
-        <span className="mr-2 font-display text-[0.58rem] font-bold uppercase tracking-[0.14em] text-cobalt">Field note {String(index + 1).padStart(2, '0')}</span>
-        {caption}
-      </figcaption>
+      <figcaption>{caption}</figcaption>
     </motion.figure>
   )
 }

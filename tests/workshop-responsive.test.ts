@@ -134,7 +134,7 @@ describe('responsive workshop assembly boundary', () => {
     expect(desktopImport.count).toBe(1)
   })
 
-  it('keeps the static fallback content and evidence markers stable', () => {
+  it('keeps the mobile static fallback and stage sequence stable', () => {
     const sourceRoot = path.resolve(process.cwd(), 'src')
     const workshopSource = readFileSync(path.join(sourceRoot, 'components/site/WorkshopAssembly.tsx'), 'utf8')
     const loaderSource = readFileSync(path.join(sourceRoot, 'components/site/WorkshopAssemblyDesktopLoader.tsx'), 'utf8')
@@ -145,9 +145,11 @@ describe('responsive workshop assembly boundary', () => {
     expect(workshopSource).toContain('data-workshop-static="narrow"')
     expect(workshopSource).toContain('/images/events/family-science-night-altamont/drive-02.webp')
     expect(workshopSource).toContain('An older student demonstrates a VEX robot to three younger students at Family Science Night.')
-    expect(workshopSource).toContain('data-contact-sheet')
-    expect(workshopSource).toContain('field-note-photo')
-    expect(workshopSource).toContain('workshop-registration-layer')
+    expect(workshopSource).toContain('workshop-stage-list')
+    expect(workshopSource).toContain('Smaller screens show the same sequence as a quiet, static reference.')
+    expect(workshopSource).not.toContain('data-contact-sheet')
+    expect(workshopSource).not.toContain('field-note-photo')
+    expect(workshopSource).not.toContain('workshop-registration-layer')
     for (const stage of ['FRAME', 'MOTION', 'SENSE', 'LEAD']) expect(workshopDataSource).toContain(stage)
     expect(loaderSource).toContain("'(min-width: 1024px)'")
     expect(loaderSource).toContain('useState(false)')

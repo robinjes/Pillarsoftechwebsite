@@ -89,11 +89,11 @@ export default function WorkshopAssemblyDesktopLoader() {
     >
       <div className="site-shell mx-auto flex min-h-[calc(100svh-4.75rem)] items-center px-5 py-20 sm:px-8 lg:px-10">
         <div className="max-w-xl">
-          <p className="font-display text-sm font-bold uppercase tracking-[0.2em] text-sky">Workshop assembly</p>
+          <p className="eyebrow text-sky">Interactive rover study</p>
           <h2 id="workshop-loading-heading" className="display-heading mt-4 text-4xl sm:text-5xl">
             Every part has a purpose.
           </h2>
-          <p className="mt-6 max-w-md text-base leading-7 text-warm/70">Loading the interactive rover reference model.</p>
+          <p className="mt-6 max-w-md text-base leading-7 text-warm/70">Preparing the scroll-controlled rover study.</p>
         </div>
       </div>
     </section>

@@ -1,8 +1,9 @@
-import { Familjen_Grotesk, IBM_Plex_Sans } from 'next/font/google'
+import { IBM_Plex_Sans, Instrument_Sans } from 'next/font/google'
 
-export const displayFont = Familjen_Grotesk({
+export const displayFont = Instrument_Sans({
   subsets: ['latin'],
   display: 'swap',
+  weight: ['400', '500', '600', '700'],
   variable: '--font-display',
 })
 
