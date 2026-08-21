@@ -106,9 +106,19 @@ export default function WildcatTankPage() {
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/events/wildcat-tank-altamont" className="inline-flex min-h-11 items-center gap-2 bg-[var(--sky)] px-5 py-3 text-sm font-bold text-[var(--midnight)] hover:bg-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)] rounded-[10px]">View event page <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
                 <a href="/Wildcat%20Tank%20Official%20Manual.pdf" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 border border-[var(--cream)] px-5 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)] rounded-[10px]"><FileText className="h-4 w-4" aria-hidden="true" /> Open manual</a>
+                <a href={fullEventVideo} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 border border-[var(--cream)]/70 px-5 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)] rounded-[10px]">Watch full recording <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a>
               </div>
             </div>
             <aside className="border-l-2 border-[var(--sky)] pl-5">
+              <figure className="relative mb-6 aspect-[16/10] overflow-hidden border border-[var(--cream)]/30 bg-[var(--ink)]">
+                <Image
+                  src="/images/events/wildcat-tank-altamont/drive-02.webp"
+                  alt="Wildcat Tank judges listen together at the presentation table."
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 28vw"
+                  className="object-cover"
+                />
+              </figure>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--sky)]">Thank you</p>
               <p className="mt-4 text-lg leading-8 text-[var(--cream)]/85">Thank you to every student, family, and supporter who made Wildcat Tank special. Every presenter brought creativity, confidence, and effort to the stage.</p>
             </aside>

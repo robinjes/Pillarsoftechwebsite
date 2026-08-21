@@ -157,6 +157,12 @@ export default function Contact() {
                 {CONTACT_EMAIL}
                 <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
               </a>
+              <a
+                href="#contact-form"
+                className="mt-4 inline-flex min-h-11 items-center border-b border-[var(--ink)]/50 pb-1 font-body text-sm font-bold text-[var(--midnight)] transition hover:border-[var(--cobalt)] hover:text-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
+              >
+                Jump to the contact form
+              </a>
             </div>
           </div>
           <figure className="relative mt-8 aspect-[16/6] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:mt-10">

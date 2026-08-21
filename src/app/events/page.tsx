@@ -77,10 +77,10 @@ function EventRow({ event }: { event: PublicEvent }) {
   const volunteerOpen = isCurrentEvent(event) && event.volunteerRegistrationState === 'open'
 
   return (
-    <article className="grid gap-7 border-t border-[var(--ink)]/35 py-8 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,0.42fr)_auto] lg:gap-10">
+    <article className="grid gap-7 border-t border-[var(--ink)]/35 py-8 first:border-t-0 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,0.42fr)_auto] lg:gap-10">
       <div className="grid gap-6 sm:grid-cols-[12rem_minmax(0,1fr)]">
         <Link href={eventPath} className="group block">
-          <div className="relative aspect-[4/3] overflow-hidden border border-[var(--ink)] bg-[var(--paper)]">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-[8px] border border-[var(--ink)] bg-[var(--paper)]">
             {image ? (
               <Image
                 src={image}
@@ -99,7 +99,7 @@ function EventRow({ event }: { event: PublicEvent }) {
 
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
-            <span className="border border-[var(--cobalt)] bg-[var(--sky)] px-2 py-1 text-[var(--midnight)]">
+            <span className="rounded-[4px] border border-[var(--cobalt)] bg-[var(--sky)] px-2 py-1 text-[var(--midnight)]">
               {statusLabel(event)}
             </span>
             <span className="text-[var(--cobalt)]">{event.programCategory}</span>
@@ -211,7 +211,7 @@ function FeaturedProgram({ upcoming, archive }: { upcoming: PublicEvent | null; 
           </div>
         </div>
 
-        <figure className="relative min-h-[18rem] overflow-hidden border border-[var(--ink)] bg-[var(--sky)] sm:min-h-[24rem] lg:min-h-[30rem]">
+        <figure className="relative min-h-[18rem] overflow-hidden rounded-[10px] border border-[var(--ink)] bg-[var(--sky)] sm:min-h-[24rem] lg:min-h-[30rem]">
           <Image
             src={image}
             alt={imageAlt}
@@ -299,16 +299,16 @@ export default function EventsPage() {
       <header className="mx-auto max-w-7xl border-b border-[var(--ink)]/25 bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10 sm:py-14">
         <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-end">
           <div>
-            <p className="text-sm font-semibold text-[var(--sky)]">Pillars of Tech · field notes</p>
-            <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.96] tracking-[-0.04em] sm:text-[4.35rem]">
-              Programs that make curiosity visible.
+            <p className="text-sm font-semibold text-[var(--sky)]">Pillars of Tech · public archive</p>
+            <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.96] tracking-[-0.04em] sm:text-[4.1rem]">
+              Events &amp; field notes
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--cream)]/80 sm:text-lg sm:leading-8">
-              Browse hands-on STEM programs, event stories, and the next places to learn together.
+              Browse confirmed dates, hands-on STEM programs, and completed stories from the work we have shared.
             </p>
           </div>
           <div className="border-l border-[var(--sky)]/60 pl-5 text-sm leading-7 text-[var(--cream)]/80">
-            <p className="font-semibold text-[var(--sky)]">How to use this archive</p>
+            <p className="font-semibold text-[var(--sky)]">Current and completed</p>
             <p className="mt-3">Choose a current program to register, or open a completed story for the work that came before it.</p>
           </div>
         </div>
@@ -324,7 +324,7 @@ export default function EventsPage() {
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search the archive"
-              className="min-h-11 w-full border border-[var(--ink)] bg-[var(--paper)] px-10 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--ink)]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
+              className="min-h-11 w-full rounded-[6px] border border-[var(--ink)] bg-[var(--paper)] px-10 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--ink)]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
             />
           </label>
           <div className="flex flex-wrap gap-2" aria-label="Filter events">
@@ -336,8 +336,8 @@ export default function EventsPage() {
                 onClick={() => setFilter(option)}
                 className={`min-h-11 border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] ${
                   filter === option
-                    ? 'border-[var(--midnight)] bg-[var(--midnight)] text-[var(--cream)]'
-                    : 'border-[var(--ink)] bg-transparent text-[var(--ink)] hover:bg-[var(--sky)]'
+                    ? 'rounded-[6px] border-[var(--midnight)] bg-[var(--midnight)] text-[var(--cream)]'
+                    : 'rounded-[6px] border-[var(--ink)] bg-transparent text-[var(--ink)] hover:bg-[var(--sky)]'
                 }`}
               >
                 {option === 'all' ? 'All stories' : option === 'cancelled' ? 'Cancelled' : option}

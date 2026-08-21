@@ -120,9 +120,9 @@ export default function RegisterPage() {
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
         </Link>
 
-        <header className="mt-7 border-y-2 border-[var(--ink)] bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10">
+        <header className="mt-7 rounded-[10px] border-y-2 border-[var(--ink)] bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10">
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-[var(--sky)]">{pageKicker}</p>
-          <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.95] sm:text-[4.35rem]">Save your place in the room.</h1>
+          <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.95] sm:text-[4.1rem]">Register for this event</h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--cream)]/80">
             Share the details we need for this event. Your answers are sent only to the registration record for the selected program.
           </p>
@@ -271,7 +271,7 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--cobalt)] px-6 py-3 text-sm font-bold text-[var(--cream)] transition-colors hover:bg-[var(--midnight)] disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-[8px] bg-[var(--cobalt)] px-6 py-3 text-sm font-bold text-[var(--cream)] transition-colors hover:bg-[var(--midnight)] disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
               >
                 {submitting ? <><LoaderCircle className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> Sending…</> : <><Send className="h-4 w-4" aria-hidden="true" /> Send registration</>}
               </button>
