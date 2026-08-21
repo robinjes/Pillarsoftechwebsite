@@ -7,8 +7,11 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   BarChart3,
   Calendar,
+  ChartNoAxesCombined,
+  ClipboardList,
   Clock,
   FileText,
+  Inbox,
   LogOut,
   Menu,
   Settings,
@@ -27,6 +30,9 @@ type NavItem = {
 const navItems: NavItem[] = [
   { name: 'Dashboard', href: '/admin', icon: BarChart3 },
   { name: 'Events', href: '/admin/events', icon: Calendar },
+  { name: 'Registrations', href: '/admin/registrations', icon: ClipboardList },
+  { name: 'Impact', href: '/admin/impact', icon: ChartNoAxesCombined },
+  { name: 'Inbox', href: '/admin/contact', icon: Inbox },
   { name: 'Volunteers', href: '/admin/volunteers', icon: Users },
   { name: 'Hours', href: '/admin/hours', icon: Clock },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
@@ -76,7 +82,7 @@ type NavigationLinksProps = {
 
 function NavigationLinks({ pathname, onNavigate, mobile = false }: NavigationLinksProps) {
   return (
-    <nav className={mobile ? 'flex flex-1 flex-col gap-1 overflow-y-auto px-5 py-6' : 'hidden items-center gap-1 lg:flex'} aria-label="Admin navigation">
+    <nav className={mobile ? 'flex flex-1 flex-col gap-1 overflow-y-auto px-5 py-6' : 'hidden items-center gap-1 xl:flex'} aria-label="Admin navigation">
       {navItems.map((item) => {
         const isActive = isAdminNavItemActive(pathname, item.href)
         const Icon = item.icon
@@ -123,7 +129,7 @@ type MobileDrawerProps = SignOutProps & {
 
 function MobileDrawer({ pathname, dialogRef, closeButtonRef, onClose, onSignOut, signingOut, signoutError }: MobileDrawerProps) {
   return (
-    <div className="fixed inset-0 z-[70] lg:hidden" role="presentation">
+    <div className="fixed inset-0 z-[70] xl:hidden" role="presentation">
       <button
         type="button"
         aria-label="Close admin navigation"
@@ -244,7 +250,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               aria-label="Open admin navigation"
               aria-expanded={sidebarOpen}
               aria-controls="admin-mobile-drawer"
-              className="inline-flex min-h-11 min-w-11 items-center justify-center border border-white/40 text-warm transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky lg:hidden"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center border border-white/40 text-warm transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky xl:hidden"
             >
               <Menu className="h-5 w-5" aria-hidden="true" />
             </button>
@@ -252,7 +258,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
           </div>
 
           <NavigationLinks pathname={pathname} />
-          <div className="hidden lg:block">
+          <div className="hidden xl:block">
             <SignOutControl onSignOut={handleSignOut} signingOut={signingOut} signoutError={signoutError} />
           </div>
         </div>

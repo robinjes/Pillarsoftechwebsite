@@ -9,6 +9,7 @@ import BrandMark from '@/components/site/BrandMark'
 
 const primaryLinks = [
   { label: 'About', href: '/about' },
+  { label: 'Team', href: '/team' },
   { label: 'Volunteer', href: '/volunteer' },
 ]
 

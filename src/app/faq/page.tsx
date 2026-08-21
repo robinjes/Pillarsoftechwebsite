@@ -8,12 +8,16 @@ const faqSections = [
     intro: 'Start with the practical details for joining a session.',
     questions: [
       {
+        question: 'How much do your workshops cost?',
+        answer: 'Our public workshops are offered at no cost. Check the individual event listing for registration details, or contact us if you have a question about a specific session.',
+      },
+      {
         question: 'What kinds of activities do you run?',
         answer: 'Our event listings cover hands-on STEM activities such as robotics, coding, and engineering challenges. Open an event page for the current activity, location, and registration details.',
       },
       {
         question: 'Do I need to bring my own device?',
-        answer: 'Check the individual event listing for materials and equipment notes. If a session benefits from a personal laptop or tablet, the listing should say so; you can also ask through the contact page.',
+        answer: 'We typically provide the materials and equipment needed for a workshop. Some events may ask participants to bring a laptop, tablet, or another item, so check the event-specific listing before you arrive or ask through the contact page.',
       },
     ],
   },
@@ -41,7 +45,7 @@ const faqSections = [
     questions: [
       {
         question: 'Do I need prior technical experience?',
-        answer: 'Not every volunteer role requires prior technical experience. The volunteer page explains the available path, and the team can help clarify what a specific event needs.',
+        answer: 'Not every volunteer role requires prior technical experience. We provide volunteer orientation and event-specific guidance, and the volunteer page explains the available path.',
       },
       {
         question: 'How do I start a collaboration or workshop request?',
@@ -79,13 +83,22 @@ export default function FAQPage() {
             <p className="font-body text-base leading-7 text-[var(--ink)]/70 sm:text-lg">
               Browse by audience, open the question that matches your situation, and keep the contact route close if you need a human answer.
             </p>
-            <Link
-              href="/contact"
-              className="mt-6 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
-            >
-              Ask a question
-              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
+            <div className="mt-6 flex flex-wrap gap-5">
+              <Link
+                href="/contact"
+                className="inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
+              >
+                Ask a question
+                <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/wishlist"
+                className="inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
+              >
+                View wishlist
+                <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </div>
       </header>

@@ -1,22 +1,135 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowUpRight, Users } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, Users } from 'lucide-react'
 
 type TeamMember = {
   name: string
   position: string
   image: string
+  description: string
+  details: {
+    grade: string
+    from: string
+    school: string
+    hobby: string
+    favoriteApp: string
+    major: string
+  }
 }
 
 const teamMembers: TeamMember[] = [
-  { name: 'Robin Jeshua Deepak', position: 'Founder & President', image: '/robin.jpg' },
-  { name: 'Yashas Jeedi', position: 'Vice President', image: '/yashas.jpg' },
-  { name: 'Rahul Eapen', position: 'Vice President', image: '/rahul.jpg' },
-  { name: 'Jaden Jirasevijinda', position: 'Vice President', image: '/jaden.jpg' },
-  { name: 'Rohan Munagapati', position: 'Vice President', image: '/rohan.jpg' },
-  { name: 'Michael Nolan McClung', position: 'Graphics Design Lead', image: '/nolan.jpg' },
-  { name: 'Nikhil Madineni', position: 'Member', image: '/nikhil.jpg' },
-  { name: 'Arya Rajavelu', position: 'Member', image: '/arya.jpg' },
+  {
+    name: 'Robin Jeshua Deepak',
+    position: 'Founder & President',
+    image: '/robin.jpg',
+    description: 'Leading our technical initiatives, building partnerships, and guiding the organization’s overall direction.',
+    details: {
+      grade: '11',
+      from: 'Livermore, CA',
+      school: 'Livermore High School',
+      hobby: 'Playing Basketball',
+      favoriteApp: 'Clash Royale',
+      major: 'Applied Math',
+    },
+  },
+  {
+    name: 'Yashas Jeedi',
+    position: 'Vice President',
+    image: '/yashas.jpg',
+    description: 'Helping lead the organization and supporting the next wave of programs and community initiatives.',
+    details: {
+      grade: '11',
+      from: 'Livermore, CA',
+      school: 'Livermore High School',
+      hobby: 'Playing Basketball and video games',
+      favoriteApp: 'Youtube/Instagram',
+      major: 'Applied Math',
+    },
+  },
+  {
+    name: 'Rahul Eapen',
+    position: 'Vice President',
+    image: '/rahul.jpg',
+    description: 'Managing partnerships and strengthening how we connect with the wider community.',
+    details: {
+      grade: '11',
+      from: 'Livermore, CA',
+      school: 'Livermore High School',
+      hobby: 'Playing video games and going on hikes',
+      favoriteApp: 'Crossy Road',
+      major: 'Biology',
+    },
+  },
+  {
+    name: 'Jaden Jirasevijinda',
+    position: 'Vice President',
+    image: '/jaden.jpg',
+    description: 'Supporting long-term planning and helping keep the organization aligned around future goals.',
+    details: {
+      grade: '11',
+      from: 'Livermore, CA',
+      school: 'Livermore High School',
+      hobby: 'Playing badminton',
+      favoriteApp: 'Instagram',
+      major: 'Mechanical Engineering',
+    },
+  },
+  {
+    name: 'Rohan Munagapati',
+    position: 'Vice President',
+    image: '/rohan.jpg',
+    description: 'Bringing new partnerships to Pillars of Tech and innovating ideas to create stronger relationships and efficient nonprofit work.',
+    details: {
+      grade: '11',
+      from: 'Livermore, CA',
+      school: 'Granada High School',
+      hobby: 'Playing basketball',
+      favoriteApp: 'Instagram',
+      major: 'Biotechnology',
+    },
+  },
+  {
+    name: 'Michael Nolan McClung',
+    position: 'Graphics Design Lead',
+    image: '/nolan.jpg',
+    description: 'Leading graphic design for club materials and helping our visuals stay polished, clear, and recognizable.',
+    details: {
+      grade: '11',
+      from: 'Livermore, CA',
+      school: 'Livermore High School',
+      hobby: 'Playing lacrosse',
+      favoriteApp: 'Hudl',
+      major: 'Mechanical Engineering',
+    },
+  },
+  {
+    name: 'Nikhil Madineni',
+    position: 'Member',
+    image: '/nikhil.jpg',
+    description: 'Supporting chapter initiatives and contributing across events and programs wherever the team needs help.',
+    details: {
+      grade: '11',
+      from: 'Livermore, CA',
+      school: 'Livermore High School',
+      hobby: 'Watching Sports and Playing Basketball',
+      favoriteApp: 'Instagram',
+      major: 'Data Science',
+    },
+  },
+  {
+    name: 'Arya Rajavelu',
+    position: 'Member',
+    image: '/arya.jpg',
+    description: 'Helping support team projects and contributing to events and chapter efforts wherever needed.',
+    details: {
+      grade: '11',
+      from: 'Livermore, CA',
+      school: 'Livermore High School',
+      hobby: 'Playing volleyball and biking',
+      favoriteApp: 'Instagram',
+      major: 'Aerospace Engineer',
+    },
+  },
 ]
 
 const portraitLayouts = [
@@ -110,6 +223,41 @@ export default function Team() {
                     <span className="mt-1 block font-body text-xs font-semibold text-[var(--sky)]">{member.position}</span>
                   </figcaption>
                 </figure>
+                <details className="group/profile mt-3 border-t border-[var(--ink)]/20">
+                  <summary aria-label={`View profile for ${member.name}`} className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 py-3 font-body text-xs font-bold text-[var(--cobalt)] outline-none transition-colors hover:text-[var(--midnight)] focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+                    <span>View profile</span>
+                    <ChevronDown aria-hidden="true" className="h-4 w-4 transition-transform group-open/profile:rotate-180" />
+                  </summary>
+                  <div className="space-y-4 border-t border-[var(--ink)]/15 pb-2 pt-4 font-body text-sm leading-6 text-[var(--ink)]/70">
+                    <p>{member.description}</p>
+                    <dl className="grid grid-cols-1 gap-x-3 gap-y-3 border-t border-[var(--ink)]/15 pt-3 sm:grid-cols-2">
+                      <div>
+                        <dt className="text-[0.68rem] font-bold text-[var(--cobalt)]">Grade</dt>
+                        <dd>{member.details.grade}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[0.68rem] font-bold text-[var(--cobalt)]">From</dt>
+                        <dd>{member.details.from}</dd>
+                      </div>
+                      <div className="col-span-1 sm:col-span-2">
+                        <dt className="text-[0.68rem] font-bold text-[var(--cobalt)]">School</dt>
+                        <dd>{member.details.school}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[0.68rem] font-bold text-[var(--cobalt)]">Hobby</dt>
+                        <dd>{member.details.hobby}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-[0.68rem] font-bold text-[var(--cobalt)]">Favorite app</dt>
+                        <dd>{member.details.favoriteApp}</dd>
+                      </div>
+                      <div className="col-span-1 sm:col-span-2">
+                        <dt className="text-[0.68rem] font-bold text-[var(--cobalt)]">Planned major</dt>
+                        <dd>{member.details.major}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                </details>
               </li>
             ))}
           </ul>
