@@ -111,62 +111,62 @@ export default function RegisterPage() {
   const pageKicker = useMemo(() => (success ? 'Registration received' : 'Participant registration'), [success])
 
   return (
-    <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-24 text-[var(--ink)] sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
+    <main className="min-h-screen bg-[var(--bone)] pb-20 pt-12 text-[var(--carbon)] selection:bg-[var(--cream)] sm:pt-16">
+      <div className="signal-shell">
         <Link
           href="/events"
-          className="inline-flex min-h-11 items-center gap-2 py-2 text-sm font-bold text-[var(--cobalt)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
+          className="signal-text-link inline-flex min-h-11 items-center gap-2 py-2"
         >
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
         </Link>
 
-        <header className="mt-7 border-y-2 border-[var(--ink)] bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10">
-          <p className="text-xs font-bold uppercase tracking-[0.28em] text-[var(--sky)]">{pageKicker}</p>
-          <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.95] sm:text-[4.35rem]">Save your place in the room.</h1>
-          <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--cream)]/80">
+        <header className="mt-7 border-y border-[var(--ink)] bg-[var(--carbon)] px-5 py-10 text-[var(--off-white)] sm:px-10 sm:py-14">
+          <p className="signal-mono signal-eyebrow">{pageKicker}</p>
+          <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.94] tracking-[-0.05em] sm:text-[4.35rem]">Save your place in the room.</h1>
+          <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--off-white)]/72">
             Share the details we need for this event. Your answers are sent only to the registration record for the selected program.
           </p>
         </header>
 
         {loading ? (
-          <div className="border-b-2 border-[var(--ink)] py-16" role="status">
-            <LoaderCircle className="h-8 w-8 animate-spin text-[var(--cobalt)] motion-reduce:animate-none" aria-hidden="true" />
-            <p className="mt-4 font-display text-2xl text-[var(--midnight)]">Loading the registration form…</p>
+          <div className="border-b border-[var(--carbon)] py-16" role="status">
+            <LoaderCircle className="h-8 w-8 animate-spin text-[var(--ultramarine)] motion-reduce:animate-none" aria-hidden="true" />
+            <p className="mt-4 font-display text-2xl text-[var(--carbon)]">Loading the registration form…</p>
           </div>
         ) : error ? (
-          <div className="border-b-2 border-[var(--ink)] py-16" role="alert">
-            <p className="font-display text-3xl text-[var(--midnight)]">Registration is not available.</p>
-            <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--ink)]/80">{error}</p>
+          <div className="border-b border-[var(--carbon)] py-16" role="alert">
+            <p className="font-display text-3xl text-[var(--carbon)]">Registration is not available.</p>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--carbon)]/72">{error}</p>
             <Link
               href="/events"
-              className="mt-7 inline-flex min-h-11 items-center gap-2 bg-[var(--cobalt)] px-5 py-2 text-sm font-bold text-[var(--cream)] hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]"
+              className="signal-button signal-button--orange mt-7"
             >
               Browse other events <ArrowLeft className="h-4 w-4 rotate-180" aria-hidden="true" />
             </Link>
           </div>
         ) : success ? (
-          <section className="border-b-2 border-[var(--ink)] py-16" aria-live="polite">
-            <div className="flex h-12 w-12 items-center justify-center bg-[var(--cobalt)] text-[var(--cream)] rounded-[10px]">
+          <section className="border-b border-[var(--carbon)] py-16" aria-live="polite">
+            <div className="flex h-12 w-12 items-center justify-center bg-[var(--signal-orange)] text-[var(--carbon)]">
               <Check className="h-7 w-7" aria-hidden="true" />
             </div>
-            <h2 className="mt-6 font-display text-4xl text-[var(--midnight)]">You&apos;re on the list.</h2>
-            <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--ink)]/80">
+            <h2 className="mt-6 font-display text-4xl text-[var(--carbon)]">You&apos;re on the list.</h2>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--carbon)]/72">
               Your registration was received. Keep the event details handy, and return to the events archive for more programs.
             </p>
             <Link
               href="/events"
-              className="mt-7 inline-flex min-h-11 items-center gap-2 border-2 border-[var(--midnight)] px-5 py-2 text-sm font-bold text-[var(--midnight)] hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]"
+              className="signal-button signal-button--line mt-7"
             >
               Return to events <ArrowLeft className="h-4 w-4 rotate-180" aria-hidden="true" />
             </Link>
           </section>
         ) : !formReady ? (
-          <section className="border-b-2 border-[var(--ink)] py-16">
-            <h2 className="font-display text-3xl text-[var(--midnight)]">The form has no questions yet.</h2>
-            <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--ink)]/80">Check the event page for updates or contact the Pillars of Tech team.</p>
+          <section className="border-b border-[var(--carbon)] py-16">
+            <h2 className="font-display text-3xl text-[var(--carbon)]">The form has no questions yet.</h2>
+            <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--carbon)]/72">Check the event page for updates or contact the Pillars of Tech team.</p>
           </section>
         ) : (
-          <form onSubmit={handleSubmit} className="border-b-2 border-[var(--ink)] py-10 sm:py-14" noValidate={false}>
+          <form onSubmit={handleSubmit} className="border-b border-[var(--carbon)] py-10 sm:py-14" noValidate={false}>
             <div className="grid gap-x-10 gap-y-8 lg:grid-cols-2">
               {formSchema?.fields.map((field) => {
                 const fieldLabel = (
@@ -178,7 +178,7 @@ export default function RegisterPage() {
 
                 if (field.type === 'checkbox') {
                   return (
-                    <label key={field.id} htmlFor={field.id} className="flex min-h-11 items-start gap-3 border border-[var(--ink)] bg-[var(--paper)] p-4 sm:col-span-2 rounded-[10px]">
+                    <label key={field.id} htmlFor={field.id} className="flex min-h-11 items-start gap-3 border border-[var(--carbon)] bg-[var(--off-white)] p-4 sm:col-span-2">
                       <input
                         id={field.id}
                         name={field.id}
@@ -217,7 +217,7 @@ export default function RegisterPage() {
                   )
                 }
 
-                const commonClass = 'mt-2 min-h-11 w-full border-2 border-[var(--ink)] bg-[var(--paper)] px-4 py-3 text-sm text-[var(--ink)] placeholder:text-[var(--ink)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]'
+                const commonClass = 'mt-2 min-h-11 w-full border border-[var(--carbon)] bg-[var(--off-white)] px-4 py-3 text-sm text-[var(--carbon)] placeholder:text-[var(--carbon)]/50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--ultramarine)]'
                 return (
                   <div key={field.id}>
                     <label htmlFor={field.id}>{fieldLabel}</label>
@@ -264,14 +264,14 @@ export default function RegisterPage() {
               <input id="website" name="website" tabIndex={-1} autoComplete="off" value={honeypot} onChange={(event) => setHoneypot(event.target.value)} />
             </div>
 
-            {error ? <p className="mt-8 border-l-4 border-[var(--cobalt)] bg-[var(--sky)] p-4 text-sm font-semibold leading-6 text-[var(--midnight)]" role="alert">{error}</p> : null}
+            {error ? <p className="mt-8 border-l-2 border-[var(--signal-orange)] bg-[var(--mist)] p-4 text-sm font-semibold leading-6 text-[var(--carbon)]" role="alert">{error}</p> : null}
 
-            <div className="mt-10 flex flex-col gap-4 border-t border-[var(--ink)]/30 pt-7 sm:flex-row sm:items-center sm:justify-between">
-              <p className="max-w-md text-xs leading-6 text-[var(--ink)]/65">Fields marked with an asterisk are required. Please submit one registration per participant.</p>
+            <div className="mt-10 flex flex-col gap-4 border-t border-[var(--carbon)]/30 pt-7 sm:flex-row sm:items-center sm:justify-between">
+              <p className="max-w-md text-xs leading-6 text-[var(--carbon)]/65">Fields marked with an asterisk are required. Please submit one registration per participant.</p>
               <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--cobalt)] px-6 py-3 text-sm font-bold text-[var(--cream)] transition-colors hover:bg-[var(--midnight)] disabled:cursor-wait disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]"
+                className="signal-button signal-button--orange disabled:cursor-wait disabled:opacity-60"
               >
                 {submitting ? <><LoaderCircle className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> Sending…</> : <><Send className="h-4 w-4" aria-hidden="true" /> Send registration</>}
               </button>

@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowUpRight, ChevronDown } from 'lucide-react'
+import { ArrowUpRight, ChevronDown, ClipboardList } from 'lucide-react'
+import SignalPageIntro from '@/components/site/SignalPageIntro'
 
 const faqSections = [
   {
@@ -68,56 +69,63 @@ const photoRibbon = [
 
 export default function FAQPage() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] text-[var(--ink)]">
-      <header className="border-b border-[var(--ink)]/20">
-        <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:px-12 lg:py-16">
-          <div>
-            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Questions, made useful</p>
-            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">Find your next clear step.</h1>
-          </div>
-          <div className="max-w-xl lg:justify-self-end">
-            <p className="font-body text-base leading-7 text-[var(--ink)]/70 sm:text-lg">
-              Browse by audience, open the question that matches your situation, and keep the contact route close if you need a human answer.
-            </p>
-            <Link
-              href="/contact"
-              className="mt-6 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
-            >
-              Ask a question
-              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </header>
+    <main className="min-h-screen overflow-x-hidden bg-[var(--bone)] text-[var(--carbon)]">
+      <SignalPageIntro
+        eyebrow="TROUBLESHOOTING LOG / 01"
+        title="Find your next clear step."
+        description="Browse by audience, open the question that matches your situation, and keep the contact route close if you need a human answer."
+        image={{
+          src: '/images/events/family-science-night/IMG_6105.jpg',
+          alt: 'Students test a hands-on project during Family Science Night.',
+        }}
+        tone="bone"
+        imagePosition="center"
+        actions={(
+          <Link href="/contact" className="signal-button signal-button--orange">
+            Ask a question
+            <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+          </Link>
+        )}
+      />
 
-      <section aria-label="Scenes from Pillars of Tech events" className="border-b border-[var(--ink)]/20 bg-[var(--midnight)]">
-        <div className="mx-auto grid max-w-7xl grid-cols-3 gap-1 px-1 py-1 sm:gap-2 sm:px-8 sm:py-8 lg:px-12">
-          {photoRibbon.map((photo) => (
-            <figure key={photo.src} className="relative aspect-[4/3] overflow-hidden bg-[var(--ink)]">
-              <Image src={photo.src} alt={photo.alt} fill sizes="(min-width: 1024px) 33vw, 33vw" className="object-cover" />
+      <section aria-label="Scenes from Pillars of Tech events" className="border-b border-[var(--carbon)]/25 bg-[var(--carbon)]">
+        <div className="signal-shell grid grid-cols-3 gap-1 py-1 sm:gap-3 sm:py-3">
+          {photoRibbon.map((photo, index) => (
+            <figure key={photo.src} className="relative aspect-[4/3] overflow-hidden border border-[var(--off-white)]/15 bg-[var(--mist)]">
+              <Image src={photo.src} alt={photo.alt} fill sizes="(min-width: 1024px) 30vw, 33vw" className="object-cover" />
+              <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--carbon)]/80 px-2 py-2 signal-mono text-[var(--off-white)]">ROOM / 0{index + 1}</figcaption>
             </figure>
           ))}
         </div>
       </section>
 
-      <section className="bg-[var(--paper)]">
-        <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-12 lg:py-20">
-          <div className="divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20">
-            {faqSections.map((section) => (
+      <section className="bg-[var(--off-white)]" aria-labelledby="faq-index-title">
+        <div className="signal-shell py-16 sm:py-20 lg:py-28">
+          <div className="mb-8 flex items-end justify-between gap-5 border-b border-[var(--carbon)]/30 pb-7">
+            <div>
+              <p className="signal-mono text-[var(--signal-orange)]">INDEX / 02 · COMMON ROUTES</p>
+              <h2 id="faq-index-title" className="mt-3 font-display text-4xl font-semibold leading-[0.93] tracking-[-0.05em] text-[var(--carbon)] sm:text-5xl">Questions, made useful.</h2>
+            </div>
+            <ClipboardList aria-hidden="true" className="hidden h-8 w-8 text-[var(--ultramarine)] sm:block" strokeWidth={1.5} />
+          </div>
+
+          <div className="divide-y divide-[var(--carbon)]/25 border-y border-[var(--carbon)]/25">
+            {faqSections.map((section, sectionIndex) => (
               <section key={section.title} className="grid gap-8 py-10 lg:grid-cols-[0.42fr_1fr] lg:gap-16 lg:py-14">
                 <div>
-                  <h2 className="font-display text-3xl leading-tight text-[var(--midnight)] sm:text-4xl">{section.title}</h2>
-                  <p className="mt-3 max-w-xs font-body text-sm leading-6 text-[var(--ink)]/65">{section.intro}</p>
+                  <p className="signal-mono text-[var(--signal-orange)]">0{sectionIndex + 1} / ROUTE</p>
+                  <h3 className="mt-4 font-display text-3xl font-semibold leading-[0.94] tracking-[-0.045em] text-[var(--carbon)] sm:text-4xl">{section.title}</h3>
+                  <p className="mt-3 max-w-xs font-body text-sm leading-6 text-[var(--carbon)]/65">{section.intro}</p>
                 </div>
 
-                <div className="divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20">
-                  {section.questions.map((faq) => (
+                <div className="divide-y divide-[var(--carbon)]/25 border-y border-[var(--carbon)]/25">
+                  {section.questions.map((faq, faqIndex) => (
                     <details key={faq.question} className="group">
-                      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-6 py-5 font-body text-base font-bold text-[var(--midnight)] outline-none transition-colors hover:text-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 [&::-webkit-details-marker]:hidden">
-                        <span>{faq.question}</span>
-                        <ChevronDown aria-hidden="true" className="h-5 w-5 flex-none text-[var(--cobalt)] transition-transform group-open:rotate-180" />
+                      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-6 py-5 font-body text-base font-bold text-[var(--carbon)] outline-none transition-colors hover:text-[var(--ultramarine)] focus-visible:ring-2 focus-visible:ring-[var(--signal-orange)] focus-visible:ring-offset-4 [&::-webkit-details-marker]:hidden">
+                        <span><span className="signal-mono mr-3 text-[var(--signal-orange)]">{String(faqIndex + 1).padStart(2, '0')}</span>{faq.question}</span>
+                        <ChevronDown aria-hidden="true" className="h-5 w-5 flex-none text-[var(--ultramarine)] transition-transform group-open:rotate-180" />
                       </summary>
-                      <p className="max-w-3xl pb-6 pr-8 font-body text-base leading-7 text-[var(--ink)]/70">{faq.answer}</p>
+                      <p className="max-w-3xl pb-6 pr-8 font-body text-base leading-7 text-[var(--carbon)]/70">{faq.answer}</p>
                     </details>
                   ))}
                 </div>
@@ -127,16 +135,13 @@ export default function FAQPage() {
         </div>
       </section>
 
-      <section className="bg-[var(--midnight)] text-[var(--cream)]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-20">
+      <section className="bg-[var(--ultramarine)] text-[var(--off-white)]" aria-labelledby="faq-contact-title">
+        <div className="signal-shell grid gap-8 py-14 sm:py-20 lg:grid-cols-[1fr_auto] lg:items-end lg:py-24">
           <div>
-            <p className="font-body text-sm font-semibold text-[var(--sky)]">Still curious?</p>
-            <h2 className="mt-3 max-w-2xl font-display text-4xl leading-tight sm:text-5xl">A good question is a good start.</h2>
+            <p className="signal-mono text-[var(--signal-orange)]">OPEN TICKET / 03</p>
+            <h2 id="faq-contact-title" className="mt-3 max-w-2xl font-display text-4xl font-semibold leading-[0.93] tracking-[-0.05em] sm:text-5xl">Still curious? Start a conversation.</h2>
           </div>
-          <Link
-            href="/contact"
-            className="inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--sky)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
-          >
+          <Link href="/contact" className="signal-button signal-button--light">
             Contact the team
             <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
           </Link>

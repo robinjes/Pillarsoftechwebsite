@@ -2,32 +2,32 @@ import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 
 const audiences = [
-  { role: 'BUILDERS', title: 'Students & families', text: 'Find a welcoming place to test an idea and build together.', href: '/events', action: 'Find an event' },
-  { role: 'CREW', title: 'Volunteers', text: 'Bring your time and curiosity to the next workshop.', href: '/volunteer', action: 'Volunteer with us' },
-  { role: 'HOSTS', title: 'Schools & community groups', text: 'Bring a practical STEM experience to your students.', href: '/contact?reason=workshop', action: 'Start a conversation' },
-  { role: 'BACKERS', title: 'Donors & supporters', text: 'Help keep materials and mentors within reach.', href: '/fundraiser', action: 'Support the work' },
+  { role: '01 / BUILDERS', title: 'Students + families', text: 'Find a welcoming place to test an idea.', href: '/events', action: 'Find a room' },
+  { role: '02 / CREW', title: 'Volunteers', text: 'Bring time, patience, and a useful pair of hands.', href: '/volunteer', action: 'Join the crew' },
+  { role: '03 / HOSTS', title: 'Schools + partners', text: 'Put a practical STEM experience in your community.', href: '/contact?reason=workshop', action: 'Start a conversation' },
+  { role: '04 / BACKERS', title: 'Donors + supporters', text: 'Keep tools and mentors within reach.', href: '/fundraiser', action: 'Back the work' },
 ]
 
 export default function AudienceRoutes() {
   return (
-    <section className="bg-warm" aria-labelledby="audience-heading">
-      <div className="site-shell mx-auto px-5 py-20 sm:px-8 lg:px-10 lg:py-28">
-        <div className="flex flex-col gap-5 border-b border-ink/30 pb-8 sm:flex-row sm:items-end sm:justify-between">
-          <h2 id="audience-heading" className="display-heading max-w-xl text-4xl text-midnight sm:text-5xl">There is a place for your next idea.</h2>
-          <p className="max-w-sm text-base leading-7 text-ink/70">Choose the path that fits.</p>
+    <section className="signal-routes" aria-labelledby="audience-heading">
+      <div className="signal-shell">
+        <div className="signal-section-head">
+          <div>
+            <p className="signal-mono signal-eyebrow">FIND YOUR PORT / 05</p>
+            <h2 id="audience-heading">There is a way in.</h2>
+          </div>
+          <p>Different role, same signal. Pick the next useful thing.</p>
         </div>
-
-        <div className="divide-y divide-ink/25">
+        <div className="signal-routes__list">
           {audiences.map((audience) => (
-            <article key={audience.title} className="audience-route group grid gap-3 py-6 sm:grid-cols-[6.5rem_minmax(0,1fr)_auto] sm:items-center sm:gap-6">
-              <span className="audience-route__role font-display text-xs font-bold tracking-[0.16em] text-cobalt">{audience.role}</span>
-              <div>
-                <h3 className="font-display text-2xl font-semibold tracking-[-0.03em] text-midnight">{audience.title}</h3>
-                <p className="mt-1 max-w-xl text-base leading-7 text-ink/70">{audience.text}</p>
+            <article key={audience.title} className="signal-route">
+              <span className="signal-route__role signal-mono">{audience.role}</span>
+              <div className="signal-route__copy">
+                <h3>{audience.title}</h3>
+                <p>{audience.text}</p>
               </div>
-              <Link href={audience.href} className="inline-flex min-h-11 items-center gap-2 border-b-2 border-cobalt px-1 text-sm font-bold text-cobalt hover:border-midnight hover:text-midnight sm:justify-self-end">
-                {audience.action} <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
+              <Link href={audience.href} className="signal-route__link">{audience.action} <ArrowUpRight aria-hidden="true" /></Link>
             </article>
           ))}
         </div>

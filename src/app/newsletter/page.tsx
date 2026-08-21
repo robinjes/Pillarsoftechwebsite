@@ -1,6 +1,6 @@
 import Image from 'next/image'
 import type { Metadata } from 'next'
-import { ArrowUpRight, CalendarDays, Lightbulb, Users } from 'lucide-react'
+import { ArrowUpRight, CalendarDays, Lightbulb, Send, Users } from 'lucide-react'
 import {
   newsletterEmbedUrl,
   newsletterPageDescription,
@@ -8,6 +8,7 @@ import {
   newsletterWebsiteUrl,
 } from '@/data/newsletter'
 import ExternalEmbedOptIn from '@/components/ExternalEmbedOptIn'
+import SignalPageIntro from '@/components/site/SignalPageIntro'
 
 export const metadata: Metadata = {
   title: 'Newsletter | Pillars of Tech',
@@ -22,66 +23,59 @@ const highlights = [
 
 export default function NewsletterPage() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] text-[var(--ink)]">
-      <header className="border-b border-[var(--ink)]/20">
-        <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
-          <div className="grid gap-8 border-y border-[var(--ink)]/25 py-8 lg:grid-cols-[1fr_0.8fr] lg:items-end lg:gap-16">
-            <div>
-              <div className="flex flex-wrap items-center gap-x-5 gap-y-2 font-body text-sm font-semibold text-[var(--cobalt)]">
-                <span>Sunday dispatch</span>
-                <span className="text-[var(--ink)]/40" aria-hidden="true">/</span>
-                <span>Field notes for curious builders</span>
+    <main className="min-h-screen overflow-x-hidden bg-[var(--bone)] text-[var(--carbon)]">
+      <SignalPageIntro
+        eyebrow="SUNDAY DISPATCH / 01"
+        title="A small note for the week ahead."
+        description={newsletterPageDescription}
+        image={{
+          src: '/images/events/wildcat-carnival/drive-05.webp',
+          alt: 'A student volunteer prepares an outdoor activity table in late-afternoon light.',
+        }}
+        tone="bone"
+        imagePosition="center"
+        actions={(
+          <a href={newsletterSignupUrl} target="_blank" rel="noopener noreferrer" className="signal-button signal-button--orange">
+            Open the signup form
+            <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+          </a>
+        )}
+      />
+
+      <section className="border-b border-[var(--carbon)]/25 bg-[var(--off-white)]" aria-labelledby="dispatch-title">
+        <div className="signal-shell grid gap-10 py-16 sm:py-20 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16 lg:py-28">
+          <div>
+            <p className="signal-mono text-[var(--signal-orange)]">DISPATCH / 02 · SUBSCRIBE</p>
+            <h2 id="dispatch-title" className="mt-4 max-w-md font-display text-4xl font-semibold leading-[0.92] tracking-[-0.055em] text-[var(--carbon)] sm:text-5xl">Read it where it is easiest.</h2>
+            <p className="mt-5 max-w-md font-body text-base leading-7 text-[var(--carbon)]/68">The signup lives in the newsletter&apos;s own form. You can open it directly or load the optional panel when you are ready.</p>
+
+            <div className="mt-8 border-y border-[var(--carbon)]/25 py-5">
+              <p className="signal-mono text-[var(--ultramarine)]">ISSUE ROUTES</p>
+              <div className="mt-4 flex flex-col items-start gap-2">
+                <a href={newsletterWebsiteUrl} target="_blank" rel="noopener noreferrer" className="signal-text-link">
+                  Visit the newsletter homepage
+                  <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+                </a>
+                <a href={newsletterSignupUrl} target="_blank" rel="noopener noreferrer" className="signal-text-link">
+                  Open signup in a new tab
+                  <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+                </a>
               </div>
-              <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">A small note for the week ahead.</h1>
             </div>
-            <div className="max-w-md lg:justify-self-end">
-              <p className="font-body text-base leading-7 text-[var(--ink)]/70 sm:text-lg">{newsletterPageDescription}</p>
-              <a
-                href={newsletterSignupUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-6 inline-flex min-h-11 items-center gap-2 bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
-              >
-                Open the signup form
-                <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-              </a>
-            </div>
-          </div>
-          <figure className="relative mt-8 aspect-[16/7] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:mt-10">
-            <Image
-              src="/images/events/wildcat-carnival/drive-05.webp"
-              alt="A student volunteer prepares an outdoor activity table in late-afternoon light."
-              fill
-              priority
-              sizes="(min-width: 1024px) 90vw, 100vw"
-              className="object-cover object-center"
-            />
-            <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--midnight)]/85 px-4 py-3 font-body text-xs leading-5 text-[var(--cream)]">
-              Wildcat Carnival · prepare the next activity
-            </figcaption>
-          </figure>
-        </div>
-      </header>
 
-      <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
-        <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-12 lg:py-20">
-          <div className="mb-8 flex flex-col gap-4 border-b border-[var(--ink)]/30 pb-6 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Subscribe</p>
-              <h2 className="mt-2 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Read it where it is easiest.</h2>
-            </div>
-            <a
-              href={newsletterSignupUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center justify-center gap-2 border border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
-            >
-              Use the form directly
-              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-            </a>
+            <figure className="relative mt-8 aspect-[4/3] overflow-hidden border border-[var(--carbon)]/35 bg-[var(--mist)]">
+              <Image
+                src="/images/events/wildcat-carnival/drive-02.webp"
+                alt="Students gather around a hands-on activity at the Wildcat Carnival."
+                fill
+                sizes="(min-width: 1024px) 28vw, 100vw"
+                className="object-cover"
+              />
+              <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--carbon)]/85 px-3 py-2 signal-mono text-[var(--off-white)]">FIELD NOTES / EVERY SUNDAY</figcaption>
+            </figure>
           </div>
 
-          <div className="border border-[var(--ink)]/25 bg-[var(--cream)] p-2 sm:p-3">
+          <div className="min-w-0 border border-[var(--carbon)]/35 bg-[var(--bone)] p-2 sm:p-3">
             <ExternalEmbedOptIn
               src={newsletterEmbedUrl}
               title="Pillars of Tech newsletter signup form"
@@ -91,42 +85,32 @@ export default function NewsletterPage() {
               fallbackCopy="If the embedded form does not load, use the direct signup link above or visit the newsletter homepage."
             />
           </div>
-
-          <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 font-body text-sm font-bold">
-            <a
-              href={newsletterWebsiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center gap-2 text-[var(--cobalt)] underline decoration-2 underline-offset-4 transition hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
-            >
-              Visit the newsletter homepage
-              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-            </a>
-            <a
-              href={newsletterSignupUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center gap-2 text-[var(--cobalt)] underline decoration-2 underline-offset-4 transition hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
-            >
-              Open signup in a new tab
-              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-            </a>
-          </div>
         </div>
       </section>
 
-      <section className="bg-[var(--midnight)] text-[var(--cream)]">
-        <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-12 lg:py-20">
-          <div className="grid gap-0 border-y border-[var(--sky)]/30 md:grid-cols-3">
-            {highlights.map((highlight) => {
+      <section className="bg-[var(--carbon)] text-[var(--off-white)]" aria-labelledby="dispatch-includes-title">
+        <div className="signal-shell py-14 sm:py-20 lg:py-24">
+          <div className="flex flex-col gap-5 border-b border-[var(--off-white)]/30 pb-7 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="signal-mono text-[var(--signal-orange)]">WHAT ARRIVES / 03</p>
+              <h2 id="dispatch-includes-title" className="mt-3 font-display text-4xl font-semibold leading-[0.93] tracking-[-0.05em] sm:text-5xl">Useful signal, once a week.</h2>
+            </div>
+            <Send aria-hidden="true" className="h-7 w-7 text-[var(--signal-orange)]" strokeWidth={1.6} />
+          </div>
+
+          <div className="mt-8 grid gap-0 border-y border-[var(--off-white)]/30 md:grid-cols-3">
+            {highlights.map((highlight, index) => {
               const Icon = highlight.icon
 
               return (
-                <div key={highlight.title} className="border-b border-[var(--sky)]/30 px-0 py-7 last:border-b-0 md:border-b-0 md:border-r md:px-7 md:py-2 md:first:pl-0 md:last:border-r-0 md:last:pr-0">
-                  <Icon aria-hidden="true" className="h-6 w-6 text-[var(--sky)]" strokeWidth={1.7} />
-                  <h2 className="mt-5 font-display text-2xl text-[var(--cream)]">{highlight.title}</h2>
-                  <p className="mt-3 max-w-xs font-body text-sm leading-6 text-[var(--cream)]/70">{highlight.description}</p>
-                </div>
+                <article key={highlight.title} className="border-b border-[var(--off-white)]/30 py-7 last:border-b-0 md:border-b-0 md:border-r md:px-7 md:first:pl-0 md:last:border-r-0 md:last:pr-0">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="signal-mono text-[var(--signal-orange)]">0{index + 1}</span>
+                    <Icon aria-hidden="true" className="h-6 w-6 text-[var(--ultramarine)]" strokeWidth={1.7} />
+                  </div>
+                  <h3 className="mt-7 font-display text-2xl font-semibold leading-[0.95] tracking-[-0.04em]">{highlight.title}</h3>
+                  <p className="mt-3 max-w-xs font-body text-sm leading-6 text-[var(--off-white)]/68">{highlight.description}</p>
+                </article>
               )
             })}
           </div>

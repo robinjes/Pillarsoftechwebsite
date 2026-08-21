@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, Boxes, CircuitBoard, Cpu, Printer, Radio, Wrench } from 'lucide-react'
+import SignalPageIntro from '@/components/site/SignalPageIntro'
 
 const wishlistItems = [
   {
@@ -61,77 +62,58 @@ const wishlistItems = [
 
 export default function WishlistPage() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] text-[var(--ink)]">
-      <header className="border-b border-[var(--ink)]/20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:px-12 lg:py-16">
-          <div>
-            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Workshop packing list</p>
-            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">Pack the next build.</h1>
-            <p className="mt-6 max-w-lg font-body text-base leading-7 text-[var(--ink)]/70 sm:text-lg">
-              These are the practical tools that turn an open table into a hands-on STEM session. Every item has a useful next step.
-            </p>
-            <div className="mt-7 flex flex-wrap gap-4">
-              <Link
-                href="/contact?reason=wishlist"
-                className="inline-flex min-h-11 items-center gap-2 bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
-              >
-                Coordinate a donation
-                <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/faq"
-                className="inline-flex min-h-11 items-center border border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
-              >
-                Read the FAQ
-              </Link>
-            </div>
-          </div>
+    <main className="min-h-screen overflow-x-hidden bg-[var(--bone)] text-[var(--carbon)]">
+      <SignalPageIntro
+        eyebrow="PARTS MANIFEST / 01"
+        title="Pack the next build."
+        description="A useful donation is a student getting one step closer to a working prototype. Browse the current manifest, then send the team a note about what you can bring."
+        image={{
+          src: '/images/events/family-science-night/IMG_5880.jpg',
+          alt: 'A young participant holds a controller beside a VEX robot.',
+        }}
+        tone="bone"
+        imagePosition="center"
+        actions={(
+          <>
+            <Link href="/contact?reason=wishlist" className="signal-button signal-button--orange">
+              Coordinate a donation
+              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
+            <Link href="/faq" className="signal-button signal-button--line">Read the FAQ</Link>
+          </>
+        )}
+      />
 
-          <figure className="relative min-h-[19rem] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:min-h-[27rem]">
-            <Image
-              src="/images/events/family-science-night/IMG_5880.jpg"
-              alt="A young participant holds a controller beside a VEX robot."
-              fill
-              priority
-              sizes="(min-width: 1024px) 55vw, 100vw"
-              className="object-cover object-center"
-            />
-            <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--midnight)]/85 px-4 py-3 font-body text-xs leading-5 text-[var(--cream)]">
-              Family Science Night · a controller in hand
-            </figcaption>
-          </figure>
-        </div>
-      </header>
-
-      <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
-        <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-12 lg:py-20">
-          <div className="mb-8 flex flex-col gap-4 border-b border-[var(--ink)]/30 pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <section className="border-b border-[var(--carbon)]/25 bg-[var(--off-white)]" aria-labelledby="manifest-title">
+        <div className="signal-shell py-16 sm:py-20 lg:py-28">
+          <div className="grid gap-8 border-b border-[var(--carbon)]/30 pb-8 lg:grid-cols-[0.7fr_1.3fr] lg:items-end lg:gap-16">
             <div>
-              <p className="font-body text-sm font-semibold text-[var(--cobalt)]">What would help next</p>
-              <h2 className="mt-2 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Choose one useful piece.</h2>
+              <p className="signal-mono text-[var(--signal-orange)]">MANIFEST / 02 · CURRENT NEEDS</p>
+              <h2 id="manifest-title" className="mt-4 max-w-md font-display text-4xl font-semibold leading-[0.92] tracking-[-0.055em] text-[var(--carbon)] sm:text-5xl">Choose one useful piece.</h2>
             </div>
-            <p className="max-w-sm font-body text-sm leading-6 text-[var(--ink)]/65">
-              Have another item in mind? Use the same contact route to check fit, condition, and delivery.
-            </p>
+            <p className="max-w-xl font-body text-base leading-7 text-[var(--carbon)]/68">The list is intentionally practical: small parts, reliable tools, and the quiet infrastructure that lets a workshop keep moving. Have something else? Use the same contact route to check fit and condition.</p>
           </div>
 
-          <div className="divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20">
-            {wishlistItems.map((item) => {
+          <div className="mt-8 divide-y divide-[var(--carbon)]/25 border-y border-[var(--carbon)]/25">
+            {wishlistItems.map((item, index) => {
               const Icon = item.icon
 
               return (
-                <article key={item.title} className="grid gap-5 py-7 sm:grid-cols-[3.5rem_0.8fr_1.2fr_auto] sm:items-center sm:gap-7">
-                  <div className="flex h-12 w-12 items-center justify-center border border-[var(--ink)]/25 bg-[var(--cream)] text-[var(--cobalt)]">
-                    <Icon aria-hidden="true" className="h-6 w-6" strokeWidth={1.7} />
+                <article key={item.title} className="grid gap-5 py-7 sm:grid-cols-[4rem_0.8fr_1.2fr_auto] sm:items-center sm:gap-7">
+                  <div className="flex items-center gap-3 sm:block">
+                    <span className="signal-mono text-[var(--signal-orange)]">0{index + 1}</span>
+                    <div className="flex h-11 w-11 items-center justify-center border border-[var(--carbon)]/35 bg-[var(--bone)] text-[var(--ultramarine)] sm:mt-3">
+                      <Icon aria-hidden="true" className="h-5 w-5" strokeWidth={1.7} />
+                    </div>
                   </div>
                   <div>
-                    <p className="font-body text-xs font-semibold text-[var(--cobalt)]">{item.useCase}</p>
-                    <h3 className="mt-1 font-display text-2xl leading-tight text-[var(--midnight)]">{item.title}</h3>
+                    <p className="signal-mono text-[var(--ultramarine)]">{item.useCase}</p>
+                    <h3 className="mt-2 font-display text-2xl font-semibold leading-[0.95] tracking-[-0.04em] text-[var(--carbon)]">{item.title}</h3>
                   </div>
-                  <p className="font-body text-base leading-7 text-[var(--ink)]/70">{item.description}</p>
+                  <p className="max-w-xl font-body text-base leading-7 text-[var(--carbon)]/68">{item.description}</p>
                   <Link
                     href="/contact?reason=wishlist"
-                    className="inline-flex min-h-11 items-center justify-center gap-2 border border-[var(--midnight)] px-4 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
+                    className="signal-button signal-button--line justify-self-start sm:justify-self-end"
                     aria-label={`Coordinate a donation for ${item.title}`}
                   >
                     Coordinate
@@ -141,22 +123,28 @@ export default function WishlistPage() {
               )
             })}
           </div>
+
+          <figure className="relative mt-10 aspect-[16/5] overflow-hidden border border-[var(--carbon)]/35 bg-[var(--mist)]">
+            <Image
+              src="/images/events/family-science-night/IMG_5905.jpg"
+              alt="A close view of student-built robotics equipment at Family Science Night."
+              fill
+              sizes="(min-width: 1024px) 90vw, 100vw"
+              className="object-cover object-center"
+            />
+            <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--carbon)]/85 px-4 py-3 signal-mono text-[var(--off-white)]">FIELD NOTE / PARTS BECOME POSSIBLE IN CONTEXT</figcaption>
+          </figure>
         </div>
       </section>
 
-      <section className="bg-[var(--sky)]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-20">
+      <section className="bg-[var(--signal-orange)] text-[var(--carbon)]" aria-labelledby="other-donation-title">
+        <div className="signal-shell grid gap-8 py-14 sm:py-[4.5rem] lg:grid-cols-[1fr_auto] lg:items-end lg:py-20">
           <div>
-            <p className="font-body text-sm font-semibold text-[var(--midnight)]/70">Something else to donate?</p>
-            <h2 className="mt-3 max-w-2xl font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Tell us what you have in mind.</h2>
-            <p className="mt-4 max-w-2xl font-body text-base leading-7 text-[var(--midnight)]/75">
-              Share the item, its condition, and any accessories that come with it so we can coordinate the next step.
-            </p>
+            <p className="signal-mono">OPEN SLOT / 03</p>
+            <h2 id="other-donation-title" className="mt-3 max-w-2xl font-display text-4xl font-semibold leading-[0.93] tracking-[-0.05em] sm:text-5xl">Have another useful piece?</h2>
+            <p className="mt-4 max-w-2xl font-body text-base leading-7 text-[var(--carbon)]/75">Tell us what you have, its condition, and any accessories that come with it. We will help route the idea to the right person.</p>
           </div>
-          <Link
-            href="/contact?reason=wishlist"
-            className="inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--midnight)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
-          >
+          <Link href="/contact?reason=wishlist" className="signal-button border-[var(--carbon)] bg-[var(--carbon)] text-[var(--off-white)] hover:bg-[var(--ultramarine)] hover:text-[var(--off-white)]">
             Contact the team
             <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
           </Link>

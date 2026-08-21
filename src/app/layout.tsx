@@ -4,15 +4,15 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import PublicAtmosphere from '@/components/site/PublicAtmosphere'
-import { bodyFont, displayFont } from '@/lib/fonts'
+import { bodyFont, displayFont, monoFont } from '@/lib/fonts'
 
 export const metadata: Metadata = {
-  title: 'Pillars of Tech | STEM belongs in every student’s hands.',
+  title: 'Pillars of Tech | Give students the tools.',
   description: 'Pillars of Tech brings hands-on STEM learning to students, families, schools, and communities.',
   manifest: '/site.webmanifest',
   metadataBase: new URL('https://pillarsoftech.org'),
   openGraph: {
-    title: 'Pillars of Tech | STEM belongs in every student’s hands.',
+    title: 'Pillars of Tech | Give students the tools.',
     description: 'Hands-on STEM learning for students, families, schools, and communities.',
     images: [
       {
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pillars of Tech | STEM belongs in every student’s hands.',
+    title: 'Pillars of Tech | Give students the tools.',
     description: 'Hands-on STEM learning for students, families, schools, and communities.',
     images: ['/potofficiallogo.png'],
   },
@@ -54,7 +54,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${bodyFont.variable} ${displayFont.variable}`} suppressHydrationWarning>
+      <body className={`${bodyFont.variable} ${displayFont.variable} ${monoFont.variable}`} suppressHydrationWarning>
         <PublicAtmosphere />
         <a href="#main-content" className="skip-link">Skip to content</a>
         <Navbar />

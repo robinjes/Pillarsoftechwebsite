@@ -20,7 +20,7 @@ describe('action and support route visual contracts', () => {
     expect(routes.volunteer).toContain('/images/events/family-science-night/IMG_5898.jpg')
     expect(routes.volunteer).toContain('A student volunteer guides two younger students with a robot controller.')
     expect(routes.fundraiser).toContain('/images/events/wildcat-tank/Outdoor2.JPG')
-    expect(routes.fundraiser).toContain('A student volunteer helps a younger participant at an outdoor foil-boat activity table.')
+    expect(routes.fundraiser).toContain('A volunteer helps children compare marshmallow-and-toothpick structures at an outdoor activity table.')
     expect(routes.wishlist).toContain('/images/events/family-science-night/IMG_5880.jpg')
     expect(routes.wishlist).toContain('A young participant holds a controller beside a VEX robot.')
     expect(routes.newsletter).toContain('/images/events/wildcat-carnival/drive-05.webp')

@@ -266,25 +266,25 @@ export default function EventPage() {
   const volunteerHref = `/volunteer?eventId=${encodeURIComponent(event.slug || event.id)}`
 
   return (
-    <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 text-[var(--ink)] sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <header className="grid gap-0 border-y border-[var(--ink)] bg-[var(--midnight)] text-[var(--cream)] lg:grid-cols-[0.86fr_1.14fr]">
-          <div className="order-2 flex flex-col justify-between px-6 py-9 sm:px-10 sm:py-12 lg:order-1 lg:py-14">
+    <main className="min-h-screen bg-[var(--bone)] pb-20 text-[var(--carbon)]">
+      <div className="signal-shell">
+        <header className="grid gap-0 border-y border-[var(--ink)] bg-[var(--carbon)] text-[var(--off-white)] lg:grid-cols-[0.86fr_1.14fr]">
+          <div className="order-2 flex flex-col justify-between px-5 py-8 sm:px-10 sm:py-12 lg:order-1 lg:py-14">
             <div>
-              <button type="button" onClick={() => router.push('/events')} className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[var(--sky)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]">
+              <button type="button" onClick={() => router.push('/events')} className="signal-text-link signal-text-link--light">
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
               </button>
-              <p className="mt-8 text-sm font-semibold text-[var(--sky)]">{event.programCategory} · {isCurrent ? 'Now & next' : 'Archive'}</p>
-              <h1 className="mt-4 max-w-3xl font-display text-4xl leading-[0.98] tracking-[-0.04em] sm:text-5xl">{event.title}</h1>
-              <p className="mt-6 max-w-2xl text-base leading-7 text-[var(--cream)]/80 sm:text-lg sm:leading-8">{event.summary || eventParagraphs[0]}</p>
+              <p className="signal-mono signal-eyebrow mt-8">{event.programCategory} / {isCurrent ? 'NOW & NEXT' : 'ARCHIVE'}</p>
+              <h1 className="mt-4 max-w-3xl font-display text-4xl leading-[0.94] tracking-[-0.05em] sm:text-5xl">{event.title}</h1>
+              <p className="mt-6 max-w-2xl text-base leading-7 text-[var(--off-white)]/72 sm:text-lg sm:leading-8">{event.summary || eventParagraphs[0]}</p>
             </div>
             <div className="mt-9 flex flex-wrap gap-2 text-sm font-semibold">
-              <span className="border border-[var(--sky)] px-3 py-2">{event.status === 'ongoing' ? 'In progress' : event.status}</span>
-              {isCurrent && event.registrationNote ? <span className="border border-[var(--cream)]/60 px-3 py-2">{event.registrationNote}</span> : null}
+              <span className="border border-[var(--signal-orange)] px-3 py-2">{event.status === 'ongoing' ? 'In progress' : event.status}</span>
+              {isCurrent && event.registrationNote ? <span className="border border-[var(--off-white)]/45 px-3 py-2">{event.registrationNote}</span> : null}
             </div>
           </div>
 
-          <figure className="relative order-1 min-h-[20rem] overflow-hidden border-b border-[var(--sky)] bg-[var(--paper)] lg:order-2 lg:min-h-[34rem] lg:border-b-0 lg:border-l">
+          <figure className="relative order-1 min-h-[20rem] overflow-hidden border-b border-[var(--signal-orange)] bg-[var(--mist)] lg:order-2 lg:min-h-[34rem] lg:border-b-0 lg:border-l lg:border-[var(--signal-orange)]">
             {localHeroVideo && heroVideoOk ? (
               <video
                 className="absolute inset-0 h-full w-full object-cover"
@@ -309,30 +309,30 @@ export default function EventPage() {
                 <button type="button" onClick={() => setHeroSlideIndex((current) => (current + 1) % heroImages.length)} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--cream)] text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Next event image"><ChevronRight className="h-5 w-5" aria-hidden="true" /></button>
               </div>
             ) : null}
-            <figcaption className="absolute left-4 top-4 border border-[var(--cream)]/50 bg-[var(--midnight)]/90 px-3 py-2 text-sm font-semibold text-[var(--cream)]">
-              {heroUsesArchiveFallback ? 'From a recent Pillars workshop' : isCurrent ? 'Program image' : 'From the event archive'}
+            <figcaption className="absolute left-4 top-4 border border-[var(--off-white)]/50 bg-[var(--carbon)]/90 px-3 py-2 text-sm font-semibold text-[var(--off-white)]">
+              {heroUsesArchiveFallback ? 'Archive image · From a recent Pillars workshop' : isCurrent ? 'Program image' : 'From the event archive'}
             </figcaption>
           </figure>
         </header>
 
-        <section className="grid border-b border-[var(--ink)]/35 lg:grid-cols-4" aria-label="Event details">
-          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><CalendarDays className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Date</p><p className="mt-1 font-semibold">{dateLabel(event)}</p></div>
-          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><Clock3 className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Time</p><p className="mt-1 font-semibold">{timeLabel(event)}</p></div>
-          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><MapPin className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Location</p><p className="mt-1 font-semibold">{event.location || 'Location to be announced'}</p></div>
-          <div className="p-5"><p className="text-sm font-semibold text-[var(--cobalt)]">Registration</p><p className={`mt-3 inline-flex border px-3 py-2 text-sm font-bold ${participant.tone}`}>{participant.label}</p></div>
+        <section className="grid border-b border-[var(--carbon)]/30 lg:grid-cols-4" aria-label="Event details">
+          <div className="border-b border-[var(--carbon)]/25 p-5 lg:border-b-0 lg:border-r"><CalendarDays className="h-5 w-5 text-[var(--ultramarine)]" aria-hidden="true" /><p className="signal-mono mt-3 text-[var(--ultramarine)]">DATE</p><p className="mt-1 font-semibold">{dateLabel(event)}</p></div>
+          <div className="border-b border-[var(--carbon)]/25 p-5 lg:border-b-0 lg:border-r"><Clock3 className="h-5 w-5 text-[var(--ultramarine)]" aria-hidden="true" /><p className="signal-mono mt-3 text-[var(--ultramarine)]">TIME</p><p className="mt-1 font-semibold">{timeLabel(event)}</p></div>
+          <div className="border-b border-[var(--carbon)]/25 p-5 lg:border-b-0 lg:border-r"><MapPin className="h-5 w-5 text-[var(--ultramarine)]" aria-hidden="true" /><p className="signal-mono mt-3 text-[var(--ultramarine)]">LOCATION</p><p className="mt-1 font-semibold">{event.location || 'Location to be announced'}</p></div>
+          <div className="p-5"><p className="signal-mono text-[var(--ultramarine)]">REGISTRATION</p><p className={`mt-3 inline-flex border px-3 py-2 text-sm font-bold ${participant.tone}`}>{participant.label}</p></div>
         </section>
 
-        <div className="grid gap-12 border-b border-[var(--ink)]/35 py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
+        <div className="grid gap-12 border-b border-[var(--carbon)]/30 py-14 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
           <article className="max-w-3xl">
-            <p className="text-sm font-semibold text-[var(--cobalt)]">What participants practiced</p>
-            <h2 className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">What happened here</h2>
-            <div className="mt-7 space-y-6 text-base leading-8 text-[var(--ink)]/85">
-              {eventParagraphs.map((paragraph, index) => <p key={`${paragraph.slice(0, 24)}-${index}`} className={index === 0 ? 'text-lg leading-8 text-[var(--midnight)]' : undefined}>{paragraph}</p>)}
+            <p className="signal-mono signal-eyebrow">FIELD REPORT / OBSERVATION · What participants practiced</p>
+            <h2 className="mt-3 font-display text-4xl leading-[0.98] tracking-[-0.045em] text-[var(--carbon)]">What happened here</h2>
+            <div className="mt-7 space-y-6 text-base leading-8 text-[var(--carbon)]/78">
+              {eventParagraphs.map((paragraph, index) => <p key={`${paragraph.slice(0, 24)}-${index}`} className={index === 0 ? 'text-lg leading-8 text-[var(--carbon)]' : undefined}>{paragraph}</p>)}
             </div>
           </article>
 
-          <aside className="h-fit border-t border-[var(--ink)] pt-5 lg:border-l lg:border-t-0 lg:pl-6">
-            <p className="text-sm font-semibold text-[var(--cobalt)]">Make a plan</p>
+          <aside className="h-fit border-t border-[var(--carbon)] pt-5 lg:border-l lg:border-t-0 lg:pl-6">
+            <p className="signal-mono signal-eyebrow">NEXT ACTION</p>
             <div className="mt-5 space-y-3">
               {participant.canRegister ? <a href={registrationHref} className="flex min-h-11 items-center justify-between gap-3 bg-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register as a participant <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{participant.label}</p>}
               {volunteer.canRegister ? <a href={volunteerHref} className="flex min-h-11 items-center justify-between gap-3 border border-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cobalt)] hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Volunteer at this event <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{volunteer.label}</p>}
@@ -343,10 +343,10 @@ export default function EventPage() {
         </div>
 
         {galleryImages.length > 0 ? (
-          <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="gallery-heading">
+          <section className="border-b border-[var(--carbon)]/30 py-14" aria-labelledby="gallery-heading">
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <div><p className="text-sm font-semibold text-[var(--cobalt)]">Field images</p><h2 id="gallery-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">From the day</h2></div>
-              <p className="text-sm text-[var(--ink)]/65">Select an image to enlarge it.</p>
+              <div><p className="signal-mono signal-eyebrow">FIELD IMAGES</p><h2 id="gallery-heading" className="mt-3 font-display text-4xl leading-[0.98] tracking-[-0.045em] text-[var(--carbon)]">From the day</h2></div>
+              <p className="text-sm text-[var(--carbon)]/65">Select an image to enlarge it.</p>
             </div>
             <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {galleryImages.map((image, index) => (
@@ -359,8 +359,8 @@ export default function EventPage() {
         ) : null}
 
         {(event.pdfUrl || embedVideos.length > 0) ? (
-          <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="resources-heading">
-            <div><p className="text-sm font-semibold text-[var(--cobalt)]">Approved resources</p><h2 id="resources-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">Keep exploring</h2></div>
+          <section className="border-b border-[var(--carbon)]/30 py-14" aria-labelledby="resources-heading">
+            <div><p className="signal-mono signal-eyebrow">APPROVED RESOURCES</p><h2 id="resources-heading" className="mt-3 font-display text-4xl leading-[0.98] tracking-[-0.045em] text-[var(--carbon)]">Keep exploring</h2></div>
             <div className="mt-7 grid gap-8 lg:grid-cols-2">
               {event.pdfUrl ? (
                 <article className="border border-[var(--ink)] bg-[var(--paper)]">

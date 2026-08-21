@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowUpRight, Users } from 'lucide-react'
+import { ArrowUpRight, MoveUpRight, Users } from 'lucide-react'
+import SignalPageIntro from '@/components/site/SignalPageIntro'
 
 type TeamMember = {
   name: string
@@ -34,110 +35,89 @@ const teamJoinUrl = 'https://forms.gle/XqeKkMF4cj5W62yL9'
 
 export default function Team() {
   return (
-    <div className="bg-[var(--cream)] text-[var(--ink)]">
-      <header className="bg-[var(--midnight)] text-[var(--cream)]">
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-[0.82fr_1.18fr] lg:items-center lg:gap-16 lg:px-12 lg:py-24">
-          <div className="max-w-xl">
-            <div className="flex items-center gap-3 font-body text-sm font-semibold text-[var(--sky)]">
-              <Users aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
-              The people behind the work
+    <div className="bg-[var(--bone)] text-[var(--carbon)]">
+      <SignalPageIntro
+        eyebrow="TEAM / CREW WALL"
+        title="The work has names."
+        description="Pillars of Tech is shaped by students and collaborators who make room for technology, questions, and shared momentum. Meet the current crew, then find a way to join the next build."
+        tone="carbon"
+        image={{ src: '/images/events/family-science-night/IMG_0551.jpg', alt: 'Pillars volunteers and adult partners smiling together outside Family Science Night.' }}
+        actions={
+          <>
+            <a href={teamJoinUrl} target="_blank" rel="noopener noreferrer" className="signal-button signal-button--orange">
+              Join the team <ArrowUpRight aria-hidden="true" />
+            </a>
+            <Link href="/volunteer" className="signal-button signal-button--light">
+              Volunteer <ArrowUpRight aria-hidden="true" />
+            </Link>
+          </>
+        }
+      />
+
+      <section className="border-b border-[var(--carbon)]/30 bg-[var(--bone)]" aria-labelledby="crew-heading">
+        <div className="signal-shell py-16 sm:py-24">
+          <p className="signal-mono mb-5 text-[var(--ultramarine)]">Family Science Night · team moment</p>
+          <div className="flex flex-col gap-5 border-b border-[var(--carbon)]/35 pb-6 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="signal-mono signal-eyebrow">01 / CURRENT CREW</p>
+              <h2 id="crew-heading" className="mt-3 max-w-2xl font-display text-4xl leading-[0.98] tracking-[-0.045em] sm:text-5xl">Names, roles, and faces.</h2>
             </div>
-            <h1 className="mt-5 max-w-2xl font-display text-5xl leading-[0.97] tracking-[-0.04em] text-[var(--cream)] sm:text-[4.35rem]">
-              Make room for more people to build.
-            </h1>
-            <p className="mt-7 max-w-lg font-body text-lg font-semibold leading-8 text-[var(--cream)]/90 sm:text-xl">
-              Meet the students and team members who make room for technology, questions, and shared momentum.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href={teamJoinUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center gap-2 bg-[var(--sky)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
-              >
-                Join the team
-                <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-              </a>
-              <Link
-                href="/volunteer"
-                className="inline-flex min-h-11 items-center border border-[var(--cream)]/75 px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
-              >
-                Volunteer
-              </Link>
-            </div>
+            <p className="max-w-sm text-sm leading-6 text-[var(--carbon)]/65">A living directory for the people shaping the organization today.</p>
           </div>
 
-          <figure className="relative aspect-[5/4] overflow-hidden border border-[var(--cream)]/35 bg-[var(--sky)] sm:aspect-[16/10]">
-            <Image
-              src="/images/events/family-science-night/IMG_0551.jpg"
-              alt="Pillars volunteers and adult partners smiling together outside Family Science Night."
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 58vw"
-              className="object-cover transition-transform duration-500 motion-safe:hover:scale-[1.02] motion-reduce:transition-none motion-reduce:hover:scale-100"
-            />
-            <figcaption className="absolute inset-x-0 bottom-0 border-t border-[var(--cream)]/35 bg-[var(--midnight)]/90 px-4 py-3 text-sm font-semibold text-[var(--cream)]">
-              Family Science Night · team moment
-            </figcaption>
-          </figure>
-        </div>
-      </header>
-
-      <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16 lg:px-12 lg:py-24">
-          <div className="max-w-sm">
-            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">The current team</p>
-            <h2 className="mt-4 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">Names, roles, and faces.</h2>
-            <p className="mt-5 font-body text-base leading-7 text-[var(--ink)]/65">
-              A living directory for the people who shape the organization today.
-            </p>
-          </div>
-
-          <ul className="grid grid-cols-12 items-start gap-x-3 gap-y-6 sm:gap-x-4 sm:gap-y-8" aria-label="Pillars of Tech team">
+          <div className="mt-10 grid grid-cols-12 items-start gap-x-3 gap-y-7 sm:gap-x-4 sm:gap-y-10" aria-label="Pillars of Tech team">
             {teamMembers.map((member, index) => (
-              <li key={member.name} className={`group ${portraitLayouts[index]}`}>
-                <figure className="relative aspect-[4/5] overflow-hidden border border-[var(--ink)]/25 bg-[var(--cream)]">
+              <article key={member.name} className={`group ${portraitLayouts[index]}`}>
+                <figure className="relative aspect-[4/5] overflow-hidden border border-[var(--carbon)] bg-[var(--mist)]">
                   <Image
                     src={member.image}
                     alt={`Portrait of ${member.name}, ${member.position} at Pillars of Tech`}
                     fill
                     sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 18vw"
-                    className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+                    className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.04] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
                     priority={index < 3}
                   />
-                  <figcaption className="absolute inset-x-0 bottom-0 border-t border-[var(--cream)]/35 bg-[var(--midnight)]/90 px-3 py-3 text-[var(--cream)]">
-                    <span className="block font-display text-lg leading-tight">{member.name}</span>
-                    <span className="mt-1 block font-body text-xs font-semibold text-[var(--sky)]">{member.position}</span>
+                  <figcaption className="absolute inset-x-0 bottom-0 border-t border-[var(--off-white)]/35 bg-[var(--carbon)]/92 px-3 py-3 text-[var(--off-white)]">
+                    <span className="block font-display text-lg leading-tight tracking-[-0.025em]">{member.name}</span>
+                    <span className="mt-1 block text-xs font-semibold text-[var(--signal-orange)]">{member.position}</span>
                   </figcaption>
                 </figure>
-              </li>
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <span className="signal-mono text-[var(--carbon)]/48">{String(index + 1).padStart(2, '0')}</span>
+                  <MoveUpRight aria-hidden="true" className="h-4 w-4 text-[var(--ultramarine)]" />
+                </div>
+              </article>
             ))}
-          </ul>
+          </div>
         </div>
       </section>
 
-      <section className="bg-[var(--midnight)] text-[var(--cream)]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-20">
+      <section className="border-b border-[var(--off-white)]/25 bg-[var(--carbon)] text-[var(--off-white)]" aria-labelledby="crew-practice-heading">
+        <div className="signal-shell grid gap-10 py-16 sm:py-24 lg:grid-cols-[0.65fr_1.35fr] lg:gap-20">
           <div>
-            <p className="font-body text-sm font-semibold text-[var(--sky)]">There is room for you</p>
-            <h2 className="mt-4 max-w-2xl font-display text-4xl leading-[1.02] tracking-[-0.03em] sm:text-5xl">Bring your curiosity to the next project.</h2>
+            <div className="flex items-center gap-3 text-[var(--signal-orange)]">
+              <Users aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
+              <p className="signal-mono">02 / HOW WE SHOW UP</p>
+            </div>
+            <h2 id="crew-practice-heading" className="mt-5 max-w-sm font-display text-4xl leading-[0.98] tracking-[-0.04em] sm:text-5xl">A team is a relay.</h2>
+          </div>
+          <div className="grid gap-px border border-[var(--off-white)]/30 bg-[var(--off-white)]/30 sm:grid-cols-3">
+            <div className="bg-[var(--carbon)] p-5"><p className="signal-mono text-[var(--signal-orange)]">01</p><h3 className="mt-10 font-display text-2xl leading-none">Teach the thing.</h3><p className="mt-3 text-sm leading-6 text-[var(--off-white)]/65">Share the useful part clearly, whether you are leading the room or setting the table.</p></div>
+            <div className="bg-[var(--carbon)] p-5"><p className="signal-mono text-[var(--signal-orange)]">02</p><h3 className="mt-10 font-display text-2xl leading-none">Leave a trace.</h3><p className="mt-3 text-sm leading-6 text-[var(--off-white)]/65">Document what worked so the next student can start farther forward.</p></div>
+            <div className="bg-[var(--carbon)] p-5"><p className="signal-mono text-[var(--signal-orange)]">03</p><h3 className="mt-10 font-display text-2xl leading-none">Invite someone in.</h3><p className="mt-3 text-sm leading-6 text-[var(--off-white)]/65">A good event leaves a clear next step for students, families, and volunteers.</p></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-[var(--signal-orange)]" aria-labelledby="team-next-heading">
+        <div className="signal-shell flex flex-col gap-8 py-14 sm:py-20 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="signal-mono text-[var(--carbon)]/70">03 / OPEN SEAT</p>
+            <h2 id="team-next-heading" className="mt-3 max-w-2xl font-display text-4xl leading-[0.96] tracking-[-0.045em] sm:text-5xl">Bring your curiosity to the next project.</h2>
           </div>
           <div className="flex flex-wrap gap-3">
-            <a
-              href={teamJoinUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center gap-2 bg-[var(--sky)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
-            >
-              Apply to join
-              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-            </a>
-            <Link
-              href="/volunteer"
-              className="inline-flex min-h-11 items-center border border-[var(--cream)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
-            >
-              Volunteer with us
-            </Link>
+            <a href={teamJoinUrl} target="_blank" rel="noopener noreferrer" className="signal-button signal-button--line">Apply to join <ArrowUpRight aria-hidden="true" /></a>
+            <Link href="/volunteer" className="signal-button signal-button--line">Volunteer with us <ArrowUpRight aria-hidden="true" /></Link>
           </div>
         </div>
       </section>

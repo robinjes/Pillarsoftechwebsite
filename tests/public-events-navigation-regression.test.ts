@@ -25,6 +25,8 @@ describe('public events and navigation regressions', () => {
     expect(navbar).toContain('onMouseEnter={() => setIsSupportOpen(true)}')
     expect(navbar).toContain('onMouseLeave={() => setIsSupportOpen(false)}')
     expect(navbar).toContain('aria-expanded={isSupportOpen}')
+    expect(navbar).toContain('event.detail === 0')
+    expect(navbar).toContain('setIsSupportOpen((open) => !open)')
     expect(navbar).not.toContain('<details')
   })
 

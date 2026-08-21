@@ -95,59 +95,60 @@ export default function WildcatTankPage() {
   const remainingResults = rankedResults.slice(3)
 
   return (
-    <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-24 text-[var(--ink)] sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <header className="border-y-2 border-[var(--ink)] bg-[var(--midnight)] px-6 py-12 text-[var(--cream)] sm:px-10 lg:py-16">
+    <main className="min-h-screen bg-[var(--bone)] pb-20 pt-12 text-[var(--carbon)] selection:bg-[var(--cream)] sm:pt-16">
+      <div className="signal-shell">
+        <header className="border-y border-[var(--ink)] bg-[var(--carbon)] px-5 py-12 text-[var(--off-white)] sm:px-10 lg:py-16">
           <div className="grid gap-10 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--sky)]">Presentation day / Wildcat Tank</p>
-              <h1 className="mt-5 max-w-4xl font-display text-5xl leading-[0.9] sm:text-[4.8rem]">Ideas on the table.</h1>
-              <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--cream)]/80 sm:text-lg">A record of the judges, schedule, presentations, and final standings from Wildcat Tank.</p>
+              <p className="signal-mono signal-eyebrow">WILDCAT TANK / COMPETITION SCOREBOARD</p>
+              <h1 className="mt-5 max-w-4xl font-display text-5xl leading-[0.9] tracking-[-0.05em] sm:text-[4.35rem]">Ideas on the table.</h1>
+              <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--off-white)]/72 sm:text-lg">A record of the judges, schedule, presentations, and final standings from Wildcat Tank.</p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <Link href="/events/wildcat-tank-altamont" className="inline-flex min-h-11 items-center gap-2 bg-[var(--sky)] px-5 py-3 text-sm font-bold text-[var(--midnight)] hover:bg-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)] rounded-[10px]">View event page <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
-                <a href="/Wildcat%20Tank%20Official%20Manual.pdf" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center gap-2 border border-[var(--cream)] px-5 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)] rounded-[10px]"><FileText className="h-4 w-4" aria-hidden="true" /> Open manual</a>
+                <Link href="/events/wildcat-tank-altamont" className="signal-button signal-button--orange">View event page <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>
+                <a href="/Wildcat%20Tank%20Official%20Manual.pdf" target="_blank" rel="noopener noreferrer" className="signal-button signal-button--light"><FileText className="h-4 w-4" aria-hidden="true" /> Open manual</a>
               </div>
             </div>
-            <aside className="border-l-2 border-[var(--sky)] pl-5">
-              <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--sky)]">Thank you</p>
-              <p className="mt-4 text-lg leading-8 text-[var(--cream)]/85">Thank you to every student, family, and supporter who made Wildcat Tank special. Every presenter brought creativity, confidence, and effort to the stage.</p>
+            <aside className="border-l border-[var(--signal-orange)] pl-5">
+              <p className="signal-mono text-[var(--signal-orange)]">THANK YOU</p>
+              <p className="mt-4 text-lg leading-8 text-[var(--off-white)]/78">Thank you to every student, family, and supporter who made Wildcat Tank special. Every presenter brought creativity, confidence, and effort to the stage.</p>
             </aside>
           </div>
         </header>
 
-        <section className="grid border-b-2 border-[var(--ink)] md:grid-cols-2 xl:grid-cols-3">
+        <section className="grid border-b border-[var(--carbon)] md:grid-cols-2 xl:grid-cols-3">
           {reminders.map(([label, value]) => (
-            <div key={label} className="border-b border-[var(--ink)]/30 p-5 last:border-b-0 md:odd:border-r xl:nth-[3n+1]:border-r xl:nth-[3n+2]:border-r">
-              {label === 'Event date' ? <CalendarDays className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /> : label === 'Location' ? <MapPin className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /> : null}
-              <p className="mt-3 text-xs font-bold uppercase tracking-[0.18em] text-[var(--cobalt)]">{label}</p>
+            <div key={label} className="border-b border-[var(--carbon)]/25 p-5 last:border-b-0 md:odd:border-r xl:nth-[3n+1]:border-r xl:nth-[3n+2]:border-r">
+              {label === 'Event date' ? <CalendarDays className="h-5 w-5 text-[var(--ultramarine)]" aria-hidden="true" /> : label === 'Location' ? <MapPin className="h-5 w-5 text-[var(--ultramarine)]" aria-hidden="true" /> : null}
+              <p className="signal-mono mt-3 text-[var(--ultramarine)]">{label}</p>
               <p className="mt-2 text-sm font-semibold leading-7">{value}</p>
             </div>
           ))}
         </section>
 
-        <section id="judges" className="border-b-2 border-[var(--ink)] py-12 scroll-mt-28">
-          <p className="text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">The panel</p>
-          <h2 className="mt-3 font-display text-5xl text-[var(--midnight)]">Meet the judges.</h2>
-          <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--ink)]/80">Presentation day featured judges with leadership experience in science, engineering, and innovation.</p>
-          <div className="mt-8 grid gap-px border border-[var(--ink)] bg-[var(--ink)] lg:grid-cols-3">
-            {judges.map((judge) => (
-              <article key={judge.name} className="bg-[var(--paper)]">
+        <section id="judges" className="border-b border-[var(--carbon)] py-14 scroll-mt-28 sm:py-20">
+          <p className="signal-mono signal-eyebrow">01 / THE PANEL</p>
+          <h2 className="mt-3 font-display text-4xl leading-[0.98] tracking-[-0.045em] text-[var(--carbon)] sm:text-5xl">Meet the judges.</h2>
+          <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--carbon)]/72">Presentation day featured judges with leadership experience in science, engineering, and innovation.</p>
+          <div className="mt-8 grid gap-px border border-[var(--carbon)] bg-[var(--carbon)] lg:grid-cols-3">
+            {judges.map((judge, index) => (
+              <article key={judge.name} className="bg-[var(--off-white)]">
                 <Image src={judge.image} alt={`${judge.name}, Wildcat Tank judge`} width={500} height={500} className="aspect-square w-full object-cover" />
                 <div className="p-6">
-                  <h3 className="font-display text-3xl leading-tight text-[var(--midnight)]">{judge.name}</h3>
-                  <p className="mt-3 text-sm font-bold leading-6 text-[var(--cobalt)]">{judge.title}</p>
-                  <p className="mt-5 border-t border-[var(--ink)]/30 pt-4 text-sm leading-7 text-[var(--ink)]/75">{judge.background}</p>
-                  <a href={judge.linkedin} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[var(--cobalt)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">View profile <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a>
+                  <p className="signal-mono text-[var(--signal-orange)]">0{index + 1} / JUDGE</p>
+                  <h3 className="mt-4 font-display text-3xl leading-tight tracking-[-0.04em] text-[var(--carbon)]">{judge.name}</h3>
+                  <p className="mt-3 text-sm font-bold leading-6 text-[var(--ultramarine)]">{judge.title}</p>
+                  <p className="mt-5 border-t border-[var(--carbon)]/30 pt-4 text-sm leading-7 text-[var(--carbon)]/72">{judge.background}</p>
+                  <a href={judge.linkedin} target="_blank" rel="noopener noreferrer" className="signal-text-link mt-5 inline-flex min-h-11 items-center gap-2">View profile <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a>
                 </div>
               </article>
             ))}
           </div>
         </section>
 
-        <section id="results" className="py-12 scroll-mt-28">
-          <p className="text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">The record</p>
-          <h2 className="mt-3 font-display text-5xl text-[var(--midnight)]">Final standings.</h2>
-          <p className="mt-4 max-w-3xl text-base leading-8 text-[var(--ink)]/80">These are the recorded presentation-day scores. Select a project to open its timestamp in the full event recording.</p>
+        <section id="results" className="py-14 scroll-mt-28 sm:py-20">
+          <p className="signal-mono signal-eyebrow">02 / THE RECORD</p>
+          <h2 className="mt-3 font-display text-4xl leading-[0.98] tracking-[-0.045em] text-[var(--carbon)] sm:text-5xl">Final standings.</h2>
+          <p className="mt-4 max-w-3xl text-base leading-8 text-[var(--carbon)]/72">These are the recorded presentation-day scores. Select a project to open its timestamp in the full event recording.</p>
           <WildcatTankPodium topThree={topThree} remainingResults={remainingResults} />
         </section>
       </div>

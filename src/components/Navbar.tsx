@@ -60,51 +60,34 @@ export default function Navbar() {
         first.focus()
       }
     }
+
     wasOpenRef.current = true
     document.addEventListener('keydown', onKeyDown)
     document.body.style.overflow = 'hidden'
     closeButtonRef.current?.focus()
-
     return () => {
       document.removeEventListener('keydown', onKeyDown)
       document.body.style.overflow = ''
     }
   }, [isOpen])
 
-  const closeMenu = () => setIsOpen(false)
-
-  if (pathname.startsWith('/admin') || pathname.startsWith('/volunteer/checkin')) {
-    return null
-  }
+  if (pathname.startsWith('/admin') || pathname.startsWith('/volunteer/checkin')) return null
 
   return (
-    <header className="public-navbar sticky top-0 z-50 border-b border-white/20 bg-midnight text-warm">
-      <div className="site-shell mx-auto flex min-h-[4.75rem] items-center justify-between gap-6 px-5 sm:px-8 lg:px-10">
-        <BrandMark compact />
-        <span className="public-navbar__note hidden font-display text-[0.58rem] font-bold uppercase tracking-[0.16em] text-warm/45 xl:block" aria-hidden="true">
-          Student-led STEM workshops
-        </span>
+    <header className="public-navbar signal-navbar">
+      <div className="signal-shell signal-navbar__inner">
+        <BrandMark compact tone="dark" />
+        <span className="public-navbar__note signal-mono" aria-hidden="true">Student-led STEM workshops</span>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
-          {primaryLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="inline-flex min-h-11 items-center px-4 text-sm font-semibold transition-colors hover:text-sky"
-            >
-              {link.label}
-            </Link>
-          ))}
-
+        <nav className="signal-navbar__desktop" aria-label="Primary navigation">
+          {primaryLinks.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}
           <div
-            className="relative"
+            className="signal-navbar__support"
             onMouseEnter={() => setIsSupportOpen(true)}
             onMouseLeave={() => setIsSupportOpen(false)}
             onFocusCapture={() => setIsSupportOpen(true)}
             onBlurCapture={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-                setIsSupportOpen(false)
-              }
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsSupportOpen(false)
             }}
             onKeyDown={(event) => {
               if (event.key === 'Escape') {
@@ -116,7 +99,7 @@ export default function Navbar() {
             <button
               ref={supportButtonRef}
               type="button"
-              className="flex min-h-11 items-center gap-1 px-4 text-sm font-semibold transition-colors hover:text-sky"
+              className="signal-navbar__support-button"
               aria-expanded={isSupportOpen}
               aria-controls="support-navigation"
               onClick={(event) => {
@@ -124,101 +107,32 @@ export default function Navbar() {
                 else setIsSupportOpen(true)
               }}
             >
-              Support
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${isSupportOpen ? 'rotate-180' : ''}`}
-                aria-hidden="true"
-              />
+              Support <ChevronDown className={isSupportOpen ? 'rotate-180' : ''} aria-hidden="true" />
             </button>
             {isSupportOpen ? (
-              <div
-                id="support-navigation"
-                className="absolute right-0 top-full min-w-48 pt-2"
-              >
-                <div className="border border-midnight/20 bg-warm p-2 text-ink shadow-[4px_4px_0_#101114]">
-                  {supportLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className="flex min-h-11 items-center px-3 text-sm font-semibold transition-colors hover:bg-sky"
-                    >
-                      {link.label}
-                    </Link>
-                  ))}
+              <div id="support-navigation" className="absolute right-0 top-full min-w-48 pt-2">
+                <div className="signal-navbar__menu">
+                  {supportLinks.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}
                 </div>
               </div>
             ) : null}
           </div>
-
-          <Link
-            href="/events"
-            className="ml-3 inline-flex min-h-11 items-center gap-2 border border-sky bg-sky px-4 text-sm font-bold text-midnight transition-colors hover:bg-warm"
-          >
-            Find an event
-            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
+          <Link href="/events" className="signal-navbar__cta">Find an event <ArrowUpRight aria-hidden="true" /></Link>
         </nav>
 
-        <button
-          ref={openButtonRef}
-          type="button"
-          className="inline-flex min-h-11 min-w-11 items-center justify-center border border-white/40 text-warm lg:hidden"
-          onClick={() => setIsOpen(true)}
-          aria-label="Open navigation menu"
-          aria-expanded={isOpen}
-          aria-controls="mobile-navigation"
-        >
-          <Menu className="h-5 w-5" aria-hidden="true" />
+        <button ref={openButtonRef} type="button" className="signal-navbar__menu-button" onClick={() => setIsOpen(true)} aria-label="Open navigation menu" aria-expanded={isOpen} aria-controls="mobile-navigation">
+          <Menu aria-hidden="true" />
         </button>
       </div>
 
       {isOpen ? (
-        <div className="fixed inset-0 z-[60] lg:hidden" role="presentation">
-          <button
-            type="button"
-            aria-label="Close navigation menu"
-            className="absolute inset-0 h-full w-full bg-midnight/80"
-            onClick={closeMenu}
-          />
-          <div
-            id="mobile-navigation"
-            className="absolute right-0 top-0 flex h-full w-[min(25rem,92vw)] flex-col border-l border-white/20 bg-midnight p-6 text-warm"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Mobile navigation"
-          >
-            <div className="flex items-center justify-between border-b border-white/20 pb-5">
-              <BrandMark compact />
-              <button
-                ref={closeButtonRef}
-                type="button"
-                className="inline-flex min-h-11 min-w-11 items-center justify-center border border-white/40"
-                onClick={closeMenu}
-                aria-label="Close navigation menu"
-              >
-                <X className="h-5 w-5" aria-hidden="true" />
-              </button>
-            </div>
-
-            <nav className="flex flex-col gap-1 py-6" aria-label="Mobile navigation links">
-              {[...primaryLinks, ...supportLinks].map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={closeMenu}
-                  className="flex min-h-12 items-center border-b border-white/15 text-lg font-semibold transition-colors hover:text-sky"
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <Link
-                href="/events"
-                onClick={closeMenu}
-                className="mt-5 inline-flex min-h-12 items-center justify-center gap-2 border border-sky bg-sky px-4 font-bold text-midnight"
-              >
-                Find an event
-                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
+        <div className="signal-mobile-nav" role="presentation">
+          <button type="button" aria-label="Close navigation menu" className="signal-mobile-nav__backdrop" onClick={() => setIsOpen(false)} />
+          <div id="mobile-navigation" className="signal-mobile-nav__panel" role="dialog" aria-modal="true" aria-label="Mobile navigation">
+            <div className="signal-mobile-nav__top"><BrandMark compact /><button ref={closeButtonRef} type="button" onClick={() => setIsOpen(false)} aria-label="Close navigation menu"><X aria-hidden="true" /></button></div>
+            <nav aria-label="Mobile navigation links">
+              {[...primaryLinks, ...supportLinks].map((link) => <Link key={link.href} href={link.href} onClick={() => setIsOpen(false)}>{link.label}</Link>)}
+              <Link href="/events" onClick={() => setIsOpen(false)} className="signal-navbar__cta">Find an event <ArrowUpRight aria-hidden="true" /></Link>
             </nav>
           </div>
         </div>

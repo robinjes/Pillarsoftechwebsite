@@ -1,15 +1,24 @@
-import { Familjen_Grotesk, IBM_Plex_Sans } from 'next/font/google'
+import { Anybody, Archivo, IBM_Plex_Mono } from 'next/font/google'
 
-export const displayFont = Familjen_Grotesk({
+export const displayFont = Anybody({
   subsets: ['latin'],
+  weight: 'variable',
+  axes: ['wdth'],
   display: 'swap',
   variable: '--font-display',
 })
 
-export const bodyFont = IBM_Plex_Sans({
+export const bodyFont = Archivo({
   subsets: ['latin'],
+  weight: 'variable',
+  axes: ['wdth'],
   display: 'swap',
-  preload: false,
   variable: '--font-body',
-  weight: ['400', '500', '600', '700'],
+})
+
+export const monoFont = IBM_Plex_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
+  variable: '--font-mono',
 })

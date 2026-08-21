@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight, CheckCircle2, Mail, MessageCircle, Send } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
+import SignalPageIntro from '@/components/site/SignalPageIntro'
 
 const CONTACT_EMAIL = 'pillarsoftech@gmail.com'
 
@@ -125,84 +126,73 @@ export default function Contact() {
   const isSending = status === 'sending'
   const buttonLabel = status === 'sending' ? 'Sending message…' : status === 'success' ? 'Message received' : status === 'error' ? 'Try again' : 'Send message'
   const buttonClass = status === 'sending'
-    ? 'cursor-not-allowed bg-[var(--ink)]/30 text-[var(--ink)]/50'
+    ? 'cursor-not-allowed bg-[var(--carbon)]/30 text-[var(--carbon)]/50'
     : status === 'success'
-      ? 'bg-[var(--cobalt)] text-[var(--cream)]'
+      ? 'bg-[var(--ultramarine)] text-[var(--off-white)]'
       : status === 'error'
-        ? 'bg-red-700 text-[var(--cream)] hover:bg-red-800'
-        : 'bg-[var(--midnight)] text-[var(--cream)] hover:bg-[var(--cobalt)]'
+        ? 'bg-red-700 text-[var(--off-white)] hover:bg-red-800'
+        : 'bg-[var(--carbon)] text-[var(--off-white)] hover:bg-[var(--ultramarine)]'
 
   return (
-    <div className="bg-[var(--cream)] text-[var(--ink)]">
-      <header className="border-b border-[var(--ink)]/20">
-        <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
-          <div className="flex flex-col gap-7 border-y border-[var(--ink)]/25 py-8 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <div className="flex items-center gap-3 font-body text-sm font-semibold text-[var(--cobalt)]">
-                <MessageCircle aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
-                Start a conversation
-              </div>
-              <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">
-                Let&apos;s make the next step clear.
-              </h1>
-            </div>
-            <div className="max-w-sm sm:text-right">
-              <p className="font-body text-base leading-7 text-[var(--ink)]/70">
-                Tell us what you are working on, what you want to ask, or where you would like to help.
-              </p>
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                className="mt-5 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
-              >
-                {CONTACT_EMAIL}
-                <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-              </a>
-            </div>
-          </div>
-          <figure className="relative mt-8 aspect-[16/6] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:mt-10">
-            <Image
-              src="/images/events/pedrozzi-connect-egg-drop/drive-04.webp"
-              alt="Seven student volunteers pose outdoors; one holds a small drone and controller."
-              fill
-              priority
-              sizes="(min-width: 1024px) 90vw, 100vw"
-              className="object-cover object-center"
-            />
-            <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--midnight)]/85 px-4 py-3 font-body text-xs leading-5 text-[var(--cream)]">
-              Bring the idea, question, or next practical step.
-            </figcaption>
-          </figure>
-        </div>
-      </header>
+    <div className="bg-[var(--bone)] text-[var(--carbon)]">
+      <SignalPageIntro
+        eyebrow="PATCH PANEL / 01"
+        title="Let&apos;s make the next step clear."
+        description="Tell us what you are working on, what you want to ask, or where you would like to help."
+        image={{
+          src: '/images/events/pedrozzi-connect-egg-drop/drive-04.webp',
+          alt: 'Seven student volunteers pose outdoors; one holds a small drone and controller.',
+        }}
+        tone="bone"
+        imagePosition="center"
+        actions={(
+          <a href={`mailto:${CONTACT_EMAIL}`} className="signal-button signal-button--orange">
+            <MessageCircle aria-hidden="true" className="h-4 w-4" strokeWidth={1.8} />
+            {CONTACT_EMAIL}
+            <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+          </a>
+        )}
+      />
+      <p className="sr-only">Bring the idea, question, or next practical step.</p>
 
-      <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[0.72fr_1.28fr] lg:px-12 lg:py-24">
+      <section className="border-b border-[var(--carbon)]/25 bg-[var(--off-white)]">
+        <div className="signal-shell grid gap-12 py-16 sm:py-20 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16 lg:py-28">
           <div>
-            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Conversation starters</p>
-            <h2 className="mt-4 max-w-sm font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Bring the useful details.</h2>
-            <p className="mt-5 max-w-sm font-body text-base leading-7 text-[var(--ink)]/65">
+            <p className="signal-mono text-[var(--signal-orange)]">PATCH NOTES / 02 · CONVERSATION STARTERS</p>
+            <h2 className="mt-4 max-w-sm font-display text-4xl font-semibold leading-[0.92] tracking-[-0.055em] text-[var(--carbon)] sm:text-5xl">Bring the useful details.</h2>
+            <p className="mt-5 max-w-sm font-body text-base leading-7 text-[var(--carbon)]/65">
               Choose a subject and include the context that will help us understand what you need.
             </p>
-            <ul className="mt-8 divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20 font-body text-sm font-semibold text-[var(--midnight)]">
-              {inquiryHighlights.map((item) => (
-                <li key={item} className="flex items-start gap-3 py-4">
-                  <CheckCircle2 aria-hidden="true" className="mt-0.5 h-4 w-4 flex-none text-[var(--cobalt)]" />
+            <ul className="mt-8 divide-y divide-[var(--carbon)]/20 border-y border-[var(--carbon)]/25 font-body text-sm font-semibold text-[var(--carbon)]">
+              {inquiryHighlights.map((item, index) => (
+                <li key={item} className="flex items-start gap-4 py-4">
+                  <span className="signal-mono text-[var(--signal-orange)]">0{index + 1}</span>
                   <span>{item}</span>
                 </li>
               ))}
             </ul>
-            <p className="mt-8 border-l border-[var(--sky)] pl-4 font-body text-sm leading-6 text-[var(--ink)]/65">
+            <p className="mt-8 border-l-2 border-[var(--ultramarine)] pl-4 font-body text-sm leading-6 text-[var(--carbon)]/65">
               For an event request, include the date, location, and any relevant constraints.
             </p>
+            <figure className="relative mt-9 aspect-[4/3] overflow-hidden border border-[var(--carbon)]/35 bg-[var(--mist)]">
+              <Image
+                src="/images/events/pedrozzi-connect-egg-drop/drive-02.webp"
+                alt="Students sit in an auditorium during the opening workshop at Pedrozzi Connect."
+                fill
+                sizes="(min-width: 1024px) 28vw, 100vw"
+                className="object-cover"
+              />
+              <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--carbon)]/85 px-3 py-2 signal-mono text-[var(--off-white)]">FIELD RECORD / START WITH CONTEXT</figcaption>
+            </figure>
           </div>
 
-          <section id="contact-form" className="border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-5 sm:p-8">
-            <div className="flex flex-col gap-5 border-b-2 border-[var(--ink)] pb-6 sm:flex-row sm:items-end sm:justify-between">
+          <section id="contact-form" className="border border-[var(--carbon)]/35 bg-[var(--bone)] p-5 sm:p-8">
+            <div className="flex flex-col gap-5 border-b border-[var(--carbon)] pb-6 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Message form</p>
-                <h2 className="mt-3 font-display text-3xl leading-tight text-[var(--midnight)] sm:text-4xl">Send a note.</h2>
+                <p className="signal-mono text-[var(--signal-orange)]">LIVE CHANNEL / 03</p>
+                <h2 className="mt-3 font-display text-3xl font-semibold leading-[0.95] tracking-[-0.045em] text-[var(--carbon)] sm:text-4xl">Send a note.</h2>
               </div>
-              <Send aria-hidden="true" className="h-7 w-7 text-[var(--cobalt)]" strokeWidth={1.7} />
+              <Send aria-hidden="true" className="h-7 w-7 text-[var(--ultramarine)]" strokeWidth={1.7} />
             </div>
 
             {errorMessage && (
@@ -212,7 +202,7 @@ export default function Contact() {
             )}
 
             {status === 'success' && (
-              <div className="mt-6 border-l-2 border-[var(--cobalt)] bg-[var(--sky)]/35 px-4 py-3 font-body text-sm leading-6 text-[var(--midnight)]" role="status" aria-live="polite">
+              <div className="mt-6 border-l-2 border-[var(--ultramarine)] bg-[var(--mist)]/45 px-4 py-3 font-body text-sm leading-6 text-[var(--carbon)]" role="status" aria-live="polite">
                 Your message was received. We&apos;ll follow up through the email address you provided.
               </div>
             )}
@@ -232,7 +222,7 @@ export default function Contact() {
               </div>
               <div className="grid gap-5 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="name" className="mb-2 block font-body text-sm font-bold text-[var(--midnight)]">Name</label>
+                  <label htmlFor="name" className="mb-2 block font-body text-sm font-bold text-[var(--carbon)]">Name</label>
                   <input
                     type="text"
                     id="name"
@@ -241,13 +231,13 @@ export default function Contact() {
                     onChange={handleChange}
                     placeholder="Your name"
                     autoComplete="name"
-                    className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                    className="min-h-11 w-full border border-[var(--carbon)]/35 bg-[var(--off-white)] px-4 py-3 font-body text-[var(--carbon)] placeholder:text-[var(--carbon)]/45 outline-none transition focus-visible:border-[var(--ultramarine)] focus-visible:ring-2 focus-visible:ring-[var(--signal-orange)]"
                     required
                     disabled={isSending}
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="mb-2 block font-body text-sm font-bold text-[var(--midnight)]">Email</label>
+                  <label htmlFor="email" className="mb-2 block font-body text-sm font-bold text-[var(--carbon)]">Email</label>
                   <input
                     type="email"
                     id="email"
@@ -256,7 +246,7 @@ export default function Contact() {
                     onChange={handleChange}
                     placeholder="you@example.com"
                     autoComplete="email"
-                    className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                    className="min-h-11 w-full border border-[var(--carbon)]/35 bg-[var(--off-white)] px-4 py-3 font-body text-[var(--carbon)] placeholder:text-[var(--carbon)]/45 outline-none transition focus-visible:border-[var(--ultramarine)] focus-visible:ring-2 focus-visible:ring-[var(--signal-orange)]"
                     required
                     disabled={isSending}
                   />
@@ -264,13 +254,13 @@ export default function Contact() {
               </div>
 
               <div>
-                <label htmlFor="subject" className="mb-2 block font-body text-sm font-bold text-[var(--midnight)]">What can we help with?</label>
+                <label htmlFor="subject" className="mb-2 block font-body text-sm font-bold text-[var(--carbon)]">What can we help with?</label>
                 <select
                   id="subject"
                   name="subject"
                   value={formData.subject}
                   onChange={handleSubjectChange}
-                  className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                  className="min-h-11 w-full border border-[var(--carbon)]/35 bg-[var(--off-white)] px-4 py-3 font-body text-[var(--carbon)] outline-none transition focus-visible:border-[var(--ultramarine)] focus-visible:ring-2 focus-visible:ring-[var(--signal-orange)]"
                   required
                   disabled={isSending}
                 >
@@ -281,9 +271,9 @@ export default function Contact() {
               </div>
 
               {isWorkshop && (
-                <div className="grid gap-5 border-l-2 border-[var(--sky)] pl-4 sm:grid-cols-2">
+                <div className="grid gap-5 border-l-2 border-[var(--ultramarine)] pl-4 sm:grid-cols-2">
                   <div>
-                    <label htmlFor="schoolName" className="mb-2 block font-body text-sm font-bold text-[var(--midnight)]">School or organization</label>
+                    <label htmlFor="schoolName" className="mb-2 block font-body text-sm font-bold text-[var(--carbon)]">School or organization</label>
                     <input
                       type="text"
                       id="schoolName"
@@ -292,13 +282,13 @@ export default function Contact() {
                       onChange={handleChange}
                       autoComplete="organization"
                       placeholder="School, club, or organization"
-                      className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                      className="min-h-11 w-full border border-[var(--carbon)]/35 bg-[var(--off-white)] px-4 py-3 font-body text-[var(--carbon)] placeholder:text-[var(--carbon)]/45 outline-none transition focus-visible:border-[var(--ultramarine)] focus-visible:ring-2 focus-visible:ring-[var(--signal-orange)]"
                       required={isWorkshop}
                       disabled={isSending}
                     />
                   </div>
                   <div>
-                    <label htmlFor="studentCount" className="mb-2 block font-body text-sm font-bold text-[var(--midnight)]">Estimated students</label>
+                    <label htmlFor="studentCount" className="mb-2 block font-body text-sm font-bold text-[var(--carbon)]">Estimated students</label>
                     <input
                       type="number"
                       id="studentCount"
@@ -309,7 +299,7 @@ export default function Contact() {
                       min="1"
                       step="1"
                       placeholder="Approximate number"
-                      className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                      className="min-h-11 w-full border border-[var(--carbon)]/35 bg-[var(--off-white)] px-4 py-3 font-body text-[var(--carbon)] placeholder:text-[var(--carbon)]/45 outline-none transition focus-visible:border-[var(--ultramarine)] focus-visible:ring-2 focus-visible:ring-[var(--signal-orange)]"
                       required={isWorkshop}
                       disabled={isSending}
                     />
@@ -318,7 +308,7 @@ export default function Contact() {
               )}
 
               <div>
-                <label htmlFor="message" className="mb-2 block font-body text-sm font-bold text-[var(--midnight)]">Message</label>
+                <label htmlFor="message" className="mb-2 block font-body text-sm font-bold text-[var(--carbon)]">Message</label>
                 <textarea
                   id="message"
                   name="message"
@@ -326,7 +316,7 @@ export default function Contact() {
                   onChange={handleChange}
                   placeholder="Tell us about your idea, question, or event."
                   rows={7}
-                  className="min-h-11 w-full resize-y rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                  className="min-h-11 w-full resize-y border border-[var(--carbon)]/35 bg-[var(--off-white)] px-4 py-3 font-body text-[var(--carbon)] placeholder:text-[var(--carbon)]/45 outline-none transition focus-visible:border-[var(--ultramarine)] focus-visible:ring-2 focus-visible:ring-[var(--signal-orange)]"
                   required
                   disabled={isSending}
                 />
@@ -335,16 +325,16 @@ export default function Contact() {
               <button
                 type="submit"
                 disabled={isSending}
-                className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md px-6 py-3 font-body font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)] ${buttonClass}`}
+                className={`inline-flex min-h-11 w-full items-center justify-center gap-2 border border-[var(--carbon)] px-6 py-3 font-body font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-orange)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--bone)] ${buttonClass}`}
               >
                 {status === 'success' ? <CheckCircle2 aria-hidden="true" className="h-4 w-4" /> : <Mail aria-hidden="true" className="h-4 w-4" />}
                 {buttonLabel}
               </button>
             </form>
 
-            <p className="mt-5 font-body text-sm leading-6 text-[var(--ink)]/65">
+            <p className="mt-5 font-body text-sm leading-6 text-[var(--carbon)]/65">
               Looking for equipment? Visit the{' '}
-              <Link href="/wishlist" className="font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]">wishlist</Link>.
+              <Link href="/wishlist" className="font-bold text-[var(--ultramarine)] underline decoration-2 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--signal-orange)]">wishlist</Link>.
             </p>
           </section>
         </div>
