@@ -6,6 +6,7 @@ vi.mock('@/lib/supabase/service', () => ({ createSupabaseServiceRoleClient: vi.f
 import { createSupabaseServiceRoleClient } from '@/lib/supabase/service'
 import {
   finalizeMediaUpload,
+  getMediaDelivery,
   parseMediaSignRequest,
   signMediaUpload,
 } from '@/lib/media/server'
@@ -222,5 +223,27 @@ describe('server media ownership and finalization', () => {
     expect(reads).toEqual(['sample', 'done'])
     expect(response.arrayBuffer).not.toHaveBeenCalled()
     expect(incomingFile.copy).toHaveBeenCalledWith(expect.stringMatching(/^incoming\//), expect.stringMatching(/^final\//), { destinationBucket: 'public-media' })
+  })
+
+  it('fails closed for finalized private PDFs on the public delivery service', async () => {
+    const privatePdf = pendingRow({
+      id: '44444444-4444-4444-8444-444444444444',
+      storage_path: 'final/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee.pdf',
+      original_filename: 'private-handout.pdf',
+      content_type: 'application/pdf',
+      visibility: 'private',
+      status: 'finalized',
+    })
+    const client = {
+      from: vi.fn().mockReturnValue(selectQuery(privatePdf)),
+      storage: { from: vi.fn() },
+    }
+    mockedServiceClient.mockReturnValue(client as never)
+
+    await expect(getMediaDelivery(privatePdf.id)).rejects.toMatchObject({
+      code: 'media_not_deliverable',
+      status: 404,
+    })
+    expect(client.storage.from).not.toHaveBeenCalled()
   })
 })

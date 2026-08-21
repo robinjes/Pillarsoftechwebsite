@@ -101,7 +101,7 @@ export default function WildcatTankPage() {
           <div className="grid gap-10 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--sky)]">Presentation day / Wildcat Tank</p>
-              <h1 className="mt-5 max-w-4xl font-display text-6xl leading-[0.9] sm:text-8xl">Ideas on the table.</h1>
+              <h1 className="mt-5 max-w-4xl font-display text-5xl leading-[0.9] sm:text-[4.8rem]">Ideas on the table.</h1>
               <p className="mt-6 max-w-2xl text-base leading-8 text-[var(--cream)]/80 sm:text-lg">A record of the judges, schedule, presentations, and final standings from Wildcat Tank.</p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link href="/events/wildcat-tank-altamont" className="inline-flex min-h-11 items-center gap-2 bg-[var(--sky)] px-5 py-3 text-sm font-bold text-[var(--midnight)] hover:bg-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)] rounded-[10px]">View event page <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></Link>

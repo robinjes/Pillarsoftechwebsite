@@ -291,7 +291,7 @@ export default function VolunteerPortalPage() {
           <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-12 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-16">
             <div>
               <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Volunteer dashboard</p>
-              <h1 className="mt-3 max-w-3xl font-display text-4xl leading-tight text-[var(--midnight)] sm:text-6xl">Your volunteer shift, in one place.</h1>
+              <h1 className="mt-3 max-w-3xl font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Your volunteer shift, in one place.</h1>
               <p className="mt-5 font-body text-base leading-7 text-[var(--ink)]/65">Manage your event registrations, member code, and volunteer history.</p>
             </div>
             <button
@@ -457,7 +457,7 @@ export default function VolunteerPortalPage() {
         <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:px-12 lg:py-16">
           <div>
             <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Volunteer with the next workshop</p>
-            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-7xl">Bring your hands to the work.</h1>
+            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">Bring your hands to the work.</h1>
             <p className="mt-6 max-w-lg font-body text-base leading-7 text-[var(--ink)]/70 sm:text-lg">Help with the practical details that make a STEM event welcoming: setup, greeting, activity support, and check-in.</p>
             <a
               href={teamJoinUrl}

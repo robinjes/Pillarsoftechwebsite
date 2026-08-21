@@ -275,7 +275,7 @@ export default function EventPage() {
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
               </button>
               <p className="mt-8 text-sm font-semibold text-[var(--sky)]">{event.programCategory} · {isCurrent ? 'Now & next' : 'Archive'}</p>
-              <h1 className="mt-4 max-w-3xl font-display text-4xl leading-[0.98] tracking-[-0.04em] sm:text-5xl lg:text-6xl">{event.title}</h1>
+              <h1 className="mt-4 max-w-3xl font-display text-4xl leading-[0.98] tracking-[-0.04em] sm:text-5xl">{event.title}</h1>
               <p className="mt-6 max-w-2xl text-base leading-7 text-[var(--cream)]/80 sm:text-lg sm:leading-8">{event.summary || eventParagraphs[0]}</p>
             </div>
             <div className="mt-9 flex flex-wrap gap-2 text-sm font-semibold">

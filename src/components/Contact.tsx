@@ -142,7 +142,7 @@ export default function Contact() {
                 <MessageCircle aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
                 Start a conversation
               </div>
-              <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-7xl">
+              <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">
                 Let&apos;s make the next step clear.
               </h1>
             </div>

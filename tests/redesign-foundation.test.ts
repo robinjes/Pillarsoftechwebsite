@@ -31,7 +31,7 @@ describe('editorial homepage foundation', () => {
     expect(heroVisual).toContain('/images/events/science-odyssey/drive-02.webp')
     expect(heroVisual).toContain('Students compare and test marshmallow structures at the Science Odyssey engineering table.')
     expect(heroVisual).toContain('priority')
-    expect(heroVisual).toContain('clipPath')
+    expect(heroVisual).toContain('data-hero-contact-sheet')
     expect(heroVisual).toContain('useTransform')
     expect(readSource('components/site/HeroMotion.tsx')).toContain('useReducedMotion')
     expect(page).not.toContain('loading="eager"')
@@ -53,7 +53,10 @@ describe('editorial homepage foundation', () => {
     expect(workshop).toContain('Every part has a purpose.')
     expect(workshop).toContain('Frame, Motion, Sense, and Lead')
     expect(workshop).toContain('DesktopWorkshopAssemblyLoader')
-    expect(workshop).not.toContain('next/image')
+    expect(workshop).toContain('/images/events/family-science-night-altamont/drive-02.webp')
+    expect(workshop).toContain('data-workshop-static="narrow"')
+    expect(workshop).toContain('An older student demonstrates a VEX robot to three younger students at Family Science Night.')
+    expect(workshop).toContain("from 'next/image'")
     expect(desktopWorkshop).toContain("from '@react-three/fiber'")
     expect(desktopWorkshop).toContain("from 'three'")
     expect(desktopWorkshop).toContain("from 'three/examples/jsm/loaders/GLTFLoader.js'")
@@ -62,6 +65,7 @@ describe('editorial homepage foundation', () => {
     expect(desktopWorkshop).toContain('ACESFilmicToneMapping')
     expect(desktopWorkshop).toContain('SRGBColorSpace')
     expect(desktopWorkshop).toContain('/models/perseverance/perseverance-runtime.glb')
+    expect(desktopWorkshop).not.toContain('/images/events/')
     for (const unit of [
       'Body', 'Body_Parts', 'Body_Parts.001', 'base', 'box', 'part_01', 'Armature', 'Empty',
       'suspension', 'Wheels_objs', 'Body.002', 'Body.003',

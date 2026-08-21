@@ -66,7 +66,7 @@ export default function WishlistPage() {
         <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:px-12 lg:py-16">
           <div>
             <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Workshop packing list</p>
-            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-7xl">Pack the next build.</h1>
+            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">Pack the next build.</h1>
             <p className="mt-6 max-w-lg font-body text-base leading-7 text-[var(--ink)]/70 sm:text-lg">
               These are the practical tools that turn an open table into a hands-on STEM session. Every item has a useful next step.
             </p>

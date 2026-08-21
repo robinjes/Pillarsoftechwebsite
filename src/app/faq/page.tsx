@@ -73,7 +73,7 @@ export default function FAQPage() {
         <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 sm:px-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-end lg:px-12 lg:py-16">
           <div>
             <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Questions, made useful</p>
-            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-7xl">Find your next clear step.</h1>
+            <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">Find your next clear step.</h1>
           </div>
           <div className="max-w-xl lg:justify-self-end">
             <p className="font-body text-base leading-7 text-[var(--ink)]/70 sm:text-lg">

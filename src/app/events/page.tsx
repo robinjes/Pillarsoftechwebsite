@@ -300,7 +300,7 @@ export default function EventsPage() {
         <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-end">
           <div>
             <p className="text-sm font-semibold text-[var(--sky)]">Pillars of Tech · field notes</p>
-            <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.96] tracking-[-0.04em] sm:text-6xl lg:text-[5.4rem]">
+            <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.96] tracking-[-0.04em] sm:text-[4.35rem]">
               Programs that make curiosity visible.
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--cream)]/80 sm:text-lg sm:leading-8">
