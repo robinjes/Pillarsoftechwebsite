@@ -401,7 +401,7 @@ export default function WorkshopAssemblyDesktop() {
   const currentStage = useCurrentStage(progressTarget, reducedMotion)
 
   return (
-    <section ref={sectionRef} className={`relative overflow-clip bg-midnight text-warm ${WORKSHOP_HEIGHT_CLASSES}`} aria-labelledby="workshop-heading">
+    <section ref={sectionRef} className={`relative overflow-clip bg-midnight text-warm ${WORKSHOP_HEIGHT_CLASSES}`} aria-labelledby="workshop-heading" data-workshop-motion="desktop">
       <div className="sticky top-[4.75rem] min-h-[calc(100svh-4.75rem)] overflow-hidden">
         <div className="absolute inset-0 bg-midnight">
           <div className="absolute inset-0" role="img" aria-label={desktopVisualLabel}>
