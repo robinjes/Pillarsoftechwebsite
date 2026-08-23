@@ -1,6 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  darkMode: 'class',
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,27 +8,34 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: '#15307a',    // Darker navy blue
-        secondary: '#1e40af',   // Darker bright blue
-        accent: '#2563eb',     // Kept the same light blue for contrast
-        dark: '#0f1f4d',       // Darker blue
-        light: '#f8fafc',      // Kept the same off white
+        cream: '#F3EBDD',
+        ink: '#101114',
+        midnight: '#0B1F3A',
+        sky: '#A9D8F2',
+        cobalt: '#2B5DA8',
+        warm: '#FFFDF8',
+        primary: '#0B1F3A',
+        secondary: '#2B5DA8',
+        accent: '#A9D8F2',
+        dark: '#0B1F3A',
+        light: '#F3EBDD',
         blue: {
-          100: '#f8fafc',      // Kept the same off white
-          200: '#e2e8f0',      // Kept the same light gray blue
-          300: '#93c5fd',      // Kept the same sky blue
-          400: '#2563eb',      // Kept the same light blue
-          500: '#1e40af',      // Darker bright blue
-          600: '#15307a',      // Darker navy blue
-          700: '#0f1f4d',      // Darker blue
-          800: '#0a1428',      // Darker near black blue
-          850: '#081020',      // Darker button background
-        }
+          100: '#FFFDF8',
+          200: '#F3EBDD',
+          300: '#A9D8F2',
+          400: '#2B5DA8',
+          500: '#2B5DA8',
+          600: '#0B1F3A',
+          700: '#0B1F3A',
+          800: '#07152A',
+          850: '#061226',
+        },
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        display: ['var(--font-display)', 'Arial', 'sans-serif'],
+        body: ['var(--font-body)', 'Arial', 'sans-serif'],
       },
     },
   },
   plugins: [],
-} 
+}

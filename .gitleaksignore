@@ -1,0 +1,2 @@
+# False positive: reviewed SHA-256 digest pinned for the metadata-free Workshop Assembly access image.
+ad7375f0d597de167ed502a8845c2e9a98d3fce6:tests/workshop-assets.test.ts:generic-api-key:9
