@@ -27,7 +27,14 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
+.env
+.env.*
+!.env.example
 .env*.local
+
+# Supabase CLI runtime state and generated local credentials
+/supabase/.branches/
+/supabase/.temp/
 
 # vercel
 .vercel

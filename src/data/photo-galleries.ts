@@ -18,15 +18,15 @@ export const photoGalleries: Record<string, GalleryCollection> = {
     folder: 'wildcat-tank-2026',
     photos: [
       {
-        alt: 'Students and attendees gathered outside during Wildcat Tank.',
+        alt: 'Volunteers guide children building marshmallow structures at outdoor tables during Wildcat Tank.',
         publicId: 'wildcat-tank-2026/Outdoor1',
       },
       {
-        alt: 'Another outdoor Wildcat Tank event moment with students and families.',
+        alt: 'Students test marshmallow structures with volunteers during Wildcat Tank.',
         publicId: 'wildcat-tank-2026/Outdoor2',
       },
       {
-        alt: 'Wildcat Tank judges and attendees during the event.',
+        alt: 'Four Wildcat Tank judges pose at the presentation table.',
         publicId: 'wildcat-tank-2026/Judges+Gatty',
       },
     ],
