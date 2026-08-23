@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Fredoka, Space_Grotesk } from 'next/font/google'
 import Link from 'next/link'
-import { Html5Qrcode } from 'html5-qrcode'
+import type { Html5Qrcode } from 'html5-qrcode'
 import {
   volunteerService,
   EventRosterEntry,
@@ -115,7 +115,6 @@ export default function CheckinPage() {
     let mounted = true
 
     const init = async () => {
-      await volunteerService.handleAuthCallback()
       const profile = await volunteerService.getCurrentUser()
 
       if (!mounted) return
@@ -156,33 +155,42 @@ export default function CheckinPage() {
   useEffect(() => {
     if (!cameraActive || !selectedEventId) return
 
-    // Give react time to mount the qr-reader div element
+    let cancelled = false
+    let localScanner: Html5Qrcode | null = null
+
+    // Give react time to mount the qr-reader div element. The scanner bundle is
+    // loaded only after the already-verified staff member activates the camera.
     const timer = setTimeout(() => {
       const qrCodeId = 'qr-reader'
-      const html5QrCode = new Html5Qrcode(qrCodeId)
-      
-      html5QrCode.start(
-        { facingMode: 'environment' },
-        {
-          fps: 10,
-          qrbox: (width, height) => {
-            const size = Math.min(width, height) * 0.7
-            return { width: size, height: size }
+      void import('html5-qrcode').then(({ Html5Qrcode }) => {
+        if (cancelled) return
+        const html5QrCode = new Html5Qrcode(qrCodeId)
+        localScanner = html5QrCode
+
+        return html5QrCode.start(
+          { facingMode: 'environment' },
+          {
+            fps: 10,
+            qrbox: (width, height) => {
+              const size = Math.min(width, height) * 0.7
+              return { width: size, height: size }
+            }
+          },
+          (decodedText) => {
+            handleCodeScanRef.current(decodedText)
+          },
+          () => {
+            // Silent scan failure per frame
           }
-        },
-        async (decodedText) => {
-          // Success callback
-          handleCodeScanRef.current(decodedText)
-        },
-        () => {
-          // Silent scan failure per frame
-        }
-      )
-      .then(() => {
-        setScannerInstance(html5QrCode)
-        setCameraError('')
-      })
-      .catch(err => {
+        ).then(() => {
+          if (cancelled) {
+            return html5QrCode.stop().then(() => html5QrCode.clear())
+          }
+          setScannerInstance(html5QrCode)
+          setCameraError('')
+        })
+      }).catch(err => {
+        if (cancelled) return
         console.error('Camera start failed:', err)
         setCameraError('Camera access denied or device busy.')
         setCameraActive(false)
@@ -190,7 +198,11 @@ export default function CheckinPage() {
     }, 100)
 
     return () => {
+      cancelled = true
       clearTimeout(timer)
+      if (localScanner?.isScanning) {
+        void localScanner.stop().then(() => localScanner?.clear()).catch(() => undefined)
+      }
     }
   }, [cameraActive, selectedEventId])
 
@@ -307,43 +319,19 @@ export default function CheckinPage() {
     setActiveCheckIns(sessions)
   }
 
-  const exportRosterCsv = () => {
+  const exportRosterCsv = async () => {
     if (!selectedEvent) return
-
-    const rows = [
-      ['Name', 'Email', 'Member Code', 'Status', 'Hours', 'Checked In At'],
-      ...eventRoster.map(({ signup, profile }) => [
-        profile?.fullName || 'Unknown volunteer',
-        profile?.email || '',
-        profile?.memberCode || '',
-        signup.status,
-        signup.hours.toString(),
-        signup.checkedInAt || '',
-      ]),
-    ]
-
-    const csv = rows
-      .map((row) => row.map((value) => `"${value.replace(/"/g, '""')}"`).join(','))
-      .join('\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `${selectedEvent.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-volunteer-roster.csv`
-    link.click()
-    URL.revokeObjectURL(link.href)
+    try {
+      await volunteerService.downloadAttendanceCsv(selectedEvent.id)
+    } catch (error) {
+      setCheckinError(error instanceof Error ? error.message : 'The roster export could not be created.')
+    }
   }
 
   const handleManualProfileSelect = (profile: VolunteerProfile) => {
     setManualCode(profile.memberCode)
     setManualSearch('')
     setManualSearchResults([])
-  }
-
-  const handleUpdateRole = async (userId: string, newRole: 'volunteer' | 'staff') => {
-    const result = await volunteerService.updateUserRole(userId, newRole)
-    if (result) {
-      setAllProfiles(allProfiles.map(p => p.id === userId ? result : p))
-    }
   }
 
   const handleLogout = async () => {
@@ -431,7 +419,7 @@ export default function CheckinPage() {
             Staff Settings
           </h2>
           <p className={`${spaceGrotesk.className} text-sm text-blue-200`}>
-            Manage who is staff and who is a volunteer.
+            View server-controlled staff membership. Membership changes are owner-only SQL operations.
           </p>
         </div>
 
@@ -486,19 +474,6 @@ export default function CheckinPage() {
                   {profile.role}
                 </span>
 
-                <select
-                  value={profile.role}
-                  onChange={(e) =>
-                    handleUpdateRole(
-                      profile.id,
-                      e.target.value as 'volunteer' | 'staff'
-                    )
-                  }
-                  className={`${spaceGrotesk.className} bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-accent`}
-                >
-                  <option value="volunteer">Volunteer</option>
-                  <option value="staff">Staff</option>
-                </select>
               </div>
             </div>
           ))}

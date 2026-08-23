@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Fredoka, Space_Grotesk } from 'next/font/google';
 import { Send, CheckCircle2, ArrowLeft, RefreshCw, AlertCircle } from 'lucide-react';
-import { FormSchema } from '@/lib/data-store';
+import type { FormField } from '@/lib/content-contracts';
 import Link from 'next/link';
 
 const fredoka = Fredoka({ subsets: ['latin'] });
@@ -14,8 +14,7 @@ const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] });
 export default function RegisterPage() {
   const params = useParams();
   const eventId = params.eventId as string;
-  const [formSchema, setFormSchema] = useState<FormSchema | null>(null);
-  const [appsScriptUrl, setAppsScriptUrl] = useState<string>('');
+  const [formSchema, setFormSchema] = useState<{ eventId: string; kind: 'participant'; fields: FormField[]; isActive: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -32,20 +31,16 @@ export default function RegisterPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [formRes, settingsRes] = await Promise.all([
-          fetch(`/api/forms?eventId=${eventId}`),
-          fetch('/api/settings')
-        ]);
+        const formRes = await fetch(`/api/forms?eventId=${encodeURIComponent(eventId)}`);
 
         if (!formRes.ok) throw new Error('Registration form not found for this event.');
 
         const form = await formRes.json();
-        const settings = await settingsRes.json();
 
         if (!form.isActive) throw new Error('Registration for this event is currently closed.');
 
         setFormSchema(form);
-        setAppsScriptUrl(form.appsScriptUrl || settings.appsScriptUrl);
+        setFormData(Object.fromEntries(form.fields.map((field: FormField) => [field.id, field.type === 'checkbox' ? false : ''])));
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'Failed to load registration form.');
       } finally {
@@ -62,41 +57,20 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!appsScriptUrl) {
-      setError('Registration is temporarily unavailable (Webhook not configured).');
-      return;
-    }
-
     setSubmitting(true);
     setError(null);
-    
-    // Format data for Google Sheets
-    // Map field keys back to readable labels if possible, or just send IDs. Sending Labels is better for sheets headers.
-    const payload: Record<string, string | boolean> = {};
-    if (formSchema) {
-      formSchema.fields.forEach(field => {
-        payload[field.label] = formData[field.id] ?? '';
-      });
-      // Add timestamp and Event ID automatically
-      payload['Timestamp'] = new Date().toISOString();
-      payload['Event ID'] = eventId;
-    }
 
     try {
-      await fetch(appsScriptUrl, {
+      const response = await fetch('/api/registrations/participant', {
         method: 'POST',
-        // using text/plain to avoid CORS preflight issues strictly with google apps script
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, answers: formData, honeypot: '' })
       });
-
-      // We might get an opaque response or CORS error depending on how the fetch executes,
-      // but if the promise resolves, we assume the data was sent.
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Registration could not be submitted.');
       setSuccess(true);
-    } catch (err) {
-      console.error(err);
-      // Fallback success because fetch to apps script from client might throw network error due to opaque response
-      setSuccess(true); 
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Registration could not be submitted.');
     } finally {
       setSubmitting(false);
     }

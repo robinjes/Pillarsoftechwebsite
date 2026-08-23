@@ -28,20 +28,12 @@ export default function EventPage() {
 
   useEffect(() => {
     if (!id) return;
-    Promise.all([
-      fetch('/api/events').then(res => res.json()),
-      fetch('/api/forms').then(res => res.json())
-    ])
-    .then(([eventsData, formsData]) => {
+    fetch('/api/events')
+    .then(res => res.json())
+    .then((eventsData) => {
       const foundEvent = eventsData.find((e: Event) => e.id === id);
       setEvent(foundEvent || null);
-
-      if (Array.isArray(formsData)) {
-        const activeForm = formsData.find(
-          (f: { eventId?: string; isActive?: boolean }) => f.eventId === id && f.isActive
-        );
-        setHasForm(!!activeForm);
-      }
+      setHasForm(foundEvent?.participantRegistrationState === 'open');
       setLoading(false);
     })
     .catch(err => {
@@ -126,7 +118,7 @@ export default function EventPage() {
     )
   }
 
-  const isCompleted = event.status === 'completed' || event.status === 'past'
+  const isCompleted = event.status === 'completed' || event.status === 'cancelled'
   const accentColor = isCompleted ? 'text-emerald-500' : 'text-accent'
   const registrationNote = event.registrationNote?.trim()
   const showRegistrationTbd = registrationNote === 'TBD'
@@ -652,6 +644,7 @@ export default function EventPage() {
                       </div>
                       <iframe
                         src={event.pdfUrl}
+                        sandbox=""
                         className="w-full"
                         style={{ height: '800px' }}
                         title={`${event.title} document`}
@@ -707,6 +700,7 @@ export default function EventPage() {
                       <div className="flex-1">
                         <iframe
                           src={event.pdfUrl}
+                          sandbox=""
                           className="w-full h-full"
                           title={`${event.title} document fullscreen`}
                         />
