@@ -268,7 +268,7 @@ export default function EventPage() {
   return (
     <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 text-[var(--ink)] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <header className="grid gap-0 border-y border-[var(--ink)] bg-[var(--midnight)] text-[var(--cream)] lg:grid-cols-[0.86fr_1.14fr]">
+        <header className="grid gap-0 overflow-hidden rounded-[2rem] border-y border-[var(--ink)] bg-[var(--midnight)] text-[var(--cream)] lg:grid-cols-[0.86fr_1.14fr]">
           <div className="order-2 flex flex-col justify-between px-6 py-9 sm:px-10 sm:py-12 lg:order-1 lg:py-14">
             <div>
               <button type="button" onClick={() => router.push('/events')} className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[var(--sky)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]">
@@ -315,7 +315,8 @@ export default function EventPage() {
           </figure>
         </header>
 
-        <section className="grid border-b border-[var(--ink)]/35 lg:grid-cols-4" aria-label="Event details">
+        <section className="grid border-b border-[var(--ink)]/35 lg:grid-cols-4" aria-labelledby="event-schedule-heading">
+          <h2 id="event-schedule-heading" className="sr-only">Schedule and registration</h2>
           <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><CalendarDays className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Date</p><p className="mt-1 font-semibold">{dateLabel(event)}</p></div>
           <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><Clock3 className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Time</p><p className="mt-1 font-semibold">{timeLabel(event)}</p></div>
           <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><MapPin className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Location</p><p className="mt-1 font-semibold">{event.location || 'Location to be announced'}</p></div>
@@ -341,6 +342,37 @@ export default function EventPage() {
             </div>
           </aside>
         </div>
+
+        <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="event-planning-heading">
+          <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
+            <div>
+              <p className="text-sm font-semibold text-[var(--cobalt)]">Plan your visit</p>
+              <h2 id="event-planning-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">Details to make the day easier.</h2>
+              <p className="mt-4 max-w-md text-base leading-7 text-[var(--ink)]/75">We publish what is confirmed in the event record. When a detail is not listed, contact us and we will help you plan without guessing.</p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <article className="family-card rounded-[2rem] bg-[var(--sky)] p-5">
+                <h3 className="font-display text-2xl text-[var(--midnight)]">Age guidance</h3>
+                <p className="mt-3 text-sm leading-6 text-[var(--ink)]/80">This event record does not list an age range. Contact us if you would like help deciding whether it fits your student.</p>
+              </article>
+              <article className="family-card rounded-[2rem] bg-[var(--coral)] p-5">
+                <h3 className="font-display text-2xl text-[var(--midnight)]">Materials</h3>
+                <p className="mt-3 text-sm leading-6 text-[var(--ink)]/80">No materials list is published for this event. Ask the team what to bring; we will share only confirmed guidance.</p>
+              </article>
+              <article className="family-card rounded-[2rem] bg-[var(--green)] p-5">
+                <h3 className="font-display text-2xl text-[var(--midnight)]">Accessibility and help</h3>
+                <p className="mt-3 text-sm leading-6 text-[var(--ink)]/80">Accessibility details are not listed here yet. Contact us before registering so we can talk through questions and support options.</p>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        {event.status === 'cancelled' ? (
+          <section className="border-b border-[var(--ink)]/35 bg-[var(--coral)] px-5 py-8 sm:px-8" role="status" aria-label="Event cancellation">
+            <p className="text-sm font-semibold text-[var(--midnight)]">Cancellation</p>
+            <p className="mt-2 max-w-3xl text-base leading-7 text-[var(--ink)]">This event is marked cancelled, so participant registration and volunteer sign-up are closed. Contact us if you need help with another date.</p>
+          </section>
+        ) : null}
 
         {galleryImages.length > 0 ? (
           <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="gallery-heading">

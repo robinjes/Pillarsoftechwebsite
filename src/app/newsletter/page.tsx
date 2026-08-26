@@ -47,7 +47,7 @@ export default function NewsletterPage() {
               </a>
             </div>
           </div>
-          <figure className="relative mt-8 aspect-[16/7] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:mt-10">
+          <figure className="relative mt-8 aspect-[16/7] overflow-hidden rounded-[2rem] border border-[var(--ink)]/25 bg-[var(--midnight)] sm:mt-10">
             <Image
               src="/images/events/wildcat-carnival/drive-05.webp"
               alt="A student volunteer prepares an outdoor activity table in late-afternoon light."
@@ -81,7 +81,7 @@ export default function NewsletterPage() {
             </a>
           </div>
 
-          <div className="border border-[var(--ink)]/25 bg-[var(--cream)] p-2 sm:p-3">
+          <div className="rounded-[2rem] border border-[var(--ink)]/25 bg-[var(--cream)] p-2 sm:p-3">
             <ExternalEmbedOptIn
               src={newsletterEmbedUrl}
               title="Pillars of Tech newsletter signup form"

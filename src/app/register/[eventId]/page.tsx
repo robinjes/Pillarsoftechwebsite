@@ -15,6 +15,10 @@ type FormResponse = {
 
 type Answer = string | boolean
 
+type RegistrationReceipt = {
+  confirmationId?: unknown
+}
+
 function responseMessage(status: number): string {
   if (status === 404) return 'This event does not have an active participant registration form.'
   if (status === 409) return 'Registration for this event is currently closed or full.'
@@ -40,6 +44,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
+  const [confirmationId, setConfirmationId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState<Record<string, Answer>>({})
   const [honeypot, setHoneypot] = useState('')
@@ -99,6 +104,8 @@ export default function RegisterPage() {
         body: JSON.stringify({ eventId, answers: formData, honeypot }),
       })
       if (!response.ok) throw new Error(submissionMessage(response.status))
+      const result = await response.json().catch(() => ({})) as RegistrationReceipt
+      setConfirmationId(typeof result.confirmationId === 'string' ? result.confirmationId : null)
       setSuccess(true)
     } catch (submissionError: unknown) {
       setError(submissionError instanceof Error ? submissionError.message : 'Registration could not be submitted.')
@@ -120,7 +127,7 @@ export default function RegisterPage() {
           <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
         </Link>
 
-        <header className="mt-7 border-y-2 border-[var(--ink)] bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10">
+        <header className="mt-7 rounded-[2rem] border-y-2 border-[var(--ink)] bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10">
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-[var(--sky)]">{pageKicker}</p>
           <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.95] sm:text-[4.35rem]">Save your place in the room.</h1>
           <p className="mt-5 max-w-2xl text-base leading-8 text-[var(--cream)]/80">
@@ -153,6 +160,12 @@ export default function RegisterPage() {
             <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--ink)]/80">
               Your registration was received. Keep the event details handy, and return to the events archive for more programs.
             </p>
+            {confirmationId ? (
+              <p className="mt-5 inline-flex flex-wrap items-center gap-2 rounded-[1rem] bg-[var(--sky)] px-4 py-3 text-sm font-semibold text-[var(--midnight)]">
+                <span>Confirmation ID</span>
+                <code className="font-mono text-xs">{confirmationId}</code>
+              </p>
+            ) : null}
             <Link
               href="/events"
               className="mt-7 inline-flex min-h-11 items-center gap-2 border-2 border-[var(--midnight)] px-5 py-2 text-sm font-bold text-[var(--midnight)] hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] rounded-[10px]"

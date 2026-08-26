@@ -21,6 +21,8 @@ const supportLinks = [
   { label: 'Wishlist', href: '/wishlist' },
   { label: 'Newsletter', href: '/newsletter' },
   { label: 'FAQ', href: '/faq' },
+  { label: 'Privacy', href: '/privacy' },
+  { label: 'Accessibility', href: '/accessibility' },
 ]
 
 const allMobileLinks = [...primaryLinks, ...supportLinks]

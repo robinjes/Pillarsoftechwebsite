@@ -67,7 +67,7 @@ export default function Team() {
             </div>
           </div>
 
-          <figure className="relative aspect-[5/4] overflow-hidden border border-[var(--cream)]/35 bg-[var(--sky)] sm:aspect-[16/10]">
+          <figure className="relative aspect-[5/4] overflow-hidden rounded-[2rem] border border-[var(--cream)]/35 bg-[var(--sky)] sm:aspect-[16/10]">
             <Image
               src="/images/events/family-science-night/IMG_0551.jpg"
               alt="Pillars volunteers and adult partners smiling together outside Family Science Night."
@@ -96,7 +96,7 @@ export default function Team() {
           <ul className="grid grid-cols-12 items-start gap-x-3 gap-y-6 sm:gap-x-4 sm:gap-y-8" aria-label="Pillars of Tech team">
             {teamMembers.map((member, index) => (
               <li key={member.name} className={`group ${portraitLayouts[index]}`}>
-                <figure className="relative aspect-[4/5] overflow-hidden border border-[var(--ink)]/25 bg-[var(--cream)]">
+                <figure className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] border border-[var(--ink)]/25 bg-[var(--cream)]">
                   <Image
                     src={member.image}
                     alt={`Portrait of ${member.name}, ${member.position} at Pillars of Tech`}

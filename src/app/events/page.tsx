@@ -7,7 +7,15 @@ import { ArrowUpRight, CalendarDays, MapPin, Search, UsersRound } from 'lucide-r
 import type { PublicEvent } from '@/lib/content-contracts'
 import { resolveEventImageAlt } from '@/lib/event-media'
 
-type EventFilter = 'all' | 'upcoming' | 'completed' | 'cancelled'
+type EventFilter = 'all' | 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
+
+type EventWithBranch = PublicEvent & { branch?: 'ca' | 'ga' }
+
+function branchLabel(event: PublicEvent): string {
+  // Task 6 will add the typed branch field to the public contract. Until then,
+  // all currently published local rows are California programs.
+  return (event as EventWithBranch).branch === 'ga' ? 'Georgia' : 'California'
+}
 
 function isCurrentEvent(event: PublicEvent): boolean {
   return event.status === 'upcoming' || event.status === 'ongoing'
@@ -80,7 +88,7 @@ function EventRow({ event }: { event: PublicEvent }) {
     <article className="grid gap-7 border-t border-[var(--ink)]/35 py-8 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,0.42fr)_auto] lg:gap-10">
       <div className="grid gap-6 sm:grid-cols-[12rem_minmax(0,1fr)]">
         <Link href={eventPath} className="group block">
-          <div className="relative aspect-[4/3] overflow-hidden border border-[var(--ink)] bg-[var(--paper)]">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-[1.25rem] border border-[var(--ink)] bg-[var(--paper)]">
             {image ? (
               <Image
                 src={image}
@@ -103,6 +111,7 @@ function EventRow({ event }: { event: PublicEvent }) {
               {statusLabel(event)}
             </span>
             <span className="text-[var(--cobalt)]">{event.programCategory}</span>
+            <span className="rounded-full border border-[var(--ink)]/20 px-2 py-1 text-xs font-semibold text-[var(--ink)]/75">{branchLabel(event)}</span>
           </div>
           <h3 className="mt-3 font-display text-2xl leading-tight text-[var(--midnight)] sm:text-3xl">
             <Link href={eventPath} className="underline-offset-4 hover:underline focus-visible:underline">
@@ -183,7 +192,7 @@ function FeaturedProgram({ upcoming, archive }: { upcoming: PublicEvent | null; 
       <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-stretch lg:gap-10">
         <div className="flex flex-col justify-between border-t border-[var(--ink)] pt-5">
           <div>
-            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">{upcoming ? 'Next on the table' : 'From the archive'}</p>
+            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">{upcoming ? 'Next on the table' : 'From the archive'} · {branchLabel(featureEvent)}</p>
             <h2 id="featured-program-heading" className="mt-4 max-w-xl font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">
               {featureEvent.title}
             </h2>
@@ -216,7 +225,6 @@ function FeaturedProgram({ upcoming, archive }: { upcoming: PublicEvent | null; 
             src={image}
             alt={imageAlt}
             fill
-            priority
             sizes="(max-width: 1024px) 100vw, 58vw"
             className="object-cover transition-transform duration-700 motion-safe:hover:scale-[1.02] motion-reduce:transition-none motion-reduce:hover:scale-100"
           />
@@ -281,7 +289,8 @@ export default function EventsPage() {
   const filteredEvents = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
     return events.filter((event) => {
-      if (filter === 'upcoming' && !isCurrentEvent(event)) return false
+      if (filter === 'upcoming' && event.status !== 'upcoming') return false
+      if (filter === 'ongoing' && event.status !== 'ongoing') return false
       if (filter === 'completed' && event.status !== 'completed') return false
       if (filter === 'cancelled' && event.status !== 'cancelled') return false
       if (!query) return true
@@ -296,7 +305,7 @@ export default function EventsPage() {
 
   return (
     <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 text-[var(--ink)] sm:px-6 lg:px-8">
-      <header className="mx-auto max-w-7xl border-b border-[var(--ink)]/25 bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10 sm:py-14">
+      <header className="mx-auto max-w-7xl rounded-[2rem] border-b border-[var(--ink)]/25 bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10 sm:py-14">
         <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-end">
           <div>
             <p className="text-sm font-semibold text-[var(--sky)]">Pillars of Tech · field notes</p>
@@ -328,7 +337,7 @@ export default function EventsPage() {
             />
           </label>
           <div className="flex flex-wrap gap-2" aria-label="Filter events">
-            {(['all', 'upcoming', 'completed', 'cancelled'] as EventFilter[]).map((option) => (
+            {(['all', 'upcoming', 'ongoing', 'completed', 'cancelled'] as EventFilter[]).map((option) => (
               <button
                 key={option}
                 type="button"
@@ -340,7 +349,7 @@ export default function EventsPage() {
                     : 'border-[var(--ink)] bg-transparent text-[var(--ink)] hover:bg-[var(--sky)]'
                 }`}
               >
-                {option === 'all' ? 'All stories' : option === 'cancelled' ? 'Cancelled' : option}
+                {option === 'all' ? 'All stories' : option === 'ongoing' ? 'Ongoing' : option === 'cancelled' ? 'Cancelled' : option === 'upcoming' ? 'Upcoming' : 'Completed'}
               </button>
             ))}
           </div>
@@ -371,7 +380,7 @@ export default function EventsPage() {
               </section>
             )}
 
-            {filter !== 'upcoming' && filter !== 'cancelled' && (
+            {filter !== 'upcoming' && filter !== 'ongoing' && filter !== 'cancelled' && (
               <section aria-labelledby="completed-heading" className="pt-14">
                 <div className="flex items-end justify-between gap-4">
                   <div>
@@ -384,7 +393,7 @@ export default function EventsPage() {
               </section>
             )}
 
-            {filter !== 'upcoming' && filter !== 'completed' && (filter === 'cancelled' || sections.cancelled.length > 0) && (
+            {filter !== 'upcoming' && filter !== 'ongoing' && filter !== 'completed' && (filter === 'cancelled' || sections.cancelled.length > 0) && (
               <section aria-labelledby="cancelled-heading" className="pt-14">
                 <div className="flex items-end justify-between gap-4">
                   <div>

@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, BookOpen, Compass, Hammer, History } from 'lucide-react'
+import { FriendlyCard } from '@/components/site/FamilyPrimitives'
 
 const financeUrl = 'https://hcb.hackclub.com/pillars-of-tech/transactions'
 
@@ -19,6 +20,24 @@ const workingMethods = [
     title: 'Access',
     description: 'We design welcoming entry points into technology, with clear next steps for students and families.',
     icon: BookOpen,
+  },
+] as const
+
+const impactPractices = [
+  {
+    title: 'Keep a source',
+    description: 'A public figure belongs next to the record, date, or other source that makes it possible to check.',
+    className: 'friendly-card--sky',
+  },
+  {
+    title: 'Explain the method',
+    description: 'We describe what was counted and what the number does not claim, so activity notes are not mistaken for outcomes.',
+    className: 'friendly-card--peach',
+  },
+  {
+    title: 'Leave gaps visible',
+    description: 'When a source or method is not ready, we leave the figure out and invite questions instead of filling the gap with an estimate.',
+    className: 'friendly-card--green',
   },
 ] as const
 
@@ -63,7 +82,7 @@ export default function About() {
 
           <div className="grid grid-cols-12 items-start gap-3 sm:gap-4" aria-label="Pillars of Tech workshop moments">
             {workshopPhotos.map((photo, index) => (
-              <figure key={photo.src} className={`relative overflow-hidden border border-[var(--cream)]/35 bg-[var(--sky)] ${photo.className}`}>
+              <figure key={photo.src} className={`relative overflow-hidden rounded-[1.5rem] border border-[var(--cream)]/35 bg-[var(--sky)] ${photo.className}`}>
                 <Image
                   src={photo.src}
                   alt={photo.alt}
@@ -156,6 +175,27 @@ export default function About() {
               </div>
             </div>
           </div>
+        </div>
+      </section>
+
+      <section id="impact-methodology" className="border-b border-[var(--ink)]/20 bg-[var(--paper)]" aria-labelledby="impact-methodology-heading">
+        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12 lg:py-24">
+          <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
+            <div>
+              <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Impact methodology</p>
+              <h2 id="impact-methodology-heading" className="mt-4 max-w-md font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">Count what we can show.</h2>
+              <p className="mt-5 max-w-md font-body text-base leading-7 text-[var(--ink)]/70">Our honest impact method is simple: use a source, state the method, and keep uncertainty visible.</p>
+            </div>
+            <div className="grid gap-5 md:grid-cols-3">
+              {impactPractices.map((practice) => (
+                <FriendlyCard key={practice.title} className={`${practice.className} !min-h-0 p-6`}>
+                  <h3 className="font-display text-2xl text-[var(--navy-950)]">{practice.title}</h3>
+                  <p className="mt-4 text-base leading-7">{practice.description}</p>
+                </FriendlyCard>
+              ))}
+            </div>
+          </div>
+          <p className="mt-10 max-w-3xl border-t border-[var(--ink)]/20 pt-5 font-body text-sm leading-7 text-[var(--ink)]/70">Published impact notes include a date, source, and methodology note. They describe recorded activity; they do not promise outcomes. Ask us through <Link href="/contact" className="font-bold text-[var(--cobalt)] underline underline-offset-4">Contact</Link> if you want to understand a figure.</p>
         </div>
       </section>
 

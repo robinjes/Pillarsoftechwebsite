@@ -1,6 +1,12 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { ArrowUpRight, ChevronDown } from 'lucide-react'
+
+export const metadata: Metadata = {
+  title: 'FAQ | Pillars of Tech',
+  description: 'Find plain-language answers about events, families, volunteers, safety, registration, and contact.',
+}
 
 const faqSections = [
   {
@@ -23,7 +29,7 @@ const faqSections = [
     questions: [
       {
         question: 'What age groups are a good fit?',
-        answer: 'Many workshops are designed for middle school and high school students, while some events welcome younger learners or families. The event description is the best guide for each session.',
+        answer: 'Age guidance varies by event. Use the event description when an age range is published, or contact us if the listing does not answer your question.',
       },
       {
         question: 'Where can I find event details?',
@@ -46,6 +52,62 @@ const faqSections = [
       {
         question: 'How do I start a collaboration or workshop request?',
         answer: 'Use the contact page and choose the workshop or partnerships subject. Include the setting, timing, and what you are hoping to make possible so the team has a useful starting point.',
+      },
+    ],
+  },
+  {
+    title: 'For schools',
+    intro: 'A starting point for educators and community hosts.',
+    questions: [
+      {
+        question: 'Can our school ask about hosting a workshop?',
+        answer: 'Yes. Use Contact and choose the workshop subject. Include the setting, timing, location, and what you hope to make possible so the team can respond with the details that are confirmed.',
+      },
+      {
+        question: 'What should we include in a school request?',
+        answer: 'Share the audience, approximate group size, date range, location, and any accessibility or equipment questions. If a detail is not known yet, say so; we will not assume it.',
+      },
+    ],
+  },
+  {
+    title: 'Safety and accessibility',
+    intro: 'Keep questions and personal information in a safe lane.',
+    questions: [
+      {
+        question: 'What should I avoid putting in a message?',
+        answer: 'Please do not send passwords, home addresses, school schedules, medical information, or emergency requests through Contact or live chat. Use local emergency services for an emergency.',
+      },
+      {
+        question: 'How can I ask for accessibility help?',
+        answer: 'Contact the team before registering or attending. Event records may not include every access detail, and we will talk through the questions we can answer without inventing information.',
+      },
+    ],
+  },
+  {
+    title: 'Registration',
+    intro: 'Understand what happens when a form is open or closed.',
+    questions: [
+      {
+        question: 'How do I register for an event?',
+        answer: 'Open the event page and use its participant registration link when the published form is active. The form explains required fields and sends only the answers needed for that registration record.',
+      },
+      {
+        question: 'What if registration is full, closed, or unavailable?',
+        answer: 'The page will keep that state visible instead of accepting a placeholder submission. Contact us if you need help finding another published opportunity.',
+      },
+    ],
+  },
+  {
+    title: 'Contact',
+    intro: 'A human route for details that are not posted yet.',
+    questions: [
+      {
+        question: 'How can I reach the team?',
+        answer: 'Use the Contact page and choose the subject that best fits your question. You can also use the visible email fallback when that is easier.',
+      },
+      {
+        question: 'Is live chat always available?',
+        answer: 'No. Live chat is available only when the Pacific office-hours schedule and the approved staff queue state both say it is open. When it is closed, leave a message through Contact.',
       },
     ],
   },
@@ -93,7 +155,7 @@ export default function FAQPage() {
       <section aria-label="Scenes from Pillars of Tech events" className="border-b border-[var(--ink)]/20 bg-[var(--midnight)]">
         <div className="mx-auto grid max-w-7xl grid-cols-3 gap-1 px-1 py-1 sm:gap-2 sm:px-8 sm:py-8 lg:px-12">
           {photoRibbon.map((photo) => (
-            <figure key={photo.src} className="relative aspect-[4/3] overflow-hidden bg-[var(--ink)]">
+              <figure key={photo.src} className="relative aspect-[4/3] overflow-hidden rounded-[1.25rem] bg-[var(--ink)]">
               <Image src={photo.src} alt={photo.alt} fill sizes="(min-width: 1024px) 33vw, 33vw" className="object-cover" />
             </figure>
           ))}

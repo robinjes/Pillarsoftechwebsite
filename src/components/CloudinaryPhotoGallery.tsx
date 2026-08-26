@@ -106,7 +106,7 @@ export default function CloudinaryPhotoGallery({ title, description, folder, pho
   return (
     <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-24 text-[var(--ink)] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <header className="border-y-2 border-[var(--ink)] bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10 sm:py-14">
+        <header className="rounded-[2rem] border-y-2 border-[var(--ink)] bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10 sm:py-14">
           <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--sky)]">Photo archive / {folder}</p>
           <h1 className="mt-4 font-display text-5xl leading-none sm:text-[4.35rem]">{title}</h1>
           <p className="mt-5 max-w-3xl text-base leading-8 text-[var(--cream)]/80 sm:text-lg">{description}</p>
@@ -117,7 +117,7 @@ export default function CloudinaryPhotoGallery({ title, description, folder, pho
             <div><p className="text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">{photos.length} photographs</p><h2 id="photos-heading" className="mt-2 font-display text-4xl text-[var(--midnight)]">Selected frames</h2></div>
             <p className="text-sm text-[var(--ink)]/65">Select a frame to enlarge it. Use arrow keys in the viewer.</p>
           </div>
-          <div className="mt-7 grid grid-cols-1 gap-px border border-[var(--ink)] bg-[var(--ink)] sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-7 grid grid-cols-1 gap-px overflow-hidden rounded-[2rem] border border-[var(--ink)] bg-[var(--ink)] sm:grid-cols-2 lg:grid-cols-3">
             {photos.map((photo, index) => {
               const imageUrl = buildImageUrl(photo.publicId)
               return imageUrl ? (

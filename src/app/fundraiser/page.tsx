@@ -1,10 +1,16 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { ArrowLeft, ArrowUpRight, HeartHandshake } from 'lucide-react'
 import ExternalEmbedOptIn from '@/components/ExternalEmbedOptIn'
 
 const donationUrl = 'https://hcb.hackclub.com/donations/start/pillars-of-tech'
 const ledgerUrl = 'https://hcb.hackclub.com/pillars-of-tech/transactions'
+
+export const metadata: Metadata = {
+  title: 'Support the Work | Pillars of Tech',
+  description: 'Support hands-on STEM learning through Hack Club’s secure donation page and public transaction ledger.',
+}
 
 export default function FundraiserPage() {
   return (
@@ -28,7 +34,7 @@ export default function FundraiserPage() {
         </div>
       </header>
 
-      <section className="relative isolate min-h-[30rem] overflow-hidden bg-[var(--midnight)] text-[var(--cream)] sm:min-h-[36rem]">
+      <section className="relative isolate min-h-[30rem] overflow-hidden rounded-b-[2rem] bg-[var(--midnight)] text-[var(--cream)] sm:min-h-[36rem]">
         <Image
           src="/images/events/wildcat-tank/Outdoor2.JPG"
           alt="A student volunteer helps a younger participant at an outdoor foil-boat activity table."
@@ -84,7 +90,7 @@ export default function FundraiserPage() {
             </div>
           </div>
 
-          <div className="min-w-0 border border-[var(--ink)]/25 bg-[var(--cream)] p-2 sm:p-3">
+          <div className="min-w-0 rounded-[2rem] border border-[var(--ink)]/25 bg-[var(--cream)] p-2 sm:p-3">
             <ExternalEmbedOptIn
               src={donationUrl}
               title="Pillars of Tech donation checkout"

@@ -97,7 +97,7 @@ export default function WildcatTankPage() {
   return (
     <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-24 text-[var(--ink)] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <header className="border-y-2 border-[var(--ink)] bg-[var(--midnight)] px-6 py-12 text-[var(--cream)] sm:px-10 lg:py-16">
+        <header className="overflow-hidden rounded-[2rem] border-y-2 border-[var(--ink)] bg-[var(--midnight)] px-6 py-12 text-[var(--cream)] sm:px-10 lg:py-16">
           <div className="grid gap-10 lg:grid-cols-[1.25fr_0.75fr] lg:items-end">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.3em] text-[var(--sky)]">Presentation day / Wildcat Tank</p>
@@ -129,7 +129,7 @@ export default function WildcatTankPage() {
           <p className="text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">The panel</p>
           <h2 className="mt-3 font-display text-5xl text-[var(--midnight)]">Meet the judges.</h2>
           <p className="mt-4 max-w-2xl text-base leading-8 text-[var(--ink)]/80">Presentation day featured judges with leadership experience in science, engineering, and innovation.</p>
-          <div className="mt-8 grid gap-px border border-[var(--ink)] bg-[var(--ink)] lg:grid-cols-3">
+          <div className="mt-8 grid gap-px overflow-hidden rounded-[2rem] border border-[var(--ink)] bg-[var(--ink)] lg:grid-cols-3">
             {judges.map((judge) => (
               <article key={judge.name} className="bg-[var(--paper)]">
                 <Image src={judge.image} alt={`${judge.name}, Wildcat Tank judge`} width={500} height={500} className="aspect-square w-full object-cover" />

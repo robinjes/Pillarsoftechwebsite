@@ -310,7 +310,7 @@ export default function VolunteerPortalPage() {
 
           <div className="grid gap-10 lg:grid-cols-[0.72fr_1.28fr]">
             <div className="space-y-8">
-              <section className="border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7">
+              <section className="rounded-[2rem] border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7">
                 <div className="flex items-start justify-between gap-4 border-b-2 border-[var(--ink)] pb-5">
                   <div className="flex items-start gap-4">
                     <User aria-hidden="true" className="mt-1 h-6 w-6 text-[var(--cobalt)]" />
@@ -352,7 +352,7 @@ export default function VolunteerPortalPage() {
                 )}
               </section>
 
-              <section className="border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7">
+              <section className="rounded-[2rem] border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7">
                 <div className="flex items-end justify-between gap-4 border-b-2 border-[var(--ink)] pb-5">
                   <div>
                     <p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">History</p>
@@ -387,7 +387,7 @@ export default function VolunteerPortalPage() {
               </section>
             </div>
 
-            <section>
+              <section className="rounded-[2rem] bg-[var(--paper)] p-5 sm:p-7">
               <div className="mb-7 border-b-2 border-[var(--ink)] pb-5">
                 <p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Volunteer roster</p>
                 <h2 className="mt-2 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Choose where to help.</h2>
@@ -577,7 +577,7 @@ export default function VolunteerPortalPage() {
           )}
         </section>
 
-        <section ref={formRef} id="volunteer-signup" className="scroll-mt-24 border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-6 text-center sm:p-10">
+        <section ref={formRef} id="volunteer-signup" className="scroll-mt-24 rounded-[2rem] border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-6 text-center sm:p-10">
           <HeartHandshake aria-hidden="true" className="mx-auto h-8 w-8 text-[var(--cobalt)]" />
           <p className="mt-4 font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Join the roster</p>
           <h2 className="mt-3 font-display text-4xl leading-tight text-[var(--midnight)]">Create a volunteer account.</h2>
@@ -596,7 +596,7 @@ export default function VolunteerPortalPage() {
       {isAuthModalOpen && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-[var(--midnight)]/75 px-5 py-8" role="presentation">
           <div aria-hidden="true" className="absolute inset-0 cursor-default" onClick={() => setIsAuthModalOpen(false)} />
-          <div ref={authDialogRef} role="dialog" aria-modal="true" aria-labelledby="volunteer-auth-title" className="relative z-10 w-full max-w-md border-2 border-[var(--ink)] bg-[var(--cream)] p-6 text-[var(--ink)] shadow-[8px_8px_0_var(--sky)] sm:p-8">
+          <div ref={authDialogRef} role="dialog" aria-modal="true" aria-labelledby="volunteer-auth-title" className="relative z-10 w-full max-w-md rounded-[2rem] border-2 border-[var(--ink)] bg-[var(--cream)] p-6 text-[var(--ink)] shadow-[8px_8px_0_var(--sky)] sm:p-8">
             <div className="flex items-start justify-between gap-4 border-b-2 border-[var(--ink)] pb-5">
               <div>
                 <p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Secure sign-in</p>

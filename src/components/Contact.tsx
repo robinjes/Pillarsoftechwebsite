@@ -159,7 +159,7 @@ export default function Contact() {
               </a>
             </div>
           </div>
-          <figure className="relative mt-8 aspect-[16/6] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:mt-10">
+          <figure className="relative mt-8 aspect-[16/6] overflow-hidden rounded-[2rem] border border-[var(--ink)]/25 bg-[var(--midnight)] sm:mt-10">
             <Image
               src="/images/events/pedrozzi-connect-egg-drop/drive-04.webp"
               alt="Seven student volunteers pose outdoors; one holds a small drone and controller."
@@ -194,9 +194,14 @@ export default function Contact() {
             <p className="mt-8 border-l border-[var(--sky)] pl-4 font-body text-sm leading-6 text-[var(--ink)]/65">
               For an event request, include the date, location, and any relevant constraints.
             </p>
+            <p className="mt-5 border-l border-[var(--coral)] pl-4 font-body text-sm leading-6 text-[var(--ink)]/65">
+              Please keep passwords, home addresses, school schedules, medical information, and emergency requests out of messages. See our{' '}
+              <Link href="/privacy" className="font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]">privacy note</Link>{' '}
+              for the boundaries of contact and chat.
+            </p>
           </div>
 
-          <section id="contact-form" className="border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-5 sm:p-8">
+          <section id="contact-form" className="rounded-[2rem] border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-5 sm:p-8">
             <div className="flex flex-col gap-5 border-b-2 border-[var(--ink)] pb-6 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Message form</p>
