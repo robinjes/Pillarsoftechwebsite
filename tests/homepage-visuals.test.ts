@@ -44,6 +44,12 @@ describe('family homepage visual content', () => {
 
   it('keeps Georgia informational and non-linking while California remains actionable', () => {
     const branches = readSource('components/site/BranchesSection.tsx')
+    expect(branches).toContain('Current and exploring')
+    expect(branches).toContain('See where Pillars of Tech is active.')
+    expect(branches).toContain('California is our current public chapter.')
+    expect(branches).toContain('Georgia is an unpublished possibility pending approval')
+    expect(branches).not.toContain('near you')
+    expect(branches).not.toContain('everywhere')
     expect(branches).toContain('data-branch="ga"')
     expect(branches).toContain('Exploratory — not yet published')
     expect(branches).toContain('No public chapter yet')

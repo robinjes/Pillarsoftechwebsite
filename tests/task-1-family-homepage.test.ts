@@ -26,6 +26,24 @@ describe('Task 1 family homepage foundation', () => {
     expect(css).toContain('min-height: 44px')
   })
 
+  it('keeps every public CSS and Tailwind hex literal inside the exact eight-color palette', () => {
+    const allowed = new Set([
+      '#0D2B4A',
+      '#17334D',
+      '#DED5C7',
+      '#F7F3EB',
+      '#B9DDEC',
+      '#F7CA55',
+      '#E9A98F',
+      '#AAC6A5',
+    ].map((value) => value.toLowerCase()))
+    const source = `${read('src/app/globals.css')}\n${read('tailwind.config.js')}`
+    const hexes = source.match(/#[\da-f]{3,8}/gi) ?? []
+
+    expect(hexes.length).toBeGreaterThan(0)
+    expect(hexes.filter((hex) => !allowed.has(hex.toLowerCase()))).toEqual([])
+  })
+
   it('uses the silent timelapse hero and keeps the homepage ordered by family intent', () => {
     const page = read('src/app/page.tsx')
     const hero = read('src/components/site/TimelapseHero.tsx')

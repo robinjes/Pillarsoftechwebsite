@@ -7,26 +7,26 @@
     /* The family palette is deliberately small enough to be memorable and
        large enough to keep text, surfaces, and calls to action distinct. */
     --navy-950: #0D2B4A;
-    --navy-900: #12385F;
-    --navy-800: #1C4B78;
+    --navy-900: #17334D;
+    --navy-800: #17334D;
     --ink: #17334D;
-    --muted: #526879;
+    --muted: #17334D;
     --oat: #DED5C7;
-    --oat-light: #EBE5DA;
+    --oat-light: #F7F3EB;
     --paper: #F7F3EB;
     --sky: #B9DDEC;
-    --sky-soft: #DCECF2;
+    --sky-soft: #B9DDEC;
     --coral: #E9A98F;
-    --coral-soft: #F0C9B8;
+    --coral-soft: #E9A98F;
     --green: #AAC6A5;
     --sun: #F7CA55;
-    --white: #FFFDF8;
+    --white: #F7F3EB;
 
     /* Existing semantic names remain stable for public and protected routes. */
     --cream: #DED5C7;
     --midnight: #0D2B4A;
-    --cobalt: #1C4B78;
-    --warm-white: #FFFDF8;
+    --cobalt: #17334D;
+    --warm-white: #F7F3EB;
     --font-body-stack: var(--font-body), "Atkinson Hyperlegible", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --font-display-stack: var(--font-display), Fredoka, "Arial Rounded MT Bold", system-ui, sans-serif;
   }
@@ -186,13 +186,13 @@
   .button--glass,
   .button-link--glass {
     color: var(--white);
-    border-color: rgba(255, 255, 255, 0.68);
+    border-color: rgba(247, 243, 235, 0.68);
     background: rgba(13, 43, 74, 0.3);
   }
 
   .button--glass:hover,
   .button-link--glass:hover {
-    background: rgba(255, 255, 255, 0.13);
+    background: rgba(247, 243, 235, 0.13);
   }
 
   .button--navy,
@@ -261,7 +261,7 @@
     overflow: hidden;
     border: 1px solid rgba(13, 43, 74, 0.08);
     border-radius: 2rem;
-    box-shadow: 0 14px 34px rgba(25, 51, 74, 0.08);
+    box-shadow: 0 14px 34px rgba(23, 51, 77, 0.08);
   }
 
   .skip-link {
@@ -293,7 +293,7 @@
     left: 0;
     color: var(--white);
     background: rgba(13, 43, 74, 0.94);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    border-bottom: 1px solid rgba(247, 243, 235, 0.12);
     backdrop-filter: blur(12px);
   }
 
@@ -339,7 +339,7 @@
     display: inline-flex;
     align-items: center;
     padding: 0.625rem 1.2rem;
-    border: 2px solid rgba(255, 255, 255, 0.72);
+    border: 2px solid rgba(247, 243, 235, 0.72);
     border-radius: 999px;
     text-decoration: none;
     transition: background-color 180ms ease, color 180ms ease;
@@ -359,8 +359,8 @@
     gap: 0.625rem;
     padding: 0.625rem 0.875rem;
     color: var(--white);
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.34);
+    background: rgba(247, 243, 235, 0.08);
+    border: 1px solid rgba(247, 243, 235, 0.34);
     border-radius: 999px;
     cursor: pointer;
     font-weight: 700;
@@ -397,7 +397,7 @@
     padding: 1.5rem;
     color: var(--white);
     background: var(--navy-950);
-    border-left: 1px solid rgba(255, 255, 255, 0.2);
+    border-left: 1px solid rgba(247, 243, 235, 0.2);
     overflow-y: auto;
   }
 
@@ -448,8 +448,8 @@
   .hero-wash {
     z-index: 2;
     background:
-      linear-gradient(90deg, rgba(8, 34, 60, 0.94) 0%, rgba(8, 34, 60, 0.76) 48%, rgba(8, 34, 60, 0.28) 100%),
-      linear-gradient(0deg, rgba(7, 31, 53, 0.78) 0%, transparent 42%);
+      linear-gradient(90deg, rgba(13, 43, 74, 0.94) 0%, rgba(13, 43, 74, 0.76) 48%, rgba(13, 43, 74, 0.28) 100%),
+      linear-gradient(0deg, rgba(13, 43, 74, 0.78) 0%, transparent 42%);
   }
 
   .hero-content {
@@ -472,7 +472,7 @@
   .hero-copy {
     max-width: 690px;
     margin-bottom: 2.2rem;
-    color: rgba(255, 253, 248, 0.93);
+    color: rgba(247, 243, 235, 0.93);
     font-size: clamp(1.15rem, 2.1vw, 1.48rem);
     line-height: 1.55;
   }
@@ -519,7 +519,7 @@
     flex: 0 0 auto;
     display: grid;
     place-items: center;
-    background: rgba(255, 255, 255, 0.45);
+    background: rgba(247, 243, 235, 0.45);
     border-radius: 50%;
   }
 
@@ -581,7 +581,7 @@
     margin-bottom: 2.625rem;
     padding: 15px;
     color: var(--navy-900);
-    background: rgba(255, 255, 255, 0.56);
+    background: rgba(247, 243, 235, 0.56);
     border-radius: 24px;
     fill: none;
     stroke: currentColor;
@@ -600,7 +600,7 @@
     overflow: hidden;
     background: var(--sky-soft);
     border-radius: 38px;
-    box-shadow: 0 22px 60px rgba(15, 43, 70, 0.13);
+    box-shadow: 0 22px 60px rgba(13, 43, 74, 0.13);
   }
 
   .event-image-wrap {
@@ -623,7 +623,7 @@
     align-items: center;
     padding: 0.5625rem 0.875rem;
     color: var(--navy-950);
-    background: rgba(255, 253, 248, 0.92);
+    background: rgba(247, 243, 235, 0.92);
     border-radius: 999px;
     font-size: 0.78rem;
     font-weight: 700;
@@ -717,7 +717,7 @@
     overflow: hidden;
     border-radius: 2rem;
     background: var(--navy-950);
-    box-shadow: 0 18px 44px rgba(15, 43, 70, 0.13);
+    box-shadow: 0 18px 44px rgba(13, 43, 74, 0.13);
   }
 
   .event-proof-photo img {
@@ -753,7 +753,7 @@
     width: fit-content;
     padding: 0.5rem 0.875rem;
     color: var(--navy-950);
-    background: rgba(255, 253, 248, 0.92);
+    background: rgba(247, 243, 235, 0.92);
     border-radius: 999px;
     font-family: var(--font-display-stack);
     font-size: 0.8rem;
@@ -779,7 +779,7 @@
   .photo-collage figure {
     margin: 0;
     overflow: hidden;
-    box-shadow: 0 22px 60px rgba(15, 43, 70, 0.13);
+    box-shadow: 0 22px 60px rgba(13, 43, 74, 0.13);
   }
 
   .photo-collage img {
@@ -976,7 +976,7 @@
   }
 
   .branches-heading > p:last-child {
-    color: rgba(255, 255, 255, 0.72);
+    color: rgba(247, 243, 235, 0.72);
   }
 
   .branch-grid {
@@ -1028,7 +1028,7 @@
     align-items: center;
     width: fit-content;
     padding: 0.6875rem 1.125rem;
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(247, 243, 235, 0.5);
     border-radius: 999px;
     font-family: var(--font-display-stack);
     font-weight: 700;
@@ -1036,7 +1036,7 @@
   }
 
   .branch-card a:hover {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(247, 243, 235, 0.85);
   }
 
   .finance-section {
@@ -1081,7 +1081,7 @@
     padding: 3.75rem 4.5rem;
     background: var(--sun);
     border-radius: 38px;
-    box-shadow: 0 22px 60px rgba(15, 43, 70, 0.13);
+    box-shadow: 0 22px 60px rgba(13, 43, 74, 0.13);
   }
 
   .contact-panel h2 {
@@ -1097,7 +1097,7 @@
 
   .site-footer {
     padding: 4.5rem 0 1.5rem;
-    color: rgba(255, 255, 255, 0.76);
+    color: rgba(247, 243, 235, 0.76);
     background: var(--navy-950);
   }
 
@@ -1141,7 +1141,7 @@
     justify-content: space-between;
     gap: 1.25rem;
     padding-top: 1.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.13);
+    border-top: 1px solid rgba(247, 243, 235, 0.13);
     font-size: 0.83rem;
   }
 
@@ -1171,7 +1171,7 @@
     color: var(--navy-950);
     background: var(--white);
     border-radius: 26px;
-    box-shadow: 0 28px 70px rgba(3, 20, 36, 0.35);
+    box-shadow: 0 28px 70px rgba(13, 43, 74, 0.35);
     opacity: 0;
     pointer-events: none;
     transform: translateY(-12px);
@@ -1271,8 +1271,8 @@
 
   .hero-wash {
     background:
-      linear-gradient(90deg, rgba(8, 34, 60, 0.88), rgba(8, 34, 60, 0.64)),
-      linear-gradient(0deg, rgba(7, 31, 53, 0.9) 0%, transparent 54%);
+      linear-gradient(90deg, rgba(13, 43, 74, 0.88), rgba(13, 43, 74, 0.64)),
+      linear-gradient(0deg, rgba(13, 43, 74, 0.9) 0%, transparent 54%);
   }
 
   .hero-content {

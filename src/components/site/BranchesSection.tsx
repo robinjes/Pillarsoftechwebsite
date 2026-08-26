@@ -10,9 +10,9 @@ export default function BranchesSection() {
         <SectionHeading
           className="branches-heading"
           light
-          eyebrow="Growing with our communities"
-          title="Find Pillars of Tech near you."
-          description="Each branch is built around local students, volunteers, schools, and families—with the same welcoming approach everywhere."
+          eyebrow="Current and exploring"
+          title="See where Pillars of Tech is active."
+          description="California is our current public chapter. Georgia is an unpublished possibility pending approval; details will appear only after a chapter is approved and ready to share."
           id="branches-heading"
         />
 
