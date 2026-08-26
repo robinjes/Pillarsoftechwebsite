@@ -10,6 +10,7 @@ import {
   Clock,
   FileText,
   LogOut,
+  Mail,
   Menu,
   Settings,
   ShieldCheck,
@@ -31,6 +32,7 @@ const navItems: NavItem[] = [
   { name: 'Hours', href: '/admin/hours', icon: Clock },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Forms', href: '/admin/forms', icon: FileText },
+  { name: 'Contact', href: '/admin/contact', icon: Mail },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 

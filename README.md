@@ -35,10 +35,11 @@ The server and browser require these owner-managed environment variables. Never 
 NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
+CHAT_TOKEN_PEPPER
 NEXT_PUBLIC_SITE_URL
 ```
 
-`NEXT_PUBLIC_SITE_URL` must be the canonical HTTPS origin (for example, `https://www.example.org`) with no path. In Supabase Auth, configure Google OAuth only through the provider settings and register the exact canonical and approved staging callback URLs (`https://<origin>/auth/callback`) in both the Google client and Supabase Auth URL settings. Keep local development callbacks explicitly limited to the local origin. The owner must supply provider credentials and decide which staging/production origins are approved; this repository does not contain them.
+`CHAT_TOKEN_PEPPER` is a long, randomly generated server-only secret used to HMAC request identities before durable contact/chat rate limiting. Never expose it as a `NEXT_PUBLIC_*` value or store raw request identities. `NEXT_PUBLIC_SITE_URL` must be the canonical HTTPS origin (for example, `https://www.example.org`) with no path. In Supabase Auth, configure Google OAuth only through the provider settings and register the exact canonical and approved staging callback URLs (`https://<origin>/auth/callback`) in both the Google client and Supabase Auth URL settings. Keep local development callbacks explicitly limited to the local origin. The owner must supply provider credentials and decide which staging/production origins are approved; this repository does not contain them.
 
 ## Release and database boundaries
 

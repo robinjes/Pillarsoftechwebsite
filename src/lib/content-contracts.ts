@@ -325,6 +325,46 @@ export const contactSubmissionSchema = z.object({
 
 export type ContactSubmission = z.infer<typeof contactSubmissionSchema>
 
+export const contactStatusSchema = z.enum(['new', 'in_progress', 'resolved', 'spam'])
+
+export type ContactStatus = z.infer<typeof contactStatusSchema>
+
+/**
+ * This is the server/admin representation of a stored contact row. It is
+ * deliberately separate from contactSubmissionSchema: the public schema
+ * accepts only the fields a visitor may submit, while this schema describes
+ * the private fields returned to an already-authorized staff caller.
+ */
+export const contactSubmissionRecordSchema = z.object({
+  id: z.uuid(),
+  name: nonEmptyText(160),
+  email: z.email().max(320),
+  subject: optionalText(240),
+  schoolName: optionalText(240),
+  studentCount: optionalText(80),
+  message: nonEmptyText(MAX_CONTACT_MESSAGE),
+  status: contactStatusSchema,
+  createdAt: isoDateTime,
+  updatedAt: isoDateTime,
+}).strict()
+
+export type ContactSubmissionRecord = z.infer<typeof contactSubmissionRecordSchema>
+
+export const adminContactListQuerySchema = z.object({
+  cursor: z.string().trim().min(1).max(256).optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(25),
+  status: contactStatusSchema.optional(),
+}).strict()
+
+export type AdminContactListQuery = z.infer<typeof adminContactListQuerySchema>
+
+export const adminContactStatusUpdateSchema = z.object({
+  id: z.uuid(),
+  status: contactStatusSchema,
+}).strict()
+
+export type AdminContactStatusUpdate = z.infer<typeof adminContactStatusUpdateSchema>
+
 export const contentDocumentSchema = z.object({
   key: safeId,
   title: optionalText(240),

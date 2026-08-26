@@ -5,18 +5,23 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { previewImpactSnapshot } from '@/data/impact-snapshot'
 import {
   contentDocumentSchema,
+  contactStatusSchema,
+  contactSubmissionRecordSchema,
   eventRecordSchema,
   formSchema,
   impactMetricSchema,
   publicImpactMetricSchema,
   publicEventSchema,
   type ContentDocument,
+  type ContactStatus,
+  type ContactSubmissionRecord,
   type EventRecord,
   type EventWrite,
   type FormDefinition,
   type ImpactMetric,
   type PublicEvent,
 } from '@/lib/content-contracts'
+import { decodeContactCursor, encodeContactCursor } from '@/lib/contact-pagination'
 import { getPublicEventSnapshot, toPublicEvent } from '@/lib/event-snapshot'
 import { createSupabasePublicClient } from '@/lib/supabase/public'
 import { createSupabaseServiceRoleClient } from '@/lib/supabase/service'
@@ -42,6 +47,8 @@ const safeRepositoryMessages = new Set([
   'Invalid registration answers.',
   'Registration is temporarily unavailable.',
   'Registration could not be confirmed.',
+  'Contact submission not found.',
+  'Contact status could not be changed.',
 ])
 
 function safeRepositoryMessage(message: string, status: ContentRepositoryError['status']): string {
@@ -140,6 +147,23 @@ export function contentFromRow(row: Record<string, unknown>): ContentDocument {
     safeForPublic: row.safe_for_public,
   })
   if (!parsed.success) throw new ContentRepositoryError('Stored site content is invalid.', 503)
+  return parsed.data
+}
+
+function contactFromRow(row: Record<string, unknown>): ContactSubmissionRecord {
+  const parsed = contactSubmissionRecordSchema.safeParse({
+    id: text(row.id),
+    name: text(row.name),
+    email: text(row.email),
+    subject: text(row.subject),
+    schoolName: text(row.school_name),
+    studentCount: text(row.student_count),
+    message: text(row.message),
+    status: row.status,
+    createdAt: text(row.created_at),
+    updatedAt: text(row.updated_at),
+  })
+  if (!parsed.success) throw new ContentRepositoryError('Stored contact submissions are invalid.', 503)
   return parsed.data
 }
 
@@ -472,6 +496,80 @@ export async function insertParticipantRegistration(eventId: string, submittedDa
     : ''
   if (!id) throw new ContentRepositoryError('Registration could not be confirmed.', 503)
   return id
+}
+
+const contactSelect = 'id,name,email,message,subject,school_name,student_count,status,created_at,updated_at'
+
+export interface AdminContactListOptions {
+  limit?: number
+  cursor?: string
+  status?: ContactStatus
+}
+
+export interface AdminContactListResult {
+  submissions: ContactSubmissionRecord[]
+  nextCursor: string | null
+}
+
+export async function listAdminContact(options: AdminContactListOptions = {}): Promise<AdminContactListResult> {
+  const limit = options.limit ?? 25
+  if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
+    throw new ContentRepositoryError('Invalid contact pagination.', 400)
+  }
+  if (options.status !== undefined && !contactStatusSchema.safeParse(options.status).success) {
+    throw new ContentRepositoryError('Invalid contact status.', 400)
+  }
+
+  let cursor = null
+  if (options.cursor !== undefined) {
+    cursor = decodeContactCursor(options.cursor)
+    if (!cursor) throw new ContentRepositoryError('Invalid contact cursor.', 400)
+  }
+
+  const client = serviceClient()
+  let query = client
+    .from('contact_submissions')
+    .select(contactSelect)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(limit + 1)
+
+  if (options.status) query = query.eq('status', options.status)
+  if (cursor) {
+    // Keyset pagination keeps the list bounded and stable when new messages
+    // arrive while staff are paging through the inbox.
+    query = query.or(`created_at.lt.${cursor.createdAt},and(created_at.eq.${cursor.createdAt},id.lt.${cursor.id})`)
+  }
+
+  const { data, error } = await query
+  if (error) rowError(error)
+
+  const rows = asRows(data)
+  const hasNextPage = rows.length > limit
+  const page = rows.slice(0, limit).map(contactFromRow)
+  const last = page[page.length - 1]
+
+  return {
+    submissions: page,
+    nextCursor: hasNextPage && last ? encodeContactCursor(last.createdAt, last.id) : null,
+  }
+}
+
+export async function updateAdminContactStatus(id: string, status: ContactStatus): Promise<ContactSubmissionRecord> {
+  if (!contactStatusSchema.safeParse(status).success) {
+    throw new ContentRepositoryError('Invalid contact status.', 400)
+  }
+
+  const client = serviceClient()
+  const { data, error } = await client
+    .from('contact_submissions')
+    .update({ status })
+    .eq('id', id)
+    .select(contactSelect)
+    .maybeSingle()
+  if (error) rowError(error, 'Contact status could not be changed.')
+  if (!data) throw new ContentRepositoryError('Contact submission not found.', 404)
+  return contactFromRow(data as Record<string, unknown>)
 }
 
 export async function insertContactSubmission(payload: { name: string; email: string; message: string; subject?: string; schoolName?: string; studentCount?: string }): Promise<void> {
