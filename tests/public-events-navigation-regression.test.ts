@@ -26,6 +26,9 @@ describe('public events and navigation regressions', () => {
     expect(navbar).toContain('onMouseLeave={() => setIsSupportOpen(false)}')
     expect(navbar).toContain('aria-expanded={isSupportOpen}')
     expect(navbar).not.toContain('<details')
+    for (const label of ['For families', 'Events', 'Our work', 'Volunteer', 'Branches', 'Contact']) {
+      expect(navbar).toContain(label)
+    }
   })
 
   it('keeps the visual gap inside the Support menu hover target', () => {

@@ -1,15 +1,19 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ArrowUpRight, ChevronDown, Menu, X } from 'lucide-react'
+import { ChevronDown, X } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import BrandMark from '@/components/site/BrandMark'
 
 const primaryLinks = [
-  { label: 'About', href: '/about' },
+  { label: 'For families', href: '/#families' },
+  { label: 'Events', href: '/events' },
+  { label: 'Our work', href: '/#our-work' },
   { label: 'Volunteer', href: '/volunteer' },
+  { label: 'Branches', href: '/#branches' },
+  { label: 'Contact', href: '/contact' },
 ]
 
 const supportLinks = [
@@ -17,8 +21,9 @@ const supportLinks = [
   { label: 'Wishlist', href: '/wishlist' },
   { label: 'Newsletter', href: '/newsletter' },
   { label: 'FAQ', href: '/faq' },
-  { label: 'Contact', href: '/contact' },
 ]
+
+const allMobileLinks = [...primaryLinks, ...supportLinks]
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -28,8 +33,12 @@ export default function Navbar() {
   const openButtonRef = useRef<HTMLButtonElement>(null)
   const supportButtonRef = useRef<HTMLButtonElement>(null)
   const wasOpenRef = useRef(false)
+  const previousOverflowRef = useRef('')
 
   useEffect(() => {
+    // Route changes close both menus so an open surface never follows a user
+    // into a different page or leaves body scrolling disabled.
+    setIsOpen(false)
     setIsSupportOpen(false)
   }, [pathname])
 
@@ -43,7 +52,11 @@ export default function Navbar() {
     }
 
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setIsOpen(false)
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setIsOpen(false)
+        return
+      }
       if (event.key !== 'Tab') return
 
       const dialog = document.getElementById('mobile-navigation')
@@ -60,38 +73,33 @@ export default function Navbar() {
         first.focus()
       }
     }
+
     wasOpenRef.current = true
-    document.addEventListener('keydown', onKeyDown)
+    previousOverflowRef.current = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', onKeyDown)
     closeButtonRef.current?.focus()
 
     return () => {
       document.removeEventListener('keydown', onKeyDown)
-      document.body.style.overflow = ''
+      document.body.style.overflow = previousOverflowRef.current
     }
   }, [isOpen])
-
-  const closeMenu = () => setIsOpen(false)
 
   if (pathname.startsWith('/admin') || pathname.startsWith('/volunteer/checkin')) {
     return null
   }
 
-  return (
-    <header className="public-navbar sticky top-0 z-50 border-b border-white/20 bg-midnight text-warm">
-      <div className="site-shell mx-auto flex min-h-[4.75rem] items-center justify-between gap-6 px-5 sm:px-8 lg:px-10">
-        <BrandMark compact />
-        <span className="public-navbar__note hidden font-display text-[0.58rem] font-bold uppercase tracking-[0.16em] text-warm/45 xl:block" aria-hidden="true">
-          Student-led STEM workshops
-        </span>
+  const closeMenu = () => setIsOpen(false)
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Primary navigation">
+  return (
+    <header className="site-header public-navbar">
+      <div className="shell site-header__inner">
+        <BrandMark compact />
+
+        <nav className="site-nav" aria-label="Primary navigation">
           {primaryLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="inline-flex min-h-11 items-center px-4 text-sm font-semibold transition-colors hover:text-sky"
-            >
+            <Link key={link.href} href={link.href} className="site-nav__link focus-ring">
               {link.label}
             </Link>
           ))}
@@ -116,32 +124,19 @@ export default function Navbar() {
             <button
               ref={supportButtonRef}
               type="button"
-              className="flex min-h-11 items-center gap-1 px-4 text-sm font-semibold transition-colors hover:text-sky"
+              className="site-nav__link focus-ring border-0 bg-transparent"
               aria-expanded={isSupportOpen}
               aria-controls="support-navigation"
-              onClick={(event) => {
-                if (event.detail === 0) setIsSupportOpen((open) => !open)
-                else setIsSupportOpen(true)
-              }}
+              onClick={() => setIsSupportOpen((open) => !open)}
             >
               Support
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${isSupportOpen ? 'rotate-180' : ''}`}
-                aria-hidden="true"
-              />
+              <ChevronDown className={`ml-1 h-4 w-4 transition-transform ${isSupportOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
             </button>
             {isSupportOpen ? (
-              <div
-                id="support-navigation"
-                className="absolute right-0 top-full min-w-48 pt-2"
-              >
-                <div className="border border-midnight/20 bg-warm p-2 text-ink shadow-[4px_4px_0_#101114]">
+              <div id="support-navigation" className="absolute right-0 top-full min-w-48 pt-2">
+                <div className="rounded-2xl border border-[var(--ink)]/20 bg-[var(--white)] p-2 text-[var(--ink)] shadow-[0_18px_44px_rgba(15,43,70,0.2)]">
                   {supportLinks.map((link) => (
-                    <Link
-                      key={link.href}
-                      href={link.href}
-                      className="flex min-h-11 items-center px-3 text-sm font-semibold transition-colors hover:bg-sky"
-                    >
+                    <Link key={link.href} href={link.href} className="flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold hover:bg-[var(--sky)] focus-ring">
                       {link.label}
                     </Link>
                   ))}
@@ -149,76 +144,43 @@ export default function Navbar() {
               </div>
             ) : null}
           </div>
-
-          <Link
-            href="/events"
-            className="ml-3 inline-flex min-h-11 items-center gap-2 border border-sky bg-sky px-4 text-sm font-bold text-midnight transition-colors hover:bg-warm"
-          >
-            Find an event
-            <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
         </nav>
 
         <button
           ref={openButtonRef}
           type="button"
-          className="inline-flex min-h-11 min-w-11 items-center justify-center border border-white/40 text-warm lg:hidden"
+          className="menu-button focus-ring"
           onClick={() => setIsOpen(true)}
           aria-label="Open navigation menu"
           aria-expanded={isOpen}
           aria-controls="mobile-navigation"
         >
-          <Menu className="h-5 w-5" aria-hidden="true" />
+          <span className="menu-button__label">Menu</span>
+          <span className="menu-button__bars" aria-hidden="true">
+            <span />
+            <span />
+            <span />
+          </span>
         </button>
       </div>
 
       {isOpen ? (
-        <div className="fixed inset-0 z-[60] lg:hidden" role="presentation">
-          <button
-            type="button"
-            aria-label="Close navigation menu"
-            className="absolute inset-0 h-full w-full bg-midnight/80"
-            onClick={closeMenu}
-          />
-          <div
-            id="mobile-navigation"
-            className="absolute right-0 top-0 flex h-full w-[min(25rem,92vw)] flex-col border-l border-white/20 bg-midnight p-6 text-warm"
-            role="dialog"
-            aria-modal="true"
-            aria-label="Mobile navigation"
-          >
+        <div className="mobile-navigation" role="presentation">
+          <button type="button" aria-label="Close navigation menu" className="absolute inset-0 h-full w-full border-0 bg-transparent" onClick={closeMenu} />
+          <div id="mobile-navigation" className="mobile-navigation__dialog" role="dialog" aria-modal="true" aria-label="Mobile navigation">
             <div className="flex items-center justify-between border-b border-white/20 pb-5">
               <BrandMark compact />
-              <button
-                ref={closeButtonRef}
-                type="button"
-                className="inline-flex min-h-11 min-w-11 items-center justify-center border border-white/40"
-                onClick={closeMenu}
-                aria-label="Close navigation menu"
-              >
+              <button ref={closeButtonRef} type="button" className="button button--glass focus-ring min-h-11 min-w-11 p-0" onClick={closeMenu} aria-label="Close navigation menu">
                 <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
             <nav className="flex flex-col gap-1 py-6" aria-label="Mobile navigation links">
-              {[...primaryLinks, ...supportLinks].map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={closeMenu}
-                  className="flex min-h-12 items-center border-b border-white/15 text-lg font-semibold transition-colors hover:text-sky"
-                >
+              {allMobileLinks.map((link) => (
+                <Link key={link.href} href={link.href} onClick={closeMenu} className="flex min-h-12 items-center rounded-xl border-b border-white/15 px-2 text-lg font-semibold transition-colors hover:bg-white/10 hover:text-[var(--sun)] focus-ring">
                   {link.label}
                 </Link>
               ))}
-              <Link
-                href="/events"
-                onClick={closeMenu}
-                className="mt-5 inline-flex min-h-12 items-center justify-center gap-2 border border-sky bg-sky px-4 font-bold text-midnight"
-              >
-                Find an event
-                <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
             </nav>
           </div>
         </div>

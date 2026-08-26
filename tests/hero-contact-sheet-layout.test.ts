@@ -3,42 +3,33 @@ import path from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-const sourceRoot = path.resolve(process.cwd(), 'src')
-const readSource = (relativePath: string) => readFileSync(path.join(sourceRoot, relativePath), 'utf8')
+const read = (relativePath: string) => readFileSync(path.resolve(process.cwd(), relativePath), 'utf8')
 
-function cssBlock(styles: string, selector: string) {
-  const start = styles.indexOf(`${selector} {`)
-  expect(start).toBeGreaterThanOrEqual(0)
-  const end = styles.indexOf('}', start)
-  expect(end).toBeGreaterThan(start)
-  return styles.slice(start, end)
-}
+describe('silent timelapse hero behavior', () => {
+  it('starts with Wildcat Tank, lazily loads Carnival, and alternates by end or interval', () => {
+    const hero = read('src/components/site/TimelapseHero.tsx')
 
-describe('hero contact-sheet caption band', () => {
-  it('reserves caption space and keeps decorations on their own side of the captions', () => {
-    const heroVisual = readSource('components/site/HeroVisual.tsx')
-    const styles = readSource('app/globals.css')
+    expect(hero).toContain("const TANK_VIDEO = '/videos/home/wildcat-tank-timelapse-720p.mp4'")
+    expect(hero).toContain("const CARNIVAL_VIDEO = '/videos/home/wildcat-carnival-timelapse-720p.mp4'")
+    expect(hero).toContain("const TANK_POSTER = '/images/home/wildcat-tank-poster.jpg'")
+    expect(hero).toContain("const CARNIVAL_POSTER = '/images/home/wildcat-carnival-poster.jpg'")
+    expect(hero).toContain('useState(0)')
+    expect(hero).toContain('preload="metadata"')
+    expect(hero).toContain('preload="none"')
+    expect(hero).toContain('video.preload = \'metadata\'')
+    expect(hero).toContain('video.load()')
+    expect(hero).toContain('window.setTimeout(advanceVideo, PLAYBACK_INTERVAL_MS)')
+    expect(hero).toContain('onEnded={advanceVideo}')
+    expect(hero).not.toContain('controls')
+  })
 
-    expect(heroVisual).toContain('hero-contact-sheet-frame')
-    expect(heroVisual).toContain('hero-contact-sheet-caption')
-
-    const frame = cssBlock(styles, '.hero-contact-sheet-frame')
-    expect(frame).toContain('--hero-contact-sheet-caption-band:')
-    expect(frame).toContain('padding-bottom: var(--hero-contact-sheet-caption-band)')
-
-    const caption = cssBlock(styles, '.hero-contact-sheet-caption')
-    expect(caption).toContain('position: absolute')
-    expect(caption).toContain('z-index: 2')
-
-    const shutter = cssBlock(styles, '.hero-print-shutter--bottom')
-    expect(shutter).toContain('bottom: calc(var(--hero-contact-sheet-caption-band) -')
-
-    const registration = cssBlock(styles, '.hero-registration-mark--bottom-left,\n.hero-registration-mark--bottom-right')
-    expect(registration).toContain('bottom: calc(var(--hero-contact-sheet-caption-band) -')
-
-    const leftCut = cssBlock(styles, '.hero-cut-mark--left')
-    const rightCut = cssBlock(styles, '.hero-cut-mark--right')
-    expect(leftCut).toMatch(/left:\s*-/)
-    expect(rightCut).toMatch(/right:\s*-/)
+  it('falls back to a static poster for reduced motion or autoplay failure and pauses on hidden pages', () => {
+    const hero = read('src/components/site/TimelapseHero.tsx')
+    expect(hero).toContain("window.matchMedia('(prefers-reduced-motion: reduce)')")
+    expect(hero).toContain('setAutoplayFailed(true)')
+    expect(hero).toContain('hero-media--poster-only')
+    expect(hero).toContain("document.addEventListener('visibilitychange'")
+    expect(hero).toContain('document.hidden')
+    expect(hero).toContain('video?.pause()')
   })
 })

@@ -1,176 +1,98 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 
 import { describe, expect, it } from 'vitest'
 
-const sourceRoot = path.resolve(process.cwd(), 'src')
-const readSource = (relativePath: string) => readFileSync(path.join(sourceRoot, relativePath), 'utf8')
+const root = process.cwd()
+const read = (relativePath: string) => readFileSync(path.join(root, relativePath), 'utf8')
 
-describe('editorial homepage foundation', () => {
+describe('family-friendly public foundation', () => {
   it('keeps the exact hero statement and ordered homepage sections', () => {
-    const page = readSource('app/page.tsx')
-    expect(page).toContain('STEM belongs in every student’s hands.')
-    expect(page.indexOf('<HeroSection />')).toBeLessThan(page.indexOf('<ImpactMetrics'))
-    expect(page.indexOf('<ImpactMetrics')).toBeLessThan(page.indexOf('<WorkshopAssembly'))
-    expect(page.indexOf('<WorkshopAssembly')).toBeLessThan(page.indexOf('<EventProof'))
-    expect(page.indexOf('<EventProof')).toBeLessThan(page.indexOf('<FamilyScienceStory'))
-    expect(page.indexOf('<FamilyScienceStory')).toBeLessThan(page.indexOf('<AudienceRoutes'))
-    expect(page.indexOf('<AudienceRoutes')).toBeLessThan(page.indexOf('<FinanceSection'))
-    expect(page.indexOf('<FinanceSection')).toBeLessThan(page.indexOf('<SupportLinks'))
-  })
+    const page = read('src/app/page.tsx')
+    const hero = read('src/components/site/TimelapseHero.tsx')
 
-  it('uses source-dated impact data with a compact, accessible caveat disclosure', () => {
-    const page = readSource('app/page.tsx')
-    const heroVisual = readSource('components/site/HeroVisual.tsx')
-    const metrics = readSource('components/site/ImpactMetrics.tsx')
-    expect(page).toContain('listPublicImpact()')
-    expect(page).not.toContain('stats')
-    expect(metrics).toContain('previewImpactSnapshot')
-    expect(metrics).toContain('How these numbers are counted')
-    expect(metrics).toContain('metric.methodologyNote')
-    expect(heroVisual).toContain('/images/events/science-odyssey/drive-02.webp')
-    expect(heroVisual).toContain('Students compare and test marshmallow structures at the Science Odyssey engineering table.')
-    expect(heroVisual).toContain('priority')
-    expect(heroVisual).toContain('data-hero-contact-sheet')
-    expect(heroVisual).toContain('useTransform')
-    expect(readSource('components/site/HeroMotion.tsx')).toContain('useReducedMotion')
-    expect(page).not.toContain('loading="eager"')
-  })
-
-  it('keeps the workshop assembly as a lazy, responsive, object-only WebGL scene', () => {
-    const packageJson = JSON.parse(readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8')) as {
-      dependencies?: Record<string, string>
-      devDependencies?: Record<string, string>
+    expect(hero).toContain('STEM belongs in every student’s hands.')
+    const sections = [
+      '<TimelapseHero />',
+      '<TrustStrip />',
+      '<FamiliesIntro />',
+      '<NextEventSection',
+      '<EventProof />',
+      '<MissionSection />',
+      '<BranchesSection />',
+      '<FinanceSection />',
+      '<ContactCta />',
+    ]
+    for (let index = 1; index < sections.length; index += 1) {
+      expect(page.indexOf(sections[index - 1])).toBeLessThan(page.indexOf(sections[index]))
     }
-    const workshop = readSource('components/site/WorkshopAssembly.tsx')
-    const desktopWorkshop = readSource('components/site/WorkshopAssemblyDesktop.tsx')
-    const desktopLoader = readSource('components/site/WorkshopAssemblyDesktopLoader.tsx')
-    const workshopData = readSource('components/site/workshopAssemblyData.ts')
-    expect(packageJson.dependencies?.three).toBe('0.185.1')
-    expect(packageJson.dependencies?.['@react-three/fiber']).toBe('9.7.0')
-    expect(packageJson.dependencies?.['@types/three']).toBeUndefined()
-    expect(packageJson.devDependencies?.['@types/three']).toBe('0.185.4')
-    expect(workshop).toContain('Every part has a purpose.')
-    expect(workshop).toContain('Frame, Motion, Sense, and Lead')
-    expect(workshop).toContain('DesktopWorkshopAssemblyLoader')
-    expect(workshop).toContain('/images/events/family-science-night-altamont/drive-02.webp')
-    expect(workshop).toContain('data-workshop-static="narrow"')
-    expect(workshop).toContain('An older student demonstrates a VEX robot to three younger students at Family Science Night.')
-    expect(workshop).toContain("from 'next/image'")
-    expect(desktopWorkshop).toContain("from '@react-three/fiber'")
-    expect(desktopWorkshop).toContain("from 'three'")
-    expect(desktopWorkshop).toContain("from 'three/examples/jsm/loaders/GLTFLoader.js'")
-    expect(desktopWorkshop).toContain('useFrame')
-    expect(desktopWorkshop).toContain('RoomEnvironment')
-    expect(desktopWorkshop).toContain('ACESFilmicToneMapping')
-    expect(desktopWorkshop).toContain('SRGBColorSpace')
-    expect(desktopWorkshop).toContain('/models/perseverance/perseverance-runtime.glb')
-    expect(desktopWorkshop).not.toContain('/images/events/')
-    for (const unit of [
-      'Body', 'Body_Parts', 'Body_Parts.001', 'base', 'box', 'part_01', 'Armature', 'Empty',
-      'suspension', 'Wheels_objs', 'Body.002', 'Body.003',
-      'Cylinder', 'lab', 'rtg', 'antenna_uhf', 'antenna_hg', 'antenna_lg', 'RIMFAX',
-      'hazcams_front', 'hazcams_front_cover', 'hazcams_rear', 'hazcams_rear_cover_l',
-      'hazcams_rear_cover_r', 'hazcams_rear_wiring', 'microphones', 'Up_Look_Camera',
-      'Down_Look_Camera', 'calibration_target', 'calibration_target_bracket',
-      'arm.001', 'arm.003', 'arm_01_joint', 'arm_02_joint', 'pan_end cover', 'arm_cable_etc',
-      'Name_Chips', 'probe',
-    ]) expect(desktopWorkshop).toContain(`'${unit}'`)
-    expect(desktopWorkshop).toContain('makeAssemblyPlans')
-    expect(desktopWorkshop).toContain('node.parent !== scene')
-    expect(desktopWorkshop).toContain('start + index * stagger')
-    expect(desktopWorkshop).toContain('0.018, 0.23')
-    expect(desktopWorkshop).toContain('0.035, 0.24')
-    expect(desktopWorkshop).toContain('0.014, 0.24')
-    expect(desktopWorkshop).toContain('0.018, 0.21')
-    expect(desktopWorkshop).toContain('quinticEase')
-    expect(desktopWorkshop).toContain('setAssemblyState(snapshot, value)')
-    expect(desktopWorkshop).toContain('initialProgress')
-    expect(desktopWorkshop).toContain('idleSpinAngle')
-    expect(desktopWorkshop).toContain('idleSpinVelocity')
-    expect(desktopWorkshop).toContain('(Math.PI * 2) / 24')
-    expect(desktopWorkshop).toContain('idleSpinAngle.current += idleSpinVelocity.current * delta')
-    expect(desktopWorkshop).toContain('idleSpinAngle.current = 0')
-    expect(desktopWorkshop).toContain('ROVER READY')
-    expect(desktopWorkshop).toContain("currentStage.isReady ? 'ROVER READY' : currentStage.title")
-    expect(desktopWorkshop).not.toContain('mt-2 font-display text-[0.65rem]')
-    expect(workshopData).toContain('When motion is enabled')
-    expect(desktopWorkshop).toContain('ref={sectionRef}')
-    expect(desktopWorkshop).toContain('min-h-[320vh]')
-    expect(desktopWorkshop).toContain('min-h-[175vh]')
-    expect(desktopWorkshop).toContain("prefers-reduced-motion: reduce")
-    expect(desktopWorkshop).toContain('useCurrentStage')
-    expect(desktopWorkshop).not.toContain('border-y')
-    expect(desktopWorkshop).not.toContain('grid-cols-3')
-    expect(desktopWorkshop).toContain('planeGeometry')
-    expect(desktopWorkshop).not.toContain('boxGeometry')
-    expect(desktopWorkshop).not.toContain('cylinderGeometry')
-    expect(desktopWorkshop).not.toContain('DRACOLoader')
-    expect(workshopData).not.toContain('/images/workshop/')
-    for (const stage of ['FRAME', 'MOTION', 'SENSE', 'LEAD']) expect(workshopData).toContain(stage)
-    expect(desktopWorkshop).not.toContain('/images/workshop/')
-    expect(desktopWorkshop).toContain('role="img"')
-    expect(desktopWorkshop).toContain('aria-hidden="true"')
-    expect(desktopWorkshop).toContain('aria-label={desktopVisualLabel}')
-    expect(desktopWorkshop).toContain('scroll')
-    expect(desktopWorkshop).toContain('damp(')
-    expect(desktopWorkshop).not.toContain('framer-motion')
-    expect(desktopWorkshop).not.toMatch(/\/images\/(?:people|students|avatars|workshop)\//i)
-    expect(desktopLoader).toContain("import('@/components/site/WorkshopAssemblyDesktop')")
-    expect(desktopLoader).toContain('requestedRef.current')
-    expect(desktopLoader).toContain('IntersectionObserver')
-    expect(desktopLoader).toContain("rootMargin: '480px 0px'")
-    expect(desktopLoader).toContain('max-lg:min-h-[175vh]')
-    expect(desktopLoader).toContain('motion-reduce:min-h-screen')
-    expect(desktopLoader).toContain('aria-busy="true"')
-    expect(desktopLoader).toContain('min-h-screen')
+    expect(page).toContain('listPublicEvents()')
+    expect(page).toContain('.catch(() => [] as PublicEvent[])')
+    expect(page).not.toContain('WorkshopAssembly')
+    expect(page).not.toContain('PublicAtmosphere')
+    expect(page).not.toContain('min-h-[320vh]')
   })
 
-  it('locks the palette and typography tokens', () => {
-    const css = readSource('app/globals.css')
-    const tailwind = readFileSync(path.resolve(process.cwd(), 'tailwind.config.js'), 'utf8')
-    const fonts = readSource('lib/fonts.ts')
-    for (const token of ['#F3EBDD', '#101114', '#0B1F3A', '#A9D8F2', '#2B5DA8', '#FFFDF8']) {
+  it('uses approved typography and the complete family token set', () => {
+    const css = read('src/app/globals.css')
+    const tailwind = read('tailwind.config.js')
+    const fonts = read('src/lib/fonts.ts')
+
+    for (const token of ['#0D2B4A', '#17334D', '#DED5C7', '#F7F3EB', '#B9DDEC', '#F7CA55', '#E9A98F', '#AAC6A5']) {
       expect(css).toContain(token)
       expect(tailwind).toContain(token)
     }
-    expect(fonts).toContain('Familjen_Grotesk')
-    expect(fonts).toContain('IBM_Plex_Sans')
+    expect(fonts).toContain("import { Atkinson_Hyperlegible, Fredoka } from 'next/font/google'")
+    expect(fonts).toContain("variable: '--font-display'")
+    expect(fonts).toContain("variable: '--font-body'")
+    expect(css).toContain('.button')
+    expect(css).toContain('.friendly-card')
+    expect(css).toContain('.shell')
+    expect(css).toContain('.section-heading')
+    expect(css).toContain('.focus-ring')
+    expect(css).toContain('.form-control')
+    expect(css).toContain('.status-pill')
+    expect(css).toContain('.long-form-copy')
+    expect(css).toContain('min-height: 44px')
+    expect(css).toContain('border-radius: 999px')
   })
 
-  it('retains dynamic connection rendering for CSP nonce propagation', () => {
-    const layout = readSource('app/layout.tsx')
+  it('keeps both approved 720p films and posters in stable public paths', () => {
+    const hero = read('src/components/site/TimelapseHero.tsx')
+    for (const asset of [
+      'public/videos/home/wildcat-tank-timelapse-720p.mp4',
+      'public/videos/home/wildcat-carnival-timelapse-720p.mp4',
+      'public/images/home/wildcat-tank-poster.jpg',
+      'public/images/home/wildcat-carnival-poster.jpg',
+    ]) {
+      expect(existsSync(path.join(root, asset)), asset).toBe(true)
+    }
+    expect(hero).toContain('preload="metadata"')
+    expect(hero).toContain('preload="none"')
+    expect(hero).toContain('muted')
+    expect(hero).toContain('playsInline')
+    expect(hero).toContain('onEnded')
+    expect(hero).toContain('visibilitychange')
+    expect(hero).toContain('prefers-reduced-motion: reduce')
+    expect(hero).not.toContain('controls')
+  })
+
+  it('keeps dynamic connection rendering for CSP nonce propagation', () => {
+    const layout = read('src/app/layout.tsx')
     expect(layout).toContain("import { connection } from 'next/server'")
     expect(layout).toMatch(/export default async function RootLayout/)
     expect(layout).toContain('await connection()')
     expect(layout).toContain('id="main-content"')
+    expect(layout).not.toContain('PublicAtmosphere')
   })
 
-  it('includes the complete trust footer and current-year behavior', () => {
-    const footer = readSource('components/Footer.tsx')
-    for (const href of ['/about', '/team', '/events', '/volunteer', '/fundraiser', '/faq', '/wishlist', '/newsletter', '/contact']) {
-      expect(footer).toContain(href)
-    }
-    expect(footer).toContain('https://hcb.hackclub.com/pillars-of-tech/transactions')
-    expect(footer).toContain('https://www.youtube.com/@PillarsofTech')
-    expect(footer).toContain('https://www.instagram.com/thepillarsoftech')
-    expect(footer).toContain('new Date().getFullYear()')
-    expect(footer).toContain("pathname.startsWith('/admin')")
-    expect(footer).toContain("pathname.startsWith('/volunteer/checkin')")
-  })
-
-  it('keeps header navigation direct, keyboard-complete, and inclusive of FAQ support', () => {
-    const navbar = readSource('components/Navbar.tsx')
-    for (const href of ['/about', '/events', '/volunteer', '/fundraiser', '/wishlist', '/newsletter', '/faq', '/contact']) {
-      expect(navbar).toContain(href)
-    }
-    expect(navbar).toContain("event.key === 'Escape'")
-    expect(navbar).toContain('event.key !== \'Tab\'')
-    expect(navbar).toContain('openButtonRef.current?.focus()')
-    expect(navbar).toContain('aria-modal="true"')
-    expect(navbar).toContain("pathname.startsWith('/admin')")
-    expect(navbar).toContain("pathname.startsWith('/volunteer/checkin')")
-    expect(navbar.match(/label: 'Events', href: '\/events'/g) ?? []).toHaveLength(0)
-    expect(navbar.match(/Find an event/g) ?? []).toHaveLength(2)
+  it('keeps the real finance and action destinations', () => {
+    const page = `${read('src/components/site/FinanceSection.tsx')}\n${read('src/components/site/ContactCta.tsx')}`
+    expect(page).toContain('https://hcb.hackclub.com/pillars-of-tech/transactions')
+    expect(page).toContain('https://hcb.hackclub.com/donations/start/pillars-of-tech')
+    expect(page).toContain('href="/contact"')
+    expect(read('src/components/site/NextEventSection.tsx')).toContain('/events/${event.slug}')
+    expect(read('src/components/site/BranchesSection.tsx')).toContain('href="/events"')
+    expect(read('src/components/site/BranchesSection.tsx')).not.toMatch(/branch-card--georgia[\s\S]*?<a\b/)
   })
 })
