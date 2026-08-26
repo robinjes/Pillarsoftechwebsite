@@ -40,6 +40,7 @@ import { POST as postContact } from '@/app/api/contact/route'
 import { contactSubmissionSchema } from '@/lib/content-contracts'
 import { decodeContactCursor, encodeContactCursor } from '@/lib/contact-pagination'
 import { hashContactIdentity } from '@/lib/contact-abuse'
+import { getRequestIdentity, REQUEST_IDENTITY_FALLBACK } from '@/lib/request-identity'
 import Contact from '@/components/Contact'
 
 const staff = { ok: true as const, isStaff: true as const, user: { id: 'staff-1' } }
@@ -59,6 +60,7 @@ const submission = {
 beforeEach(() => {
   vi.clearAllMocks()
   vi.stubEnv('CHAT_TOKEN_PEPPER', 'test-pepper')
+  vi.stubEnv('VERCEL', '')
   requireVerifiedStaffMock.mockResolvedValue(staff)
   allowContactAttemptDurablyMock.mockResolvedValue(true)
   insertContactSubmissionMock.mockResolvedValue(undefined)
@@ -92,6 +94,46 @@ describe('Task 3 contact contracts and privacy boundaries', () => {
     const cursor = encodeContactCursor(submission.createdAt, submission.id)
     expect(decodeContactCursor(cursor)).toEqual({ createdAt: submission.createdAt, id: submission.id })
     expect(decodeContactCursor(`${cursor}!`)).toBeNull()
+    expect(() => encodeContactCursor('Wed, 26 Aug 2026 12:00:00 GMT', submission.id)).toThrow()
+    expect(decodeContactCursor(Buffer.from(JSON.stringify({
+      createdAt: '2026-08-26T12:00:00Z,unexpected',
+      id: submission.id,
+    }), 'utf8').toString('base64url'))).toBeNull()
+    const offsetCursor = encodeContactCursor('2026-08-26T12:00:00-04:00', submission.id)
+    expect(decodeContactCursor(offsetCursor)?.createdAt).toBe('2026-08-26T12:00:00-04:00')
+  })
+})
+
+describe('request identity boundary', () => {
+  it('ignores browser-controlled forwarding headers outside a trusted Vercel runtime', () => {
+    vi.stubEnv('VERCEL', '')
+    const request = new Request('https://pillarsoftech.org/api/contact', {
+      headers: {
+        'x-forwarded-for': '203.0.113.10',
+        'x-real-ip': '198.51.100.7',
+        'x-vercel-forwarded-for': '192.0.2.4',
+      },
+    })
+    expect(getRequestIdentity(request)).toBe(REQUEST_IDENTITY_FALLBACK)
+  })
+
+  it('uses only a valid Vercel-attested address and ignores x-forwarded-for', () => {
+    vi.stubEnv('VERCEL', '1')
+    const request = new Request('https://pillarsoftech.org/api/contact', {
+      headers: {
+        'x-forwarded-for': '203.0.113.10',
+        'x-vercel-forwarded-for': '2001:db8::1',
+      },
+    })
+    expect(getRequestIdentity(request)).toBe('2001:db8::1')
+  })
+
+  it('collapses missing, chained, malformed, and overlong trusted values safely', () => {
+    vi.stubEnv('VERCEL', '1')
+    for (const value of [null, '', '203.0.113.10, 198.51.100.7', 'not-an-ip', '1'.repeat(46)]) {
+      const headers: HeadersInit = value === null ? {} : { 'x-vercel-forwarded-for': value }
+      expect(getRequestIdentity(new Request('https://pillarsoftech.org/api/contact', { headers }))).toBe(REQUEST_IDENTITY_FALLBACK)
+    }
   })
 })
 
@@ -125,9 +167,14 @@ describe('contact API boundaries', () => {
   })
 
   it('accepts through the durable limiter before inserting privately', async () => {
+    vi.stubEnv('VERCEL', '1')
     const response = await postContact(new Request('https://pillarsoftech.org/api/contact', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-forwarded-for': '203.0.113.10' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-forwarded-for': '198.51.100.7',
+        'x-vercel-forwarded-for': '203.0.113.10',
+      },
       body: JSON.stringify({
         name: 'Ada Lovelace', email: 'ada@example.com', subject: 'General inquiry',
         schoolName: '', studentCount: '', message: 'A question.', honeypot: '',

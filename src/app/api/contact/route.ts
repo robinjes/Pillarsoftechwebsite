@@ -2,12 +2,8 @@ import { readJson } from '@/lib/admin-api'
 import { contactSubmissionSchema } from '@/lib/content-contracts'
 import { allowContactAttemptDurably } from '@/lib/contact-rate-limit'
 import { insertContactSubmission } from '@/lib/content-repository'
+import { getRequestIdentity } from '@/lib/request-identity'
 import { sameOrigin, sameOriginFailure, jsonNoStore } from '@/lib/volunteer-api'
-
-function requestIdentity(request: Request): string {
-  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-  return forwarded || request.headers.get('x-real-ip')?.trim() || 'unknown-client'
-}
 
 export async function POST(request: Request) {
   if (!sameOrigin(request)) return sameOriginFailure()
@@ -17,7 +13,7 @@ export async function POST(request: Request) {
   if (parsed.data.honeypot !== '') return jsonNoStore({ error: 'Invalid submission.' }, 400)
 
   try {
-    if (!await allowContactAttemptDurably(requestIdentity(request))) {
+    if (!await allowContactAttemptDurably(getRequestIdentity(request))) {
       return jsonNoStore({ error: 'Too many contact attempts. Try again later.' }, 429)
     }
   } catch {

@@ -18,9 +18,16 @@ Implemented Task 3 on `andrew/family-full-site-live-chat`. The public contact co
 - Build: `npm run build` — Next.js 15.5.23 compiled and all 45 pages generated, including `/contact`, `/admin/contact`, and both contact APIs. The only warning was the existing 15-month-old Browserslist database notice.
 - SQL: not run. Exact local blocker: `supabase command not found`; `psql command not found`; `pg_isready command not found`; Docker client is present, but `docker info` reports `Cannot connect to the Docker daemon at unix:///Users/al1234/.docker/run/docker.sock. Is the docker daemon running?` No hosted Supabase changes were attempted.
 
+## Review fixes
+
+- Removed the default from the four-argument limiter implementation so the exact three- and four-argument RPC signatures are unambiguous to PostgREST. pgTAP now checks both signatures, confirms the timestamped function has no defaults, verifies service-role EXECUTE grants, and executes the three-argument form.
+- Replaced parseable-date cursor validation with delimiter-safe `z.iso.datetime({ offset: true })` syntax, and added rejection coverage for RFC/comma dates plus offset acceptance. Repository query tests verify bounded `limit + 1`, status filtering, and the exact safe keyset `.or` predicate.
+- Added a server-only Vercel request-identity helper. It accepts only a validated `x-vercel-forwarded-for` address when `VERCEL=1`, ignores browser-controlled `x-forwarded-for`/`x-real-ip`, and collapses missing, chained, malformed, or overlong values to `unknown-client` before HMAC bucketing.
+- Removed the production process-local limiter map and updated the legacy unit tests to cover normalization/HMAC behavior instead.
+- Review validation: focused suites — 4 files / 19 tests passed; `npm run check` — 38 files / 203 tests passed; `npm run build` — 45 pages generated. SQL remains unverified for the exact local-tooling blocker above.
+
 ## Concerns / follow-up boundaries
 
-- The legacy exported in-memory `allowContactAttempt` helper remains only for the pre-existing unit tests/backward imports; the production `/api/contact` route uses `allowContactAttemptDurably` and never calls the map.
 - Task 4 should reuse `public.chat_rate_limit_buckets` and `public.consume_chat_rate_limit` with a separate scope; no competing rate-limit store was added.
 - Live visitor chat behavior remains intentionally deferred to Task 5.
 

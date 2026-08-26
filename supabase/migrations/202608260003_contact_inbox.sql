@@ -75,7 +75,7 @@ create or replace function public.consume_chat_rate_limit(
   p_bucket_key text,
   p_window_seconds integer,
   p_max_attempts integer,
-  p_now timestamptz default timezone('utc', now())
+  p_now timestamptz
 )
 returns boolean
 language plpgsql
@@ -141,9 +141,8 @@ revoke all on function public.consume_chat_rate_limit(text, integer, integer, ti
 grant execute on function public.consume_chat_rate_limit(text, integer, integer, timestamptz) to service_role;
 
 -- PostgREST callers normally use the three-argument form. The timestamped
--- overload above keeps the transaction deterministic in database tests and
--- gives future maintenance jobs an explicit cutoff without changing the
--- public service boundary.
+-- implementation intentionally has no default for p_now: keeping the exact
+-- signatures distinct prevents PostgREST from seeing an ambiguous overload.
 create or replace function public.consume_chat_rate_limit(
   p_bucket_key text,
   p_window_seconds integer,

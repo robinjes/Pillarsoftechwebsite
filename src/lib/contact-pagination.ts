@@ -1,7 +1,16 @@
 import { z } from 'zod'
 
+// PostgREST's .or filter uses commas and parentheses as delimiters. Keep the
+// cursor timestamp to ISO UTC/offset syntax whose character set cannot add a
+// delimiter, and validate it with Zod rather than Date.parse (which accepts
+// RFC dates and other surprising formats).
+const delimiterSafeIsoDateTime = z.iso.datetime({ offset: true }).refine(
+  (value) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(value),
+  'Use a delimiter-safe ISO date-time with a timezone.',
+)
+
 const cursorPayloadSchema = z.object({
-  createdAt: z.string().trim().refine((value) => Number.isFinite(Date.parse(value))),
+  createdAt: delimiterSafeIsoDateTime,
   id: z.uuid(),
 }).strict()
 

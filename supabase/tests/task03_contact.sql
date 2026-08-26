@@ -2,7 +2,7 @@
 -- Run with `supabase db reset` followed by `supabase test db`.
 
 begin;
-select plan(26);
+select plan(29);
 
 select has_table('public', 'contact_submissions', 'contact submissions remain available');
 select has_table('public', 'chat_rate_limit_buckets', 'shared rate-limit buckets exist');
@@ -27,17 +27,25 @@ select ok(
   ),
   'expired rate-limit rows have a prune index'
 );
+select has_function(
+  'public', 'consume_chat_rate_limit',
+  array['text', 'integer', 'integer', 'timestamptz'],
+  'timestamped shared atomic rate-limit RPC exists with its exact signature'
+);
+select has_function(
+  'public', 'consume_chat_rate_limit',
+  array['text', 'integer', 'integer'],
+  'PostgREST shared atomic rate-limit RPC exists with its exact signature'
+);
 select ok(
-  exists (
-    select 1
-    from pg_proc
-    where pronamespace = 'public'::regnamespace
-      and proname = 'consume_chat_rate_limit'
-      and proargtypes::oid[] = array[
-        'text'::regtype, 'integer'::regtype, 'integer'::regtype, 'timestamptz'::regtype
-      ]
-  ),
-  'shared atomic rate-limit RPC exists'
+  (select proargdefaults is null
+   from pg_proc
+   where pronamespace = 'public'::regnamespace
+     and proname = 'consume_chat_rate_limit'
+     and proargtypes::oid[] = array[
+       'text'::regtype, 'integer'::regtype, 'integer'::regtype, 'timestamptz'::regtype
+     ]),
+  'timestamped rate-limit RPC has no defaulted argument that could make calls ambiguous'
 );
 select ok((select relforcerowsecurity from pg_class where oid = 'public.contact_submissions'::regclass), 'contact submissions force RLS');
 select ok((select relforcerowsecurity from pg_class where oid = 'public.chat_rate_limit_buckets'::regclass), 'rate-limit buckets force RLS');
@@ -104,6 +112,12 @@ select ok(
     select 1 from public.chat_rate_limit_buckets where bucket_key like '%203.0.113.10%'
   ),
   'rate-limit storage contains no raw identity fixture'
+);
+
+select is(
+  public.consume_chat_rate_limit('contact:' || repeat('b', 64), 600, 5),
+  true,
+  'three-argument rate-limit execution resolves unambiguously'
 );
 
 select * from finish();
