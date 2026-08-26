@@ -13,6 +13,7 @@ const PLAYBACK_INTERVAL_MS = 14_000
 export default function TimelapseHero() {
   const [activeIndex, setActiveIndex] = useState(0)
   const [reducedMotion, setReducedMotion] = useState(false)
+  const [motionPreferenceReady, setMotionPreferenceReady] = useState(false)
   const [autoplayFailed, setAutoplayFailed] = useState(false)
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([])
   const timerRef = useRef<number | null>(null)
@@ -32,7 +33,7 @@ export default function TimelapseHero() {
   }, [autoplayFailed, clearPlaybackTimer, reducedMotion])
 
   const attemptPlayback = useCallback(async () => {
-    if (reducedMotion || autoplayFailed || document.hidden) return
+    if (!motionPreferenceReady || reducedMotion || autoplayFailed || document.hidden) return
     const video = videoRefs.current[activeIndexRef.current]
     if (!video) return
 
@@ -47,7 +48,7 @@ export default function TimelapseHero() {
       clearPlaybackTimer()
       setAutoplayFailed(true)
     }
-  }, [advanceVideo, autoplayFailed, clearPlaybackTimer, reducedMotion])
+  }, [advanceVideo, autoplayFailed, clearPlaybackTimer, motionPreferenceReady, reducedMotion])
 
   useEffect(() => {
     activeIndexRef.current = activeIndex
@@ -56,7 +57,7 @@ export default function TimelapseHero() {
 
     clearPlaybackTimer()
     video.muted = true
-    if (reducedMotion || autoplayFailed) {
+    if (!motionPreferenceReady || reducedMotion || autoplayFailed) {
       video.pause()
       return
     }
@@ -73,13 +74,14 @@ export default function TimelapseHero() {
       clearPlaybackTimer()
       video.pause()
     }
-  }, [activeIndex, attemptPlayback, autoplayFailed, clearPlaybackTimer, reducedMotion])
+  }, [activeIndex, attemptPlayback, autoplayFailed, clearPlaybackTimer, motionPreferenceReady, reducedMotion])
 
   useEffect(() => {
     const currentVideos = videoRefs.current
     const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)')
     const updateMotionPreference = (event: MediaQueryListEvent | MediaQueryList) => {
       setReducedMotion(event.matches)
+      setMotionPreferenceReady(true)
       if (event.matches) {
         clearPlaybackTimer()
         currentVideos.forEach((video) => video?.pause())

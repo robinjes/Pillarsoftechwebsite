@@ -11,7 +11,7 @@ vi.mock('@/lib/supabase/public', () => ({
   createSupabasePublicClient: repositoryMocks.createPublicClient,
 }))
 
-import { listPublicEvents } from '@/lib/content-repository'
+import { listPublicEvents, listPublicImpact } from '@/lib/content-repository'
 
 describe('public events and navigation regressions', () => {
   beforeEach(() => {
@@ -53,5 +53,21 @@ describe('public events and navigation regressions', () => {
 
     expect(events.some((event) => event.status === 'upcoming')).toBe(true)
     expect(events.some((event) => event.status === 'completed')).toBe(true)
+  })
+
+  it('uses the safe checked-in impact snapshot when the public Supabase read fails', async () => {
+    const order = vi.fn().mockResolvedValue({
+      data: null,
+      error: { code: '42P01', message: 'relation public.impact_metrics does not exist' },
+    })
+    const select = vi.fn(() => ({ order }))
+    repositoryMocks.createPublicClient.mockReturnValue({
+      from: vi.fn(() => ({ select })),
+    })
+
+    const metrics = await listPublicImpact()
+
+    expect(metrics.length).toBeGreaterThan(0)
+    expect(metrics.every((metric) => metric.sourceUrl && metric.methodologyNote)).toBe(true)
   })
 })

@@ -286,7 +286,7 @@
   }
 
   .site-header {
-    position: absolute;
+    position: sticky;
     z-index: 50;
     top: 0;
     right: 0;
@@ -295,6 +295,14 @@
     background: rgba(13, 43, 74, 0.94);
     border-bottom: 1px solid rgba(255, 255, 255, 0.12);
     backdrop-filter: blur(12px);
+  }
+
+  .site-header--home {
+    position: absolute;
+  }
+
+  .site-header--solid {
+    position: sticky;
   }
 
   .site-header__inner {
@@ -553,7 +561,7 @@
 
   .friendly-card p {
     margin-bottom: 0;
-    color: #294b62;
+    color: var(--muted);
   }
 
   .card-number {
@@ -629,6 +637,12 @@
 
   .event-copy h2 {
     font-size: clamp(2.4rem, 4vw, 3.7rem);
+  }
+
+  .event-title {
+    margin: -0.5rem 0 1.25rem;
+    color: var(--navy-800);
+    font-size: clamp(1.45rem, 3vw, 2.15rem);
   }
 
   .event-intro {
@@ -864,6 +878,94 @@
     line-height: 1.4;
   }
 
+  .impact-section {
+    background: var(--white);
+  }
+
+  .impact-heading {
+    max-width: 760px;
+  }
+
+  .impact-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin-top: 2.5rem;
+  }
+
+  .impact-card {
+    padding: 1.75rem;
+    background: var(--paper);
+    border: 1px solid rgba(23, 51, 77, 0.16);
+    border-radius: 28px;
+  }
+
+  .impact-value {
+    margin: 0;
+    color: var(--navy-950);
+    font-family: var(--font-display-stack);
+    font-size: clamp(2.5rem, 5vw, 4.3rem);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .impact-label {
+    margin: 0.75rem 0 0;
+    color: var(--navy-950);
+    font-family: var(--font-display-stack);
+    font-size: 1.2rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .impact-as-of {
+    margin: 0.5rem 0 0;
+    color: var(--muted);
+    font-size: 0.92rem;
+  }
+
+  .impact-method {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(23, 51, 77, 0.16);
+  }
+
+  .impact-method summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    color: var(--navy-800);
+    cursor: pointer;
+    font-family: var(--font-display-stack);
+    font-weight: 700;
+  }
+
+  .impact-method p {
+    margin: 0.75rem 0 0;
+    color: var(--muted);
+    font-size: 0.94rem;
+    line-height: 1.45;
+  }
+
+  .impact-source {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    margin-top: 0.75rem;
+    color: var(--navy-800);
+    font-family: var(--font-display-stack);
+    font-weight: 700;
+  }
+
+  .impact-empty {
+    margin-top: 2.5rem;
+    padding: 1.75rem;
+    color: var(--muted);
+    background: var(--paper);
+    border: 1px dashed rgba(23, 51, 77, 0.28);
+    border-radius: 28px;
+  }
+
   .branches-section {
     color: var(--white);
     background: var(--navy-900);
@@ -908,7 +1010,7 @@
 
   .branch-card p:not(.branch-kicker) {
     max-width: 450px;
-    color: #36546a;
+    color: var(--muted);
   }
 
   .branch-kicker {
@@ -990,7 +1092,7 @@
   .contact-panel > div > p:last-child {
     max-width: 720px;
     margin-bottom: 0;
-    color: #3f576a;
+    color: var(--muted);
   }
 
   .site-footer {
@@ -1018,6 +1120,7 @@
   .footer-grid h2 {
     margin-bottom: 1.0625rem;
     color: var(--white);
+    font-family: var(--font-display-stack);
     font-size: 1.1rem;
   }
 
@@ -1275,6 +1378,10 @@
   }
 
   .branch-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .impact-grid {
     grid-template-columns: 1fr;
   }
 

@@ -30,11 +30,11 @@ export default function BranchesSection() {
 
           <article className="branch-card branch-card--georgia" data-branch="ga">
             <div>
-              <p className="branch-kicker">A branch is being explored</p>
+              <p className="branch-kicker">Exploratory — not yet published</p>
               <h3 className="family-heading">Georgia</h3>
-              <p>Local chapter details and opportunities will be shared as they are confirmed.</p>
+              <p>There is no public Georgia chapter or event listing to join yet. Local details will be shared only after they are confirmed.</p>
             </div>
-            <StatusPill>Details coming soon</StatusPill>
+            <StatusPill>No public chapter yet</StatusPill>
           </article>
         </div>
       </PageShell>

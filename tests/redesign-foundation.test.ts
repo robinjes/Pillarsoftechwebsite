@@ -27,6 +27,8 @@ describe('family-friendly public foundation', () => {
       expect(page.indexOf(sections[index - 1])).toBeLessThan(page.indexOf(sections[index]))
     }
     expect(page).toContain('listPublicEvents()')
+    expect(page).toContain('listPublicImpact()')
+    expect(page).toContain('<ImpactSection metrics={impactMetrics} />')
     expect(page).toContain('.catch(() => [] as PublicEvent[])')
     expect(page).not.toContain('WorkshopAssembly')
     expect(page).not.toContain('PublicAtmosphere')
@@ -92,6 +94,8 @@ describe('family-friendly public foundation', () => {
     expect(page).toContain('https://hcb.hackclub.com/donations/start/pillars-of-tech')
     expect(page).toContain('href="/contact"')
     expect(read('src/components/site/NextEventSection.tsx')).toContain('/events/${event.slug}')
+    expect(read('src/components/site/NextEventSection.tsx')).toContain('{event.title}')
+    expect(read('src/components/site/ImpactSection.tsx')).toContain('methodologyNote')
     expect(read('src/components/site/BranchesSection.tsx')).toContain('href="/events"')
     expect(read('src/components/site/BranchesSection.tsx')).not.toMatch(/branch-card--georgia[\s\S]*?<a\b/)
   })

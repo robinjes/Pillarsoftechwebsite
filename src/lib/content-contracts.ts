@@ -291,6 +291,8 @@ export const publicImpactMetricSchema = z.object({
   displayOrder: z.number().int().min(0).max(10_000),
 }).strict()
 
+export type PublicImpactMetric = z.infer<typeof publicImpactMetricSchema>
+
 export const participantSubmissionSchema = z.object({
   eventId: safeId,
   answers: z.record(safeFieldId, z.union([z.string().trim().max(MAX_PARTICIPANT_ANSWER), z.boolean()])).superRefine((answers, context) => {

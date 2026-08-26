@@ -30,6 +30,7 @@ export default function NextEventSection({ event }: { event: PublicEvent | null 
           <div className="event-copy">
             <p className="eyebrow">What&apos;s happening next</p>
             <h2 id="next-event-heading" className="family-heading">Our next family STEM event</h2>
+            {event ? <h3 className="event-title family-heading">{event.title}</h3> : null}
             <p className="event-intro">
               {event?.summary || 'We’ll share the activity, age guidance, schedule, location, and registration details as soon as they’re confirmed.'}
             </p>

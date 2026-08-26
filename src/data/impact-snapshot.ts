@@ -1,8 +1,4 @@
-import { z } from 'zod'
-
-import { publicImpactMetricSchema } from '@/lib/content-contracts'
-
-type PublicImpactMetric = z.infer<typeof publicImpactMetricSchema>
+import { publicImpactMetricSchema, type PublicImpactMetric } from '@/lib/content-contracts'
 
 /**
  * A dated preview snapshot keeps the public homepage useful while Supabase is

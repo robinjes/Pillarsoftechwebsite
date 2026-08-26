@@ -34,6 +34,7 @@ export default function Navbar() {
   const supportButtonRef = useRef<HTMLButtonElement>(null)
   const wasOpenRef = useRef(false)
   const previousOverflowRef = useRef('')
+  const headerMode = pathname === '/' ? 'site-header--home' : 'site-header--solid'
 
   useEffect(() => {
     // Route changes close both menus so an open surface never follows a user
@@ -93,7 +94,7 @@ export default function Navbar() {
   const closeMenu = () => setIsOpen(false)
 
   return (
-    <header className="site-header public-navbar">
+    <header className={`site-header public-navbar ${headerMode}`}>
       <div className="shell site-header__inner">
         <BrandMark compact />
 
@@ -127,7 +128,11 @@ export default function Navbar() {
               className="site-nav__link focus-ring border-0 bg-transparent"
               aria-expanded={isSupportOpen}
               aria-controls="support-navigation"
-              onClick={() => setIsSupportOpen((open) => !open)}
+              onClick={() => {
+                // Focus, pointer, and keyboard activation all open the menu;
+                // blur, pointer leave, or Escape closes it.
+                setIsSupportOpen(true)
+              }}
             >
               Support
               <ChevronDown className={`ml-1 h-4 w-4 transition-transform ${isSupportOpen ? 'rotate-180' : ''}`} aria-hidden="true" />

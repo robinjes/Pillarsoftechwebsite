@@ -214,7 +214,7 @@ export async function listPublicImpact(): Promise<ReturnType<typeof publicImpact
     .from('impact_metrics')
     .select('key,value,unit,public_label,as_of,source_url,methodology_note,display_order')
     .order('display_order', { ascending: true })
-  if (error) rowError(error)
+  if (error) return previewImpactSnapshot
   const approvedMetrics = asRows(data).flatMap((row) => {
     const parsed = publicImpactMetricSchema.safeParse({
       key: text(row.key),

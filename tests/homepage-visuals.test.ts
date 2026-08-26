@@ -28,6 +28,7 @@ describe('family homepage visual content', () => {
     const trust = readSource('components/site/TrustStrip.tsx')
     const families = readSource('components/site/FamiliesIntro.tsx')
     const mission = readSource('components/site/MissionSection.tsx')
+    const impact = readSource('components/site/ImpactSection.tsx')
 
     for (const point of ['Family-friendly', 'Hands-on learning', 'No tech experience needed']) expect(trust).toContain(point)
     for (const step of ['Choose an event', 'Show up curious', 'Build together']) expect(families).toContain(step)
@@ -35,12 +36,17 @@ describe('family homepage visual content', () => {
     expect(families).toContain('New to tech?')
     expect(page).toContain('<EventProof />')
     expect(page).toContain('<MissionSection />')
+    expect(page).toContain('listPublicImpact()')
+    expect(page).toContain('<ImpactSection metrics={impactMetrics} />')
+    expect(impact).toContain('methodologyNote')
+    expect(impact).toContain('See the source')
   })
 
   it('keeps Georgia informational and non-linking while California remains actionable', () => {
     const branches = readSource('components/site/BranchesSection.tsx')
     expect(branches).toContain('data-branch="ga"')
-    expect(branches).toContain('Details coming soon')
+    expect(branches).toContain('Exploratory — not yet published')
+    expect(branches).toContain('No public chapter yet')
     expect(branches).toContain('href="/events"')
     const georgiaCard = branches.slice(branches.indexOf('branch-card--georgia'))
     expect(georgiaCard).not.toMatch(/<a\b|<Link\b/)
