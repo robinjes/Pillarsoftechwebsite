@@ -39,3 +39,10 @@ Using the cached Chromium browser in production mode (`npm run start -- --hostna
 - The public contract currently has no age/materials/accessibility fields, so event detail cards deliberately provide contact/help guidance for absent facts. Task 6 can wire approved typed fields without changing the presentation fallback.
 - Legacy event records do not yet carry a typed branch; the display falls back to California for current published local rows and recognizes a future `branch: 'ga'` value. Task 6 owns the authoritative branch contract and Georgia publication gate.
 - Live chat launcher/visitor behavior and staff inbox remain intentionally deferred to Tasks 3–5; this task only publishes the privacy/accessibility commitments and preserves the current protected Contact form.
+
+## Review follow-up
+
+- Removed the pre-Task-6 untyped branch cast. Events now render the neutral `Branch not listed` label for legacy records and never inspect a client-supplied `branch` property; Task 6 owns the validated branch contract and California default.
+- Filter-specific current-event headings now read `Upcoming programs` or `Ongoing programs`, with matching empty messages (`No upcoming events match this search.` / `No ongoing events match this search.`). The all-events view retains `Upcoming & ongoing` and its planning copy.
+- Added `tests/events-page-rendered.test.tsx`, a jsdom/Testing Library test with mocked `/api/events` records. It exercises both filters, visible pressed labels/headings, neutral unknown-branch rendering, and the Ongoing empty state.
+- Review validation: `npm test -- --run tests/task-2-public-routes.test.ts tests/events-page-rendered.test.tsx` — 2 files / 11 tests passed (16:25:30). `npm run check` — lint and typecheck passed, 35 test files / 187 tests passed (16:25:38). No build/browser rerun was needed because the review changes are limited to the EventsPage branch/filter rendering and tests.

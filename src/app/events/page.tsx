@@ -9,12 +9,10 @@ import { resolveEventImageAlt } from '@/lib/event-media'
 
 type EventFilter = 'all' | 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
 
-type EventWithBranch = PublicEvent & { branch?: 'ca' | 'ga' }
-
-function branchLabel(event: PublicEvent): string {
-  // Task 6 will add the typed branch field to the public contract. Until then,
-  // all currently published local rows are California programs.
-  return (event as EventWithBranch).branch === 'ga' ? 'Georgia' : 'California'
+function branchLabel(): string {
+  // Task 6 will add the validated branch contract. Until then, do not infer a
+  // branch from legacy rows or accept a branch-like client payload.
+  return 'Branch not listed'
 }
 
 function isCurrentEvent(event: PublicEvent): boolean {
@@ -111,7 +109,7 @@ function EventRow({ event }: { event: PublicEvent }) {
               {statusLabel(event)}
             </span>
             <span className="text-[var(--cobalt)]">{event.programCategory}</span>
-            <span className="rounded-full border border-[var(--ink)]/20 px-2 py-1 text-xs font-semibold text-[var(--ink)]/75">{branchLabel(event)}</span>
+            <span className="rounded-full border border-[var(--ink)]/20 px-2 py-1 text-xs font-semibold text-[var(--ink)]/75">{branchLabel()}</span>
           </div>
           <h3 className="mt-3 font-display text-2xl leading-tight text-[var(--midnight)] sm:text-3xl">
             <Link href={eventPath} className="underline-offset-4 hover:underline focus-visible:underline">
@@ -192,7 +190,7 @@ function FeaturedProgram({ upcoming, archive }: { upcoming: PublicEvent | null; 
       <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-stretch lg:gap-10">
         <div className="flex flex-col justify-between border-t border-[var(--ink)] pt-5">
           <div>
-            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">{upcoming ? 'Next on the table' : 'From the archive'} · {branchLabel(featureEvent)}</p>
+            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">{upcoming ? 'Next on the table' : 'From the archive'} · {branchLabel()}</p>
             <h2 id="featured-program-heading" className="mt-4 max-w-xl font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">
               {featureEvent.title}
             </h2>
@@ -237,17 +235,29 @@ function FeaturedProgram({ upcoming, archive }: { upcoming: PublicEvent | null; 
   )
 }
 
-function EmptySection({ completed, cancelled }: { completed?: boolean; cancelled?: boolean }) {
+function EmptySection({ status, completed, cancelled }: { status?: 'upcoming' | 'ongoing'; completed?: boolean; cancelled?: boolean }) {
   return (
     <div className="border-t border-[var(--ink)]/35 py-10">
       <p className="font-display text-2xl text-[var(--midnight)]">
-        {cancelled ? 'No cancelled events match this search.' : completed ? 'No completed events match this search.' : 'No upcoming dates are posted yet.'}
+        {cancelled
+          ? 'No cancelled events match this search.'
+          : completed
+          ? 'No completed events match this search.'
+          : status === 'ongoing'
+          ? 'No ongoing events match this search.'
+          : status === 'upcoming'
+          ? 'No upcoming events match this search.'
+          : 'No upcoming dates are posted yet.'}
       </p>
       <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--ink)]/75">
         {cancelled
           ? 'Cancelled programs stay separate from the completed archive.'
           : completed
           ? 'Try a different phrase or return to the full archive.'
+          : status === 'ongoing'
+          ? 'There are no ongoing programs matching this search right now.'
+          : status === 'upcoming'
+          ? 'There are no upcoming programs matching this search right now.'
           : 'We are planning the next program. Check back here for a confirmed date—there is no placeholder date to sign up for.'}
       </p>
     </div>
@@ -371,12 +381,16 @@ export default function EventsPage() {
               <section aria-labelledby="upcoming-heading" className="pt-12">
                 <div className="flex items-end justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold text-[var(--cobalt)]">Now / next</p>
-                    <h2 id="upcoming-heading" className="mt-2 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">Upcoming & ongoing</h2>
+                    <p className="text-sm font-semibold text-[var(--cobalt)]">{filter === 'ongoing' ? 'Now' : 'Now / next'}</p>
+                    <h2 id="upcoming-heading" className="mt-2 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">
+                      {filter === 'upcoming' ? 'Upcoming programs' : filter === 'ongoing' ? 'Ongoing programs' : 'Upcoming & ongoing'}
+                    </h2>
                   </div>
                   <span className="hidden text-sm font-semibold text-[var(--ink)]/60 sm:block">{sections.upcoming.length} listed</span>
                 </div>
-                {sections.upcoming.length > 0 ? sections.upcoming.map((event) => <EventRow key={event.id} event={event} />) : <EmptySection />}
+                {sections.upcoming.length > 0
+                  ? sections.upcoming.map((event) => <EventRow key={event.id} event={event} />)
+                  : <EmptySection status={filter === 'upcoming' || filter === 'ongoing' ? filter : undefined} />}
               </section>
             )}
 

@@ -72,7 +72,9 @@ describe('Task 2 public route migration and support surfaces', () => {
     for (const status of ["event.status === 'upcoming'", "event.status === 'ongoing'", "event.status === 'completed'", "event.status === 'cancelled'"]) {
       expect(events).toContain(status)
     }
-    expect(events).toContain('California')
+    expect(events).toContain('Branch not listed')
+    expect(events).not.toContain('EventWithBranch')
+    expect(events).not.toContain("event as EventWithBranch")
     expect(events).toContain("fetch('/api/events')")
     expect(detail).toContain('Age guidance')
     expect(detail).toContain('Accessibility and help')
