@@ -30,10 +30,13 @@ Required owner-managed environment names are already present in .env.example:
 - NEXT_PUBLIC_SUPABASE_URL
 - NEXT_PUBLIC_SUPABASE_ANON_KEY
 - SUPABASE_SERVICE_ROLE_KEY (server-only)
+- CHAT_TOKEN_PEPPER (server-only HMAC secret for contact/chat identity and visitor ownership)
 - NEXT_PUBLIC_SITE_URL (canonical HTTPS origin, without a path)
 - NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME (optional approved image delivery)
 
 Never copy values from local env files into the repository, a report, or a command transcript. The service-role key must never enter browser code.
+
+The visitor-chat cookie is always Secure, HttpOnly, SameSite=Lax, and scoped to `/api/chat`. It contains only a fresh opaque token; server storage keeps only its HMAC-SHA256 digest keyed by `CHAT_TOKEN_PEPPER`. Do not log or export the token, visitor name/email, or message body. Invalid, foreign, and expired ownership must remain fail-closed.
 
 ## 2. Google OAuth and canonical callback configuration
 
