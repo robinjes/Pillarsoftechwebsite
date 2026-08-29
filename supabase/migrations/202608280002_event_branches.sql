@@ -23,4 +23,8 @@ create index if not exists events_branch_status_start_idx
 -- Public column privileges stay narrow while adding only the authoritative
 -- branch field. Service-role CRUD remains table-scoped for the trusted server
 -- repository, and existing registration policies/grants are unchanged.
-grant select (branch) on public.events to anon, authenticated;
+-- The public repository filters on publication_state explicitly before
+-- projecting the row. These are the only two newly exposed columns; RLS still
+-- admits only published event rows and the application strips publication_state
+-- before returning the public JSON shape.
+grant select (branch, publication_state) on public.events to anon, authenticated;

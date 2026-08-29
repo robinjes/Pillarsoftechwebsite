@@ -1,18 +1,31 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const publicClientMock = vi.hoisted(() => vi.fn())
+
+vi.mock('server-only', () => ({}))
+vi.mock('@/lib/supabase/public', () => ({ createSupabasePublicClient: publicClientMock }))
 
 import {
   branchDocumentSchema,
   emptyBranchDocument,
   eventWriteSchema,
   isPublishableBranchDocument,
+  publicEventSchema,
+  type PublicEvent,
 } from '@/lib/content-contracts'
-import { getEventSnapshotRecords, legacyEventToRecord } from '@/lib/event-snapshot'
+import { eventJsonLd } from '@/lib/event-jsonld'
+import { getEventSnapshotRecords, getPublicEventSnapshot, legacyEventToRecord, toPublicEvent } from '@/lib/event-snapshot'
+import { listPublicEvents } from '@/lib/content-repository'
 
 const root = process.cwd()
 const read = (relativePath: string) => readFileSync(join(root, relativePath), 'utf8')
+
+beforeEach(() => {
+  publicClientMock.mockReset()
+})
 
 const baseEvent = {
   title: 'Branch-safe event',
@@ -120,6 +133,72 @@ describe('Task 6 authoritative branches and publication gate', () => {
 })
 
 describe('Task 6 gated public metadata and discovery', () => {
+  function publicEvent(status: PublicEvent['status']): PublicEvent {
+    return publicEventSchema.parse({
+      id: 'task-six-event',
+      slug: 'task-six-event',
+      branch: 'ca',
+      title: 'Task Six Event',
+      summary: 'A public event summary.',
+      description: 'A public event description.',
+      startsAt: '2026-09-01T18:00:00.000Z',
+      endsAt: '2026-09-01T20:00:00.000Z',
+      timezone: 'America/Los_Angeles',
+      startLabel: 'September 1, 2026',
+      endLabel: 'September 1, 2026',
+      date: 'September 1, 2026',
+      time: '6:00 PM - 8:00 PM',
+      location: 'Community room',
+      programCategory: 'general',
+      status,
+      media: { image: '/images/events/cover.png', gallery: [], youtubeVideos: [] },
+      resources: {},
+      participantRegistrationState: 'closed',
+      volunteerRegistrationState: 'closed',
+    })
+  }
+
+  it('maps public event statuses to valid Schema.org values', () => {
+    expect(eventJsonLd(publicEvent('completed'))).not.toHaveProperty('eventStatus')
+    expect(eventJsonLd(publicEvent('cancelled'))).toMatchObject({ eventStatus: 'https://schema.org/EventCancelled' })
+    expect(eventJsonLd(publicEvent('upcoming'))).toMatchObject({ eventStatus: 'https://schema.org/EventScheduled' })
+    expect(eventJsonLd(publicEvent('ongoing'))).toMatchObject({ eventStatus: 'https://schema.org/EventScheduled' })
+  })
+
+  it('explicitly filters repository reads to published rows and keeps snapshot fallback public-only', async () => {
+    const calls: Array<[string, string]> = []
+    const query = {
+      select: vi.fn(),
+      eq: vi.fn(),
+      neq: vi.fn(),
+      order: vi.fn(),
+    }
+    query.select.mockImplementation(() => query)
+    query.eq.mockImplementation((column: string, value: string) => {
+      calls.push([column, value])
+      return query
+    })
+    query.neq.mockImplementation((column: string, value: string) => {
+      calls.push([column, value])
+      return query
+    })
+    query.order.mockResolvedValue({ data: [], error: null })
+    publicClientMock.mockReturnValue({ from: vi.fn(() => query) })
+
+    await expect(listPublicEvents('ga')).resolves.toEqual([])
+    expect(query.select).toHaveBeenCalledWith(expect.stringContaining('publication_state'))
+    expect(calls).toContainEqual(['branch', 'ga'])
+    expect(calls).toContainEqual(['publication_state', 'published'])
+    expect(calls).toContainEqual(['status', 'draft'])
+
+    publicClientMock.mockReturnValue(null)
+    const fallback = await listPublicEvents()
+    expect(fallback).toEqual(getPublicEventSnapshot())
+    expect(fallback.every((event) => !('publicationState' in event))).toBe(true)
+    const unpublished = legacyEventToRecord({ id: 'task-six-unpublished', title: 'Unpublished event', status: 'upcoming' })
+    expect(unpublished ? toPublicEvent({ ...unpublished, publicationState: 'unpublished' }) : null).toBeNull()
+  })
+
   it('returns no Georgia page or metadata until the validated packet is public', () => {
     const page = read('src/app/ga/page.tsx')
     const sitemap = read('src/app/sitemap.ts')

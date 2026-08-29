@@ -2,7 +2,7 @@
 -- Run against a fresh local database after all checked-in migrations.
 
 begin;
-select plan(18);
+select plan(20);
 
 select has_table('public', 'branch_documents', 'typed branch document table exists');
 select ok(
@@ -36,6 +36,7 @@ select ok(
   'events branch/status/start index exists'
 );
 select ok(has_column_privilege('anon', 'public.events', 'branch', 'SELECT'), 'public events expose branch only as a read column');
+select ok(has_column_privilege('anon', 'public.events', 'publication_state', 'SELECT'), 'public event filtering exposes publication state only as a read column');
 
 insert into public.events (id, slug, title, status, publication_state)
 values ('task06-default-event', 'task06-default-event', 'Task 06 default event', 'upcoming', 'unpublished')
@@ -45,6 +46,18 @@ select is(
   'ca',
   'new events default to California'
 );
+
+insert into public.events (id, slug, title, status, publication_state)
+values
+  ('task06-public-row', 'task06-public-row', 'Task 06 public row', 'upcoming', 'published'),
+  ('task06-private-row', 'task06-private-row', 'Task 06 private row', 'upcoming', 'unpublished');
+set local role anon;
+select is(
+  (select count(id) from public.events where id in ('task06-public-row', 'task06-private-row')),
+  1::bigint,
+  'event RLS exposes only published rows to anonymous readers'
+);
+reset role;
 
 select ok((select relrowsecurity from pg_class where oid = 'public.branch_documents'::regclass), 'branch documents enable RLS');
 select ok((select relforcerowsecurity from pg_class where oid = 'public.branch_documents'::regclass), 'branch documents force RLS');

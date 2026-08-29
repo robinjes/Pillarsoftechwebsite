@@ -211,8 +211,9 @@ function contactFromRow(row: Record<string, unknown>): ContactSubmissionRecord {
 }
 
 function publicEventFromRow(row: Record<string, unknown>): PublicEvent {
-  // Public column grants intentionally omit publication, capacity, outcomes,
-  // and audit fields. RLS has already restricted this row to published data.
+  // The query may read publication_state solely to apply an explicit published
+  // predicate. This public projection still omits publication, capacity,
+  // outcomes, and audit fields; RLS also restricts the row to published data.
   const event = toPublicEvent(eventFromRow({
     ...row,
     publication_state: 'published',
@@ -254,9 +255,10 @@ export async function listPublicEvents(branch?: BranchCode): Promise<PublicEvent
 
   let query = client
     .from('events')
-    .select('id,slug,branch,title,summary,description,starts_at,ends_at,timezone,start_label,end_label,location,program_category,status,media,resources,participant_registration_state,volunteer_registration_state')
+    .select('id,slug,branch,title,summary,description,starts_at,ends_at,timezone,start_label,end_label,location,program_category,status,media,resources,participant_registration_state,volunteer_registration_state,publication_state')
   if (branch) query = query.eq('branch', branch)
   const { data, error } = await query
+    .eq('publication_state', 'published')
     .neq('status', 'draft')
     .order('starts_at', { ascending: true, nullsFirst: false })
   if (error) {

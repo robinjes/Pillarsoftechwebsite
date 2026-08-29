@@ -53,8 +53,8 @@ select is(
 );
 
 select ok(
-  not has_column_privilege('anon', 'public.events', 'publication_state', 'SELECT'),
-  'anonymous clients do not receive event publication state'
+  has_column_privilege('anon', 'public.events', 'publication_state', 'SELECT'),
+  'anonymous event reads may use publication state only for the published-row predicate'
 );
 select ok(
   not has_column_privilege('anon', 'public.registration_forms', 'created_at', 'SELECT'),

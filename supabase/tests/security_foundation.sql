@@ -289,7 +289,7 @@ select ok(not has_column_privilege('anon', 'public.events', 'created_by', 'SELEC
 select ok(not has_column_privilege('anon', 'public.events', 'participant_capacity', 'SELECT'), 'public events grant excludes participant capacity');
 select ok(not has_column_privilege('anon', 'public.events', 'volunteer_capacity', 'SELECT'), 'public events grant excludes volunteer capacity');
 select ok(not has_column_privilege('anon', 'public.events', 'outcomes', 'SELECT'), 'public events grant excludes private outcomes');
-select ok(not has_column_privilege('anon', 'public.events', 'publication_state', 'SELECT'), 'public events grant excludes publication moderation state');
+select ok(has_column_privilege('anon', 'public.events', 'publication_state', 'SELECT'), 'public events expose publication state only for the bounded published-row predicate');
 select ok(not has_column_privilege('anon', 'public.media_assets', 'metadata', 'SELECT'), 'public media grant excludes internal metadata');
 select ok(not has_column_privilege('anon', 'public.media_assets', 'storage_path', 'SELECT'), 'public media grant excludes storage path');
 select ok(not has_column_privilege('anon', 'public.media_assets', 'original_filename', 'SELECT'), 'public media grant excludes original filename');

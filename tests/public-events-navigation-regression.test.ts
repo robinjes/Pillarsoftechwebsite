@@ -44,7 +44,8 @@ describe('public events and navigation regressions', () => {
       error: { code: '42P01', message: 'relation public.events does not exist' },
     })
     const neq = vi.fn(() => ({ order }))
-    const select = vi.fn(() => ({ neq }))
+    const eq = vi.fn(() => ({ neq }))
+    const select = vi.fn(() => ({ eq }))
     repositoryMocks.createPublicClient.mockReturnValue({
       from: vi.fn(() => ({ select })),
     })
