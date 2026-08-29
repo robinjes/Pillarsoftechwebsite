@@ -154,11 +154,11 @@ describe('Task 2 public route migration and support surfaces', () => {
     }
   })
 
-  it('keeps support/legal routes in the public navigation and footer', () => {
+  it('keeps support and legal routes in the footer without crowding primary navigation', () => {
     const navbar = read('src/components/Navbar.tsx')
     const footer = read('src/components/Footer.tsx')
     for (const href of ['/privacy', '/accessibility']) {
-      expect(navbar).toContain(href)
+      expect(navbar).not.toContain(href)
       expect(footer).toContain(href)
     }
   })

@@ -159,15 +159,13 @@ describe('Navbar rendered behavior', () => {
     expect(openButton).toHaveFocus()
   })
 
-  it('keeps Support open when a keyboard activation follows focus-open', async () => {
+  it('keeps secondary support pages out of the primary navigation', () => {
     render(<Navbar />)
-    const supportButton = screen.getByRole('button', { name: /Support/ })
-    fireEvent.focus(supportButton)
-    await waitFor(() => expect(document.getElementById('support-navigation')).toBeInTheDocument())
+    const primaryNavigation = screen.getByRole('navigation', { name: 'Primary navigation' })
 
-    fireEvent.click(supportButton, { detail: 0 })
-    expect(document.getElementById('support-navigation')).toBeInTheDocument()
-    expect(supportButton).toHaveAttribute('aria-expanded', 'true')
+    expect(within(primaryNavigation).getAllByRole('link')).toHaveLength(5)
+    expect(within(primaryNavigation).queryByText('Branches')).not.toBeInTheDocument()
+    expect(within(primaryNavigation).queryByText('Support')).not.toBeInTheDocument()
   })
 })
 

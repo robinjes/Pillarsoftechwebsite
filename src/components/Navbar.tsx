@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -12,37 +12,21 @@ const primaryLinks = [
   { label: 'Events', href: '/events' },
   { label: 'Our work', href: '/#our-work' },
   { label: 'Volunteer', href: '/volunteer' },
-  { label: 'Branches', href: '/#branches' },
   { label: 'Contact', href: '/contact' },
 ]
-
-const supportLinks = [
-  { label: 'Fundraiser', href: '/fundraiser' },
-  { label: 'Wishlist', href: '/wishlist' },
-  { label: 'Newsletter', href: '/newsletter' },
-  { label: 'FAQ', href: '/faq' },
-  { label: 'Privacy', href: '/privacy' },
-  { label: 'Accessibility', href: '/accessibility' },
-]
-
-const allMobileLinks = [...primaryLinks, ...supportLinks]
 
 export default function Navbar() {
   const pathname = usePathname()
   const [isOpen, setIsOpen] = useState(false)
-  const [isSupportOpen, setIsSupportOpen] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const openButtonRef = useRef<HTMLButtonElement>(null)
-  const supportButtonRef = useRef<HTMLButtonElement>(null)
   const wasOpenRef = useRef(false)
   const previousOverflowRef = useRef('')
   const headerMode = pathname === '/' ? 'site-header--home' : 'site-header--solid'
 
   useEffect(() => {
-    // Route changes close both menus so an open surface never follows a user
-    // into a different page or leaves body scrolling disabled.
+    // Route changes close the mobile menu so body scrolling is restored.
     setIsOpen(false)
-    setIsSupportOpen(false)
   }, [pathname])
 
   useEffect(() => {
@@ -106,51 +90,6 @@ export default function Navbar() {
               {link.label}
             </Link>
           ))}
-
-          <div
-            className="relative"
-            onMouseEnter={() => setIsSupportOpen(true)}
-            onMouseLeave={() => setIsSupportOpen(false)}
-            onFocusCapture={() => setIsSupportOpen(true)}
-            onBlurCapture={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
-                setIsSupportOpen(false)
-              }
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') {
-                setIsSupportOpen(false)
-                supportButtonRef.current?.focus()
-              }
-            }}
-          >
-            <button
-              ref={supportButtonRef}
-              type="button"
-              className="site-nav__link focus-ring border-0 bg-transparent"
-              aria-expanded={isSupportOpen}
-              aria-controls="support-navigation"
-              onClick={() => {
-                // Focus, pointer, and keyboard activation all open the menu;
-                // blur, pointer leave, or Escape closes it.
-                setIsSupportOpen(true)
-              }}
-            >
-              Support
-              <ChevronDown className={`ml-1 h-4 w-4 transition-transform ${isSupportOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
-            </button>
-            {isSupportOpen ? (
-              <div id="support-navigation" className="absolute right-0 top-full min-w-48 pt-2">
-                <div className="rounded-2xl border border-[var(--ink)]/20 bg-[var(--white)] p-2 text-[var(--ink)] shadow-[0_18px_44px_rgba(15,43,70,0.2)]">
-                  {supportLinks.map((link) => (
-                    <Link key={link.href} href={link.href} className="flex min-h-11 items-center rounded-xl px-3 text-sm font-semibold hover:bg-[var(--sky)] focus-ring">
-                      {link.label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </div>
         </nav>
 
         <button
@@ -183,7 +122,7 @@ export default function Navbar() {
             </div>
 
             <nav className="flex flex-col gap-1 py-6" aria-label="Mobile navigation links">
-              {allMobileLinks.map((link) => (
+              {primaryLinks.map((link) => (
                 <Link key={link.href} href={link.href} onClick={closeMenu} className="flex min-h-12 items-center rounded-xl border-b border-white/15 px-2 text-lg font-semibold transition-colors hover:bg-white/10 hover:text-[var(--sun)] focus-ring">
                   {link.label}
                 </Link>
