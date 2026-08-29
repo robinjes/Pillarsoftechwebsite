@@ -44,11 +44,24 @@ begin
     raise exception 'chat is closed' using errcode = 'P0003';
   end if;
 
-  -- clock_timestamp() is database time evaluated after the queue lock is
-  -- acquired, so a waiter cannot use a stale pre-lock transaction timestamp.
+  -- Lock by id before comparing the digest. This both avoids an ownership
+  -- oracle and serializes a concurrent conversation close with this insert.
+  select * into conversation_row
+  from public.chat_conversations
+  where id = p_conversation_id
+  for update;
+  if not found or conversation_row.visitor_token_digest <> p_visitor_token_digest then
+    raise exception 'chat conversation was not found' using errcode = 'P0002';
+  end if;
+
+  -- Refresh database time only after both authoritative rows are locked. A
+  -- waiter can cross 22:00 or ownership expiry while waiting on the
+  -- conversation lock, so every time/queue/schedule/ownership check below
+  -- must use this post-lock value immediately before insertion.
   now_at := clock_timestamp();
   local_at := now_at at time zone 'America/Los_Angeles';
-  if extract(isodow from local_at)::integer not between 1 and 5
+  if queue_row.queue_open is distinct from true
+     or extract(isodow from local_at)::integer not between 1 and 5
      or local_at::time < time '16:00'
      or local_at::time >= time '22:00'
      or not exists (
@@ -61,16 +74,6 @@ begin
          and enabled
      ) then
     raise exception 'chat is closed' using errcode = 'P0003';
-  end if;
-
-  -- Lock by id before comparing the digest. This both avoids an ownership
-  -- oracle and serializes a concurrent conversation close with this insert.
-  select * into conversation_row
-  from public.chat_conversations
-  where id = p_conversation_id
-  for update;
-  if not found or conversation_row.visitor_token_digest <> p_visitor_token_digest then
-    raise exception 'chat conversation was not found' using errcode = 'P0002';
   end if;
   if conversation_row.ownership_expires_at <= now_at then
     raise exception 'chat conversation was not found' using errcode = 'P0002';
@@ -134,8 +137,17 @@ begin
     raise exception 'chat is closed' using errcode = 'P0003';
   end if;
 
+  select * into conversation_row
+  from public.chat_conversations
+  where id = p_conversation_id
+  for update;
+  if not found or conversation_row.visitor_token_digest <> p_visitor_token_digest then
+    raise exception 'chat conversation was not found' using errcode = 'P0002';
+  end if;
+
   local_at := p_now at time zone 'America/Los_Angeles';
-  if extract(isodow from local_at)::integer not between 1 and 5
+  if queue_row.queue_open is distinct from true
+     or extract(isodow from local_at)::integer not between 1 and 5
      or local_at::time < time '16:00'
      or local_at::time >= time '22:00'
      or not exists (
@@ -148,14 +160,6 @@ begin
          and enabled
      ) then
     raise exception 'chat is closed' using errcode = 'P0003';
-  end if;
-
-  select * into conversation_row
-  from public.chat_conversations
-  where id = p_conversation_id
-  for update;
-  if not found or conversation_row.visitor_token_digest <> p_visitor_token_digest then
-    raise exception 'chat conversation was not found' using errcode = 'P0002';
   end if;
   if conversation_row.ownership_expires_at <= p_now then
     raise exception 'chat conversation was not found' using errcode = 'P0002';

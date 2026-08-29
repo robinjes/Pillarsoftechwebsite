@@ -1,6 +1,6 @@
 -- Task 04A chat storage, schedule, and privilege contract tests.
 begin;
-select plan(77);
+select plan(78);
 
 select has_table('public', 'chat_conversations', 'chat conversations table exists');
 select has_table('public', 'chat_messages', 'chat messages table exists');
@@ -125,6 +125,13 @@ select ok(
   < position('from public.chat_conversations' in lower(pg_get_functiondef('public.insert_chat_visitor_message(uuid,text,text)'::regprocedure))),
   'production RPC keeps queue-before-conversation lock order'
 );
+select ok(
+  position('clock_timestamp()' in lower(pg_get_functiondef('public.insert_chat_visitor_message(uuid,text,text)'::regprocedure)))
+  > position('from public.chat_conversations' in lower(pg_get_functiondef('public.insert_chat_visitor_message(uuid,text,text)'::regprocedure)))
+  and position('clock_timestamp()' in lower(pg_get_functiondef('public.insert_chat_visitor_message(uuid,text,text)'::regprocedure)))
+  < position('insert into public.chat_messages' in lower(pg_get_functiondef('public.insert_chat_visitor_message(uuid,text,text)'::regprocedure))),
+  'production RPC refreshes database time after conversation lock and before insertion'
+);
 
 insert into public.chat_conversations (
   id, visitor_token_digest, display_name, email, is_under_13, guardian_attested,
@@ -133,17 +140,17 @@ insert into public.chat_conversations (
 ) values
   (
     '00000000-0000-4000-8000-000000000101', repeat('a', 64), 'Open visitor', '', false, false,
-    'open', '2026-09-25T12:00:00Z', null, 'pending',
+    'open', '2099-12-31T23:59:59Z', null, 'pending',
     '2026-08-26T12:00:00Z', '2026-08-26T12:00:00Z'
   ),
   (
     '00000000-0000-4000-8000-000000000102', repeat('b', 64), 'Closed visitor', '', false, false,
-    'closed', '2026-09-25T12:00:00Z', '2026-08-27T12:00:00Z', 'pending',
+    'closed', '2099-12-31T23:59:59Z', '2026-08-27T12:00:00Z', 'pending',
     '2026-08-26T12:00:00Z', '2026-08-27T12:00:00Z'
   ),
   (
     '00000000-0000-4000-8000-000000000103', repeat('c', 64), 'Spam visitor', '', false, false,
-    'spam', '2026-09-25T12:00:00Z', '2026-08-27T12:00:00Z', 'pending',
+    'spam', '2099-12-31T23:59:59Z', '2026-08-27T12:00:00Z', 'pending',
     '2026-08-26T12:00:00Z', '2026-08-27T12:00:00Z'
   ),
   (
