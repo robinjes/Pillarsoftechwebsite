@@ -8,6 +8,7 @@ import {
 import { decodeChatCursor, encodeChatCursor } from '@/lib/chat-pagination'
 
 const conversationId = '00000000-0000-4000-8000-000000000001'
+const requestNonce = 'A'.repeat(43)
 
 describe('chat input contracts', () => {
   it('requires a display name, permits optional email, and keeps the schema strict', () => {
@@ -15,6 +16,7 @@ describe('chat input contracts', () => {
       displayName: 'Ada Lovelace',
       isUnder13: false,
       guardianAttested: false,
+      requestNonce,
       honeypot: '',
     }).success).toBe(true)
     expect(chatConversationCreateSchema.safeParse({
@@ -22,6 +24,7 @@ describe('chat input contracts', () => {
       email: 'ada@example.com',
       isUnder13: false,
       guardianAttested: false,
+      requestNonce,
       honeypot: '',
     }).success).toBe(true)
     expect(chatConversationCreateSchema.safeParse({
@@ -29,21 +32,25 @@ describe('chat input contracts', () => {
       email: '',
       isUnder13: false,
       guardianAttested: false,
+      requestNonce,
       honeypot: '',
     }).success).toBe(true)
     expect(chatConversationCreateSchema.safeParse({
       displayName: 'Ada Lovelace',
       isUnder13: false,
       guardianAttested: false,
+      requestNonce,
       honeypot: '',
       webhookUrl: 'https://evil.example',
     }).success).toBe(false)
   })
 
   it('requires explicit guardian attestation for under-13 visitors', () => {
-    const base = { displayName: 'Young visitor', isUnder13: true, honeypot: '' }
+    const base = { displayName: 'Young visitor', isUnder13: true, requestNonce, honeypot: '' }
     expect(chatConversationCreateSchema.safeParse({ ...base, guardianAttested: false }).success).toBe(false)
     expect(chatConversationCreateSchema.safeParse({ ...base, guardianAttested: true }).success).toBe(true)
+    expect(chatConversationCreateSchema.safeParse({ ...base, guardianAttested: true, requestNonce: 'A'.repeat(42) }).success).toBe(false)
+    expect(chatConversationCreateSchema.safeParse({ ...base, guardianAttested: true, requestNonce: `${requestNonce.slice(0, 42)}!` }).success).toBe(false)
   })
 
   it('allows normal punctuation but rejects markup, unsafe destinations, and oversize text', () => {

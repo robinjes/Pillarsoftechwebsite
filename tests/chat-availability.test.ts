@@ -16,7 +16,14 @@ function instant(value: string): Date {
 
 describe('chat availability', () => {
   it('opens exactly at 16:00 Pacific and closes exactly at 22:00', () => {
-    expect(getChatAvailability(instant('2026-08-26T23:00:00.000Z'), openQueue, CANONICAL_CHAT_SCHEDULE).state).toBe('open')
+    const availability = getChatAvailability(instant('2026-08-26T23:00:00.000Z'), openQueue, CANONICAL_CHAT_SCHEDULE)
+    expect(availability.state).toBe('open')
+    expect(availability).toMatchObject({
+      days: 'Monday–Friday',
+      opensAt: '16:00',
+      closesAt: '22:00',
+      label: 'Monday–Friday, 4:00–10:00 PM Pacific',
+    })
     expect(getChatAvailability(instant('2026-08-27T04:59:59.999Z'), openQueue, CANONICAL_CHAT_SCHEDULE).state).toBe('open')
     expect(getChatAvailability(instant('2026-08-27T05:00:00.000Z'), openQueue, CANONICAL_CHAT_SCHEDULE).state).toBe('closed')
   })
@@ -45,7 +52,14 @@ describe('chat availability', () => {
   })
 
   it('fails closed when the schedule is missing or malformed', () => {
-    expect(getChatAvailability(instant('2026-08-26T23:00:00.000Z'), openQueue, []).state).toBe('closed')
+    expect(getChatAvailability(instant('2026-08-26T23:00:00.000Z'), openQueue, [])).toMatchObject({
+      state: 'closed',
+      queueOpen: false,
+      days: 'Monday–Friday',
+      opensAt: '16:00',
+      closesAt: '22:00',
+      label: 'Monday–Friday, 4:00–10:00 PM Pacific',
+    })
     const malformed = [{ weekday: 3, openTime: 'not-a-time', closeTime: '22:00', timezone: 'America/Los_Angeles' }] as unknown as ChatOfficeHour[]
     expect(getChatAvailability(instant('2026-08-26T23:00:00.000Z'), openQueue, malformed).state).toBe('closed')
     expect(getNextChatOpening(instant('2026-08-26T23:00:00.000Z'), malformed)).toBeNull()

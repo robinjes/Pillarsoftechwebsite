@@ -8,9 +8,16 @@ export const CHAT_MAX_HONEYPOT = 100
 export const CHAT_MAX_PAGE_SIZE = 50
 export const CHAT_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60
 export const CHAT_TOKEN_COOKIE = 'pot_chat_token'
+export const CHAT_REQUEST_NONCE_BYTES = 32
+export const CHAT_REQUEST_NONCE_LENGTH = 43
+export const CHAT_CANONICAL_DAYS = 'Monday–Friday'
+export const CHAT_CANONICAL_OPENS_AT = '16:00'
+export const CHAT_CANONICAL_CLOSES_AT = '22:00'
+export const CHAT_CANONICAL_LABEL = 'Monday–Friday, 4:00–10:00 PM Pacific'
 
 const controlCharacters = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u
 const markupCharacters = /[<>]/u
+const base64urlNonce = new RegExp(`^[A-Za-z0-9_-]{${CHAT_REQUEST_NONCE_LENGTH}}$`, 'u')
 
 /**
  * Chat is deliberately text-only. Reject control characters and angle
@@ -20,6 +27,10 @@ const markupCharacters = /[<>]/u
  */
 export function isPlainChatText(value: string): boolean {
   return !controlCharacters.test(value) && !markupCharacters.test(value)
+}
+
+export function isValidChatRequestNonce(value: unknown): value is string {
+  return typeof value === 'string' && base64urlNonce.test(value)
 }
 
 const plainChatText = (max: number) => z
@@ -36,6 +47,7 @@ export const chatConversationCreateSchema = z.object({
   email: optionalChatEmail,
   isUnder13: z.boolean(),
   guardianAttested: z.boolean(),
+  requestNonce: z.string().refine(isValidChatRequestNonce, 'Use one 32-byte base64url request nonce.'),
   honeypot: z.string().trim().max(CHAT_MAX_HONEYPOT).default(''),
 }).strict().superRefine((payload, context) => {
   if (payload.isUnder13 && !payload.guardianAttested) {
@@ -139,7 +151,10 @@ export const chatAvailabilitySchema = z.object({
   queueOpen: z.boolean(),
   timezone: z.literal(CHAT_TIME_ZONE),
   nextOpening: isoDateTimeWithTimezone.nullable(),
+  days: z.literal(CHAT_CANONICAL_DAYS),
+  opensAt: z.literal(CHAT_CANONICAL_OPENS_AT),
+  closesAt: z.literal(CHAT_CANONICAL_CLOSES_AT),
+  label: z.literal(CHAT_CANONICAL_LABEL),
 }).strict()
 
 export type ChatAvailability = z.infer<typeof chatAvailabilitySchema>
-

@@ -92,25 +92,26 @@ describe('chat repository ownership boundaries', () => {
     const existingQuery = builder(null)
     const insertedConversation = builder(row)
     const messageOwnerQuery = builder(row)
-    const insertedMessage = builder({
+    const insertedMessage = {
       id: '00000000-0000-4000-8000-000000000004',
       conversation_id: conversationId,
       sender: 'visitor',
       body: 'A punctuation-rich question?!',
       delivery_status: 'pending',
       created_at: '2026-08-26T12:03:00.000Z',
-    })
+    }
     const from = vi.fn()
       .mockReturnValueOnce(existingQuery)
       .mockReturnValueOnce(insertedConversation)
       .mockReturnValueOnce(messageOwnerQuery)
-      .mockReturnValueOnce(insertedMessage)
-    createSupabaseServiceRoleClientMock.mockReturnValue({ from })
+    const rpc = vi.fn().mockResolvedValue({ data: insertedMessage, error: null })
+    createSupabaseServiceRoleClientMock.mockReturnValue({ from, rpc })
     const created = await createChatConversation({
       displayName: 'Ada Lovelace',
       email: 'ada@example.com',
       isUnder13: false,
       guardianAttested: false,
+      requestNonce: 'A'.repeat(43),
       honeypot: '',
     }, digest, new Date('2026-08-26T12:00:00.000Z'))
     expect(created.resumed).toBe(false)
@@ -120,14 +121,77 @@ describe('chat repository ownership boundaries', () => {
       email: 'ada@example.com',
       discord_delivery_status: 'pending',
     }))
+    expect(insertedConversation.insert.mock.calls[0][0]).not.toHaveProperty('requestNonce')
     const message = await insertChatMessageForVisitor(created.conversation, digest, 'A punctuation-rich question?!')
     expect(message.deliveryStatus).toBe('pending')
-    expect(insertedMessage.insert).toHaveBeenCalledWith(expect.objectContaining({
+    expect(rpc).toHaveBeenCalledWith('insert_chat_visitor_message', {
+      p_conversation_id: conversationId,
+      p_visitor_token_digest: digest,
+      p_body: 'A punctuation-rich question?!',
+    })
+  })
+
+  it('recovers a unique digest race by resuming the matching open conversation', async () => {
+    const initialLookup = builder(null)
+    const conflictingInsert = builder(null, { code: '23505', details: 'digest conflict' })
+    const recoveryLookup = builder(row)
+    const from = vi.fn()
+      .mockReturnValueOnce(initialLookup)
+      .mockReturnValueOnce(conflictingInsert)
+      .mockReturnValueOnce(recoveryLookup)
+    createSupabaseServiceRoleClientMock.mockReturnValue({ from })
+    const result = await createChatConversation({
+      displayName: 'Ada Lovelace',
+      email: 'ada@example.com',
+      isUnder13: false,
+      guardianAttested: false,
+      requestNonce: 'A'.repeat(43),
+      honeypot: '',
+    }, digest, new Date('2026-08-26T12:00:00.000Z'))
+    expect(result).toEqual({ conversation: expect.objectContaining({ id: conversationId }), resumed: true })
+  })
+
+  it('allows an unexpired owner to read a closed transcript but rejects spam', async () => {
+    const closedOwnerQuery = builder({ ...row, status: 'closed', terminal_at: '2026-08-26T13:00:00.000Z' })
+    const messageQuery = builder([{
+      id: '00000000-0000-4000-8000-000000000004',
       conversation_id: conversationId,
-      sender: 'visitor',
-      body: 'A punctuation-rich question?!',
-      delivery_status: 'pending',
-    }))
+      sender: 'staff',
+      body: 'Final staff reply.',
+      delivery_status: 'sent',
+      created_at: '2026-08-26T13:00:00.000Z',
+    }])
+    const from = vi.fn().mockReturnValueOnce(closedOwnerQuery).mockReturnValueOnce(messageQuery)
+    createSupabaseServiceRoleClientMock.mockReturnValue({ from })
+    const result = await listChatMessagesForVisitor({ id: conversationId }, digest)
+    expect(result.messages[0]?.body).toBe('Final staff reply.')
+
+    const spamOwnerQuery = builder({ ...row, status: 'spam', terminal_at: '2026-08-26T13:00:00.000Z' })
+    createSupabaseServiceRoleClientMock.mockReturnValue({ from: vi.fn().mockReturnValue(spamOwnerQuery) })
+    await expect(listChatMessagesForVisitor({ id: conversationId }, digest)).rejects.toMatchObject({
+      status: 404,
+      routeCode: 'conversation_not_found',
+    })
+  })
+
+  it('maps atomic RPC close and ownership states to redacted repository errors', async () => {
+    const ownerQuery = builder(row)
+    const from = vi.fn().mockReturnValue(ownerQuery)
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: { code: 'P0003', message: 'private queue state' } })
+    createSupabaseServiceRoleClientMock.mockReturnValue({ from, rpc })
+    await expect(insertChatMessageForVisitor({ id: conversationId }, digest, 'A message.')).rejects.toMatchObject({
+      status: 409,
+      routeCode: 'chat_closed',
+      message: 'Chat conversation is closed.',
+    })
+
+    const notFoundRpc = vi.fn().mockResolvedValue({ data: null, error: { code: 'P0002', message: 'private digest detail' } })
+    createSupabaseServiceRoleClientMock.mockReturnValue({ from: vi.fn().mockReturnValue(builder(row)), rpc: notFoundRpc })
+    await expect(insertChatMessageForVisitor({ id: conversationId }, digest, 'A message.')).rejects.toMatchObject({
+      status: 404,
+      routeCode: 'conversation_not_found',
+      message: 'Chat conversation was not found.',
+    })
   })
 })
 

@@ -1,9 +1,14 @@
 import { readJson } from '@/lib/admin-api'
 import { chatConversationCreateSchema } from '@/lib/chat-contracts'
 import { getStoredChatAvailability, createChatConversation, getChatConversationForVisitor } from '@/lib/chat-repository'
-import { chatError, sameOrigin, sameOriginFailure } from '@/lib/chat-route'
+import { chatError, chatRepositoryFailure, sameOrigin, sameOriginFailure } from '@/lib/chat-route'
 import { consumeChatRateLimit } from '@/lib/contact-rate-limit'
-import { generateChatToken, getChatTokenFromRequest, hashChatToken, setChatTokenCookie } from '@/lib/chat-token'
+import {
+  deriveChatTokenFromNonce,
+  getChatTokenFromRequest,
+  hashChatToken,
+  setChatTokenCookie,
+} from '@/lib/chat-token'
 import { getRequestIdentity } from '@/lib/request-identity'
 import { jsonNoStore } from '@/lib/volunteer-api'
 
@@ -30,22 +35,22 @@ export async function POST(request: Request) {
   }
   if (availability.state !== 'open' || !availability.queueOpen) return chatError('chat_closed', 409)
 
-  let token = getChatTokenFromRequest(request)
+  const requestToken = getChatTokenFromRequest(request)
+  let token: string
   let digest: string
   try {
-    token = token ?? generateChatToken()
-    digest = hashChatToken(token)
-
-    // A cookie with no active, unexpired owner is replaced before creating a
-    // new row. This prevents an expired/foreign cookie from retaining any
-    // authority while still allowing a valid browser to resume its chat.
-    if (getChatTokenFromRequest(request)) {
-      const existing = await getChatConversationForVisitor(digest)
-      if (!existing || existing.status !== 'open') {
-        token = generateChatToken()
-        digest = hashChatToken(token)
-      }
+    // A cookie with an active owner resumes by digest, regardless of the new
+    // nonce. A missing, malformed, expired, foreign, or terminal owner is not
+    // a valid chat cookie for this request, so derive the replacement from
+    // the nonce to keep first-request retries deterministic.
+    if (requestToken) {
+      const requestDigest = hashChatToken(requestToken)
+      const existing = await getChatConversationForVisitor(requestDigest)
+      token = existing?.status === 'open' ? requestToken : deriveChatTokenFromNonce(parsed.data.requestNonce)
+    } else {
+      token = deriveChatTokenFromNonce(parsed.data.requestNonce)
     }
+    digest = hashChatToken(token)
   } catch {
     return chatError('chat_unavailable', 503)
   }
@@ -63,7 +68,7 @@ export async function POST(request: Request) {
     const response = jsonNoStore({ conversation: publicConversation(result.conversation, result.resumed) }, result.resumed ? 200 : 201)
     setChatTokenCookie(response, token)
     return response
-  } catch {
-    return chatError('chat_unavailable', 503)
+  } catch (error) {
+    return chatRepositoryFailure(error)
   }
 }

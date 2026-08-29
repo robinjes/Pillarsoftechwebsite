@@ -1,4 +1,8 @@
 import {
+  CHAT_CANONICAL_CLOSES_AT,
+  CHAT_CANONICAL_DAYS,
+  CHAT_CANONICAL_LABEL,
+  CHAT_CANONICAL_OPENS_AT,
   CHAT_TIME_ZONE,
   chatAvailabilitySchema,
   chatOfficeHourSchema,
@@ -18,6 +22,10 @@ export interface ChatAvailabilityInput {
   queueOpen: boolean
   timezone: typeof CHAT_TIME_ZONE
   nextOpening: string | null
+  days: typeof CHAT_CANONICAL_DAYS
+  opensAt: typeof CHAT_CANONICAL_OPENS_AT
+  closesAt: typeof CHAT_CANONICAL_CLOSES_AT
+  label: typeof CHAT_CANONICAL_LABEL
 }
 
 const canonicalIds = [
@@ -207,19 +215,25 @@ export function getChatAvailability(
   queue: ChatQueueSnapshot,
   schedule: ChatOfficeHour[] = CANONICAL_CHAT_SCHEDULE,
 ): ChatAvailability {
+  const canonicalHours = {
+    days: CHAT_CANONICAL_DAYS,
+    opensAt: CHAT_CANONICAL_OPENS_AT,
+    closesAt: CHAT_CANONICAL_CLOSES_AT,
+    label: CHAT_CANONICAL_LABEL,
+  } as const
   const safeNow = now instanceof Date && Number.isFinite(now.getTime()) ? now : new Date(Number.NaN)
   if (!validSchedule(schedule) || !validQueue(queue)) {
-    return { state: 'closed', queueOpen: false, timezone: CHAT_TIME_ZONE, nextOpening: null }
+    return { state: 'closed', queueOpen: false, timezone: CHAT_TIME_ZONE, nextOpening: null, ...canonicalHours }
   }
 
   const nowParts = zonedParts(safeNow, CHAT_TIME_ZONE)
-  if (!nowParts) return { state: 'closed', queueOpen: queue.queueOpen, timezone: CHAT_TIME_ZONE, nextOpening: null }
+  if (!nowParts) return { state: 'closed', queueOpen: false, timezone: CHAT_TIME_ZONE, nextOpening: null, ...canonicalHours }
 
   const current = findCurrentRow(nowParts, schedule)
   const nextOpening = nextOpeningFromValidSchedule(safeNow, schedule)?.toISOString() ?? null
-  if (!current) return { state: 'closed', queueOpen: queue.queueOpen, timezone: CHAT_TIME_ZONE, nextOpening }
-  if (!queue.queueOpen) return { state: 'scheduled_offline', queueOpen: false, timezone: CHAT_TIME_ZONE, nextOpening }
-  return { state: 'open', queueOpen: true, timezone: CHAT_TIME_ZONE, nextOpening: null }
+  if (!current) return { state: 'closed', queueOpen: queue.queueOpen, timezone: CHAT_TIME_ZONE, nextOpening, ...canonicalHours }
+  if (!queue.queueOpen) return { state: 'scheduled_offline', queueOpen: false, timezone: CHAT_TIME_ZONE, nextOpening, ...canonicalHours }
+  return { state: 'open', queueOpen: true, timezone: CHAT_TIME_ZONE, nextOpening: null, ...canonicalHours }
 }
 
 export function parseChatAvailability(value: unknown): ChatAvailability | null {

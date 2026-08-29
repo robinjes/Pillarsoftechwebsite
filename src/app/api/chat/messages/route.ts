@@ -3,11 +3,12 @@ import type { NextResponse } from 'next/server'
 import { chatMessageCreateSchema } from '@/lib/chat-contracts'
 import { decodeChatCursor } from '@/lib/chat-pagination'
 import {
+  getStoredChatAvailability,
   getChatConversationForVisitor,
   insertChatMessageForVisitor,
   listChatMessagesForVisitor,
 } from '@/lib/chat-repository'
-import { chatError, sameOrigin, sameOriginFailure } from '@/lib/chat-route'
+import { chatError, chatRepositoryFailure, sameOrigin, sameOriginFailure } from '@/lib/chat-route'
 import { consumeChatRateLimit } from '@/lib/contact-rate-limit'
 import { getChatTokenFromRequest, hashChatToken } from '@/lib/chat-token'
 import { getRequestIdentity } from '@/lib/request-identity'
@@ -49,8 +50,8 @@ async function ownerFromRequest(request: Request, conversationId?: string) {
       return { error: chatError('conversation_not_found', 404) } as const
     }
     return { digest, conversation } as const
-  } catch {
-    return { error: chatError('chat_unavailable', 503) } as const
+  } catch (error) {
+    return { error: chatRepositoryFailure(error) } as const
   }
 }
 
@@ -59,12 +60,13 @@ export async function GET(request: Request): Promise<NextResponse> {
   if (!query) return chatError('invalid_chat_cursor', 400)
   const owner = await ownerFromRequest(request)
   if ('error' in owner) return owner.error ?? chatError('chat_unavailable', 503)
-  if (owner.conversation.status !== 'open') return chatError('chat_closed', 409)
+  if (owner.conversation.status === 'spam') return chatError('conversation_not_found', 404)
 
   try {
-    return jsonNoStore(await listChatMessagesForVisitor(owner.conversation, owner.digest, query.cursor, query.limit))
-  } catch {
-    return chatError('chat_unavailable', 503)
+    const result = await listChatMessagesForVisitor(owner.conversation, owner.digest, query.cursor, query.limit)
+    return jsonNoStore({ ...result, conversationStatus: owner.conversation.status })
+  } catch (error) {
+    return chatRepositoryFailure(error)
   }
 }
 
@@ -72,6 +74,14 @@ export async function POST(request: Request): Promise<NextResponse> {
   if (!sameOrigin(request)) return sameOriginFailure()
   const parsed = chatMessageCreateSchema.safeParse(await readJson(request))
   if (!parsed.success) return chatError('invalid_chat_request', 400)
+
+  let availability
+  try {
+    availability = await getStoredChatAvailability()
+  } catch {
+    return chatError('chat_unavailable', 503)
+  }
+  if (availability.state !== 'open' || !availability.queueOpen) return chatError('chat_closed', 409)
 
   const owner = await ownerFromRequest(request, parsed.data.conversationId)
   if ('error' in owner) return owner.error ?? chatError('chat_unavailable', 503)
@@ -89,7 +99,7 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     const message = await insertChatMessageForVisitor(owner.conversation, owner.digest, parsed.data.body)
     return jsonNoStore({ message }, 201)
-  } catch {
-    return chatError('chat_unavailable', 503)
+  } catch (error) {
+    return chatRepositoryFailure(error)
   }
 }

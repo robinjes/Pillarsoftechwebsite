@@ -1,6 +1,5 @@
 import 'server-only'
 
-import { randomUUID } from 'node:crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import {
@@ -38,13 +37,24 @@ const conversationSelect = [
 const messageSelect = 'id,conversation_id,sender,body,delivery_status,created_at'
 const digestPattern = /^[0-9a-f]{64}$/
 
+export type ChatRepositoryRouteCode =
+  | 'chat_closed'
+  | 'conversation_not_found'
+  | 'chat_unavailable'
+
 export class ChatRepositoryError extends Error {
   readonly status: 400 | 404 | 409 | 503
+  readonly routeCode: ChatRepositoryRouteCode
 
-  constructor(message: string, status: 400 | 404 | 409 | 503 = 503) {
+  constructor(
+    message: string,
+    status: 400 | 404 | 409 | 503 = 503,
+    routeCode: ChatRepositoryRouteCode = 'chat_unavailable',
+  ) {
     super(message)
     this.name = 'ChatRepositoryError'
     this.status = status
+    this.routeCode = routeCode
   }
 }
 
@@ -104,6 +114,25 @@ function validDigest(digest: string): void {
   if (!digestPattern.test(digest)) throw new ChatRepositoryError('Chat ownership is unavailable.', 503)
 }
 
+function errorCode(error: unknown): string {
+  return error && typeof error === 'object' && 'code' in error
+    ? String((error as { code?: unknown }).code ?? '')
+    : ''
+}
+
+function throwRpcFailure(error: unknown): never {
+  switch (errorCode(error)) {
+    case 'P0002':
+      throw new ChatRepositoryError('Chat conversation was not found.', 404, 'conversation_not_found')
+    case 'P0003':
+      throw new ChatRepositoryError('Chat conversation is closed.', 409, 'chat_closed')
+    case '22023':
+      throw new ChatRepositoryError('Invalid chat message.', 400)
+    default:
+      throw new ChatRepositoryError('Chat storage is temporarily unavailable.', 503)
+  }
+}
+
 function isUnexpired(conversation: ChatConversationRecord, now = new Date()): boolean {
   const expiry = Date.parse(conversation.ownershipExpiresAt)
   return Number.isFinite(expiry) && expiry > now.getTime()
@@ -116,7 +145,7 @@ function validPageSize(limit: number): void {
 }
 
 /** Defense in depth for callers that use the repository outside the routes. */
-async function ownedActiveConversation(
+async function ownedReadableConversation(
   client: SupabaseClient,
   conversationId: string,
   digest: string,
@@ -129,10 +158,28 @@ async function ownedActiveConversation(
     .eq('visitor_token_digest', digest)
     .maybeSingle()
   if (error) throw new ChatRepositoryError('Chat storage is temporarily unavailable.', 503)
-  if (!data) throw new ChatRepositoryError('Chat conversation was not found.', 404)
+  if (!data) throw new ChatRepositoryError('Chat conversation was not found.', 404, 'conversation_not_found')
   const conversation = conversationFromRow(data as unknown as Record<string, unknown>)
-  if (!isUnexpired(conversation, now)) throw new ChatRepositoryError('Chat ownership has expired.', 404)
-  if (conversation.status !== 'open') throw new ChatRepositoryError('Chat conversation is closed.', 409)
+  if (!isUnexpired(conversation, now)) {
+    throw new ChatRepositoryError('Chat conversation was not found.', 404, 'conversation_not_found')
+  }
+  if (conversation.status === 'spam') {
+    throw new ChatRepositoryError('Chat conversation was not found.', 404, 'conversation_not_found')
+  }
+  return conversation
+}
+
+/** Write ownership is intentionally stricter than transcript read ownership. */
+async function ownedWritableConversation(
+  client: SupabaseClient,
+  conversationId: string,
+  digest: string,
+  now = new Date(),
+): Promise<ChatConversationRecord> {
+  const conversation = await ownedReadableConversation(client, conversationId, digest, now)
+  if (conversation.status !== 'open') {
+    throw new ChatRepositoryError('Chat conversation is closed.', 409, 'chat_closed')
+  }
   return conversation
 }
 
@@ -236,7 +283,18 @@ export async function createChatConversation(
     })
     .select(conversationSelect)
     .single()
-  if (error || !data) throw new ChatRepositoryError('Chat storage is temporarily unavailable.', 503)
+  if (error) {
+    // Two first requests with the same nonce can race between the initial
+    // owner lookup and this insert. The digest uniqueness constraint is the
+    // serialization point; recover only that expected conflict by reading
+    // the same unexpired open conversation.
+    if (errorCode(error) === '23505') {
+      const resumed = await getChatConversationForVisitor(digest, undefined, now)
+      if (resumed?.status === 'open') return { conversation: resumed, resumed: true }
+    }
+    throw new ChatRepositoryError('Chat storage is temporarily unavailable.', 503)
+  }
+  if (!data) throw new ChatRepositoryError('Chat storage is temporarily unavailable.', 503)
   return { conversation: conversationFromRow(data as unknown as Record<string, unknown>), resumed: false }
 }
 
@@ -250,7 +308,7 @@ export async function listChatMessagesForVisitor(
   validDigest(digest)
   validPageSize(limit)
   const client = serviceClient()
-  await ownedActiveConversation(client, conversation.id, digest)
+  await ownedReadableConversation(client, conversation.id, digest)
   let query = client
     .from('chat_messages')
     .select(messageSelect)
@@ -275,24 +333,23 @@ export async function insertChatMessageForVisitor(
   conversation: Pick<ChatConversationRecord, 'id'>,
   digest: string,
   body: string,
+  now = new Date(),
 ): Promise<ChatMessageRecord> {
   validDigest(digest)
   const client = serviceClient()
-  await ownedActiveConversation(client, conversation.id, digest)
-  const { data, error } = await client
-    .from('chat_messages')
-    .insert({
-      id: randomUUID(),
-      conversation_id: conversation.id,
-      sender: 'visitor',
-      body,
-      delivery_status: 'pending',
-      delivery_attempts: 0,
-    })
-    .select(messageSelect)
-    .single()
-  if (error || !data) throw new ChatRepositoryError('Chat storage is temporarily unavailable.', 503)
-  return messageFromRow(data as unknown as Record<string, unknown>)
+  await ownedWritableConversation(client, conversation.id, digest, now)
+
+  const { data, error } = await client.rpc('insert_chat_visitor_message', {
+    p_conversation_id: conversation.id,
+    p_visitor_token_digest: digest,
+    p_body: body,
+  })
+  if (error) throwRpcFailure(error)
+  const result = Array.isArray(data) ? data[0] : data
+  if (!result || typeof result !== 'object' || Array.isArray(result)) {
+    throw new ChatRepositoryError('Chat storage is temporarily unavailable.', 503)
+  }
+  return messageFromRow(result as Record<string, unknown>)
 }
 
 /** Exposed for Task 4B retry code; status values are checked before writes. */

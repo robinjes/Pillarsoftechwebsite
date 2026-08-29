@@ -4,6 +4,7 @@ vi.mock('server-only', () => ({}))
 
 import {
   CHAT_TOKEN_COOKIE,
+  deriveChatTokenFromNonce,
   generateChatToken,
   getChatTokenFromRequest,
   hashChatToken,
@@ -41,5 +42,16 @@ describe('chat visitor token ownership', () => {
     expect(getChatTokenFromRequest(request)).toBe(token)
     expect(getChatTokenFromRequest(new Request(request.url, { headers: { cookie: `${CHAT_TOKEN_COOKIE}=bad` } }))).toBeNull()
     expect(getChatTokenFromRequest(new Request(request.url))).toBeNull()
+  })
+
+  it('derives the same opaque cookie token for the same nonce and separates different nonces', () => {
+    vi.stubEnv('CHAT_TOKEN_PEPPER', 'test-pepper')
+    const nonceA = 'A'.repeat(43)
+    const nonceB = 'B'.repeat(43)
+    const tokenA = deriveChatTokenFromNonce(nonceA)
+    expect(deriveChatTokenFromNonce(nonceA)).toBe(tokenA)
+    expect(deriveChatTokenFromNonce(nonceB)).not.toBe(tokenA)
+    expect(Buffer.from(tokenA, 'base64url')).toHaveLength(32)
+    expect(hashChatToken(tokenA)).toMatch(/^[0-9a-f]{64}$/)
   })
 })

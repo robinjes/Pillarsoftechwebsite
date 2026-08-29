@@ -2,12 +2,17 @@ import 'server-only'
 
 import { createHmac, randomBytes } from 'node:crypto'
 
-import { CHAT_TOKEN_COOKIE, CHAT_TOKEN_TTL_SECONDS } from '@/lib/chat-contracts'
+import {
+  CHAT_TOKEN_COOKIE,
+  CHAT_TOKEN_TTL_SECONDS,
+  isValidChatRequestNonce,
+} from '@/lib/chat-contracts'
 
 export { CHAT_TOKEN_COOKIE }
 
 export const CHAT_TOKEN_BYTES = 32
 export const CHAT_TOKEN_COOKIE_PATH = '/api/chat'
+const CHAT_NONCE_DOMAIN = 'pillars-of-tech:chat-cookie:v1\u0000'
 
 const tokenPattern = /^[A-Za-z0-9_-]{43}$/
 
@@ -31,6 +36,23 @@ export function isValidChatToken(value: unknown): value is string {
 /** Generate one opaque token; its raw value is never persisted. */
 export function generateChatToken(): string {
   return randomBytes(CHAT_TOKEN_BYTES).toString('base64url')
+}
+
+/**
+ * Derive the opaque cookie token for a first-request retry. The fixed domain
+ * separator keeps this derivation independent from all other peppered HMAC
+ * values, while the raw nonce remains a browser-memory/request-only value.
+ */
+export function deriveChatTokenFromNonce(requestNonce: string): string {
+  if (!isValidChatRequestNonce(requestNonce)) throw new ChatTokenConfigurationError()
+  const token = createHmac('sha256', chatTokenPepper())
+    .update(CHAT_NONCE_DOMAIN, 'utf8')
+    .update(requestNonce, 'utf8')
+    .digest('base64url')
+  if (!isValidChatToken(token) || Buffer.from(token, 'base64url').byteLength !== CHAT_TOKEN_BYTES) {
+    throw new ChatTokenConfigurationError()
+  }
+  return token
 }
 
 /** Store only this keyed digest in Supabase, never the raw cookie token. */
@@ -86,4 +108,3 @@ export function clearChatTokenCookie(response: Response, now = new Date()): void
   if (!Number.isFinite(now.getTime())) return
   response.headers.append('Set-Cookie', cookieHeader('', now, 0))
 }
-
