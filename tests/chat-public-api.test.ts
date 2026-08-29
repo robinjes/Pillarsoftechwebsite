@@ -29,10 +29,8 @@ vi.mock('@/lib/contact-rate-limit', () => ({ consumeChatRateLimit: consumeChatRa
 import { GET as getAvailability } from '@/app/api/chat/availability/route'
 import { POST as postConversation } from '@/app/api/chat/conversations/route'
 import { GET as getMessages, POST as postMessage } from '@/app/api/chat/messages/route'
-import { CHAT_TOKEN_TTL_SECONDS } from '@/lib/chat-contracts'
 import {
   CHAT_TOKEN_COOKIE,
-  CHAT_TOKEN_COOKIE_PATH,
   deriveChatTokenFromNonce,
   generateChatToken,
   hashChatToken,
@@ -214,26 +212,30 @@ describe('public visitor chat APIs', () => {
     const finishedAt = Date.now()
     const firstCookie = parseSetCookieHeader(first.headers.get('set-cookie'))
     const secondCookie = parseSetCookieHeader(second.headers.get('set-cookie'))
+    const expectedToken = deriveChatTokenFromNonce(validConversationBody.requestNonce)
     expect(first.status).toBe(201)
     expect(second.status).toBe(200)
     expect(firstCookie.name).toBe(CHAT_TOKEN_COOKIE)
     expect(secondCookie.name).toBe(CHAT_TOKEN_COOKIE)
     expect(firstCookie.value).toMatch(/^[A-Za-z0-9_-]{43}$/)
-    expect(secondCookie.value).toBe(firstCookie.value)
+    expect(firstCookie.value).toBe(expectedToken)
+    expect(secondCookie.value).toBe(expectedToken)
+    expect(firstCookie.value).not.toBe(validConversationBody.requestNonce)
+    expect(secondCookie.value).not.toBe(validConversationBody.requestNonce)
     for (const cookie of [firstCookie, secondCookie]) {
       expect(cookie.attributes).toEqual(expect.arrayContaining([
-        `Max-Age=${CHAT_TOKEN_TTL_SECONDS}`,
-        `Path=${CHAT_TOKEN_COOKIE_PATH}`,
+        'Max-Age=2592000',
+        'Path=/api/chat',
         'HttpOnly',
         'Secure',
         'SameSite=Lax',
       ]))
       expect(Number.isNaN(cookie.expires.getTime())).toBe(false)
-      expect(cookie.expires.getTime()).toBeGreaterThanOrEqual(startedAt + CHAT_TOKEN_TTL_SECONDS * 1_000 - 1_000)
-      expect(cookie.expires.getTime()).toBeLessThanOrEqual(finishedAt + CHAT_TOKEN_TTL_SECONDS * 1_000)
+      expect(cookie.expires.getTime()).toBeGreaterThanOrEqual(startedAt + 2592000 * 1_000 - 1_000)
+      expect(cookie.expires.getTime()).toBeLessThanOrEqual(finishedAt + 2592000 * 1_000)
     }
     const storedDigests = createChatConversationMock.mock.calls.map((call) => call[1])
-    expect(storedDigests).toEqual([hashChatToken(firstCookie.value), hashChatToken(firstCookie.value)])
+    expect(storedDigests).toEqual([hashChatToken(expectedToken), hashChatToken(expectedToken)])
     for (const digest of storedDigests) {
       expect(digest).toMatch(/^[0-9a-f]{64}$/)
       expect(digest).not.toContain(validConversationBody.requestNonce)
