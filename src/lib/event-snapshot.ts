@@ -9,6 +9,7 @@ import {
 
 type LegacyEvent = {
   id?: unknown
+  branch?: unknown
   title?: unknown
   date?: unknown
   time?: unknown
@@ -50,6 +51,12 @@ function status(value: unknown): EventRecord['status'] {
   return 'completed'
 }
 
+function branch(value: unknown): EventRecord['branch'] {
+  // Only the authoritative field is consulted. Legacy rows without it are
+  // explicitly treated as California during the compatibility migration.
+  return value === 'ga' ? 'ga' : 'ca'
+}
+
 export function legacyEventToRecord(input: LegacyEvent): EventRecord | null {
   const id = text(input.id)
   const title = text(input.title)
@@ -68,6 +75,7 @@ export function legacyEventToRecord(input: LegacyEvent): EventRecord | null {
   const parsed = eventRecordSchema.safeParse({
     id,
     slug: id,
+    branch: branch(input.branch),
     title,
     summary: description.split(/\n\n/)[0]?.slice(0, 1_000) || '',
     description,
@@ -109,6 +117,7 @@ export function toPublicEvent(event: EventRecord): PublicEvent | null {
   const publicEvent = {
     id: event.id,
     slug: event.slug,
+    branch: event.branch,
     title: event.title,
     summary: event.summary,
     description: event.description,

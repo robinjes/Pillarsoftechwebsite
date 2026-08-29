@@ -105,7 +105,21 @@ export async function middleware(request: NextRequest) {
   }
 
   applySecurityHeaders(response, csp)
-  if (request.nextUrl.pathname.startsWith('/admin') || request.nextUrl.pathname.startsWith('/auth')) {
+  const privateNoStorePrefixes = [
+    '/admin',
+    '/auth',
+    '/api/admin',
+    '/api/chat',
+    '/api/contact',
+    '/api/auth',
+    '/api/me',
+    '/api/registrations',
+    '/api/volunteer',
+    '/api/media',
+    '/register',
+    '/volunteer/checkin',
+  ]
+  if (privateNoStorePrefixes.some((prefix) => request.nextUrl.pathname === prefix || request.nextUrl.pathname.startsWith(`${prefix}/`))) {
     response.headers.set('Cache-Control', 'private, no-store')
   }
   return response

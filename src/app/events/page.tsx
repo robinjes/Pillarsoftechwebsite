@@ -4,14 +4,17 @@ import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, CalendarDays, MapPin, Search, UsersRound } from 'lucide-react'
-import type { PublicEvent } from '@/lib/content-contracts'
+import { publicEventSchema, type BranchCode, type PublicEvent } from '@/lib/content-contracts'
 import { resolveEventImageAlt } from '@/lib/event-media'
 
 type EventFilter = 'all' | 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
+type BranchFilter = 'all' | BranchCode
 
-function branchLabel(): string {
-  // Task 6 will add the validated branch contract. Until then, do not infer a
-  // branch from legacy rows or accept a branch-like client payload.
+function branchLabel(branch: BranchCode | undefined): string {
+  if (branch === 'ca') return 'California'
+  if (branch === 'ga') return 'Georgia'
+  // This defensive fallback is unreachable after the public Zod parse. It is
+  // intentionally neutral rather than guessing from title/location text.
   return 'Branch not listed'
 }
 
@@ -109,7 +112,7 @@ function EventRow({ event }: { event: PublicEvent }) {
               {statusLabel(event)}
             </span>
             <span className="text-[var(--cobalt)]">{event.programCategory}</span>
-            <span className="rounded-full border border-[var(--ink)]/20 px-2 py-1 text-xs font-semibold text-[var(--ink)]/75">{branchLabel()}</span>
+            <span className="rounded-full border border-[var(--ink)]/20 px-2 py-1 text-xs font-semibold text-[var(--ink)]/75">{branchLabel(event.branch)}</span>
           </div>
           <h3 className="mt-3 font-display text-2xl leading-tight text-[var(--midnight)] sm:text-3xl">
             <Link href={eventPath} className="underline-offset-4 hover:underline focus-visible:underline">
@@ -190,7 +193,7 @@ function FeaturedProgram({ upcoming, archive }: { upcoming: PublicEvent | null; 
       <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-stretch lg:gap-10">
         <div className="flex flex-col justify-between border-t border-[var(--ink)] pt-5">
           <div>
-            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">{upcoming ? 'Next on the table' : 'From the archive'} · {branchLabel()}</p>
+            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">{upcoming ? 'Next on the table' : 'From the archive'} · {branchLabel(featureEvent.branch)}</p>
             <h2 id="featured-program-heading" className="mt-4 max-w-xl font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">
               {featureEvent.title}
             </h2>
@@ -270,6 +273,7 @@ export default function EventsPage() {
   const [loadError, setLoadError] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [filter, setFilter] = useState<EventFilter>('all')
+  const [branchFilter, setBranchFilter] = useState<BranchFilter>('all')
 
   useEffect(() => {
     let mounted = true
@@ -278,7 +282,9 @@ export default function EventsPage() {
         if (!response.ok) throw new Error('Events unavailable')
         const data: unknown = await response.json()
         if (!Array.isArray(data)) throw new Error('Invalid events response')
-        return data as PublicEvent[]
+        const parsed = publicEventSchema.array().safeParse(data)
+        if (!parsed.success) throw new Error('Invalid events response')
+        return parsed.data
       })
       .then((data) => {
         if (!mounted) return
@@ -303,13 +309,14 @@ export default function EventsPage() {
       if (filter === 'ongoing' && event.status !== 'ongoing') return false
       if (filter === 'completed' && event.status !== 'completed') return false
       if (filter === 'cancelled' && event.status !== 'cancelled') return false
+      if (branchFilter !== 'all' && event.branch !== branchFilter) return false
       if (!query) return true
       return [event.title, event.description, event.location, event.programCategory]
         .join(' ')
         .toLowerCase()
         .includes(query)
     })
-  }, [events, filter, searchQuery])
+  }, [branchFilter, events, filter, searchQuery])
 
   const sections = splitEventSections(filteredEvents)
 
@@ -360,6 +367,23 @@ export default function EventsPage() {
                 }`}
               >
                 {option === 'all' ? 'All stories' : option === 'ongoing' ? 'Ongoing' : option === 'cancelled' ? 'Cancelled' : option === 'upcoming' ? 'Upcoming' : 'Completed'}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2" aria-label="Filter events by branch">
+            {(['all', 'ca', 'ga'] as BranchFilter[]).map((option) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={branchFilter === option}
+                onClick={() => setBranchFilter(option)}
+                className={`min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] ${
+                  branchFilter === option
+                    ? 'border-[var(--cobalt)] bg-[var(--sky)] text-[var(--midnight)]'
+                    : 'border-[var(--ink)] bg-transparent text-[var(--ink)] hover:bg-[var(--sky)]'
+                }`}
+              >
+                {option === 'all' ? 'All branches' : branchLabel(option)}
               </button>
             ))}
           </div>

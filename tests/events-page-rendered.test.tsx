@@ -36,6 +36,8 @@ const makeEvent = (overrides: EventFixture = {}): EventFixture => ({
   timezone: 'America/Los_Angeles',
   startLabel: 'September 1, 2026',
   endLabel: 'September 1, 2026',
+  date: 'September 1, 2026',
+  time: '6:00 PM – 8:00 PM',
   location: 'Community Room',
   programCategory: 'robotics',
   status: 'upcoming',
@@ -60,7 +62,7 @@ describe('EventsPage rendered filtering behavior', () => {
     fetchMock.mockReset()
   })
 
-  it('filters upcoming and ongoing records and keeps an unknown branch neutral', async () => {
+  it('filters upcoming and ongoing records and exposes authoritative branch labels', async () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => [
@@ -78,9 +80,13 @@ describe('EventsPage rendered filtering behavior', () => {
     render(<EventsPage />)
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Upcoming & ongoing' })).toBeInTheDocument())
 
-    expect(screen.getAllByText('Branch not listed').length).toBeGreaterThan(0)
-    expect(screen.queryByText('California')).not.toBeInTheDocument()
-    expect(screen.queryByText('Georgia')).not.toBeInTheDocument()
+    expect(screen.getAllByText('Georgia').length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: 'California' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Upcoming' }))
+    fireEvent.click(screen.getByRole('button', { name: 'California' }))
+    expect(screen.getByText('No upcoming events match this search.')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'All branches' }))
 
     const upcomingButton = screen.getByRole('button', { name: 'Upcoming' })
     fireEvent.click(upcomingButton)

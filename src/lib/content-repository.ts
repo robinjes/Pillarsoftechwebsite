@@ -5,6 +5,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { previewImpactSnapshot } from '@/data/impact-snapshot'
 import {
   contentDocumentSchema,
+  branchCodeSchema,
+  branchDocumentSchema,
+  emptyBranchDocument,
+  isPublishableBranchDocument,
   contactStatusSchema,
   contactSubmissionRecordSchema,
   eventRecordSchema,
@@ -13,6 +17,8 @@ import {
   publicImpactMetricSchema,
   publicEventSchema,
   type ContentDocument,
+  type BranchCode,
+  type BranchDocument,
   type ContactStatus,
   type ContactSubmissionRecord,
   type EventRecord,
@@ -32,6 +38,9 @@ const safeRepositoryMessages = new Set([
   'Stored form content is invalid.',
   'Stored impact content is invalid.',
   'Stored site content is invalid.',
+  'Stored branch content is invalid.',
+  'Branch content could not be saved.',
+  'Branch not found.',
   'The event is not public.',
   'Supabase write storage is not configured.',
   'An event with this identifier already exists.',
@@ -85,6 +94,7 @@ export function eventFromRow(row: Record<string, unknown>): EventRecord {
   const parsed = eventRecordSchema.safeParse({
     id: text(row.id),
     slug: text(row.slug),
+    branch: text(row.branch),
     title: text(row.title),
     summary: text(row.summary),
     description: text(row.description),
@@ -150,6 +160,39 @@ export function contentFromRow(row: Record<string, unknown>): ContentDocument {
   return parsed.data
 }
 
+function unknownArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : []
+}
+
+/**
+ * Parse a dedicated branch_documents row. This intentionally does not use the
+ * loose site_content contract: every admin and public branch read crosses the
+ * strict branchDocumentSchema before it can be returned or rendered.
+ */
+export function branchDocumentFromRow(row: Record<string, unknown>): BranchDocument {
+  const parsed = branchDocumentSchema.safeParse({
+    key: text(row.key),
+    branch: text(row.branch),
+    name: text(row.name),
+    serviceArea: text(row.service_area),
+    leaders: unknownArray(row.leaders),
+    programs: unknownArray(row.programs),
+    contactRoute: record(row.contact_route),
+    photos: unknownArray(row.photos),
+    associatedEventIds: unknownArray(row.associated_event_ids),
+    cta: record(row.cta),
+    publicationState: row.publication_state,
+    safeForPublic: row.safe_for_public,
+    approval: {
+      status: row.approval_status,
+      approvedAt: row.approved_at == null ? null : text(row.approved_at),
+      ...(row.approved_by == null ? {} : { approvedBy: text(row.approved_by) }),
+    },
+  })
+  if (!parsed.success) throw new ContentRepositoryError('Stored branch content is invalid.', 503)
+  return parsed.data
+}
+
 function contactFromRow(row: Record<string, unknown>): ContactSubmissionRecord {
   const parsed = contactSubmissionRecordSchema.safeParse({
     id: text(row.id),
@@ -199,22 +242,111 @@ function serviceClient(): SupabaseClient {
   }
 }
 
-export async function listPublicEvents(): Promise<PublicEvent[]> {
+export async function listPublicEvents(branch?: BranchCode): Promise<PublicEvent[]> {
+  if (branch !== undefined && !branchCodeSchema.safeParse(branch).success) {
+    throw new ContentRepositoryError('Invalid event branch.', 400)
+  }
   const client = publicClient()
-  if (!client) return getPublicEventSnapshot()
+  if (!client) {
+    const snapshot = getPublicEventSnapshot()
+    return branch ? snapshot.filter((event) => event.branch === branch) : snapshot
+  }
 
-  const { data, error } = await client
+  let query = client
     .from('events')
-    .select('id,slug,title,summary,description,starts_at,ends_at,timezone,start_label,end_label,location,program_category,status,media,resources,participant_registration_state,volunteer_registration_state')
+    .select('id,slug,branch,title,summary,description,starts_at,ends_at,timezone,start_label,end_label,location,program_category,status,media,resources,participant_registration_state,volunteer_registration_state')
+  if (branch) query = query.eq('branch', branch)
+  const { data, error } = await query
     .neq('status', 'draft')
     .order('starts_at', { ascending: true, nullsFirst: false })
-  if (error) return getPublicEventSnapshot()
+  if (error) {
+    const snapshot = getPublicEventSnapshot()
+    return branch ? snapshot.filter((event) => event.branch === branch) : snapshot
+  }
   return asRows(data).map(publicEventFromRow)
 }
 
 export async function getPublicEvent(eventId: string): Promise<PublicEvent | null> {
   const events = await listPublicEvents()
   return events.find((event) => event.id === eventId || event.slug === eventId) ?? null
+}
+
+const publicBranchSelect = 'key,branch,name,service_area,leaders,programs,contact_route,photos,associated_event_ids,cta,publication_state,safe_for_public,approval_status,approved_at'
+
+function branchKey(branch: BranchCode): string {
+  return `branch:${branch}`
+}
+
+function branchDbPayload(document: BranchDocument, userId: string): Record<string, unknown> {
+  return {
+    key: document.key,
+    branch: document.branch,
+    name: document.name,
+    service_area: document.serviceArea,
+    leaders: document.leaders,
+    programs: document.programs,
+    contact_route: document.contactRoute,
+    photos: document.photos,
+    associated_event_ids: document.associatedEventIds,
+    cta: document.cta,
+    publication_state: document.publicationState,
+    safe_for_public: document.safeForPublic,
+    approval_status: document.approval.status,
+    approved_at: document.approval.approvedAt,
+    approved_by: document.approval.approvedBy ?? null,
+    updated_by: userId,
+  }
+}
+
+export async function listAdminBranches(): Promise<BranchDocument[]> {
+  const client = serviceClient()
+  const { data, error } = await client.from('branch_documents').select('*').order('branch', { ascending: true })
+  if (error) rowError(error)
+  const documents = asRows(data).map(branchDocumentFromRow)
+  // Empty defaults keep the protected editor useful before an operator has
+  // inserted either packet, while GA remains unpublished and unrenderable.
+  return (['ca', 'ga'] as BranchCode[]).map((branch) => documents.find((document) => document.branch === branch) ?? emptyBranchDocument(branch))
+}
+
+export async function getPublicBranchDocument(branch: BranchCode): Promise<BranchDocument | null> {
+  if (!branchCodeSchema.safeParse(branch).success) return null
+  const client = publicClient()
+  // Unlike event snapshots, an absent branch database row must never fall
+  // back to local content: that could expose an unpublished Georgia packet.
+  if (!client) return null
+  const { data, error } = await client
+    .from('branch_documents')
+    .select(publicBranchSelect)
+    .eq('key', branchKey(branch))
+    .eq('branch', branch)
+    .eq('publication_state', 'published')
+    .eq('safe_for_public', true)
+    .eq('approval_status', 'approved')
+    .not('approved_at', 'is', null)
+    .maybeSingle()
+  if (error || !data) return null
+  try {
+    const document = branchDocumentFromRow(data as Record<string, unknown>)
+    return isPublishableBranchDocument(document) ? document : null
+  } catch {
+    return null
+  }
+}
+
+export async function saveAdminBranch(document: BranchDocument, userId: string): Promise<BranchDocument> {
+  const client = serviceClient()
+  const { data, error } = await client
+    .from('branch_documents')
+    .upsert(branchDbPayload(document, userId), { onConflict: 'key' })
+    .select('*')
+    .single()
+  if (error) {
+    throw new ContentRepositoryError(
+      error.code === '23505' ? 'Branch not found.' : 'Branch content could not be saved.',
+      error.code === '23505' ? 404 : 503,
+    )
+  }
+  return branchDocumentFromRow(data as Record<string, unknown>)
 }
 
 export async function getPublicParticipantForm(eventId: string): Promise<FormDefinition | null> {
@@ -266,6 +398,7 @@ function eventDbPayload(event: EventWrite, userId: string, includeCreatedBy: boo
   return {
     id,
     slug,
+    branch: event.branch,
     title: event.title,
     summary: event.summary,
     description: event.description,

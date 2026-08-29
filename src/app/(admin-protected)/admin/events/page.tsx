@@ -7,6 +7,7 @@ import type { EventRecord, EventWrite } from '@/lib/content-contracts'
 import { supabase } from '@/lib/supabase/client'
 
 const blankEvent: EventWrite = {
+  branch: 'ca',
   title: '',
   summary: '',
   description: '',
@@ -32,6 +33,7 @@ function eventToDraft(event: EventRecord): EventWrite {
   return {
     id: event.id,
     slug: event.slug,
+    branch: event.branch,
     title: event.title,
     summary: event.summary,
     description: event.description,
@@ -209,6 +211,7 @@ export default function AdminEvents() {
 
       <form onSubmit={saveEvent} className="grid gap-4 rounded-xl border border-white/10 bg-slate-900/60 p-5 md:grid-cols-2">
         <div className="md:col-span-2 flex items-center justify-between"><h2 className="text-xl font-semibold">{editingId ? 'Edit event' : 'Create event'}</h2>{editingId && <button type="button" onClick={() => { setDraft(blankEvent); setEditingId(null) }}><X className="h-5 w-5" /></button>}</div>
+        <label className="space-y-1 text-sm">Branch<select value={draft.branch} onChange={(event) => setField('branch', event.target.value as EventWrite['branch'])} className="w-full rounded border border-white/10 bg-slate-800 p-2"><option value="ca">California</option><option value="ga">Georgia</option></select></label>
         <label className="space-y-1 text-sm">Title<input required value={draft.title} onChange={(event) => setField('title', event.target.value)} className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
         <label className="space-y-1 text-sm">Program category<input required value={draft.programCategory} onChange={(event) => setField('programCategory', event.target.value)} className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
         <label className="space-y-1 text-sm">Date label<input value={draft.startLabel} onChange={(event) => setField('startLabel', event.target.value)} className="w-full rounded border border-white/10 bg-slate-800 p-2" /></label>
@@ -263,7 +266,7 @@ export default function AdminEvents() {
       <div className="space-y-3">
         {loading ? <p className="text-blue-200">Loading events…</p> : events.length === 0 ? <p className="rounded-xl border border-dashed border-white/15 p-8 text-center text-blue-200">No events found.</p> : events.map((event) => (
           <article key={event.id} className="rounded-xl border border-white/10 bg-slate-900/50 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-semibold">{event.title}</h3><p className="text-sm text-blue-200"><Calendar className="mr-1 inline h-4 w-4" />{event.startLabel || 'No date'} · {event.status} · {event.publicationState}</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setDraft(eventToDraft(event)); setEditingId(event.id) }} className="inline-flex items-center gap-1 rounded border border-white/15 px-3 py-1 text-sm"><Edit2 className="h-4 w-4" />Edit</button><button type="button" onClick={() => void changeState(event.id, event.publicationState === 'published' ? 'unpublish' : 'publish')} className="rounded border border-white/15 px-3 py-1 text-sm">{event.publicationState === 'published' ? 'Unpublish' : 'Publish'}</button><button type="button" onClick={() => void changeState(event.id, 'archive')} className="rounded border border-white/15 px-3 py-1 text-sm">Archive</button><button type="button" onClick={() => void deleteEvent(event.id)} className="rounded border border-rose-300/30 px-3 py-1 text-sm text-rose-100"><Trash2 className="h-4 w-4" /></button></div></div>
+            <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="text-lg font-semibold">{event.title}</h3><p className="text-sm text-blue-200"><Calendar className="mr-1 inline h-4 w-4" />{event.branch === 'ga' ? 'Georgia' : event.branch === 'ca' ? 'California' : 'Branch not listed'} · {event.startLabel || 'No date'} · {event.status} · {event.publicationState}</p></div><div className="flex flex-wrap gap-2"><button type="button" onClick={() => { setDraft(eventToDraft(event)); setEditingId(event.id) }} className="inline-flex items-center gap-1 rounded border border-white/15 px-3 py-1 text-sm"><Edit2 className="h-4 w-4" />Edit</button><button type="button" onClick={() => void changeState(event.id, event.publicationState === 'published' ? 'unpublish' : 'publish')} className="rounded border border-white/15 px-3 py-1 text-sm">{event.publicationState === 'published' ? 'Unpublish' : 'Publish'}</button><button type="button" onClick={() => void changeState(event.id, 'archive')} className="rounded border border-white/15 px-3 py-1 text-sm">Archive</button><button type="button" onClick={() => void deleteEvent(event.id)} className="rounded border border-rose-300/30 px-3 py-1 text-sm text-rose-100"><Trash2 className="h-4 w-4" /></button></div></div>
           </article>
         ))}
       </div>

@@ -1,6 +1,7 @@
 [
   {
     "id": "science-odyssey",
+    "branch": "ca",
     "title": "Science Odyssey Marshmallow Challenge",
     "date": "2/26/26",
     "time": "5:00 PM - 7:30 PM",
@@ -39,6 +40,7 @@
   },
   {
     "id": "wildcat-tank-altamont",
+    "branch": "ca",
     "title": "Wildcat Tank - Altamont",
     "date": "March 25, 2026",
     "time": "6:00 PM - 8:00 PM",
@@ -67,6 +69,7 @@
   },
   {
     "id": "family-science-night-altamont",
+    "branch": "ca",
     "title": "Family Science Night Event - Altamont",
     "date": "April 28, 2026",
     "time": "6:00-7:30PM",
@@ -93,6 +96,7 @@
   },
   {
     "id": "career-panel-granada",
+    "branch": "ca",
     "title": "Career Panel",
     "date": "Coming Soon",
     "time": "Coming Soon",
@@ -106,6 +110,7 @@
   },
   {
     "id": "altamont-creek-open-house",
+    "branch": "ca",
     "title": "Altamont Creek Elementary Open House",
     "date": "May 13, 2026",
     "time": "6:00 PM - 7:00 PM",
@@ -131,6 +136,7 @@
   },
   {
     "id": "wildcat-carnival",
+    "branch": "ca",
     "title": "Wildcat Carnival",
     "date": "May 15, 2026",
     "time": "5:00 PM - 7:30 PM",
@@ -173,6 +179,7 @@
   },
   {
     "id": "foil-boat-stockmens",
+    "branch": "ca",
     "title": "Science At Stockmens Park",
     "date": "10/4/25",
     "time": "3 Hours",
@@ -210,6 +217,7 @@
   },
   {
     "id": "pedrozzi-connect-egg-drop",
+    "branch": "ca",
     "title": "The Pedrozzi CONNECT Youth Egg Drop",
     "date": "1/29/26",
     "time": "1 Hour",

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { connection } from 'next/server'
+import { headers } from 'next/headers'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -50,10 +51,21 @@ export default async function RootLayout({
   children: React.ReactNode
 }) {
   await connection()
+  const nonce = (await headers()).get('x-nonce') || undefined
+  const organizationJsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Pillars of Tech',
+    url: 'https://pillarsoftech.org',
+    logo: 'https://pillarsoftech.org/potofficiallogo.png',
+    email: 'pillarsoftech@gmail.com',
+    description: 'Pillars of Tech brings hands-on STEM learning to students, families, schools, and communities.',
+  }).replace(/</g, '\\u003c')
 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${bodyFont.variable} ${displayFont.variable}`} suppressHydrationWarning>
+        <script id="organization-jsonld" nonce={nonce} suppressHydrationWarning type="application/ld+json">{organizationJsonLd}</script>
         <a href="#main-content" className="skip-link">Skip to content</a>
         <Navbar />
         <div id="main-content" tabIndex={-1}>

@@ -81,6 +81,12 @@ function status(value) {
   return ['upcoming', 'ongoing', 'completed', 'cancelled'].includes(value) ? value : 'draft'
 }
 
+function branch(value) {
+  // The branch is an authoritative field. Unknown/legacy rows are explicitly
+  // staged as California; never infer Georgia from title or location text.
+  return value === 'ga' ? 'ga' : 'ca'
+}
+
 function dateLabel(value) {
   return typeof value === 'string' ? value.trim() : ''
 }
@@ -116,6 +122,6 @@ for (const event of events) {
   const resources = {}
   const startLabel = dateLabel(event.date)
   const endLabel = dateLabel(event.time)
-  console.log(`insert into public.events (id, slug, title, summary, description, timezone, start_label, end_label, location, program_category, status, media, resources, participant_registration_state, volunteer_registration_state, outcomes, publication_state) values (${sql(id)}, ${sql(id)}, ${sql(title)}, ${sql(String(event.description ?? '').split(/\n\n/)[0].slice(0, 1000))}, ${sql(String(event.description ?? '').slice(0, 12000))}, 'America/New_York', ${sql(startLabel)}, ${sql(endLabel)}, ${sql(event.location)}, 'general', ${sql(status(event.status))}, ${json(media)}, ${json(resources)}, 'closed', 'closed', '{}'::jsonb, 'unpublished') on conflict (id) do update set title = excluded.title, summary = excluded.summary, description = excluded.description, start_label = excluded.start_label, end_label = excluded.end_label, location = excluded.location, status = excluded.status, media = excluded.media, resources = excluded.resources, outcomes = '{}'::jsonb, publication_state = 'unpublished', updated_at = timezone('utc', now());`)
+  console.log(`insert into public.events (id, slug, branch, title, summary, description, timezone, start_label, end_label, location, program_category, status, media, resources, participant_registration_state, volunteer_registration_state, outcomes, publication_state) values (${sql(id)}, ${sql(id)}, ${sql(branch(event.branch))}, ${sql(title)}, ${sql(String(event.description ?? '').split(/\n\n/)[0].slice(0, 1000))}, ${sql(String(event.description ?? '').slice(0, 12000))}, 'America/New_York', ${sql(startLabel)}, ${sql(endLabel)}, ${sql(event.location)}, 'general', ${sql(status(event.status))}, ${json(media)}, ${json(resources)}, 'closed', 'closed', '{}'::jsonb, 'unpublished') on conflict (id) do update set branch = excluded.branch, title = excluded.title, summary = excluded.summary, description = excluded.description, start_label = excluded.start_label, end_label = excluded.end_label, location = excluded.location, status = excluded.status, media = excluded.media, resources = excluded.resources, outcomes = '{}'::jsonb, publication_state = 'unpublished', updated_at = timezone('utc', now());`)
 }
 console.log('commit;')

@@ -10,6 +10,7 @@ import {
   Clock,
   FileText,
   LogOut,
+  MapPinned,
   Mail,
   Menu,
   Settings,
@@ -28,6 +29,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { name: 'Dashboard', href: '/admin', icon: BarChart3 },
   { name: 'Events', href: '/admin/events', icon: Calendar },
+  { name: 'Branches', href: '/admin/branches', icon: MapPinned },
   { name: 'Volunteers', href: '/admin/volunteers', icon: Users },
   { name: 'Hours', href: '/admin/hours', icon: Clock },
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },

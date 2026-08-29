@@ -28,6 +28,19 @@ const approvedResourceHosts = new Set([
 const safeIdPattern = /^[a-z0-9][a-z0-9_-]{0,63}$/
 const safeFieldIdPattern = /^[a-z][a-z0-9_-]{0,31}$/
 
+/**
+ * Branch is an authoritative content field.  Do not derive it from an event
+ * title, location, or any other visitor-controlled text.
+ */
+export const branchCodeSchema = z.enum(['ca', 'ga'])
+export type BranchCode = z.infer<typeof branchCodeSchema>
+
+export const branchDocumentKeySchema = z.enum(['branch:ca', 'branch:ga'])
+export type BranchDocumentKey = z.infer<typeof branchDocumentKeySchema>
+
+export const branchPublicationStateSchema = z.enum(['unpublished', 'published'])
+export type BranchPublicationState = z.infer<typeof branchPublicationStateSchema>
+
 export function isSafeLocalPath(value: string): boolean {
   return (
     value.startsWith('/') &&
@@ -91,6 +104,128 @@ const isoDate = z.string().trim().refine((value) => {
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().startsWith(value)
 }, 'Use a valid YYYY-MM-DD date.')
 
+const branchOptionalUrl = safeResourceUrlSchema.or(z.literal(''))
+
+const branchLeaderSchema = z.object({
+  name: nonEmptyText(160),
+  role: nonEmptyText(160),
+}).strict()
+
+const branchProgramSchema = z.object({
+  name: nonEmptyText(200),
+  description: optionalText(1_500).optional(),
+}).strict()
+
+const branchContactRouteSchema = z.object({
+  label: optionalText(160),
+  url: branchOptionalUrl,
+}).strict()
+
+const branchPhotoSchema = z.object({
+  url: safeResourceUrlSchema,
+  // Draft packets may contain a media reference before its description is
+  // reviewed. The publication predicate below rejects a missing/empty alt.
+  alt: optionalText(500).optional(),
+  approved: z.boolean(),
+}).strict()
+
+const branchCtaSchema = z.object({
+  label: optionalText(160),
+  url: branchOptionalUrl,
+}).strict()
+
+const branchApprovalSchema = z.object({
+  status: z.enum(['pending', 'approved', 'rejected']),
+  approvedAt: isoDateTime.nullable(),
+  // A timestamp is the minimum explicit review evidence. An owner/user ID is
+  // retained when the operator chooses to record it, but is never public.
+  approvedBy: z.string().trim().max(200).nullable().optional(),
+}).strict()
+
+export const branchDocumentSchema = z.object({
+  key: branchDocumentKeySchema,
+  branch: branchCodeSchema,
+  name: optionalText(240),
+  serviceArea: optionalText(500),
+  leaders: z.array(branchLeaderSchema).max(40),
+  programs: z.array(branchProgramSchema).max(40),
+  contactRoute: branchContactRouteSchema,
+  photos: z.array(branchPhotoSchema).max(80),
+  associatedEventIds: z.array(safeId).max(100),
+  cta: branchCtaSchema,
+  publicationState: branchPublicationStateSchema,
+  safeForPublic: z.boolean(),
+  approval: branchApprovalSchema,
+}).strict().superRefine((document, context) => {
+  if (document.key !== `branch:${document.branch}`) {
+    context.addIssue({ code: 'custom', path: ['key'], message: 'Branch key must match the branch code.' })
+  }
+
+  if (document.publicationState !== 'published') return
+
+  if (!document.name) context.addIssue({ code: 'custom', path: ['name'], message: 'A published branch needs a name.' })
+  if (!document.serviceArea) context.addIssue({ code: 'custom', path: ['serviceArea'], message: 'A published branch needs an approved service area.' })
+  if (document.leaders.length === 0) context.addIssue({ code: 'custom', path: ['leaders'], message: 'A published branch needs at least one approved leader.' })
+  if (document.programs.length === 0) context.addIssue({ code: 'custom', path: ['programs'], message: 'A published branch needs at least one approved program.' })
+  if (!document.contactRoute.label || !document.contactRoute.url) {
+    context.addIssue({ code: 'custom', path: ['contactRoute'], message: 'A published branch needs an approved contact route.' })
+  }
+  if (document.photos.length === 0) {
+    context.addIssue({ code: 'custom', path: ['photos'], message: 'A published branch needs at least one approved photo.' })
+  }
+  document.photos.forEach((photo, index) => {
+    if (!photo.approved) context.addIssue({ code: 'custom', path: ['photos', index, 'approved'], message: 'Every published branch photo must be approved.' })
+    if (!photo.alt) context.addIssue({ code: 'custom', path: ['photos', index, 'alt'], message: 'Every published branch photo needs non-empty alt text.' })
+  })
+  if (!document.cta.label || !document.cta.url) {
+    context.addIssue({ code: 'custom', path: ['cta'], message: 'A published branch needs a safe CTA label and URL.' })
+  }
+  if (!document.safeForPublic) {
+    context.addIssue({ code: 'custom', path: ['safeForPublic'], message: 'A published branch must be marked safe for public display.' })
+  }
+  if (document.approval.status !== 'approved' || !document.approval.approvedAt) {
+    context.addIssue({ code: 'custom', path: ['approval'], message: 'A published branch needs explicit approval evidence.' })
+  }
+})
+
+export type BranchDocument = z.infer<typeof branchDocumentSchema>
+
+// Keep a named write contract for API callers so branch writes cannot
+// accidentally fall back to the loose generic contentDocumentSchema.
+export const branchDocumentWriteSchema = branchDocumentSchema
+
+export function isPublishableBranchDocument(value: unknown): value is BranchDocument {
+  const parsed = branchDocumentSchema.safeParse(value)
+  return parsed.success && parsed.data.publicationState === 'published' && parsed.data.safeForPublic
+}
+
+export function validateBranchDocumentForPublication(value: unknown) {
+  const parsed = branchDocumentSchema.safeParse(value)
+  if (!parsed.success) return parsed
+  if (!isPublishableBranchDocument(parsed.data)) {
+    return branchDocumentSchema.safeParse(Object.assign({}, parsed.data as BranchDocument, { publicationState: 'published' }))
+  }
+  return parsed
+}
+
+export function emptyBranchDocument(branch: BranchCode): BranchDocument {
+  return {
+    key: `branch:${branch}` as BranchDocumentKey,
+    branch,
+    name: '',
+    serviceArea: '',
+    leaders: [],
+    programs: [],
+    contactRoute: { label: '', url: '' },
+    photos: [],
+    associatedEventIds: [],
+    cta: { label: '', url: '' },
+    publicationState: 'unpublished',
+    safeForPublic: false,
+    approval: { status: 'pending', approvedAt: null, approvedBy: null },
+  }
+}
+
 const mediaSchema = z.object({
   image: safeResourceUrlSchema.optional(),
   imageAlt: optionalText(500).optional(),
@@ -122,6 +257,7 @@ const outcomesSchema = z.record(z.string().trim().min(1).max(80), z.string().tri
 const eventShape = {
   id: safeId,
   slug: safeId,
+  branch: branchCodeSchema,
   title: nonEmptyText(240),
   summary: optionalText(1_000),
   description: optionalText(MAX_EVENT_TEXT),
@@ -158,6 +294,10 @@ export const eventWriteSchema = z.object({
   ...eventShape,
   id: safeId.optional(),
   slug: safeId.optional(),
+  // Existing admin callers may omit the newly authoritative field while they
+  // are upgraded; omission is explicitly California, never inferred from
+  // title/location text.
+  branch: branchCodeSchema.default('ca'),
 }).strict().superRefine((event, context) => {
   if (event.startsAt && event.endsAt && Date.parse(event.startsAt) >= Date.parse(event.endsAt)) {
     context.addIssue({ code: 'custom', path: ['endsAt'], message: 'End must be after start.' })
@@ -172,6 +312,7 @@ export type EventWrite = z.infer<typeof eventWriteSchema>
 export const publicEventSchema = z.object({
   id: safeId,
   slug: safeId,
+  branch: branchCodeSchema,
   title: nonEmptyText(240),
   summary: optionalText(1_000),
   description: optionalText(MAX_EVENT_TEXT),
