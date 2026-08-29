@@ -29,7 +29,14 @@ vi.mock('@/lib/contact-rate-limit', () => ({ consumeChatRateLimit: consumeChatRa
 import { GET as getAvailability } from '@/app/api/chat/availability/route'
 import { POST as postConversation } from '@/app/api/chat/conversations/route'
 import { GET as getMessages, POST as postMessage } from '@/app/api/chat/messages/route'
-import { CHAT_TOKEN_COOKIE, deriveChatTokenFromNonce, generateChatToken, hashChatToken } from '@/lib/chat-token'
+import { CHAT_TOKEN_TTL_SECONDS } from '@/lib/chat-contracts'
+import {
+  CHAT_TOKEN_COOKIE,
+  CHAT_TOKEN_COOKIE_PATH,
+  deriveChatTokenFromNonce,
+  generateChatToken,
+  hashChatToken,
+} from '@/lib/chat-token'
 
 const conversationId = '00000000-0000-4000-8000-000000000001'
 const visitorMessageId = '00000000-0000-4000-8000-000000000002'
@@ -56,6 +63,21 @@ const validConversationBody = {
   guardianAttested: false,
   requestNonce: 'A'.repeat(43),
   honeypot: '',
+}
+
+function parseSetCookieHeader(header: string | null) {
+  expect(header).not.toBeNull()
+  const [nameValue, ...attributes] = header!.split('; ')
+  const separator = nameValue.indexOf('=')
+  expect(separator).toBeGreaterThan(0)
+  const expiresAttribute = attributes.find((attribute) => attribute.startsWith('Expires='))
+  expect(expiresAttribute).toBeDefined()
+  return {
+    name: nameValue.slice(0, separator),
+    value: nameValue.slice(separator + 1),
+    attributes,
+    expires: new Date(expiresAttribute!.slice('Expires='.length)),
+  }
 }
 
 beforeEach(() => {
@@ -186,16 +208,45 @@ describe('public visitor chat APIs', () => {
     createChatConversationMock
       .mockResolvedValueOnce({ conversation: activeConversation, resumed: false })
       .mockResolvedValueOnce({ conversation: activeConversation, resumed: true })
+    const startedAt = Date.now()
     const first = await postConversation(jsonRequest('https://pillarsoftech.org/api/chat/conversations', validConversationBody))
-    const firstCookie = first.headers.get('set-cookie') ?? ''
     const second = await postConversation(jsonRequest('https://pillarsoftech.org/api/chat/conversations', validConversationBody))
+    const finishedAt = Date.now()
+    const firstCookie = parseSetCookieHeader(first.headers.get('set-cookie'))
+    const secondCookie = parseSetCookieHeader(second.headers.get('set-cookie'))
     expect(first.status).toBe(201)
     expect(second.status).toBe(200)
-    expect(second.headers.get('set-cookie')).toBe(firstCookie)
+    expect(firstCookie.name).toBe(CHAT_TOKEN_COOKIE)
+    expect(secondCookie.name).toBe(CHAT_TOKEN_COOKIE)
+    expect(firstCookie.value).toMatch(/^[A-Za-z0-9_-]{43}$/)
+    expect(secondCookie.value).toBe(firstCookie.value)
+    for (const cookie of [firstCookie, secondCookie]) {
+      expect(cookie.attributes).toEqual(expect.arrayContaining([
+        `Max-Age=${CHAT_TOKEN_TTL_SECONDS}`,
+        `Path=${CHAT_TOKEN_COOKIE_PATH}`,
+        'HttpOnly',
+        'Secure',
+        'SameSite=Lax',
+      ]))
+      expect(Number.isNaN(cookie.expires.getTime())).toBe(false)
+      expect(cookie.expires.getTime()).toBeGreaterThanOrEqual(startedAt + CHAT_TOKEN_TTL_SECONDS * 1_000 - 1_000)
+      expect(cookie.expires.getTime()).toBeLessThanOrEqual(finishedAt + CHAT_TOKEN_TTL_SECONDS * 1_000)
+    }
+    const storedDigests = createChatConversationMock.mock.calls.map((call) => call[1])
+    expect(storedDigests).toEqual([hashChatToken(firstCookie.value), hashChatToken(firstCookie.value)])
+    for (const digest of storedDigests) {
+      expect(digest).toMatch(/^[0-9a-f]{64}$/)
+      expect(digest).not.toContain(validConversationBody.requestNonce)
+      expect(digest).not.toContain(firstCookie.value)
+    }
+    const firstBody = await first.text()
     const secondBody = await second.text()
+    for (const body of [firstBody, secondBody]) {
+      expect(body).not.toContain(validConversationBody.requestNonce)
+      expect(body).not.toContain(firstCookie.value)
+      expect(body).not.toContain(CHAT_TOKEN_COOKIE)
+    }
     expect(secondBody).toContain('"resumed":true')
-    expect(secondBody).not.toContain(validConversationBody.requestNonce)
-    expect(secondBody).not.toContain('pot_chat_token')
   })
 
   it('resumes an existing cookie owner by digest even when the nonce changes', async () => {
