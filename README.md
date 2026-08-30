@@ -1,5 +1,40 @@
-This is the website code for the Pillars of Tech website.
-Its domain is on porkbun and run through vercel.
+# Pillars of Tech website
+
+This repository contains the Pillars of Tech website. The production domain is
+managed through Porkbun and the hosted site runs on Vercel.
+
+## Preview the family-friendly redesign branch
+
+The redesign is intentionally isolated on the GitHub branch
+`andrew/family-full-site-live-chat`. It has not been merged into `master`.
+
+Someone who only wants to see the website can clone that exact branch and run
+it without receiving any private credentials:
+
+```sh
+git clone --branch andrew/family-full-site-live-chat --single-branch https://github.com/robinjes/Pillarsoftechwebsite.git
+cd Pillarsoftechwebsite
+npm ci
+npm run dev
+```
+
+Then open [http://localhost:3000](http://localhost:3000) in a browser. Stop the
+local server by pressing `Ctrl+C` in the terminal.
+
+Requirements:
+
+- Git.
+- Node.js 24.15 or newer.
+- npm 11 or newer. npm is included with the standard Node.js installer.
+
+The public pages, local event snapshot, photographs, and timelapse videos work
+without an `.env` file. Registration, contact submission, volunteer accounts,
+staff administration, and other database-backed actions remain unavailable
+until the owner supplies the private configuration described below. The
+Georgia route also stays unpublished until an approved content packet exists.
+
+For troubleshooting, production-mode previewing, optional environment setup,
+and update instructions, see [Run the website locally](docs/run-locally.md).
 
 ## Local verification
 
