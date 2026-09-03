@@ -14,7 +14,7 @@ export default function BrandMark({ compact = false }: { compact?: boolean }) {
         width={compact ? 240 : 280}
         height={compact ? 43 : 50}
         sizes={compact ? '(max-width: 640px) 205px, 240px' : '(max-width: 640px) 240px, 280px'}
-        className="h-auto w-auto object-contain"
+        className={compact ? 'h-auto w-[205px] sm:w-[240px] object-contain' : 'h-auto w-auto object-contain'}
         priority
       />
     </Link>

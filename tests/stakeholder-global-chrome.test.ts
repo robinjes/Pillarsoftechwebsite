@@ -19,6 +19,7 @@ describe('stakeholder global chrome contract', () => {
     const brandMark = read('src/components/site/BrandMark.tsx')
 
     expect(brandMark).toContain('width={compact ? 240 : 280}')
+    expect(brandMark).toContain("className={compact ? 'h-auto w-[205px] sm:w-[240px] object-contain' : 'h-auto w-auto object-contain'}")
   })
 
   it('makes desktop navigation links visible outlined pills', () => {
