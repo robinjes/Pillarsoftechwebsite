@@ -69,7 +69,7 @@ describe('action and support route visual contracts', () => {
 
     expect(contact).toContain('/images/events/pedrozzi-connect-egg-drop/drive-04.webp')
     expect(contact).toContain('Seven student volunteers pose outdoors; one holds a small drone and controller.')
-    expect(contact).toContain('Bring the idea, question, or next practical step.')
+    expect(contact).not.toContain('Bring the idea, question, or next practical step.')
   })
 
   it('removes old route-specific photography while allowing one shared Events fallback', () => {

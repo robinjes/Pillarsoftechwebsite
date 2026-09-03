@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, Users } from 'lucide-react'
+import { ButtonLink } from '@/components/site/FamilyPrimitives'
 
 type TeamMember = {
   name: string
@@ -49,15 +50,10 @@ export default function Team() {
               Meet the students and team members who make room for technology, questions, and shared momentum.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href={teamJoinUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center gap-2 bg-[var(--sky)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
-              >
-                Join the team
+              <ButtonLink href={teamJoinUrl} external variant="outline">
+                Join The Team Application
                 <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-              </a>
+              </ButtonLink>
               <Link
                 href="/volunteer"
                 className="inline-flex min-h-11 items-center border border-[var(--cream)]/75 px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
@@ -123,15 +119,10 @@ export default function Team() {
             <h2 className="mt-4 max-w-2xl font-display text-4xl leading-[1.02] tracking-[-0.03em] sm:text-5xl">Bring your curiosity to the next project.</h2>
           </div>
           <div className="flex flex-wrap gap-3">
-            <a
-              href={teamJoinUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center gap-2 bg-[var(--sky)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
-            >
-              Apply to join
+            <ButtonLink href={teamJoinUrl} external variant="outline">
+              Join The Team Application
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-            </a>
+            </ButtonLink>
             <Link
               href="/volunteer"
               className="inline-flex min-h-11 items-center border border-[var(--cream)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"

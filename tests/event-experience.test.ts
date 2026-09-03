@@ -23,6 +23,9 @@ describe('public event experience', () => {
     expect(eventsPage).toContain('Completed programs')
     expect(eventsPage).toContain('Cancelled programs')
     expect(eventsPage).toContain('No upcoming dates are posted yet.')
+    expect(eventsPage).toContain('function EventCard({ event }: { event: PublicEvent })')
+    expect(eventsPage).toContain('data-event-card={event.id}')
+    expect(eventsPage).not.toContain('<figcaption')
     expect(eventsPage).not.toMatch(/export function (isCurrentEvent|splitEventSections)/)
   })
 

@@ -118,4 +118,31 @@ describe('EventsPage rendered filtering behavior', () => {
     expect(screen.getByText('No ongoing events match this search.')).toBeInTheDocument()
     expect(screen.getByText('There are no ongoing programs matching this search right now.')).toBeInTheDocument()
   })
+
+  it('renders one card per filtered event and preserves exact action destinations', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        makeEvent({
+          id: 'open-program',
+          slug: 'open-program',
+          title: 'Open program',
+          participantRegistrationState: 'open',
+          volunteerRegistrationState: 'open',
+        }),
+        makeEvent({ id: 'other-program', slug: 'other-program', title: 'Other program', branch: 'ca' }),
+      ],
+    })
+
+    render(<EventsPage />)
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Upcoming & ongoing' })).toBeInTheDocument())
+
+    expect(document.querySelectorAll('[data-event-card]')).toHaveLength(2)
+    fireEvent.click(screen.getByRole('button', { name: 'Georgia' }))
+    expect(document.querySelectorAll('[data-event-card]')).toHaveLength(1)
+    expect(document.querySelector('[data-event-card="open-program"]')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Read The Story/ })).toHaveAttribute('href', '/events/open-program')
+    expect(screen.getByRole('link', { name: /Participant Registration/ })).toHaveAttribute('href', '/register/open-program')
+    expect(screen.getByRole('link', { name: /Volunteer/ })).toHaveAttribute('href', '/volunteer?eventId=open-program')
+  })
 })

@@ -10,6 +10,9 @@ import { resolveEventImageAlt } from '@/lib/event-media'
 type EventFilter = 'all' | 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
 type BranchFilter = 'all' | BranchCode
 
+const archiveImageFallback = '/images/events/family-science-night/IMG_8332.JPG'
+const archiveImageFallbackAlt = 'A Pillars of Tech volunteer and participant operate a VEX robot during Family Science Night.'
+
 function branchLabel(branch: BranchCode | undefined): string {
   if (branch === 'ca') return 'California'
   if (branch === 'ga') return 'Georgia'
@@ -78,163 +81,99 @@ function eventImage(event: PublicEvent | null | undefined): string | null {
   return localImage(event?.image || event?.heroImage)
 }
 
-function EventRow({ event }: { event: PublicEvent }) {
-  const image = eventImage(event)
+function EventCard({ event }: { event: PublicEvent }) {
+  const sourceImage = eventImage(event)
+  const image = sourceImage || archiveImageFallback
+  const imageAlt = sourceImage ? resolveEventImageAlt(event, 'image', image) : archiveImageFallbackAlt
   const eventPath = `/events/${event.slug || event.id}`
   const participantOpen = isCurrentEvent(event) && event.participantRegistrationState === 'open'
   const participantFull = isCurrentEvent(event) && event.participantRegistrationState === 'full'
   const volunteerOpen = isCurrentEvent(event) && event.volunteerRegistrationState === 'open'
 
   return (
-    <article className="grid gap-7 border-t border-[var(--ink)]/35 py-8 lg:grid-cols-[minmax(0,1fr)_minmax(13rem,0.42fr)_auto] lg:gap-10">
-      <div className="grid gap-6 sm:grid-cols-[12rem_minmax(0,1fr)]">
-        <Link href={eventPath} className="group block">
-          <div className="relative aspect-[4/3] overflow-hidden rounded-[1.25rem] border border-[var(--ink)] bg-[var(--paper)]">
-            {image ? (
-              <Image
-                src={image}
-                alt={resolveEventImageAlt(event, 'image', image)}
-                fill
-                sizes="(max-width: 640px) 100vw, 12rem"
-                className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-              />
-            ) : (
-              <div className="flex h-full items-end p-3 text-sm font-semibold text-[var(--midnight)]">
-                STEM program
-              </div>
-            )}
+    <article data-event-card={event.id} className="flex h-full flex-col overflow-hidden rounded-[2px] border-2 border-[var(--ink)]/35 bg-[var(--paper)]">
+      <Link href={eventPath} className="group block">
+        <div className="relative aspect-[4/3] overflow-hidden bg-[var(--sky)]">
+          {image ? (
+            <Image
+              src={image}
+              alt={imageAlt}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
+              className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+            />
+          ) : (
+            <div className="flex h-full items-end p-4 text-sm font-semibold text-[var(--midnight)]">
+              STEM program
+            </div>
+          )}
+        </div>
+      </Link>
+
+      <div className="flex flex-1 flex-col p-5 sm:p-6">
+        <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
+          <span className="rounded-full border-2 border-[var(--cobalt)] bg-[var(--sky)] px-3 py-1 text-[var(--midnight)]">
+            {statusLabel(event)}
+          </span>
+          <span className="text-[var(--cobalt)]">{event.programCategory}</span>
+          <span className="rounded-full border-2 border-[var(--ink)]/20 px-3 py-1 text-xs font-semibold text-[var(--ink)]/75">{branchLabel(event.branch)}</span>
+        </div>
+        <h3 className="mt-4 font-display text-2xl leading-tight text-[var(--midnight)] sm:text-3xl">
+          <Link href={eventPath} className="underline-offset-4 hover:underline focus-visible:underline">
+            {event.title}
+          </Link>
+        </h3>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--ink)]/80">{eventStory(event)}</p>
+
+        <dl className="mt-5 grid gap-4 border-t border-[var(--ink)]/30 pt-5 text-sm sm:grid-cols-3">
+          <div>
+            <dt className="flex items-center gap-2 text-sm font-semibold text-[var(--cobalt)]">
+              <CalendarDays className="h-4 w-4" aria-hidden="true" /> Date
+            </dt>
+            <dd className="mt-1 font-semibold">{dateLabel(event)}</dd>
           </div>
-        </Link>
-
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
-            <span className="border border-[var(--cobalt)] bg-[var(--sky)] px-2 py-1 text-[var(--midnight)]">
-              {statusLabel(event)}
-            </span>
-            <span className="text-[var(--cobalt)]">{event.programCategory}</span>
-            <span className="rounded-full border border-[var(--ink)]/20 px-2 py-1 text-xs font-semibold text-[var(--ink)]/75">{branchLabel(event.branch)}</span>
+          <div>
+            <dt className="flex items-center gap-2 text-sm font-semibold text-[var(--cobalt)]">
+              <MapPin className="h-4 w-4" aria-hidden="true" /> Location
+            </dt>
+            <dd className="mt-1 font-semibold">{event.location || 'Location to be announced'}</dd>
           </div>
-          <h3 className="mt-3 font-display text-2xl leading-tight text-[var(--midnight)] sm:text-3xl">
-            <Link href={eventPath} className="underline-offset-4 hover:underline focus-visible:underline">
-              {event.title}
-            </Link>
-          </h3>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--ink)]/80">{eventStory(event)}</p>
-        </div>
-      </div>
+          <div>
+            <dt className="text-sm font-semibold text-[var(--cobalt)]">Time</dt>
+            <dd className="mt-1 font-semibold">{event.time || 'Time to be announced'}</dd>
+          </div>
+        </dl>
 
-    <dl className="mt-5 grid gap-4 border-t border-[var(--ink)]/30 pt-5 text-sm sm:grid-cols-3 lg:mt-0 lg:block lg:border-t-0 lg:border-l lg:pl-6 lg:pt-0">
-      <div>
-          <dt className="flex items-center gap-2 text-sm font-semibold text-[var(--cobalt)]">
-            <CalendarDays className="h-4 w-4" aria-hidden="true" /> Date
-          </dt>
-          <dd className="mt-1 font-semibold">{dateLabel(event)}</dd>
-        </div>
-        <div>
-          <dt className="flex items-center gap-2 text-sm font-semibold text-[var(--cobalt)]">
-            <MapPin className="h-4 w-4" aria-hidden="true" /> Location
-          </dt>
-          <dd className="mt-1 font-semibold">{event.location || 'Location to be announced'}</dd>
-        </div>
-        <div>
-          <dt className="text-sm font-semibold text-[var(--cobalt)]">Time</dt>
-          <dd className="mt-1 font-semibold">{event.time || 'Time to be announced'}</dd>
-        </div>
-      </dl>
-
-      <div className="mt-6 flex flex-col gap-2 sm:flex-row lg:mt-0 lg:min-w-[11rem] lg:flex-col lg:justify-center">
+        <div className="mt-auto flex flex-col gap-2 pt-6">
         <Link
           href={eventPath}
-          className="inline-flex min-h-11 items-center justify-center gap-2 border border-[var(--midnight)] px-4 py-2 text-sm font-bold text-[var(--midnight)] transition-colors hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] px-4 py-2 text-sm font-bold text-[var(--midnight)] transition-colors hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
         >
-          Read the story <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          Read The Story <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
         </Link>
         {participantOpen ? (
           <Link
             href={`/register/${event.slug || event.id}`}
-            className="inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--cobalt)] px-4 py-2 text-sm font-bold text-[var(--cream)] transition-colors hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--cobalt)] bg-[var(--cobalt)] px-4 py-2 text-sm font-bold text-[var(--cream)] transition-colors hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
           >
-            Participant registration
+            Participant Registration
           </Link>
         ) : participantFull ? (
-          <span className="inline-flex min-h-11 items-center justify-center border border-[var(--ink)] px-4 py-2 text-center text-sm font-semibold text-[var(--ink)]/70">
-            Participant list is full
+          <span className="inline-flex min-h-11 items-center justify-center rounded-full border-2 border-[var(--ink)] px-4 py-2 text-center text-sm font-semibold text-[var(--ink)]/70">
+            Participant List Is Full
           </span>
         ) : null}
         {volunteerOpen ? (
           <Link
             href={`/volunteer?eventId=${encodeURIComponent(event.slug || event.id)}`}
-            className="inline-flex min-h-11 items-center justify-center gap-2 border border-[var(--cobalt)] px-4 py-2 text-sm font-bold text-[var(--cobalt)] transition-colors hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--cobalt)] px-4 py-2 text-sm font-bold text-[var(--cobalt)] transition-colors hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
           >
             <UsersRound className="h-4 w-4" aria-hidden="true" /> Volunteer
           </Link>
         ) : null}
       </div>
-    </article>
-  )
-}
-
-function FeaturedProgram({ upcoming, archive }: { upcoming: PublicEvent | null; archive: PublicEvent | null }) {
-  const directImage = eventImage(upcoming)
-  const archiveImage = eventImage(archive)
-  const featureEvent = upcoming || archive
-  if (!featureEvent) return null
-
-  const image = directImage || archiveImage || '/images/events/family-science-night/IMG_8332.JPG'
-  const imageSourceEvent = directImage ? upcoming : archive
-  const imageIsArchive = Boolean(upcoming && !directImage)
-  const eventPath = `/events/${featureEvent.slug || featureEvent.id}`
-  const imageAlt = imageSourceEvent
-    ? resolveEventImageAlt(imageSourceEvent, 'hero', image)
-    : 'A Pillars of Tech volunteer and participant operate a VEX robot during Family Science Night.'
-
-  return (
-    <section className="border-b border-[var(--ink)]/25 py-10 sm:py-14" aria-labelledby="featured-program-heading">
-      <div className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-stretch lg:gap-10">
-        <div className="flex flex-col justify-between border-t border-[var(--ink)] pt-5">
-          <div>
-            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">{upcoming ? 'Next on the table' : 'From the archive'} · {branchLabel(featureEvent.branch)}</p>
-            <h2 id="featured-program-heading" className="mt-4 max-w-xl font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">
-              {featureEvent.title}
-            </h2>
-            <p className="mt-5 max-w-xl text-base leading-7 text-[var(--ink)]/75">{eventStory(featureEvent)}</p>
-          </div>
-
-          <div className="mt-8">
-            <dl className="grid gap-4 border-y border-[var(--ink)]/25 py-5 text-sm sm:grid-cols-2">
-              <div>
-                <dt className="font-semibold text-[var(--cobalt)]">Date</dt>
-                <dd className="mt-1 font-semibold text-[var(--midnight)]">{dateLabel(featureEvent)}</dd>
-              </div>
-              <div>
-                <dt className="font-semibold text-[var(--cobalt)]">Location</dt>
-                <dd className="mt-1 font-semibold text-[var(--midnight)]">{featureEvent.location || 'Location to be announced'}</dd>
-              </div>
-            </dl>
-            <Link
-              href={eventPath}
-              className="mt-6 inline-flex min-h-11 items-center gap-2 bg-[var(--midnight)] px-5 py-3 text-sm font-bold text-[var(--cream)] transition-colors hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
-            >
-              {upcoming ? 'See program details' : 'Read the completed story'}
-              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
-            </Link>
-          </div>
-        </div>
-
-        <figure className="relative min-h-[18rem] overflow-hidden border border-[var(--ink)] bg-[var(--sky)] sm:min-h-[24rem] lg:min-h-[30rem]">
-          <Image
-            src={image}
-            alt={imageAlt}
-            fill
-            sizes="(max-width: 1024px) 100vw, 58vw"
-            className="object-cover transition-transform duration-700 motion-safe:hover:scale-[1.02] motion-reduce:transition-none motion-reduce:hover:scale-100"
-          />
-          <figcaption className="absolute inset-x-0 bottom-0 border-t border-[var(--ink)]/30 bg-[var(--midnight)]/90 px-4 py-3 text-sm font-semibold text-[var(--cream)]">
-            {imageIsArchive ? 'From a recent Pillars workshop' : upcoming ? `${upcoming.title} · program image` : 'Completed program · field image'}
-          </figcaption>
-        </figure>
       </div>
-    </section>
+    </article>
   )
 }
 
@@ -321,7 +260,7 @@ export default function EventsPage() {
   const sections = splitEventSections(filteredEvents)
 
   return (
-    <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 text-[var(--ink)] sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-6 text-[var(--ink)] sm:px-6 lg:px-8 lg:pt-8">
       <header className="mx-auto max-w-7xl rounded-[2rem] border-b border-[var(--ink)]/25 bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10 sm:py-14">
         <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-end">
           <div>
@@ -350,7 +289,7 @@ export default function EventsPage() {
               value={searchQuery}
               onChange={(event) => setSearchQuery(event.target.value)}
               placeholder="Search the archive"
-              className="min-h-11 w-full border border-[var(--ink)] bg-[var(--paper)] px-10 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--ink)]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
+              className="min-h-11 w-full rounded-full border-2 border-[var(--ink)] bg-[var(--paper)] px-10 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--ink)]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
             />
           </label>
           <div className="flex flex-wrap gap-2" aria-label="Filter events">
@@ -360,7 +299,7 @@ export default function EventsPage() {
                 type="button"
                 aria-pressed={filter === option}
                 onClick={() => setFilter(option)}
-                className={`min-h-11 border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] ${
+                className={`min-h-11 rounded-full border-2 px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] ${
                   filter === option
                     ? 'border-[var(--midnight)] bg-[var(--midnight)] text-[var(--cream)]'
                     : 'border-[var(--ink)] bg-transparent text-[var(--ink)] hover:bg-[var(--sky)]'
@@ -400,7 +339,6 @@ export default function EventsPage() {
           </div>
         ) : (
           <div>
-            <FeaturedProgram upcoming={sections.upcoming[0] || null} archive={sections.completed[0] || null} />
             {filter !== 'completed' && filter !== 'cancelled' && (
               <section aria-labelledby="upcoming-heading" className="pt-12">
                 <div className="flex items-end justify-between gap-4">
@@ -412,9 +350,11 @@ export default function EventsPage() {
                   </div>
                   <span className="hidden text-sm font-semibold text-[var(--ink)]/60 sm:block">{sections.upcoming.length} listed</span>
                 </div>
-                {sections.upcoming.length > 0
-                  ? sections.upcoming.map((event) => <EventRow key={event.id} event={event} />)
-                  : <EmptySection status={filter === 'upcoming' || filter === 'ongoing' ? filter : undefined} />}
+                {sections.upcoming.length > 0 ? (
+                  <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    {sections.upcoming.map((event) => <EventCard key={event.id} event={event} />)}
+                  </div>
+                ) : <EmptySection status={filter === 'upcoming' || filter === 'ongoing' ? filter : undefined} />}
               </section>
             )}
 
@@ -427,7 +367,11 @@ export default function EventsPage() {
                   </div>
                   <span className="hidden text-sm font-semibold text-[var(--ink)]/60 sm:block">{sections.completed.length} listed</span>
                 </div>
-                {sections.completed.length > 0 ? sections.completed.map((event) => <EventRow key={event.id} event={event} />) : <EmptySection completed />}
+                {sections.completed.length > 0 ? (
+                  <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    {sections.completed.map((event) => <EventCard key={event.id} event={event} />)}
+                  </div>
+                ) : <EmptySection completed />}
               </section>
             )}
 
@@ -440,7 +384,11 @@ export default function EventsPage() {
                   </div>
                   <span className="hidden text-sm font-semibold text-[var(--ink)]/60 sm:block">{sections.cancelled.length} listed</span>
                 </div>
-                {sections.cancelled.length > 0 ? sections.cancelled.map((event) => <EventRow key={event.id} event={event} />) : <EmptySection cancelled />}
+                {sections.cancelled.length > 0 ? (
+                  <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                    {sections.cancelled.map((event) => <EventCard key={event.id} event={event} />)}
+                  </div>
+                ) : <EmptySection cancelled />}
               </section>
             )}
           </div>

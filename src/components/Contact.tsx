@@ -130,7 +130,7 @@ export default function Contact() {
 
   const isWorkshop = formData.subject === 'workshop'
   const isSending = status === 'sending'
-  const buttonLabel = status === 'sending' ? 'Sending message…' : status === 'success' ? 'Message received' : status === 'error' ? 'Try again' : 'Send message'
+  const buttonLabel = status === 'sending' ? 'Sending Message…' : status === 'success' ? 'Message Received' : status === 'error' ? 'Try Again' : 'Send Message'
   const buttonClass = status === 'sending'
     ? 'cursor-not-allowed bg-[var(--ink)]/30 text-[var(--ink)]/50'
     : status === 'success'
@@ -142,14 +142,10 @@ export default function Contact() {
   return (
     <div className="bg-[var(--cream)] text-[var(--ink)]">
       <header className="border-b border-[var(--ink)]/20">
-        <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
+        <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
           <div className="flex flex-col gap-7 border-y border-[var(--ink)]/25 py-8 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <div className="flex items-center gap-3 font-body text-sm font-semibold text-[var(--cobalt)]">
-                <MessageCircle aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
-                Start a conversation
-              </div>
-              <h1 className="mt-4 max-w-3xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">
+              <h1 className="max-w-3xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">
                 Let&apos;s make the next step clear.
               </h1>
             </div>
@@ -175,10 +171,7 @@ export default function Contact() {
               sizes="(min-width: 1024px) 90vw, 100vw"
               className="object-cover object-center"
             />
-            <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--midnight)]/85 px-4 py-3 font-body text-xs leading-5 text-[var(--cream)]">
-              Bring the idea, question, or next practical step.
-            </figcaption>
-          </figure>
+        </figure>
         </div>
       </header>
 
@@ -203,8 +196,8 @@ export default function Contact() {
               <h3 className="mt-4 font-display text-2xl leading-tight text-[var(--midnight)]">Send the details when you are ready.</h3>
               <p className="mt-3 flex-1 font-body text-sm leading-6 text-[var(--ink)]/70">Use the protected form below, or email us directly if that is easier. We keep your message private and use your email only to follow up.</p>
               <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <a href={`mailto:${CONTACT_EMAIL}`} className="font-body text-sm font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]">{CONTACT_EMAIL}</a>
-                <button type="button" onClick={focusMessageForm} aria-controls="contact-form" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--midnight)] px-5 py-2 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]">Open email form</button>
+                <a href={`mailto:${CONTACT_EMAIL}`} className="font-body text-sm font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]">{CONTACT_EMAIL}</a>
+                <button type="button" onClick={focusMessageForm} aria-controls="contact-form" className="inline-flex min-h-11 items-center justify-center rounded-full border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-2 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]">Open Email Form</button>
               </div>
             </article>
           </div>
@@ -375,7 +368,7 @@ export default function Contact() {
               <button
                 type="submit"
                 disabled={isSending}
-                className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-md px-6 py-3 font-body font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)] ${buttonClass}`}
+                className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] px-6 py-3 font-body font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)] ${buttonClass}`}
               >
                 {status === 'success' ? <CheckCircle2 aria-hidden="true" className="h-4 w-4" /> : <Mail aria-hidden="true" className="h-4 w-4" />}
                 {buttonLabel}

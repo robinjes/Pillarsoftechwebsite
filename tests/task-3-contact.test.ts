@@ -222,7 +222,7 @@ describe('contact surfaces', () => {
   it('opens and focuses the protected email form from the Email us card', () => {
     render(createElement(Contact))
     const nameInput = screen.getByLabelText('Name')
-    fireEvent.click(screen.getByRole('button', { name: 'Open email form' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Open Email Form' }))
     expect(nameInput).toHaveFocus()
   })
 

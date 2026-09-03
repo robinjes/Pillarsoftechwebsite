@@ -115,7 +115,6 @@ export default function EventPage() {
   }, [event])
   const localPdf = localAsset(event?.pdfUrl)
   const localHeroVideo = localAsset(event?.heroVideo)
-  const heroUsesArchiveFallback = !heroImage && (!localHeroVideo || !heroVideoOk)
   const heroImageToShow = heroImage || archiveHeroFallback
   const activeGalleryIndex = galleryActiveImage ? galleryImages.indexOf(galleryActiveImage) : -1
   const galleryOpen = galleryActiveImage !== null
@@ -309,9 +308,6 @@ export default function EventPage() {
                 <button type="button" onClick={() => setHeroSlideIndex((current) => (current + 1) % heroImages.length)} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--cream)] text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Next event image"><ChevronRight className="h-5 w-5" aria-hidden="true" /></button>
               </div>
             ) : null}
-            <figcaption className="absolute left-4 top-4 border border-[var(--cream)]/50 bg-[var(--midnight)]/90 px-3 py-2 text-sm font-semibold text-[var(--cream)]">
-              {heroUsesArchiveFallback ? 'From a recent Pillars workshop' : isCurrent ? 'Program image' : 'From the event archive'}
-            </figcaption>
           </figure>
         </header>
 

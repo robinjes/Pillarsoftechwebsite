@@ -7,6 +7,7 @@ import Link from 'next/link'
 import type { Event } from '@/data/events'
 import { volunteerService, type VolunteerProfile, type VolunteerSignup } from '@/lib/volunteerService'
 import { LocalMemberQr } from '@/components/LocalMemberQr'
+import { ButtonLink } from '@/components/site/FamilyPrimitives'
 import {
   ArrowRight,
   ArrowUpRight,
@@ -459,17 +460,14 @@ export default function VolunteerPortalPage() {
             <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Volunteer with the next workshop</p>
             <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">Bring your hands to the work.</h1>
             <p className="mt-6 max-w-lg font-body text-base leading-7 text-[var(--ink)]/70 sm:text-lg">Help with the practical details that make a STEM event welcoming: setup, greeting, activity support, and check-in.</p>
-            <a
-              href={teamJoinUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-7 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body text-sm font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
-            >
-              Join the team application
-              <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-            </a>
+            <div className="mt-7">
+              <ButtonLink href={teamJoinUrl} external variant="navy">
+                Join The Team Application
+                <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+              </ButtonLink>
+            </div>
           </div>
-          <figure className="relative min-h-[18rem] overflow-hidden border border-[var(--ink)]/25 bg-[var(--midnight)] sm:min-h-[27rem]">
+          <figure className="relative min-h-[18rem] overflow-hidden rounded-[2rem] border-2 border-[var(--ink)]/25 bg-[var(--midnight)] sm:min-h-[27rem]">
             <Image
               src="/images/events/family-science-night/IMG_5898.jpg"
               alt="A student volunteer guides two younger students with a robot controller."
@@ -478,9 +476,6 @@ export default function VolunteerPortalPage() {
               sizes="(min-width: 1024px) 60vw, 100vw"
               className="object-cover object-center"
             />
-            <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--midnight)]/85 px-4 py-3 font-body text-xs leading-5 text-[var(--cream)]">
-              Family Science Night · volunteer guidance
-            </figcaption>
           </figure>
         </div>
       </header>
