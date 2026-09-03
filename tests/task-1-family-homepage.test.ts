@@ -87,7 +87,7 @@ describe('Task 1 family homepage foundation', () => {
     const navbar = read('src/components/Navbar.tsx')
     const footer = read('src/components/Footer.tsx')
 
-    for (const label of ['For families', 'Events', 'Our work', 'Volunteer', 'Contact']) {
+    for (const label of ['For Families', 'Events', 'Our Work', 'Volunteer', 'Contact']) {
       expect(navbar).toContain(label)
     }
     for (const href of ['/events', '/volunteer', '/contact']) {

@@ -21,7 +21,7 @@ describe('public events and navigation regressions', () => {
   it('keeps the desktop navigation limited to five primary choices', () => {
     const navbar = readFileSync(join(process.cwd(), 'src/components/Navbar.tsx'), 'utf8')
 
-    for (const label of ['For families', 'Events', 'Our work', 'Volunteer', 'Contact']) {
+    for (const label of ['For Families', 'Events', 'Our Work', 'Volunteer', 'Contact']) {
       expect(navbar).toContain(label)
     }
     for (const label of ['Branches', 'Support', 'Fundraiser', 'Wishlist', 'Newsletter', 'FAQ']) {

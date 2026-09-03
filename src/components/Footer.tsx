@@ -5,9 +5,9 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const exploreLinks = [
-  { label: 'For families', href: '/#families' },
+  { label: 'For Families', href: '/#families' },
   { label: 'Events', href: '/events' },
-  { label: 'Our work', href: '/#our-work' },
+  { label: 'Our Work', href: '/#our-work' },
   { label: 'About', href: '/about' },
   { label: 'Team', href: '/team' },
   { label: 'Volunteer', href: '/volunteer' },
@@ -83,7 +83,6 @@ export default function Footer() {
 
         <div className="footer-bottom">
           <p>© {currentYear} Pillars of Tech. All rights reserved.</p>
-          <p>Family-friendly by design.</p>
         </div>
       </div>
     </footer>

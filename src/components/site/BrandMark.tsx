@@ -11,9 +11,9 @@ export default function BrandMark({ compact = false }: { compact?: boolean }) {
       <Image
         src="/images/home/pillars-logo-white.png"
         alt="Pillars of Tech — Breaking Barriers, Building Innovators"
-        width={compact ? 205 : 260}
-        height={compact ? 37 : 46}
-        sizes={compact ? '(max-width: 640px) 180px, 205px' : '(max-width: 640px) 210px, 260px'}
+        width={compact ? 240 : 280}
+        height={compact ? 43 : 50}
+        sizes={compact ? '(max-width: 640px) 205px, 240px' : '(max-width: 640px) 240px, 280px'}
         className="h-auto w-auto object-contain"
         priority
       />

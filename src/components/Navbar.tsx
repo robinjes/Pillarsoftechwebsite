@@ -8,9 +8,9 @@ import { usePathname } from 'next/navigation'
 import BrandMark from '@/components/site/BrandMark'
 
 const primaryLinks = [
-  { label: 'For families', href: '/#families' },
+  { label: 'For Families', href: '/#families' },
   { label: 'Events', href: '/events' },
-  { label: 'Our work', href: '/#our-work' },
+  { label: 'Our Work', href: '/#our-work' },
   { label: 'Volunteer', href: '/volunteer' },
   { label: 'Contact', href: '/contact' },
 ]
