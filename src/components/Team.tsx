@@ -127,7 +127,7 @@ export default function Team() {
               href="/volunteer"
               className="inline-flex min-h-11 items-center border border-[var(--cream)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
             >
-              Volunteer with us
+              Volunteer With Us
             </Link>
           </div>
         </div>

@@ -91,7 +91,7 @@ function EventCard({ event }: { event: PublicEvent }) {
   const volunteerOpen = isCurrentEvent(event) && event.volunteerRegistrationState === 'open'
 
   return (
-    <article data-event-card={event.id} className="flex h-full flex-col overflow-hidden rounded-[2px] border-2 border-[var(--ink)]/35 bg-[var(--paper)]">
+    <article data-event-card={event.id} className="flex h-full flex-col overflow-hidden rounded-[2rem] border-2 border-[var(--ink)]/35 bg-[var(--paper)]">
       <Link href={eventPath} className="group block">
         <div className="relative aspect-[4/3] overflow-hidden bg-[var(--sky)]">
           {image ? (

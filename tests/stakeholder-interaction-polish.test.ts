@@ -17,6 +17,7 @@ describe('stakeholder interaction polish', () => {
   it('turns the public event archive into caption-free responsive cards', () => {
     expect(eventsPage).toContain('function EventCard({ event }: { event: PublicEvent })')
     expect(eventsPage).toContain('data-event-card={event.id}')
+    expect(eventsPage).toContain('rounded-[2rem] border-2')
     expect(eventsPage).toContain('grid gap-6 md:grid-cols-2 xl:grid-cols-3')
     expect(eventsPage).toContain('rounded-full border-2')
     expect(eventsPage).toContain('min-h-11 w-full rounded-full border-2')
@@ -44,6 +45,7 @@ describe('stakeholder interaction polish', () => {
     expect(team).toContain('variant="outline"')
     expect((team.match(/href={teamJoinUrl}/g) ?? [])).toHaveLength(2)
     expect((team.match(/Join The Team Application/g) ?? [])).toHaveLength(2)
+    expect(team).toContain('Volunteer With Us')
     for (const member of [
       ['Robin Jeshua Deepak', 'Founder & President', '/robin.jpg'],
       ['Yashas Jeedi', 'Vice President', '/yashas.jpg'],
