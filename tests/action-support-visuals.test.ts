@@ -37,6 +37,14 @@ describe('action and support route visual contracts', () => {
       expect(source).not.toContain('border-l-4')
       expect(source).toContain('next/image')
     }
+
+    for (const route of ['fundraiser', 'wishlist', 'newsletter'] as const) {
+      expect(routes[route]).not.toContain('<figcaption')
+    }
+    expect(routes.fundraiser).toContain('Open Secure Donation Page')
+    expect(routes.fundraiser).toContain('View Transparent Finances')
+    expect(routes.wishlist).toContain('Coordinate A Donation')
+    expect(routes.newsletter).toContain('Open The Signup Form')
   })
 
   it('keeps designated route photography unique and preserves the Contact photo contract', () => {

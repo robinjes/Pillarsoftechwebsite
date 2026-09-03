@@ -130,6 +130,10 @@ describe('Task 2 public route migration and support surfaces', () => {
       expect(source).toMatch(/chatbot|AI replies/i)
       expect(source).toMatch(/under-13|guardian/i)
       expect(source).toMatch(/passwords|home addresses|school schedules|medical information|emergency requests/i)
+      expect(source).toMatch(/contact form is currently available/i)
+      expect(source).toMatch(/public live chat and the Discord reply bridge are not enabled yet/i)
+      expect(source).toMatch(/direct email/i)
+      expect(source).not.toMatch(/active staff queue|deployed Discord channel|office-hours queue is open/i)
     }
     expect(privacy).toMatch(/HttpOnly|SameSite=Lax|Secure/i)
     expect(privacy).toMatch(/30 days/i)

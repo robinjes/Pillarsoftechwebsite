@@ -40,9 +40,9 @@ export default function NewsletterPage() {
                 href={newsletterSignupUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-6 inline-flex min-h-11 items-center gap-2 bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
+                className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
               >
-                Open the signup form
+                Open The Signup Form
                 <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
               </a>
             </div>
@@ -56,9 +56,6 @@ export default function NewsletterPage() {
               sizes="(min-width: 1024px) 90vw, 100vw"
               className="object-cover object-center"
             />
-            <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--midnight)]/85 px-4 py-3 font-body text-xs leading-5 text-[var(--cream)]">
-              Wildcat Carnival · prepare the next activity
-            </figcaption>
           </figure>
         </div>
       </header>
@@ -74,9 +71,9 @@ export default function NewsletterPage() {
               href={newsletterSignupUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center justify-center gap-2 border border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
             >
-              Use the form directly
+              Use The Form Directly
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
             </a>
           </div>
@@ -85,8 +82,8 @@ export default function NewsletterPage() {
             <ExternalEmbedOptIn
               src={newsletterEmbedUrl}
               title="Pillars of Tech newsletter signup form"
-              directLabel="Use the form directly"
-              loadLabel="Load signup form"
+              directLabel="Use The Form Directly"
+              loadLabel="Load Signup Form"
               description="This optional Google Form loads only after you choose to view it here."
               fallbackCopy="If the embedded form does not load, use the direct signup link above or visit the newsletter homepage."
             />
@@ -97,18 +94,18 @@ export default function NewsletterPage() {
               href={newsletterWebsiteUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center gap-2 text-[var(--cobalt)] underline decoration-2 underline-offset-4 transition hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--cobalt)] px-5 py-3 text-[var(--cobalt)] transition hover:bg-[var(--sky)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
             >
-              Visit the newsletter homepage
+              Visit The Newsletter Homepage
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
             </a>
             <a
               href={newsletterSignupUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center gap-2 text-[var(--cobalt)] underline decoration-2 underline-offset-4 transition hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--cobalt)] px-5 py-3 text-[var(--cobalt)] transition hover:bg-[var(--sky)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
             >
-              Open signup in a new tab
+              Open Signup In A New Tab
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
             </a>
           </div>

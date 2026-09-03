@@ -83,7 +83,7 @@ export default function WishlistPage() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] text-[var(--ink)]">
       <header className="border-b border-[var(--ink)]/20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:px-12 lg:py-16">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-8 sm:px-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:px-12 lg:py-12">
           <div>
             <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Workshop packing list</p>
             <h1 className="mt-4 max-w-xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">Pack the next build.</h1>
@@ -93,16 +93,16 @@ export default function WishlistPage() {
             <div className="mt-7 flex flex-wrap gap-4">
               <Link
                 href="/contact?reason=wishlist"
-                className="inline-flex min-h-11 items-center gap-2 bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
               >
-                Coordinate a donation
+                Coordinate A Donation
                 <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
               </Link>
               <Link
                 href="/faq"
-                className="inline-flex min-h-11 items-center border border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
+                className="inline-flex min-h-11 items-center rounded-full border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
               >
-                Read the FAQ
+                Read The FAQ
               </Link>
             </div>
           </div>
@@ -116,16 +116,13 @@ export default function WishlistPage() {
               sizes="(min-width: 1024px) 55vw, 100vw"
               className="object-cover object-center"
             />
-            <figcaption className="absolute inset-x-0 bottom-0 bg-[var(--midnight)]/85 px-4 py-3 font-body text-xs leading-5 text-[var(--cream)]">
-              Family Science Night · a controller in hand
-            </figcaption>
           </figure>
         </div>
       </header>
 
       <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
-        <div className="mx-auto max-w-7xl px-5 py-14 sm:px-8 lg:px-12 lg:py-20">
-          <div className="mb-8 flex flex-col gap-4 border-b border-[var(--ink)]/30 pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-12 lg:py-14">
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <p className="font-body text-sm font-semibold text-[var(--cobalt)]">What would help next</p>
               <h2 className="mt-2 font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Choose one useful piece.</h2>
@@ -135,14 +132,14 @@ export default function WishlistPage() {
             </p>
           </div>
 
-          <div className="space-y-10 border-y border-[var(--ink)]/20 py-8">
+          <div className="space-y-8">
             {wishlistGroups.map((group) => (
-              <section key={group.purpose} aria-labelledby={`wishlist-${group.purpose.toLowerCase().replaceAll(' ', '-')}`}>
+              <section key={group.purpose} className="border-t border-[var(--ink)]/20 pt-6" aria-labelledby={`wishlist-${group.purpose.toLowerCase().replaceAll(' ', '-')}`}>
                 <div className="mb-2 flex items-baseline justify-between gap-4">
                   <h3 id={`wishlist-${group.purpose.toLowerCase().replaceAll(' ', '-')}`} className="font-display text-2xl text-[var(--midnight)]">{group.purpose}</h3>
                   <span className="text-sm font-semibold text-[var(--ink)]/55">{group.items.length} {group.items.length === 1 ? 'item' : 'items'}</span>
                 </div>
-                <div className="divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20">
+                <div className="divide-y divide-[var(--ink)]/20">
                   {group.items.map((item) => {
                     const Icon = item.icon
 
@@ -158,7 +155,7 @@ export default function WishlistPage() {
                         <p className="font-body text-base leading-7 text-[var(--ink)]/70">{item.description}</p>
                         <Link
                           href="/contact?reason=wishlist"
-                          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[var(--midnight)] px-4 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
+                          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] px-4 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
                           aria-label={`Coordinate a donation for ${item.title}`}
                         >
                           Coordinate
@@ -175,7 +172,7 @@ export default function WishlistPage() {
       </section>
 
       <section className="bg-[var(--sky)]">
-        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-20">
+        <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-10 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-14">
           <div>
             <p className="font-body text-sm font-semibold text-[var(--midnight)]/70">Something else to donate?</p>
             <h2 className="mt-3 max-w-2xl font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Tell us what you have in mind.</h2>
@@ -185,9 +182,9 @@ export default function WishlistPage() {
           </div>
           <Link
             href="/contact?reason=wishlist"
-            className="inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--midnight)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--midnight)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
           >
-            Contact the team
+            Contact The Team
             <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </div>

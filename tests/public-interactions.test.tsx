@@ -141,6 +141,7 @@ describe('Navbar rendered behavior', () => {
     const dialog = await waitFor(() => getByRole('dialog', { name: 'Mobile navigation' }))
     expect(document.body.style.overflow).toBe('hidden')
     expect(within(dialog).getByRole('button', { name: 'Close navigation menu' })).toHaveFocus()
+    expect(screen.getAllByRole('button', { name: 'Close navigation menu' })).toHaveLength(1)
     const focusable = within(dialog).getAllByRole('link')
     const firstLink = focusable[0]
     const lastLink = focusable[focusable.length - 1]

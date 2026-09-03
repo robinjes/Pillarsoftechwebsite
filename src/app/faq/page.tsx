@@ -107,7 +107,7 @@ const faqSections = [
       },
       {
         question: 'Is live chat always available?',
-        answer: 'No. Live chat is available only when the Pacific office-hours schedule and the approved staff queue state both say it is open. When it is closed, leave a message through Contact.',
+        answer: 'Public live chat and the Discord reply bridge are not enabled yet. The protected contact form and direct email are the supported visitor channels today.',
       },
     ],
   },
@@ -189,7 +189,7 @@ export default function FAQPage() {
         </div>
       </section>
 
-      <section className="bg-[var(--midnight)] text-[var(--cream)]">
+      <section className="bg-[var(--sky)] text-[var(--midnight)]">
         <div className="mx-auto flex max-w-7xl flex-col gap-8 px-5 py-14 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-12 lg:py-20">
           <div>
             <p className="font-body text-sm font-semibold text-[var(--sky)]">Still curious?</p>
@@ -197,9 +197,9 @@ export default function FAQPage() {
           </div>
           <Link
             href="/contact"
-            className="inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--sky)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] bg-transparent px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
           >
-            Contact the team
+            Contact The Team
             <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
           </Link>
         </div>

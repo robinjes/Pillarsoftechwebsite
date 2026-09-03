@@ -12,6 +12,8 @@ const pageSources = {
   fundraiser: read('src/app/fundraiser/page.tsx'),
   wishlist: read('src/app/wishlist/page.tsx'),
   newsletter: read('src/app/newsletter/page.tsx'),
+  privacy: read('src/app/privacy/page.tsx'),
+  accessibility: read('src/app/accessibility/page.tsx'),
 }
 
 describe('informational and action pages', () => {
@@ -28,6 +30,8 @@ describe('informational and action pages', () => {
     expect(pageSources.fundraiser).toContain('href={donationUrl}')
     expect(pageSources.fundraiser).toContain('<ExternalEmbedOptIn')
     expect(pageSources.fundraiser).not.toContain('<iframe')
+    expect(pageSources.fundraiser).toContain('Open Secure Donation Page')
+    expect(pageSources.fundraiser).toContain('View Transparent Finances')
   })
 
   it('preserves the contact endpoint, inquiry choices, honeypot, and states', () => {
@@ -80,6 +84,9 @@ describe('informational and action pages', () => {
     expect(pageSources.newsletter).not.toMatch(/testimonial|what readers say/i)
     expect(pageSources.newsletter).toContain('<ExternalEmbedOptIn')
     expect(pageSources.newsletter).not.toContain('<iframe')
+    expect(pageSources.wishlist).not.toContain('<figcaption')
+    expect(pageSources.newsletter).not.toContain('<figcaption')
+    expect(pageSources.about).not.toContain('<figcaption')
   })
 
   it('does not ship retired legal, metric, partner, or SLA claims', () => {
@@ -103,6 +110,15 @@ describe('informational and action pages', () => {
       /underrepresented communities.*succeed/i,
     ]) {
       expect(publicCopy).not.toMatch(retiredClaim)
+    }
+  })
+
+  it('describes visitor contact channels without implying live-chat availability', () => {
+    for (const source of [pageSources.privacy, pageSources.accessibility]) {
+      expect(source).toContain('contact form is currently available')
+      expect(source).toContain('Public live chat and the Discord reply bridge are not enabled yet')
+      expect(source).toContain('direct email')
+      expect(source).not.toMatch(/active staff queue|deployed Discord channel|office-hours queue is open/i)
     }
   })
 })

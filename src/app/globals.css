@@ -103,6 +103,50 @@
     padding: 110px 0;
   }
 
+  .policy-page {
+    background: var(--cream);
+  }
+
+  .policy-hero {
+    padding: clamp(4rem, 9vw, 5rem) 0;
+    color: var(--cream);
+    background: var(--midnight);
+    border-left: 4px solid var(--sky);
+  }
+
+  .policy-section {
+    padding: clamp(4rem, 8vw, 5rem) 0;
+  }
+
+  .policy-prose,
+  .policy-page p {
+    max-width: 72ch;
+  }
+
+  .policy-section .friendly-card,
+  .policy-section .family-card {
+    border: 2px solid var(--navy-950);
+    border-radius: 2rem;
+  }
+
+  .policy-card {
+    padding: 1.75rem;
+    background: var(--paper);
+    border: 2px solid var(--navy-950);
+    border-radius: 2rem;
+  }
+
+  .policy-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    border: 2px solid var(--navy-950);
+    border-radius: 2rem;
+    background: var(--paper);
+  }
+
   .display-heading,
   .family-heading {
     font-family: var(--font-display-stack);
@@ -1281,6 +1325,20 @@
 
   .section {
     padding: 78px 0;
+  }
+
+  .policy-hero,
+  .policy-section {
+    padding: 4rem 0;
+  }
+
+  .policy-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .policy-actions > * {
+    width: 100%;
   }
 
   .site-header__inner {

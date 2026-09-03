@@ -112,7 +112,7 @@ export default function Navbar() {
 
       {isOpen ? (
         <div className="mobile-navigation" role="presentation">
-          <button type="button" aria-label="Close navigation menu" className="absolute inset-0 h-full w-full border-0 bg-transparent" onClick={closeMenu} />
+          <button type="button" tabIndex={-1} aria-hidden="true" className="absolute inset-0 h-full w-full border-0 bg-transparent" onClick={closeMenu} />
           <div id="mobile-navigation" className="mobile-navigation__dialog" role="dialog" aria-modal="true" aria-label="Mobile navigation">
             <div className="flex items-center justify-between border-b border-white/20 pb-5">
               <BrandMark compact />

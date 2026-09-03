@@ -45,19 +45,16 @@ const workshopPhotos = [
   {
     src: '/images/events/altamont-creek-open-house/cover.png',
     alt: 'A student tries a hands-on activity while volunteers staff colorful classroom tables at Altamont Creek Open House.',
-    caption: 'Altamont Creek Open House · test the idea',
     className: 'col-span-7 aspect-[4/5] sm:col-span-6 lg:col-span-7',
   },
   {
     src: '/images/events/wildcat-tank-altamont/drive-01.webp',
     alt: 'A student presents a project to seated judges at Wildcat Tank.',
-    caption: 'Wildcat Tank · present the idea',
     className: 'col-span-5 mt-10 aspect-[4/5] sm:col-span-4 sm:mt-16 lg:col-span-5 lg:mt-20',
   },
   {
     src: '/images/events/pedrozzi-connect-egg-drop/drive-01.webp',
     alt: 'Students and volunteers gather outdoors for the Pedrozzi CONNECT egg-drop activity.',
-    caption: 'Pedrozzi CONNECT · learn and build together',
     className: 'col-span-8 col-start-5 -mt-8 aspect-[5/3] sm:col-span-7 sm:col-start-6 sm:-mt-14 lg:col-span-8 lg:col-start-5',
   },
 ] as const
@@ -91,9 +88,6 @@ export default function About() {
                   sizes="(max-width: 640px) 58vw, (max-width: 1024px) 34vw, 30vw"
                   className="object-cover transition-transform duration-500 motion-safe:hover:scale-[1.03] motion-reduce:transition-none motion-reduce:hover:scale-100"
                 />
-                <figcaption className="absolute inset-x-0 bottom-0 border-t border-[var(--cream)]/35 bg-[var(--midnight)]/90 px-3 py-2 text-xs font-semibold text-[var(--cream)]">
-                  {photo.caption}
-                </figcaption>
               </figure>
             ))}
           </div>
@@ -213,9 +207,9 @@ export default function About() {
               href={financeUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-6 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-bold text-[var(--cobalt)] transition-colors hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
+              className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--cobalt)] px-5 py-3 font-bold text-[var(--cobalt)] transition-colors hover:bg-[var(--sky)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
             >
-              Review HCB transactions
+              Review HCB Transactions
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
             </a>
           </div>
@@ -231,23 +225,23 @@ export default function About() {
           <div className="flex flex-wrap gap-3">
             <Link
               href="/team"
-              className="inline-flex min-h-11 items-center gap-2 border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--midnight)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--midnight)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
             >
-              Meet the team
+              Meet The Team
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
             </Link>
             <Link
               href="/events"
-              className="inline-flex min-h-11 items-center gap-2 border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--midnight)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--midnight)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
             >
-              Explore events
+              Explore Events
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
             </Link>
             <Link
               href="/contact"
-              className="inline-flex min-h-11 items-center border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--midnight)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
+              className="inline-flex min-h-11 items-center rounded-full border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--midnight)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
             >
-              Start a conversation
+              Start A Conversation
             </Link>
           </div>
         </div>

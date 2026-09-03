@@ -16,9 +16,8 @@ describe('mission and program visual pass', () => {
     ]) {
       expect(about).toContain(photo)
     }
-    expect(about).toContain('Altamont Creek Open House · test the idea')
-    expect(about).toContain('Wildcat Tank · present the idea')
-    expect(about).toContain('Pedrozzi CONNECT · learn and build together')
+    expect(about).not.toContain('<figcaption')
+    expect(about).not.toContain('caption:')
     expect(about).toContain('Our mission')
     expect(about).not.toContain('border-l-4')
     expect(about).not.toMatch(/uppercase tracking/)
@@ -38,12 +37,13 @@ describe('mission and program visual pass', () => {
     expect(team).not.toMatch(/uppercase tracking/)
   })
 
-  it('keeps Events search and filters while adding a labeled featured composition', () => {
+  it('keeps Events search and filters while using caption-free cards', () => {
     const events = read('src/app/events/page.tsx')
 
     expect(events).toContain("fetch('/api/events')")
-    expect(events).toContain('FeaturedProgram')
-    expect(events).toContain('From a recent Pillars workshop')
+    expect(events).toContain('function EventCard')
+    expect(events).not.toContain('FeaturedProgram')
+    expect(events).not.toContain('<figcaption')
     expect(events).toContain('Search programs and events')
     expect(events).toContain("filter === 'completed'")
     expect(events).toContain("filter === 'cancelled'")
@@ -60,7 +60,7 @@ describe('mission and program visual pass', () => {
     expect(detail).toContain('archiveHeroFallback')
     expect(detail).toContain('/images/events/family-science-night/IMG_8332.JPG')
     expect(detail).toContain('A Pillars of Tech volunteer and participant operate a VEX robot during Family Science Night.')
-    expect(detail).toContain('From a recent Pillars workshop')
+    expect(detail).not.toContain('<figcaption')
     expect(detail).toContain('galleryTriggerRef')
     expect(detail).toContain('pdfTriggerRef')
     expect(detail).toContain('Register as a participant')
