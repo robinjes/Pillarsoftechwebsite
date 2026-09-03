@@ -50,7 +50,7 @@ export default function Team() {
               Meet the students and team members who make room for technology, questions, and shared momentum.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <ButtonLink href={teamJoinUrl} external variant="outline">
+              <ButtonLink href={teamJoinUrl} external variant="glass">
                 Join The Team Application
                 <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
               </ButtonLink>
@@ -119,7 +119,7 @@ export default function Team() {
             <h2 className="mt-4 max-w-2xl font-display text-4xl leading-[1.02] tracking-[-0.03em] sm:text-5xl">Bring your curiosity to the next project.</h2>
           </div>
           <div className="flex flex-wrap gap-3">
-            <ButtonLink href={teamJoinUrl} external variant="outline">
+            <ButtonLink href={teamJoinUrl} external variant="glass">
               Join The Team Application
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
             </ButtonLink>

@@ -42,7 +42,7 @@ describe('stakeholder interaction polish', () => {
 
   it('presents team and volunteer applications while preserving identities and workflow calls', () => {
     expect(team).toContain("import { ButtonLink } from '@/components/site/FamilyPrimitives'")
-    expect(team).toContain('variant="outline"')
+    expect((team.match(/variant="glass"/g) ?? [])).toHaveLength(2)
     expect((team.match(/href={teamJoinUrl}/g) ?? [])).toHaveLength(2)
     expect((team.match(/Join The Team Application/g) ?? [])).toHaveLength(2)
     expect(team).toContain('Volunteer With Us')
