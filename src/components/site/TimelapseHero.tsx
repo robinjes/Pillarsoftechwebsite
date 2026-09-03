@@ -156,8 +156,8 @@ export default function TimelapseHero() {
           Friendly, hands-on events that help young people build, explore, and ask big questions. No tech experience needed.
         </p>
         <div className="hero-actions" aria-label="Homepage actions">
-          <Link className="button button--sun focus-ring" href="#events">Find a family event</Link>
-          <Link className="button button--glass focus-ring" href="#families">What to expect</Link>
+          <Link className="button button--sun focus-ring" href="#events">Find A Family Event</Link>
+          <Link className="button button--glass focus-ring" href="#families">What To Expect</Link>
         </div>
       </div>
     </section>

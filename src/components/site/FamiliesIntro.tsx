@@ -3,21 +3,21 @@ import { FriendlyCard, PageShell, SectionHeading } from '@/components/site/Famil
 const steps = [
   {
     number: '1',
-    className: 'friendly-card--sky',
+    className: 'friendly-card--paper',
     title: 'Choose an event',
     text: 'See the activity, age guidance, location, and timing in plain language.',
     icon: <path d="M14 22h36v28H14zM22 14h20v8H22zM23 31h18M23 40h12" />,
   },
   {
     number: '2',
-    className: 'friendly-card--peach',
+    className: 'friendly-card--paper',
     title: 'Show up curious',
     text: 'Bring your questions. We provide the materials and a friendly welcome.',
     icon: <path d="M19 50V23l13-9 13 9v27M25 50V36h14v14M17 50h30" />,
   },
   {
     number: '3',
-    className: 'friendly-card--green',
+    className: 'friendly-card--paper',
     title: 'Build together',
     text: 'Kids try, make, and learn while volunteers help families along the way.',
     icon: <path d="M22 19h20v15H22zM17 49h30M22 34l-5 15M42 34l5 15M28 27h8M32 19v-7" />,

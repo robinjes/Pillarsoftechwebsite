@@ -48,10 +48,10 @@ describe('Task 1 family homepage foundation', () => {
     const page = read('src/app/page.tsx')
     const hero = read('src/components/site/TimelapseHero.tsx')
 
-    for (const section of ['<TimelapseHero />', '<TrustStrip />', '<FamiliesIntro />', '<NextEventSection', '<EventProof />', '<MissionSection />', '<ImpactSection metrics={impactMetrics} />', '<BranchesSection />', '<FinanceSection />', '<ContactCta />']) {
+    for (const section of ['<TimelapseHero />', '<TrustStrip />', '<FamiliesIntro />', '<NextEventSection', '<EventProof />', '<MissionSection />', '<ImpactSection metrics={impactMetrics} />', '<BranchesSection />', '<ContactCta />', '<FinanceSection />']) {
       expect(page).toContain(section)
     }
-    const orderedSections = ['<TimelapseHero />', '<TrustStrip />', '<FamiliesIntro />', '<NextEventSection', '<EventProof />', '<MissionSection />', '<ImpactSection metrics={impactMetrics} />', '<BranchesSection />', '<FinanceSection />', '<ContactCta />']
+    const orderedSections = ['<TimelapseHero />', '<TrustStrip />', '<FamiliesIntro />', '<NextEventSection', '<EventProof />', '<MissionSection />', '<ImpactSection metrics={impactMetrics} />', '<BranchesSection />', '<ContactCta />', '<FinanceSection />']
     for (let index = 1; index < orderedSections.length; index += 1) {
       expect(page.indexOf(orderedSections[index - 1])).toBeLessThan(page.indexOf(orderedSections[index]))
     }

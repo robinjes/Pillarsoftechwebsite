@@ -21,10 +21,10 @@ export default function BranchesSection() {
             <div>
               <p className="branch-kicker">Our first community</p>
               <h3 className="family-heading">California</h3>
-              <p>Explore our work and family STEM events in California.</p>
+              <p className="branch-description">Explore our work and family STEM events in California.</p>
             </div>
             <Link href="/events" className="focus-ring">
-              See current events <ArrowUpRight aria-hidden="true" className="ml-2 h-4 w-4" />
+              See Current Events <ArrowUpRight aria-hidden="true" className="ml-2 h-4 w-4" />
             </Link>
           </article>
 
@@ -32,7 +32,7 @@ export default function BranchesSection() {
             <div>
               <p className="branch-kicker">Exploratory — not yet published</p>
               <h3 className="family-heading">Georgia</h3>
-              <p>There is no public Georgia chapter or event listing to join yet. Local details will be shared only after they are confirmed.</p>
+              <p className="branch-description">There is no public Georgia chapter or event listing to join yet. Local details will be shared only after they are confirmed.</p>
             </div>
             <StatusPill>No public chapter yet</StatusPill>
           </article>

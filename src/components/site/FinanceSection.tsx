@@ -24,7 +24,7 @@ export default function FinanceSection() {
               rel="noreferrer"
               className="text-link focus-ring"
             >
-              Review HCB transactions <ArrowUpRight aria-hidden="true" />
+              Review HCB Transactions <ArrowUpRight aria-hidden="true" />
             </a>
             <a
               href={donationUrl}
@@ -32,7 +32,7 @@ export default function FinanceSection() {
               rel="noreferrer"
               className="text-link focus-ring"
             >
-              Support the work <ArrowUpRight aria-hidden="true" />
+              Support The Work <ArrowUpRight aria-hidden="true" />
             </a>
           </div>
         </div>

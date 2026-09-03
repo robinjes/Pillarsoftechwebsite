@@ -34,8 +34,8 @@ export default async function Home() {
       <MissionSection />
       <ImpactSection metrics={impactMetrics} />
       <BranchesSection />
-      <FinanceSection />
       <ContactCta />
+      <FinanceSection />
     </main>
   )
 }

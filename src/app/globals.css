@@ -415,7 +415,7 @@
 
   .hero {
     position: relative;
-    min-height: 790px;
+    min-height: 100svh;
     display: flex;
     align-items: center;
     overflow: hidden;
@@ -499,7 +499,7 @@
     position: relative;
     z-index: 4;
     color: var(--navy-950);
-    background: var(--sun);
+    background: var(--sky);
   }
 
   .trust-list {
@@ -557,18 +557,17 @@
   .friendly-card {
     min-height: 360px;
     padding: 2.125rem;
+    border: 2px solid var(--navy-950);
   }
 
+  .friendly-card--paper,
   .friendly-card--sky {
-    background: var(--sky);
+    background: var(--paper);
   }
 
-  .friendly-card--peach {
-    background: var(--coral-soft);
-  }
-
+  .friendly-card--peach,
   .friendly-card--green {
-    background: var(--green);
+    background: var(--paper);
   }
 
   .friendly-card p {
@@ -624,22 +623,6 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-
-  .photo-note {
-    position: absolute;
-    bottom: 1.375rem;
-    left: 1.375rem;
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    padding: 0.5625rem 0.875rem;
-    color: var(--navy-950);
-    background: rgba(247, 243, 235, 0.92);
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    box-shadow: 0 8px 24px rgba(13, 43, 74, 0.18);
   }
 
   .event-copy {
@@ -752,24 +735,6 @@
 
   .event-proof-photo--wide {
     min-height: 250px;
-  }
-
-  .event-proof-photo figcaption {
-    position: absolute;
-    right: 1rem;
-    bottom: 1rem;
-    left: 1rem;
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    width: fit-content;
-    padding: 0.5rem 0.875rem;
-    color: var(--navy-950);
-    background: rgba(247, 243, 235, 0.92);
-    border-radius: 999px;
-    font-family: var(--font-display-stack);
-    font-size: 0.8rem;
-    font-weight: 700;
   }
 
   .work-section {
@@ -900,7 +865,7 @@
 
   .impact-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.5rem;
     margin-top: 2.5rem;
   }
@@ -908,7 +873,7 @@
   .impact-card {
     padding: 1.75rem;
     background: var(--paper);
-    border: 1px solid rgba(23, 51, 77, 0.16);
+    border: 2px solid var(--navy-950);
     border-radius: 28px;
   }
 
@@ -957,6 +922,41 @@
     color: var(--muted);
     font-size: 0.94rem;
     line-height: 1.45;
+  }
+
+  .impact-method--shared {
+    margin-top: 2rem;
+    padding: 1.25rem 1.5rem 1.5rem;
+    background: var(--paper);
+    border: 2px solid var(--navy-950);
+    border-radius: 28px;
+  }
+
+  .impact-method--shared summary {
+    min-height: 48px;
+    font-size: 1.1rem;
+  }
+
+  .impact-method__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    margin: 1.25rem 0 0;
+    padding: 1.25rem 0 0;
+    border-top: 1px solid rgba(23, 51, 77, 0.16);
+    list-style: none;
+  }
+
+  .impact-method__list li {
+    min-width: 0;
+  }
+
+  .impact-method__list h3 {
+    margin: 0;
+    color: var(--navy-950);
+    font-family: var(--font-display-stack);
+    font-size: 1.05rem;
+    line-height: 1.25;
   }
 
   .impact-source {
@@ -1012,7 +1012,8 @@
   }
 
   .branch-card--georgia {
-    background: var(--coral-soft);
+    background: var(--paper);
+    border: 2px solid var(--sky);
   }
 
   .branch-card h3 {
@@ -1023,6 +1024,11 @@
   .branch-card p:not(.branch-kicker) {
     max-width: 450px;
     color: var(--muted);
+  }
+
+  .branch-card--california .branch-description {
+    font-size: 1.12rem;
+    line-height: 1.6;
   }
 
   .branch-kicker {
@@ -1061,7 +1067,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 4rem;
-    align-items: start;
+    align-items: center;
   }
 
   .finance-layout h2 {
@@ -1091,7 +1097,7 @@
     align-items: center;
     gap: 3.75rem;
     padding: 3.75rem 4.5rem;
-    background: var(--sun);
+    background: var(--sky);
     border-radius: 38px;
     box-shadow: 0 22px 60px rgba(13, 43, 74, 0.13);
   }
@@ -1099,6 +1105,10 @@
   .contact-panel h2 {
     max-width: 760px;
     font-size: clamp(2.4rem, 4.5vw, 4rem);
+  }
+
+  .contact-heading__line {
+    display: block;
   }
 
   .contact-panel > div > p:last-child {
@@ -1278,7 +1288,7 @@
   }
 
   .hero {
-    min-height: 780px;
+    min-height: 100svh;
   }
 
   .hero-wash {
@@ -1394,6 +1404,10 @@
   }
 
   .impact-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .impact-method__list {
     grid-template-columns: 1fr;
   }
 

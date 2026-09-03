@@ -8,6 +8,8 @@ function formatValue(metric: PublicImpactMetric): string {
 }
 
 export default function ImpactSection({ metrics }: { metrics: PublicImpactMetric[] }) {
+  const visibleMetrics = metrics.filter((metric) => metric.key !== 'hcb_revenue')
+
   return (
     <section className="impact-section section" id="impact" aria-labelledby="impact-heading">
       <PageShell>
@@ -19,25 +21,35 @@ export default function ImpactSection({ metrics }: { metrics: PublicImpactMetric
           id="impact-heading"
         />
 
-        {metrics.length > 0 ? (
-          <div className="impact-grid">
-            {metrics.map((metric) => (
-              <article className="impact-card" key={metric.key}>
-                <p className="impact-value" aria-label={`${metric.publicLabel}: ${formatValue(metric)}`}>
-                  {formatValue(metric)}
-                </p>
-                <h3 className="impact-label">{metric.publicLabel}</h3>
-                <p className="impact-as-of">As of {metric.asOf}</p>
-                <details className="impact-method">
-                  <summary>How this is counted</summary>
-                  <p>{metric.methodologyNote}</p>
-                </details>
-                <a className="impact-source focus-ring" href={metric.sourceUrl} target="_blank" rel="noreferrer">
-                  See the source
-                </a>
-              </article>
-            ))}
-          </div>
+        {visibleMetrics.length > 0 ? (
+          <>
+            <div className="impact-grid">
+              {visibleMetrics.map((metric) => (
+                <article className="impact-card" key={metric.key}>
+                  <p className="impact-value" aria-label={`${metric.publicLabel}: ${formatValue(metric)}`}>
+                    {formatValue(metric)}
+                  </p>
+                  <h3 className="impact-label">{metric.publicLabel}</h3>
+                  <p className="impact-as-of">As of {metric.asOf}</p>
+                </article>
+              ))}
+            </div>
+
+            <details className="impact-method impact-method--shared">
+              <summary>How We Count Impact</summary>
+              <ul className="impact-method__list">
+                {visibleMetrics.map((metric) => (
+                  <li key={metric.key}>
+                    <h3>{metric.publicLabel}</h3>
+                    <p>{metric.methodologyNote}</p>
+                    <a className="impact-source focus-ring" href={metric.sourceUrl} target="_blank" rel="noreferrer">
+                      View Source
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          </>
         ) : (
           <p className="impact-empty" role="status">
             Impact notes are temporarily unavailable. We will show figures only when their source and method are available.

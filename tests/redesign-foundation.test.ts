@@ -20,8 +20,8 @@ describe('family-friendly public foundation', () => {
       '<EventProof />',
       '<MissionSection />',
       '<BranchesSection />',
-      '<FinanceSection />',
       '<ContactCta />',
+      '<FinanceSection />',
     ]
     for (let index = 1; index < sections.length; index += 1) {
       expect(page.indexOf(sections[index - 1])).toBeLessThan(page.indexOf(sections[index]))

@@ -25,7 +25,6 @@ export default function NextEventSection({ event }: { event: PublicEvent | null 
               fill
               sizes="(max-width: 980px) 100vw, 50vw"
             />
-            <span className="photo-note">A look at one of our community events</span>
           </div>
           <div className="event-copy">
             <p className="eyebrow">What&apos;s happening next</p>
@@ -45,7 +44,7 @@ export default function NextEventSection({ event }: { event: PublicEvent | null 
               </div>
               <div>
                 <dt>For</dt>
-                <dd>Students and their families</dd>
+                <dd>8th-12th graders and their families</dd>
               </div>
             </dl>
             <div className="flex flex-wrap gap-4">

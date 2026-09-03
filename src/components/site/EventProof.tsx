@@ -8,19 +8,16 @@ const proofPhotos = [
   {
     src: '/images/home/family-science-night.webp',
     alt: 'Families gathered around a table for a hands-on science activity.',
-    caption: 'Family Science Night',
     className: 'event-proof-photo event-proof-photo--large',
   },
   {
     src: '/images/home/science-odyssey.webp',
     alt: 'Students exploring a science demonstration together.',
-    caption: 'Science Odyssey',
     className: 'event-proof-photo event-proof-photo--small',
   },
   {
     src: '/images/home/wildcat-carnival.webp',
     alt: 'Young people and volunteers doing a hands-on activity outdoors at a community event.',
-    caption: 'Wildcat Carnival',
     className: 'event-proof-photo event-proof-photo--wide',
   },
 ]
@@ -39,17 +36,16 @@ export default function EventProof() {
           {proofPhotos.map((photo) => (
             <figure key={photo.src} className={photo.className}>
               <Image src={photo.src} alt={photo.alt} fill sizes="(max-width: 720px) 100vw, 38vw" />
-              <figcaption>{photo.caption}</figcaption>
             </figure>
           ))}
         </div>
 
         <div className="mt-10 flex flex-wrap gap-4">
           <Link href="/events" className="text-link focus-ring">
-            Browse all events <ArrowUpRight aria-hidden="true" />
+            Browse All Events <ArrowUpRight aria-hidden="true" />
           </Link>
           <Link href="/photos/wildcat-tank" className="text-link focus-ring">
-            See more photos <ArrowUpRight aria-hidden="true" />
+            See More Photos <ArrowUpRight aria-hidden="true" />
           </Link>
         </div>
       </PageShell>

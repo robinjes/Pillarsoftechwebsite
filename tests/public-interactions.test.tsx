@@ -187,9 +187,9 @@ describe('ImpactSection rendered behavior', () => {
     )
 
     expect(screen.getByText('1,000+')).toBeInTheDocument()
-    expect(screen.getByText('Students reached')).toBeInTheDocument()
+    expect(screen.getAllByText('Students reached')).toHaveLength(2)
     expect(screen.getByText('As of 2026-08-18')).toBeInTheDocument()
-    expect(screen.getByText('How this is counted')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'See the source' })).toHaveAttribute('href', 'https://www.pillarsoftech.org/about')
+    expect(screen.getByText('How We Count Impact')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'View Source' })).toHaveAttribute('href', 'https://www.pillarsoftech.org/about')
   })
 })

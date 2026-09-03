@@ -39,7 +39,7 @@ describe('family homepage visual content', () => {
     expect(page).toContain('listPublicImpact()')
     expect(page).toContain('<ImpactSection metrics={impactMetrics} />')
     expect(impact).toContain('methodologyNote')
-    expect(impact).toContain('See the source')
+    expect(impact).toContain('View Source')
   })
 
   it('keeps Georgia informational and non-linking while California remains actionable', () => {
