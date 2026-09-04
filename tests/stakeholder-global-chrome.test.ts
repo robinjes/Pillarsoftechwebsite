@@ -18,8 +18,8 @@ describe('stakeholder global chrome contract', () => {
   it('uses the larger compact desktop logo width', () => {
     const brandMark = read('src/components/site/BrandMark.tsx')
 
-    expect(brandMark).toContain('width={compact ? 264 : 280}')
-    expect(brandMark).toContain("className={compact ? 'h-[37.5px] w-[210px] object-contain sm:h-[47.143px] sm:w-[264px]' : 'h-auto w-auto object-contain'}")
+    expect(brandMark).toContain('width={compact ? 300 : 280}')
+    expect(brandMark).toContain("className={compact ? 'h-[39.286px] w-[220px] object-contain sm:h-[53.571px] sm:w-[300px]' : 'h-auto w-auto object-contain'}")
   })
 
   it('makes desktop navigation links visible outlined pills', () => {

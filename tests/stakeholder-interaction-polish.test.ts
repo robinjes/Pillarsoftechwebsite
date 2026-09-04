@@ -46,7 +46,7 @@ describe('stakeholder interaction polish', () => {
     expect(globals).toContain('padding-top: 10.25rem')
     expect(globals).toContain('.event-title {')
     expect(globals).toContain('margin: 1rem 0 1.25rem')
-    expect(brandMark).toContain('w-[210px] object-contain sm:h-[47.143px] sm:w-[264px]')
+    expect(brandMark).toContain('w-[220px] object-contain sm:h-[53.571px] sm:w-[300px]')
   })
 
   it('keeps current status branches and exact event action destinations', () => {
