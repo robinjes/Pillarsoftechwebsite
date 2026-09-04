@@ -155,7 +155,7 @@ describe('action and support route visual contracts', () => {
     expect(faq).toContain('<details')
     expect(faq).toContain('/contact')
 
-    expect(contact).toContain('useSearchParams')
+    expect(contact).toContain('initialReason')
     expect(contact).toContain("fetch('/api/contact'")
     expect(contact).toContain('subjectOptions')
     expect(contact).toContain('contact-form')

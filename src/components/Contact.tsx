@@ -4,7 +4,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight, CheckCircle2, Mail, MessageCircle, Send } from 'lucide-react'
-import { useSearchParams } from 'next/navigation'
 
 const CONTACT_EMAIL = 'pillarsoftech@gmail.com'
 
@@ -17,6 +16,10 @@ const subjectOptions = [
 
 type SubjectValue = (typeof subjectOptions)[number]['value']
 
+function initialSubject(reason?: string): SubjectValue {
+  return subjectOptions.some((option) => option.value === reason) ? reason as SubjectValue : 'general'
+}
+
 const inquiryHighlights = [
   'Partnerships and school collaborations',
   'Volunteering and event support',
@@ -24,16 +27,15 @@ const inquiryHighlights = [
   'General questions and feedback',
 ]
 
-export default function Contact() {
-  const searchParams = useSearchParams()
-  const [formData, setFormData] = useState({
+export default function Contact({ initialReason }: { initialReason?: string }) {
+  const [formData, setFormData] = useState(() => ({
     name: '',
     email: '',
-    subject: 'general' as SubjectValue,
+    subject: initialSubject(initialReason),
     schoolName: '',
     studentCount: '',
     message: '',
-  })
+  }))
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [honeypot, setHoneypot] = useState('')
@@ -41,11 +43,14 @@ export default function Contact() {
   const firstInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    const reason = searchParams.get('reason')
-    if (reason && subjectOptions.some((option) => option.value === reason)) {
-      setFormData((currentValue) => ({ ...currentValue, subject: reason as SubjectValue }))
-    }
-  }, [searchParams])
+    const subject = initialSubject(initialReason)
+    setFormData((currentValue) => currentValue.subject === subject ? currentValue : {
+      ...currentValue,
+      subject,
+      schoolName: subject === 'workshop' ? currentValue.schoolName : '',
+      studentCount: subject === 'workshop' ? currentValue.studentCount : '',
+    })
+  }, [initialReason])
 
   useEffect(() => {
     return () => {

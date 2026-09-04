@@ -21,7 +21,7 @@ export default function BranchesSection() {
             <div>
               <p className="branch-kicker">Our first community</p>
               <h3 className="family-heading">California</h3>
-              <p className="branch-description">Explore our work and family STEM events in California.</p>
+              <p className="branch-description">Explore hands-on STEM events, student-led activities, and clear family details from our current California chapter.</p>
             </div>
             <Link href="/events" className="focus-ring">
               See Current Events <ArrowUpRight aria-hidden="true" className="ml-2 h-4 w-4" />

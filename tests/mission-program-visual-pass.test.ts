@@ -31,7 +31,7 @@ describe('mission and program visual pass', () => {
     }
     expect(team).toContain('/images/events/family-science-night/IMG_0551.jpg')
     expect(team).toContain('Pillars volunteers and adult partners smiling together outside Family Science Night.')
-    expect(team).toContain('Family Science Night · team moment')
+    expect(team).not.toContain('Family Science Night · team moment')
     expect(team).toContain('portraitLayouts')
     expect(team).not.toContain('border-l-4')
     expect(team).not.toMatch(/uppercase tracking/)

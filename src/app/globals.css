@@ -1223,7 +1223,10 @@
   }
 }
 
-@media (max-width: 980px) {
+/* The five family-facing links no longer fit comfortably beside the enlarged
+   wordmark on a small laptop. Switch to the labelled Menu control before
+   anything is clipped or sent off-screen. */
+@media (max-width: 1120px) {
   .site-nav {
     display: none;
     position: fixed;

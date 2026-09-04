@@ -60,7 +60,8 @@ describe('stakeholder interaction polish', () => {
       expect(team).toContain(member[1])
       expect(team).toContain(member[2])
     }
-    expect(team).toContain('Family Science Night · team moment')
+    expect(team).not.toContain('Family Science Night · team moment')
+    expect((team.match(/rounded-full border-2 border-\[var\(--cream\)\]/g) ?? []).length).toBeGreaterThanOrEqual(2)
     expect(volunteerPage).toContain("import { ButtonLink } from '@/components/site/FamilyPrimitives'")
     expect(volunteerPage).toContain('<ButtonLink href={teamJoinUrl} external variant="navy">')
     expect(volunteerPage).toContain('Join The Team Application')

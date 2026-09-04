@@ -262,7 +262,7 @@ export default function EventsPage() {
   return (
     <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-6 text-[var(--ink)] sm:px-6 lg:px-8 lg:pt-8">
       <header className="mx-auto max-w-7xl rounded-[2rem] border-b border-[var(--ink)]/25 bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10 sm:py-14">
-        <div className="grid gap-8 lg:grid-cols-[1.3fr_0.7fr] lg:items-end">
+        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)] xl:items-end">
           <div>
             <p className="text-sm font-semibold text-[var(--sky)]">Pillars of Tech · field notes</p>
             <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.96] tracking-[-0.04em] sm:text-[4.35rem]">
@@ -280,8 +280,8 @@ export default function EventsPage() {
       </header>
 
       <div className="mx-auto max-w-7xl">
-        <div className="flex flex-col gap-4 border-b border-[var(--ink)]/30 py-6 md:flex-row md:items-center md:justify-between">
-          <label className="relative block min-w-0 md:max-w-md md:flex-1">
+        <div className="flex flex-col gap-4 border-b border-[var(--ink)]/30 py-6 xl:flex-row xl:items-center xl:justify-between">
+          <label className="relative block min-w-0 xl:max-w-md xl:flex-1">
             <span className="sr-only">Search programs and events</span>
             <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--cobalt)]" aria-hidden="true" />
             <input

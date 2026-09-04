@@ -56,7 +56,7 @@ export default function Team() {
               </ButtonLink>
               <Link
                 href="/volunteer"
-                className="inline-flex min-h-11 items-center border border-[var(--cream)]/75 px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
+                className="inline-flex min-h-11 items-center rounded-full border-2 border-[var(--cream)]/75 px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
               >
                 Volunteer
               </Link>
@@ -72,9 +72,6 @@ export default function Team() {
               sizes="(max-width: 1024px) 100vw, 58vw"
               className="object-cover transition-transform duration-500 motion-safe:hover:scale-[1.02] motion-reduce:transition-none motion-reduce:hover:scale-100"
             />
-            <figcaption className="absolute inset-x-0 bottom-0 border-t border-[var(--cream)]/35 bg-[var(--midnight)]/90 px-4 py-3 text-sm font-semibold text-[var(--cream)]">
-              Family Science Night · team moment
-            </figcaption>
           </figure>
         </div>
       </header>
@@ -125,7 +122,7 @@ export default function Team() {
             </ButtonLink>
             <Link
               href="/volunteer"
-              className="inline-flex min-h-11 items-center border border-[var(--cream)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
+              className="inline-flex min-h-11 items-center rounded-full border-2 border-[var(--cream)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cream)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)]"
             >
               Volunteer With Us
             </Link>
