@@ -171,7 +171,7 @@ describe('Navbar rendered behavior', () => {
 })
 
 describe('ImpactSection rendered behavior', () => {
-  it('renders each approved metric with its source and methodology note', () => {
+  it('renders each approved metric without an expandable methodology panel', () => {
     render(
       <ImpactSection
         metrics={[{
@@ -188,9 +188,9 @@ describe('ImpactSection rendered behavior', () => {
     )
 
     expect(screen.getByText('1,000+')).toBeInTheDocument()
-    expect(screen.getAllByText('Students reached')).toHaveLength(2)
+    expect(screen.getAllByText('Students reached')).toHaveLength(1)
     expect(screen.getByText('As of 2026-08-18')).toBeInTheDocument()
-    expect(screen.getByText('How We Count Impact')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'View Source' })).toHaveAttribute('href', 'https://www.pillarsoftech.org/about')
+    expect(screen.queryByText('How We Count Impact')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'View Source' })).not.toBeInTheDocument()
   })
 })

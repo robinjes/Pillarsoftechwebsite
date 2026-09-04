@@ -95,7 +95,7 @@ describe('family-friendly public foundation', () => {
     expect(page).toContain('href="/contact"')
     expect(read('src/components/site/NextEventSection.tsx')).toContain('/events/${event.slug}')
     expect(read('src/components/site/NextEventSection.tsx')).toContain('{event.title}')
-    expect(read('src/components/site/ImpactSection.tsx')).toContain('methodologyNote')
+    expect(read('src/components/site/ImpactSection.tsx')).not.toContain('How We Count Impact')
     expect(read('src/components/site/BranchesSection.tsx')).toContain('href="/events"')
     expect(read('src/components/site/BranchesSection.tsx')).not.toMatch(/branch-card--georgia[\s\S]*?<a\b/)
   })

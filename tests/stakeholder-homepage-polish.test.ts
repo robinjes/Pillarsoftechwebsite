@@ -26,21 +26,20 @@ describe('stakeholder homepage polish', () => {
     expect(photoSections).not.toContain('caption:')
   })
 
-  it('shows only sourced visible metrics with one shared methodology disclosure', () => {
+  it('shows only sourced visible metrics without an expandable methodology disclosure', () => {
     const impact = read('src/components/site/ImpactSection.tsx')
 
     expect(impact).toContain("const visibleMetrics = metrics.filter((metric) => metric.key !== 'hcb_revenue')")
     expect(impact).toContain('visibleMetrics.map((metric) =>')
-    expect(impact).toContain('metric.methodologyNote')
-    expect(impact).toContain('metric.sourceUrl')
-    expect(impact).toContain('className="impact-method impact-method--shared"')
-    expect(impact).toContain('How We Count Impact')
-    expect(impact).toContain('View Source')
+    expect(impact).not.toContain('metric.methodologyNote')
+    expect(impact).not.toContain('metric.sourceUrl')
+    expect(impact).not.toContain('impact-method')
+    expect(impact).not.toContain('How We Count Impact')
+    expect(impact).not.toContain('View Source')
 
     const cardMarkup = impact.match(/<article className="impact-card"[\s\S]*?<\/article>/)?.[0] ?? ''
     expect(cardMarkup).not.toContain('impact-method')
     expect(cardMarkup).not.toContain('impact-source')
-    expect((impact.match(/className="impact-method impact-method--shared"/g) ?? [])).toHaveLength(1)
   })
 
   it('uses the stakeholder palette and layout constraints', () => {
