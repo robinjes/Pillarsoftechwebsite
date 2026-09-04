@@ -81,6 +81,8 @@ describe('EventsPage rendered filtering behavior', () => {
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Upcoming & ongoing' })).toBeInTheDocument())
 
     expect(screen.getAllByText('Georgia').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Robotics').length).toBeGreaterThan(0)
+    expect(screen.queryByText('robotics')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'California' })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Upcoming' }))

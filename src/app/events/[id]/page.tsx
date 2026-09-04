@@ -43,6 +43,20 @@ function timeLabel(event: PublicEvent): string {
   return event.time || event.endLabel || 'Time to be announced'
 }
 
+function programCategoryLabel(value: string): string {
+  return value
+    .trim()
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\p{L}/gu, (character) => character.toUpperCase())
+}
+
+function statusLabel(event: PublicEvent): string {
+  if (event.status === 'ongoing') return 'In Progress'
+  if (event.status === 'cancelled') return 'Cancelled'
+  if (event.status === 'completed') return 'Completed'
+  return 'Upcoming'
+}
+
 function getFocusableElements(dialog: HTMLDivElement | null): HTMLElement[] {
   if (!dialog) return []
   return Array.from(dialog.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], iframe, [tabindex]:not([tabindex="-1"])'))
@@ -265,7 +279,7 @@ export default function EventPage() {
   const volunteerHref = `/volunteer?eventId=${encodeURIComponent(event.slug || event.id)}`
 
   return (
-    <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 text-[var(--ink)] sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-6 text-[var(--ink)] sm:px-6 sm:pt-8 lg:px-8">
       <div className="mx-auto max-w-7xl">
         <header className="grid gap-0 overflow-hidden rounded-[2rem] border-y border-[var(--ink)] bg-[var(--midnight)] text-[var(--cream)] lg:grid-cols-[0.86fr_1.14fr]">
           <div className="order-2 flex flex-col justify-between px-6 py-9 sm:px-10 sm:py-12 lg:order-1 lg:py-14">
@@ -273,12 +287,12 @@ export default function EventPage() {
               <button type="button" onClick={() => router.push('/events')} className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[var(--sky)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]">
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
               </button>
-              <p className="mt-8 text-sm font-semibold text-[var(--sky)]">{event.programCategory} · {isCurrent ? 'Now & next' : 'Archive'}</p>
+              <p className="mt-8 text-sm font-semibold text-[var(--sky)]">{programCategoryLabel(event.programCategory)} · {isCurrent ? 'Now & Next' : 'Archive'}</p>
               <h1 className="mt-4 max-w-3xl font-display text-4xl leading-[0.98] tracking-[-0.04em] sm:text-5xl">{event.title}</h1>
               <p className="mt-6 max-w-2xl text-base leading-7 text-[var(--cream)]/80 sm:text-lg sm:leading-8">{event.summary || eventParagraphs[0]}</p>
             </div>
             <div className="mt-9 flex flex-wrap gap-2 text-sm font-semibold">
-              <span className="border border-[var(--sky)] px-3 py-2">{event.status === 'ongoing' ? 'In progress' : event.status}</span>
+              <span className="border border-[var(--sky)] px-3 py-2">{statusLabel(event)}</span>
               {isCurrent && event.registrationNote ? <span className="border border-[var(--cream)]/60 px-3 py-2">{event.registrationNote}</span> : null}
             </div>
           </div>

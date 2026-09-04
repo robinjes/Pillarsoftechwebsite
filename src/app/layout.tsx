@@ -63,7 +63,7 @@ export default async function RootLayout({
   }).replace(/</g, '\\u003c')
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`${bodyFont.variable} ${displayFont.variable}`} suppressHydrationWarning>
         <script id="organization-jsonld" nonce={nonce} suppressHydrationWarning type="application/ld+json">{organizationJsonLd}</script>
         <a href="#main-content" className="skip-link">Skip to content</a>

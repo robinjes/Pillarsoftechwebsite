@@ -396,7 +396,7 @@ export default function VolunteerPortalPage() {
               </div>
 
               {currentVolunteerEvents.length > 0 ? (
-                <div className="divide-y-2 divide-[var(--ink)]/20 border-y-2 border-[var(--ink)]/20">
+                <div className="mt-8 divide-y-2 divide-[var(--ink)]/20 border-y-2 border-[var(--ink)]/20">
                   {currentVolunteerEvents.map((event) => {
                     const signup = signups.find((item) => item.eventId === event.id)
                     const attended = signup?.status === 'attended'
@@ -528,7 +528,7 @@ export default function VolunteerPortalPage() {
           </div>
 
           {currentVolunteerEvents.length > 0 ? (
-            <div className="divide-y-2 divide-[var(--ink)]/20 border-y-2 border-[var(--ink)]/20">
+            <div className="mt-8 divide-y-2 divide-[var(--ink)]/20 border-y-2 border-[var(--ink)]/20">
               {currentVolunteerEvents.map((event) => {
                 const open = event.volunteerRegistrationState === 'open'
                 const isDeepLinked = event.id === deepLinkedEventId

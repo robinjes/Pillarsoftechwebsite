@@ -67,10 +67,17 @@ function eventStory(event: PublicEvent): string {
 }
 
 function statusLabel(event: PublicEvent): string {
-  if (event.status === 'ongoing') return 'In progress'
+  if (event.status === 'ongoing') return 'In Progress'
   if (event.status === 'cancelled') return 'Cancelled'
   if (event.status === 'completed') return 'Completed'
   return 'Upcoming'
+}
+
+function programCategoryLabel(value: string): string {
+  return value
+    .trim()
+    .replace(/[-_]+/g, ' ')
+    .replace(/\b\p{L}/gu, (character) => character.toUpperCase())
 }
 
 function dateLabel(event: PublicEvent): string {
@@ -93,7 +100,7 @@ function EventCard({ event }: { event: PublicEvent }) {
   return (
     <article data-event-card={event.id} className="flex h-full flex-col overflow-hidden rounded-[2rem] border-2 border-[var(--ink)]/35 bg-[var(--paper)]">
       <Link href={eventPath} className="group block">
-        <div className="relative aspect-[4/3] overflow-hidden bg-[var(--sky)]">
+        <div className="relative aspect-video overflow-hidden bg-[var(--sky)]">
           {image ? (
             <Image
               src={image}
@@ -110,22 +117,22 @@ function EventCard({ event }: { event: PublicEvent }) {
         </div>
       </Link>
 
-      <div className="flex flex-1 flex-col p-5 sm:p-6">
+      <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
           <span className="rounded-full border-2 border-[var(--cobalt)] bg-[var(--sky)] px-3 py-1 text-[var(--midnight)]">
             {statusLabel(event)}
           </span>
-          <span className="text-[var(--cobalt)]">{event.programCategory}</span>
+          <span className="text-[var(--cobalt)]">{programCategoryLabel(event.programCategory)}</span>
           <span className="rounded-full border-2 border-[var(--ink)]/20 px-3 py-1 text-xs font-semibold text-[var(--ink)]/75">{branchLabel(event.branch)}</span>
         </div>
-        <h3 className="mt-4 font-display text-2xl leading-tight text-[var(--midnight)] sm:text-3xl">
+        <h3 className="mt-3 font-display text-xl leading-tight text-[var(--midnight)] sm:text-2xl">
           <Link href={eventPath} className="underline-offset-4 hover:underline focus-visible:underline">
             {event.title}
           </Link>
         </h3>
-        <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--ink)]/80">{eventStory(event)}</p>
+        <p className="mt-2 max-w-2xl line-clamp-3 text-sm leading-6 text-[var(--ink)]/80">{eventStory(event)}</p>
 
-        <dl className="mt-5 grid gap-4 border-t border-[var(--ink)]/30 pt-5 text-sm sm:grid-cols-3">
+        <dl className="mt-4 grid gap-3 border-t border-[var(--ink)]/30 pt-4 text-sm sm:grid-cols-3">
           <div>
             <dt className="flex items-center gap-2 text-sm font-semibold text-[var(--cobalt)]">
               <CalendarDays className="h-4 w-4" aria-hidden="true" /> Date
@@ -144,7 +151,7 @@ function EventCard({ event }: { event: PublicEvent }) {
           </div>
         </dl>
 
-        <div className="mt-auto flex flex-col gap-2 pt-6">
+        <div className="mt-auto flex flex-col gap-2 pt-4">
         <Link
           href={eventPath}
           className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] px-4 py-2 text-sm font-bold text-[var(--midnight)] transition-colors hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
@@ -264,7 +271,7 @@ export default function EventsPage() {
       <header className="mx-auto max-w-7xl rounded-[2rem] border-b border-[var(--ink)]/25 bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10 sm:py-14">
         <div className="grid gap-8 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)] xl:items-end">
           <div>
-            <p className="text-sm font-semibold text-[var(--sky)]">Pillars of Tech · field notes</p>
+            <p className="text-sm font-semibold text-[var(--sky)]">Pillars of Tech · Event Archive</p>
             <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.96] tracking-[-0.04em] sm:text-[4.35rem]">
               Programs that make curiosity visible.
             </h1>

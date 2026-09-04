@@ -15,11 +15,11 @@ describe('stakeholder global chrome contract', () => {
     expect(labels).toEqual(['For Families', 'Events', 'Our Work', 'Volunteer', 'Contact'])
   })
 
-  it('uses the compact desktop logo width', () => {
+  it('uses the larger compact desktop logo width', () => {
     const brandMark = read('src/components/site/BrandMark.tsx')
 
-    expect(brandMark).toContain('width={compact ? 240 : 280}')
-    expect(brandMark).toContain("className={compact ? 'h-auto w-[205px] sm:w-[240px] object-contain' : 'h-auto w-auto object-contain'}")
+    expect(brandMark).toContain('width={compact ? 264 : 280}')
+    expect(brandMark).toContain("className={compact ? 'h-[37.5px] w-[210px] object-contain sm:h-[47.143px] sm:w-[264px]' : 'h-auto w-auto object-contain'}")
   })
 
   it('makes desktop navigation links visible outlined pills', () => {

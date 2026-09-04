@@ -11,10 +11,10 @@ export default function BrandMark({ compact = false }: { compact?: boolean }) {
       <Image
         src="/images/home/pillars-logo-white.png"
         alt="Pillars of Tech — Breaking Barriers, Building Innovators"
-        width={compact ? 240 : 280}
-        height={compact ? 43 : 50}
-        sizes={compact ? '(max-width: 640px) 205px, 240px' : '(max-width: 640px) 240px, 280px'}
-        className={compact ? 'h-auto w-[205px] sm:w-[240px] object-contain' : 'h-auto w-auto object-contain'}
+        width={compact ? 264 : 280}
+        height={compact ? 47 : 50}
+        sizes={compact ? '(max-width: 640px) 210px, 264px' : '(max-width: 640px) 240px, 280px'}
+        className={compact ? 'h-[37.5px] w-[210px] object-contain sm:h-[47.143px] sm:w-[264px]' : 'h-auto w-auto object-contain'}
         priority
       />
     </Link>
