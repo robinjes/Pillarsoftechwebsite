@@ -2,7 +2,7 @@
 -- Run after 202609050006_chat_delivery_recovery_repair.sql on the disposable
 -- Supabase database. Fixtures are transaction-local.
 begin;
-select plan(13);
+select plan(16);
 
 select ok(
   has_function_privilege(
@@ -124,6 +124,108 @@ select ok(
     where part_id = '75000000-0000-4000-8000-000000000108'::uuid
   ),
   'a future-due uncertain part is deferred without consuming the scoped batch'
+);
+
+-- A thread setup row at the cap must not keep re-entering the global batch.
+-- Keep several old capped conversations ahead of one newer eligible row so a
+-- bounded dispatcher proves it can still see the newer work.
+insert into public.chat_conversations (
+  id, visitor_token_digest, display_name, email, is_under_13, guardian_attested,
+  status, ownership_expires_at, terminal_at, discord_starter_message_id,
+  discord_starter_reference, discord_starter_nonce, discord_starter_state,
+  discord_thread_id, discord_thread_state, discord_thread_attempt_count,
+  discord_thread_failure_code, discord_thread_next_retry_at,
+  discord_delivery_status, created_at, updated_at
+) values
+  (
+    '75000000-0000-4000-8000-000000000401', repeat('d', 64), 'Exhausted 401', '', false, false,
+    'open', now() + interval '1 day', null, '950000000000000401',
+    'starter-ref-750-401', 'starter-nonce-750-401x', 'sent',
+    '950000000000000401', 'failed', 20, 'discord_429', now() - interval '1 hour',
+    'pending', now() - interval '5 hours', now()
+  ),
+  (
+    '75000000-0000-4000-8000-000000000402', repeat('e', 64), 'Exhausted 402', '', false, false,
+    'open', now() + interval '1 day', null, '950000000000000402',
+    'starter-ref-750-402', 'starter-nonce-750-402x', 'sent',
+    '950000000000000402', 'failed', 20, 'discord_429', null,
+    'pending', now() - interval '4 hours', now()
+  ),
+  (
+    '75000000-0000-4000-8000-000000000403', repeat('f', 64), 'Exhausted 403', '', false, false,
+    'open', now() + interval '1 day', null, '950000000000000403',
+    'starter-ref-750-403', 'starter-nonce-750-403x', 'sent',
+    '950000000000000403', 'failed', 20, 'discord_429', now() - interval '1 minute',
+    'pending', now() - interval '3 hours', now()
+  );
+insert into public.chat_messages (
+  id, conversation_id, sender, body, delivery_status, delivery_part_count,
+  created_at, updated_at
+) values
+  (
+    '75000000-0000-4000-8000-000000000411',
+    '75000000-0000-4000-8000-000000000401', 'visitor', 'capped thread 401', 'pending', null,
+    now() - interval '5 hours', now()
+  ),
+  (
+    '75000000-0000-4000-8000-000000000412',
+    '75000000-0000-4000-8000-000000000402', 'visitor', 'capped thread 402', 'pending', null,
+    now() - interval '4 hours', now()
+  ),
+  (
+    '75000000-0000-4000-8000-000000000413',
+    '75000000-0000-4000-8000-000000000403', 'visitor', 'capped thread 403', 'pending', null,
+    now() - interval '3 hours', now()
+  );
+insert into public.chat_conversations (
+  id, visitor_token_digest, display_name, email, is_under_13, guardian_attested,
+  status, ownership_expires_at, terminal_at, discord_starter_message_id,
+  discord_starter_reference, discord_starter_nonce, discord_starter_state,
+  discord_thread_id, discord_thread_state, discord_thread_attempt_count,
+  discord_thread_failure_code, discord_thread_next_retry_at,
+  discord_delivery_status, created_at, updated_at
+) values (
+  '75000000-0000-4000-8000-000000000404', repeat('7', 64), 'New eligible thread', '', false, false,
+  'open', now() + interval '1 day', null, '950000000000000404',
+  'starter-ref-750-404', 'starter-nonce-750-404x', 'sent',
+  '950000000000000404', 'sent', 0, null, null,
+  'pending', now() + interval '1 second', now()
+);
+insert into public.chat_messages (
+  id, conversation_id, sender, body, delivery_status, delivery_part_count,
+  created_at, updated_at
+) values (
+  '75000000-0000-4000-8000-000000000414',
+  '75000000-0000-4000-8000-000000000404', 'visitor', 'new eligible thread work', 'pending', null,
+  now() + interval '1 second', now()
+);
+
+select is(
+  (select count(*)::integer
+   from public.list_chat_delivery_work_candidates(2)
+   where conversation_id in (
+     '75000000-0000-4000-8000-000000000401'::uuid,
+     '75000000-0000-4000-8000-000000000402'::uuid,
+     '75000000-0000-4000-8000-000000000403'::uuid
+   )),
+  0,
+  'exhausted thread setup conversations do not consume the bounded global batch'
+);
+select ok(
+  exists (
+    select 1
+    from public.list_chat_delivery_work_candidates(2)
+    where conversation_id = '75000000-0000-4000-8000-000000000404'::uuid
+  ),
+  'newer eligible work remains visible in the bounded global batch'
+);
+select is(
+  (select count(*)::integer
+   from public.list_chat_delivery_work_candidates_for_conversation(
+     '75000000-0000-4000-8000-000000000401', 50
+   )),
+  0,
+  'scoped enumeration also excludes an exhausted thread setup conversation'
 );
 
 insert into public.chat_conversations (
