@@ -11,6 +11,7 @@ beforeEach(() => {
 function stubCompleteConfig() {
   vi.stubEnv('CHAT_ENABLED', 'true')
   vi.stubEnv('CHAT_TOKEN_PEPPER', 'test-pepper')
+  vi.stubEnv('CRON_SECRET', 'test-retention-secret-0123456789012345')
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_URL', 'http://127.0.0.1:54321')
   vi.stubEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY', 'anon-key')
   vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', 'service-role-key')
@@ -48,5 +49,13 @@ describe('server-only chat readiness gate', () => {
     expect(config.ready).toBe(false)
     expect(config.status).toBe('incomplete')
   })
-})
 
+  it('requires a usable retention secret before reporting public chat ready', () => {
+    stubCompleteConfig()
+    vi.stubEnv('CRON_SECRET', 'short')
+    expect(getChatServerConfig()).toMatchObject({ enabled: true, ready: false, retentionReady: false, status: 'incomplete' })
+
+    vi.stubEnv('CRON_SECRET', `${'a'.repeat(31)} `)
+    expect(getChatServerConfig()).toMatchObject({ enabled: true, ready: false, retentionReady: false })
+  })
+})

@@ -20,6 +20,9 @@ export const CHAT_DISCORD_ENV_NAMES = {
   staffRoleIds: 'DISCORD_CHAT_STAFF_ROLE_IDS',
 } as const
 
+/** Vercel's standard bearer secret for the protected retention cron. */
+export const CHAT_RETENTION_SECRET_ENV = 'CRON_SECRET'
+
 export type ChatServerConfigurationStatus = 'disabled' | 'incomplete' | 'ready'
 
 export interface ChatServerConfig {
@@ -29,6 +32,8 @@ export interface ChatServerConfig {
   credentialReady: boolean
   /** Discord bot and fixed guild/channel coordinates are usable for delivery. */
   discordDeliveryReady: boolean
+  /** The protected retention endpoint can authenticate its scheduled caller. */
+  retentionReady: boolean
   status: ChatServerConfigurationStatus
   discordApplicationId: string | null
   discordPublicKey: string | null
@@ -40,6 +45,8 @@ export interface ChatServerConfig {
 
 const discordSnowflake = /^\d{1,30}$/u
 const discordPublicKey = /^[0-9a-f]{64}$/iu
+
+const retentionSecretMinLength = 32
 
 function env(...names: string[]): string | null {
   for (const name of names) {
@@ -59,6 +66,10 @@ function validSnowflake(value: string | null): value is string {
 
 function validPublicKey(value: string | null): value is string {
   return value !== null && discordPublicKey.test(value)
+}
+
+function validRetentionSecret(value: string | null): value is string {
+  return value !== null && value.length >= retentionSecretMinLength && !/\s/u.test(value)
 }
 
 function roleIds(value: string | null): string[] {
@@ -81,6 +92,7 @@ export function getChatServerConfig(): ChatServerConfig {
     discordChannelId: env(CHAT_DISCORD_ENV_NAMES.channelId),
     discordStaffRoleIds: roleIds(env(CHAT_DISCORD_ENV_NAMES.staffRoleIds)),
   }
+  const retentionSecret = env(CHAT_RETENTION_SECRET_ENV)
   const discordDeliveryReady = values.discordBotToken !== null
     && validSnowflake(values.discordGuildId)
     && validSnowflake(values.discordChannelId)
@@ -91,16 +103,24 @@ export function getChatServerConfig(): ChatServerConfig {
     && discordDeliveryReady
     && values.discordStaffRoleIds.length > 0
     && values.discordStaffRoleIds.every(validSnowflake)
-  const ready = enabled && credentialReady
+  const retentionReady = validRetentionSecret(retentionSecret)
+  const ready = enabled && credentialReady && retentionReady
 
   return {
     enabled,
     ready,
     credentialReady,
     discordDeliveryReady,
+    retentionReady,
     status: !enabled ? 'disabled' : ready ? 'ready' : 'incomplete',
     ...values,
   }
+}
+
+/** Read the cron secret only inside server-side route/runner code. */
+export function getChatRetentionSecret(): string | null {
+  const value = env(CHAT_RETENTION_SECRET_ENV)
+  return validRetentionSecret(value) ? value : null
 }
 
 export function isChatLiveConfigured(): boolean {

@@ -23,6 +23,7 @@ const config = {
   enabled: true,
   ready: true,
   credentialReady: true,
+  retentionReady: true,
   status: 'ready' as const,
   discordApplicationId: '900000000000000010',
   discordPublicKey: publicKeyHex,

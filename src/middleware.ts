@@ -73,6 +73,7 @@ export function applySecurityHeaders(response: NextResponse, csp?: string): Next
  */
 export function isIndependentlyAuthenticatedPath(pathname: string): boolean {
   return pathname === '/api/integrations/discord/interactions'
+    || pathname === '/api/cron/chat-retention'
 }
 
 export async function middleware(request: NextRequest) {
@@ -126,6 +127,7 @@ export async function middleware(request: NextRequest) {
     '/api/volunteer',
     '/api/media',
     '/api/integrations/discord/interactions',
+    '/api/cron/chat-retention',
     '/register',
     '/volunteer/checkin',
   ]

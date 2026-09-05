@@ -32,6 +32,7 @@ const fixedConfig: ChatServerConfig = {
   enabled: true,
   ready: true,
   credentialReady: true,
+  retentionReady: true,
   status: 'ready',
   discordApplicationId: applicationId,
   discordPublicKey: 'a'.repeat(64),
@@ -389,9 +390,11 @@ describe('signed Discord interaction boundaries', () => {
     expect(wrongPing.response.type).toBe(4)
   })
 
-  it('keeps the middleware bypass exact and does not broaden it to admin or retention paths', () => {
+  it('keeps the independently authenticated middleware paths exact', () => {
     expect(isIndependentlyAuthenticatedPath('/api/integrations/discord/interactions')).toBe(true)
     expect(isIndependentlyAuthenticatedPath('/api/integrations/discord/interactions/extra')).toBe(false)
+    expect(isIndependentlyAuthenticatedPath('/api/cron/chat-retention')).toBe(true)
+    expect(isIndependentlyAuthenticatedPath('/api/cron/chat-retention/extra')).toBe(false)
     expect(isIndependentlyAuthenticatedPath('/api/admin/chats')).toBe(false)
   })
 })

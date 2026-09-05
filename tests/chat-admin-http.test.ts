@@ -57,6 +57,7 @@ const config = {
   enabled: true,
   ready: true,
   credentialReady: true,
+  retentionReady: true,
   status: 'ready',
   discordApplicationId: '900000000000000010',
   discordPublicKey: 'a'.repeat(64),

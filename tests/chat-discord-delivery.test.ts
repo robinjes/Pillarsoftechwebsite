@@ -37,6 +37,7 @@ const config: ChatServerConfig = {
   enabled: false,
   ready: false,
   credentialReady: true,
+  retentionReady: true,
   discordDeliveryReady: true,
   status: 'disabled',
   discordApplicationId: applicationId,
