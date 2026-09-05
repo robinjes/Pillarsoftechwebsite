@@ -4,7 +4,7 @@
 -- covers the original storage foundation, while this file covers the new
 -- queue lease and client-message idempotency boundary.
 begin;
-select plan(20);
+select plan(24);
 
 select has_column('public', 'chat_queue_state', 'queue_expires_at', 'queue state has a daily expiry column');
 select has_column('public', 'chat_messages', 'client_message_id', 'messages have a client idempotency key');
@@ -84,6 +84,76 @@ select ok(
   position('queue_expires_at' in lower(pg_get_functiondef('public.insert_chat_visitor_conversation(text,text,text,boolean,boolean)'::regprocedure))) > 0
   and position('22:00' in lower(pg_get_functiondef('public.insert_chat_visitor_conversation(text,text,text,boolean,boolean)'::regprocedure))) > 0,
   'conversation RPC enforces the same-Pacific-day close'
+);
+
+-- Exercise a transaction-local clone of the legacy three-argument symbol at a
+-- fixed staffed instant. The clone keeps the production body but replaces its
+-- database clock, so both lease failures and a same-day 22:00 lease are
+-- deterministic regardless of when this suite runs.
+do $$
+declare
+  function_sql text;
+begin
+  function_sql := replace(
+    pg_get_functiondef('public.insert_chat_visitor_message(uuid,text,text)'::regprocedure),
+    'public.insert_chat_visitor_message',
+    'public.chat_test_insert_legacy_visitor_message'
+  );
+  function_sql := replace(
+    function_sql,
+    'clock_timestamp()',
+    '''2099-09-04 20:00:00-07''::timestamptz'
+  );
+  execute function_sql;
+end;
+$$;
+
+insert into public.chat_conversations (
+  id, visitor_token_digest, display_name, email, is_under_13, guardian_attested,
+  status, ownership_expires_at, terminal_at, discord_delivery_status,
+  created_at, updated_at
+) values (
+  '00000000-0000-4000-8000-000000000201', repeat('f', 64), 'Legacy lease test', '',
+  false, false, 'open', '2099-12-31T23:59:59Z', null, 'pending',
+  clock_timestamp(), clock_timestamp()
+);
+update public.chat_queue_state
+set queue_open = true,
+    queue_expires_at = '2099-09-04 19:59:59-07'::timestamptz
+where singleton_key = 'default';
+select throws_ok(
+  $$select public.chat_test_insert_legacy_visitor_message(
+    '00000000-0000-4000-8000-000000000201', repeat('f', 64), 'Expired lease'
+  )$$,
+  'P0003', 'chat is closed',
+  'legacy visitor-message RPC rejects an expired queue lease'
+);
+update public.chat_queue_state
+set queue_open = true,
+    queue_expires_at = null
+where singleton_key = 'default';
+select throws_ok(
+  $$select public.chat_test_insert_legacy_visitor_message(
+    '00000000-0000-4000-8000-000000000201', repeat('f', 64), 'Missing lease'
+  )$$,
+  'P0003', 'chat is closed',
+  'legacy visitor-message RPC rejects a missing queue lease'
+);
+update public.chat_queue_state
+set queue_open = true,
+    queue_expires_at = '2099-09-04 22:00:00-07'::timestamptz
+where singleton_key = 'default';
+select lives_ok(
+  $$select public.chat_test_insert_legacy_visitor_message(
+    '00000000-0000-4000-8000-000000000201', repeat('f', 64), 'Fresh lease'
+  )$$,
+  'legacy visitor-message RPC accepts a fresh same-day 22:00 lease'
+);
+select is(
+  (select count(*) from public.chat_messages
+   where conversation_id = '00000000-0000-4000-8000-000000000201'),
+  1::bigint,
+  'only the fresh legacy lease inserted a message'
 );
 
 select throws_ok(

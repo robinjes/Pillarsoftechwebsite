@@ -392,6 +392,10 @@ begin
   now_at := clock_timestamp();
   local_at := now_at at time zone 'America/Los_Angeles';
   if queue_row.queue_open is distinct from true
+     or queue_row.queue_expires_at is null
+     or queue_row.queue_expires_at <= now_at
+     or (queue_row.queue_expires_at at time zone 'America/Los_Angeles')::date <> local_at::date
+     or (queue_row.queue_expires_at at time zone 'America/Los_Angeles')::time <> time '22:00'
      or extract(isodow from local_at)::integer not between 1 and 5
      or local_at::time < time '16:00'
      or local_at::time >= time '22:00'
