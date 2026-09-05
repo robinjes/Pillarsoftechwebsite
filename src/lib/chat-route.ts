@@ -15,6 +15,8 @@ export function chatRepositoryFailure(error: unknown) {
     : ''
   if (code === 'chat_closed') return chatError('chat_closed', 409)
   if (code === 'conversation_not_found') return chatError('conversation_not_found', 404)
+  if (code === 'under_13_requires_guardian') return chatError('under_13_requires_guardian', 403)
+  if (code === 'message_id_conflict') return chatError('message_id_conflict', 409)
   const status = error && typeof error === 'object' && 'status' in error
     ? Number((error as { status?: unknown }).status)
     : NaN

@@ -5,6 +5,7 @@ import { decodeChatCursor } from '@/lib/chat-pagination'
 import {
   getStoredChatAvailability,
   getChatConversationForVisitor,
+  getChatMessageForVisitor,
   insertChatMessageForVisitor,
   listChatMessagesForVisitor,
 } from '@/lib/chat-repository'
@@ -64,7 +65,11 @@ export async function GET(request: Request): Promise<NextResponse> {
 
   try {
     const result = await listChatMessagesForVisitor(owner.conversation, owner.digest, query.cursor, query.limit)
-    return jsonNoStore({ ...result, conversationStatus: owner.conversation.status })
+    return jsonNoStore({
+      ...result,
+      conversation: { id: owner.conversation.id, status: owner.conversation.status },
+      conversationStatus: owner.conversation.status,
+    })
   } catch (error) {
     return chatRepositoryFailure(error)
   }
@@ -75,6 +80,24 @@ export async function POST(request: Request): Promise<NextResponse> {
   const parsed = chatMessageCreateSchema.safeParse(await readJson(request))
   if (!parsed.success) return chatError('invalid_chat_request', 400)
 
+  const owner = await ownerFromRequest(request, parsed.data.conversationId)
+  if ('error' in owner) return owner.error ?? chatError('chat_unavailable', 503)
+
+  // An exact retry should be safe to acknowledge even when the queue closed
+  // after the original insert. The lookup is still bound to the opaque owner
+  // and conversation, and conflicting bodies fail before any new write.
+  try {
+    const existing = await getChatMessageForVisitor(
+      owner.conversation,
+      owner.digest,
+      parsed.data.clientMessageId,
+      parsed.data.body,
+    )
+    if (existing) return jsonNoStore({ message: existing, replayed: true }, 200)
+  } catch (error) {
+    return chatRepositoryFailure(error)
+  }
+
   let availability
   try {
     availability = await getStoredChatAvailability()
@@ -83,8 +106,6 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
   if (availability.state !== 'open' || !availability.queueOpen) return chatError('chat_closed', 409)
 
-  const owner = await ownerFromRequest(request, parsed.data.conversationId)
-  if ('error' in owner) return owner.error ?? chatError('chat_unavailable', 503)
   if (owner.conversation.status !== 'open') return chatError('chat_closed', 409)
 
   try {
@@ -97,7 +118,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   }
 
   try {
-    const message = await insertChatMessageForVisitor(owner.conversation, owner.digest, parsed.data.body)
+    const message = await insertChatMessageForVisitor(
+      owner.conversation,
+      owner.digest,
+      parsed.data.body,
+      parsed.data.clientMessageId,
+    )
     return jsonNoStore({ message }, 201)
   } catch (error) {
     return chatRepositoryFailure(error)

@@ -15,6 +15,8 @@ export type { ChatOfficeHour }
 
 export interface ChatQueueSnapshot {
   queueOpen: boolean
+  /** Every persisted opening is a same-day lease ending at Pacific 22:00. */
+  queueExpiresAt: string | null
 }
 
 export interface ChatAvailabilityInput {
@@ -128,7 +130,31 @@ function validSchedule(schedule: unknown): schedule is ChatOfficeHour[] {
 }
 
 function validQueue(value: unknown): value is ChatQueueSnapshot {
-  return Boolean(value && typeof value === 'object' && 'queueOpen' in value && typeof value.queueOpen === 'boolean')
+  return Boolean(
+    value
+      && typeof value === 'object'
+      && 'queueOpen' in value
+      && typeof value.queueOpen === 'boolean'
+      && 'queueExpiresAt' in value
+      && (value.queueExpiresAt === null || typeof value.queueExpiresAt === 'string'),
+  )
+}
+
+function samePacificDate(left: ZonedParts, right: ZonedParts): boolean {
+  return left.year === right.year && left.month === right.month && left.day === right.day
+}
+
+/** A queue opening is a same-day lease; a missing lease always fails closed. */
+export function isChatQueueOpenNow(now: Date, queue: ChatQueueSnapshot): boolean {
+  if (!queue.queueOpen) return false
+  if (!queue.queueExpiresAt) return false
+
+  const expiry = new Date(queue.queueExpiresAt)
+  if (!Number.isFinite(expiry.getTime()) || expiry.getTime() <= now.getTime()) return false
+  const nowParts = zonedParts(now, CHAT_TIME_ZONE)
+  const expiryParts = zonedParts(expiry, CHAT_TIME_ZONE)
+  if (!nowParts || !expiryParts || !samePacificDate(nowParts, expiryParts)) return false
+  return expiryParts.hour === 22 && expiryParts.minute === 0 && expiryParts.second === 0
 }
 
 /**
@@ -231,8 +257,9 @@ export function getChatAvailability(
 
   const current = findCurrentRow(nowParts, schedule)
   const nextOpening = nextOpeningFromValidSchedule(safeNow, schedule)?.toISOString() ?? null
-  if (!current) return { state: 'closed', queueOpen: queue.queueOpen, timezone: CHAT_TIME_ZONE, nextOpening, ...canonicalHours }
-  if (!queue.queueOpen) return { state: 'scheduled_offline', queueOpen: false, timezone: CHAT_TIME_ZONE, nextOpening, ...canonicalHours }
+  const queueOpen = isChatQueueOpenNow(safeNow, queue)
+  if (!current) return { state: 'closed', queueOpen, timezone: CHAT_TIME_ZONE, nextOpening, ...canonicalHours }
+  if (!queueOpen) return { state: 'scheduled_offline', queueOpen: false, timezone: CHAT_TIME_ZONE, nextOpening, ...canonicalHours }
   return { state: 'open', queueOpen: true, timezone: CHAT_TIME_ZONE, nextOpening: null, ...canonicalHours }
 }
 

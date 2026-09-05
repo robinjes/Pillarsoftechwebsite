@@ -1,0 +1,106 @@
+import 'server-only'
+
+import { getSupabaseServiceConfig } from '@/lib/supabase/config'
+
+/**
+ * Server-only chat configuration. The public site must remain dark unless
+ * the explicit feature flag is enabled and every Discord trust boundary is
+ * configured. Keeping this read in one module prevents individual routes or
+ * the future bridge from accidentally treating a partial environment as live.
+ */
+
+export const CHAT_ENABLED_ENV = 'CHAT_ENABLED'
+
+export const CHAT_DISCORD_ENV_NAMES = {
+  applicationId: 'DISCORD_APPLICATION_ID',
+  publicKey: 'DISCORD_PUBLIC_KEY',
+  botToken: 'DISCORD_BOT_TOKEN',
+  guildId: 'DISCORD_GUILD_ID',
+  channelId: 'DISCORD_CHAT_CHANNEL_ID',
+  staffRoleIds: 'DISCORD_CHAT_STAFF_ROLE_IDS',
+} as const
+
+export type ChatServerConfigurationStatus = 'disabled' | 'incomplete' | 'ready'
+
+export interface ChatServerConfig {
+  enabled: boolean
+  ready: boolean
+  status: ChatServerConfigurationStatus
+  discordApplicationId: string | null
+  discordPublicKey: string | null
+  discordBotToken: string | null
+  discordGuildId: string | null
+  discordChannelId: string | null
+  discordStaffRoleIds: string[]
+}
+
+const discordSnowflake = /^\d{1,30}$/u
+const discordPublicKey = /^[0-9a-f]{64}$/iu
+
+function env(...names: string[]): string | null {
+  for (const name of names) {
+    const value = process.env[name]?.trim()
+    if (value) return value
+  }
+  return null
+}
+
+function enabledFlag(): boolean {
+  return process.env[CHAT_ENABLED_ENV]?.trim().toLowerCase() === 'true'
+}
+
+function validSnowflake(value: string | null): value is string {
+  return value !== null && discordSnowflake.test(value)
+}
+
+function validPublicKey(value: string | null): value is string {
+  return value !== null && discordPublicKey.test(value)
+}
+
+function roleIds(value: string | null): string[] {
+  if (!value) return []
+  return value.split(',').map((item) => item.trim()).filter(Boolean)
+}
+
+/**
+ * Read the complete server configuration without logging or returning a
+ * partially usable secret. The returned fields are for server modules only;
+ * API routes must never serialize this object.
+ */
+export function getChatServerConfig(): ChatServerConfig {
+  const enabled = enabledFlag()
+  const values = {
+    discordApplicationId: env(CHAT_DISCORD_ENV_NAMES.applicationId),
+    discordPublicKey: env(CHAT_DISCORD_ENV_NAMES.publicKey),
+    discordBotToken: env(CHAT_DISCORD_ENV_NAMES.botToken),
+    discordGuildId: env(CHAT_DISCORD_ENV_NAMES.guildId),
+    discordChannelId: env(CHAT_DISCORD_ENV_NAMES.channelId),
+    discordStaffRoleIds: roleIds(env(CHAT_DISCORD_ENV_NAMES.staffRoleIds)),
+  }
+  const ready = enabled
+    && getSupabaseServiceConfig() !== null
+    && Boolean(process.env.CHAT_TOKEN_PEPPER?.trim())
+    && validSnowflake(values.discordApplicationId)
+    && validPublicKey(values.discordPublicKey)
+    && values.discordBotToken !== null
+    && validSnowflake(values.discordGuildId)
+    && validSnowflake(values.discordChannelId)
+    && values.discordStaffRoleIds.length > 0
+    && values.discordStaffRoleIds.every(validSnowflake)
+
+  return {
+    enabled,
+    ready,
+    status: !enabled ? 'disabled' : ready ? 'ready' : 'incomplete',
+    ...values,
+  }
+}
+
+export function isChatLiveConfigured(): boolean {
+  return getChatServerConfig().ready
+}
+
+/** Stable public-facing fallback used when chat is disabled or incomplete. */
+export function isChatDisabledByConfiguration(): boolean {
+  return !getChatServerConfig().ready
+}

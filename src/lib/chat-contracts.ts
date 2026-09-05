@@ -14,6 +14,8 @@ export const CHAT_CANONICAL_DAYS = 'Monday–Friday'
 export const CHAT_CANONICAL_OPENS_AT = '16:00'
 export const CHAT_CANONICAL_CLOSES_AT = '22:00'
 export const CHAT_CANONICAL_LABEL = 'Monday–Friday, 4:00–10:00 PM Pacific'
+export const CHAT_UNDER_13_ERROR = 'under_13_requires_guardian'
+export const CHAT_MESSAGE_ID_CONFLICT_ERROR = 'message_id_conflict'
 
 const controlCharacters = /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/u
 const markupCharacters = /[<>]/u
@@ -66,6 +68,7 @@ export type ChatConversationCreate = z.infer<typeof chatConversationCreateSchema
 
 export const chatMessageCreateSchema = z.object({
   conversationId: z.uuid(),
+  clientMessageId: z.uuid(),
   body: plainChatText(MAX_CHAT_MESSAGE),
   honeypot: z.string().trim().max(CHAT_MAX_HONEYPOT).default(''),
 }).strict().superRefine((payload, context) => {
@@ -112,6 +115,7 @@ export type ChatOfficeHour = z.infer<typeof chatOfficeHourSchema>
 export const chatQueueStateSchema = z.object({
   id: z.uuid(),
   queueOpen: z.boolean(),
+  queueExpiresAt: isoDateTimeWithTimezone.nullable(),
   updatedAt: isoDateTimeWithTimezone,
 }).strict()
 
@@ -135,6 +139,7 @@ export type ChatConversationRecord = z.infer<typeof chatConversationRecordSchema
 export const chatMessageRecordSchema = z.object({
   id: z.uuid(),
   conversationId: z.uuid(),
+  clientMessageId: z.uuid().nullable(),
   sender: chatMessageSenderSchema,
   body: plainChatText(MAX_CHAT_MESSAGE),
   deliveryStatus: chatDeliveryStatusSchema,

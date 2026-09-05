@@ -54,8 +54,15 @@ describe('chat input contracts', () => {
   })
 
   it('allows normal punctuation but rejects markup, unsafe destinations, and oversize text', () => {
-    const valid = { conversationId, body: "Can you help me plan a robot? It's for school! (Thank you.)", honeypot: '' }
+    const valid = {
+      conversationId,
+      clientMessageId: '00000000-0000-4000-8000-000000000010',
+      body: "Can you help me plan a robot? It's for school! (Thank you.)",
+      honeypot: '',
+    }
     expect(chatMessageCreateSchema.safeParse(valid).success).toBe(true)
+    expect(chatMessageCreateSchema.safeParse({ ...valid, clientMessageId: 'not-a-uuid' }).success).toBe(false)
+    expect(chatMessageCreateSchema.safeParse(({ ...valid, clientMessageId: undefined } as unknown))).toMatchObject({ success: false })
     expect(chatMessageCreateSchema.safeParse({ ...valid, body: '<script>alert(1)</script>' }).success).toBe(false)
     expect(chatMessageCreateSchema.safeParse({ ...valid, body: 'a'.repeat(MAX_CHAT_MESSAGE + 1) }).success).toBe(false)
     expect(chatMessageCreateSchema.safeParse({ ...valid, destination: 'javascript:alert(1)' }).success).toBe(false)

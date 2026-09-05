@@ -4,6 +4,7 @@ const {
   getStoredChatAvailabilityMock,
   createChatConversationMock,
   getChatConversationForVisitorMock,
+  getChatMessageForVisitorMock,
   listChatMessagesForVisitorMock,
   insertChatMessageForVisitorMock,
   consumeChatRateLimitMock,
@@ -11,6 +12,7 @@ const {
   getStoredChatAvailabilityMock: vi.fn(),
   createChatConversationMock: vi.fn(),
   getChatConversationForVisitorMock: vi.fn(),
+  getChatMessageForVisitorMock: vi.fn(),
   listChatMessagesForVisitorMock: vi.fn(),
   insertChatMessageForVisitorMock: vi.fn(),
   consumeChatRateLimitMock: vi.fn(),
@@ -21,13 +23,14 @@ vi.mock('@/lib/chat-repository', () => ({
   getStoredChatAvailability: getStoredChatAvailabilityMock,
   createChatConversation: createChatConversationMock,
   getChatConversationForVisitor: getChatConversationForVisitorMock,
+  getChatMessageForVisitor: getChatMessageForVisitorMock,
   listChatMessagesForVisitor: listChatMessagesForVisitorMock,
   insertChatMessageForVisitor: insertChatMessageForVisitorMock,
 }))
 vi.mock('@/lib/contact-rate-limit', () => ({ consumeChatRateLimit: consumeChatRateLimitMock }))
 
 import { GET as getAvailability } from '@/app/api/chat/availability/route'
-import { POST as postConversation } from '@/app/api/chat/conversations/route'
+import { GET as getConversation, POST as postConversation } from '@/app/api/chat/conversations/route'
 import { GET as getMessages, POST as postMessage } from '@/app/api/chat/messages/route'
 import {
   CHAT_TOKEN_COOKIE,
@@ -38,6 +41,7 @@ import {
 
 const conversationId = '00000000-0000-4000-8000-000000000001'
 const visitorMessageId = '00000000-0000-4000-8000-000000000002'
+const clientMessageId = '00000000-0000-4000-8000-000000000010'
 const token = generateChatToken()
 const activeConversation = {
   id: conversationId,
@@ -94,6 +98,7 @@ beforeEach(() => {
   })
   createChatConversationMock.mockResolvedValue({ conversation: activeConversation })
   getChatConversationForVisitorMock.mockResolvedValue(activeConversation)
+  getChatMessageForVisitorMock.mockResolvedValue(null)
   listChatMessagesForVisitorMock.mockResolvedValue({ messages: [], nextCursor: null })
   insertChatMessageForVisitorMock.mockResolvedValue({
     id: visitorMessageId,
@@ -140,6 +145,19 @@ describe('public visitor chat APIs', () => {
       body: 'not-json',
     }))
     expect(response.status).toBe(403)
+    expect(getStoredChatAvailabilityMock).not.toHaveBeenCalled()
+    expect(consumeChatRateLimitMock).not.toHaveBeenCalled()
+    expect(createChatConversationMock).not.toHaveBeenCalled()
+  })
+
+  it('rejects an under-13 independent visitor even when a checkbox is attested', async () => {
+    const response = await postConversation(jsonRequest('https://pillarsoftech.org/api/chat/conversations', {
+      ...validConversationBody,
+      isUnder13: true,
+      guardianAttested: true,
+    }))
+    expect(response.status).toBe(403)
+    await expect(response.json()).resolves.toEqual({ error: 'under_13_requires_guardian' })
     expect(getStoredChatAvailabilityMock).not.toHaveBeenCalled()
     expect(consumeChatRateLimitMock).not.toHaveBeenCalled()
     expect(createChatConversationMock).not.toHaveBeenCalled()
@@ -266,6 +284,19 @@ describe('public visitor chat APIs', () => {
     expect(response.headers.get('set-cookie')).toContain(`${CHAT_TOKEN_COOKIE}=${token}`)
   })
 
+  it('returns only minimal id/status data when a cookie owner resumes by GET', async () => {
+    const response = await getConversation(new Request('https://pillarsoftech.org/api/chat/conversations', {
+      headers: { cookie: `${CHAT_TOKEN_COOKIE}=${token}` },
+    }))
+    expect(response.status).toBe(200)
+    const body = await response.text()
+    expect(JSON.parse(body)).toEqual({
+      conversation: { id: conversationId, status: 'open' },
+    })
+    expect(body).not.toContain('ada@example.com')
+    expect(body).not.toContain('discord')
+  })
+
   it('derives the deterministic token when a syntactically valid cookie has no active owner', async () => {
     getChatConversationForVisitorMock.mockResolvedValueOnce(null)
     const response = await postConversation(jsonRequest('https://pillarsoftech.org/api/chat/conversations', validConversationBody, {
@@ -302,6 +333,7 @@ describe('public visitor chat APIs', () => {
 
     const foreign = await postMessage(jsonRequest('https://pillarsoftech.org/api/chat/messages', {
       conversationId: '00000000-0000-4000-8000-000000000099',
+      clientMessageId,
       body: 'A question?',
       honeypot: '',
     }, { headers: { cookie: `${CHAT_TOKEN_COOKIE}=${token}` } }))
@@ -336,11 +368,35 @@ describe('public visitor chat APIs', () => {
     insertChatMessageForVisitorMock.mockRejectedValueOnce({ routeCode: 'chat_closed', message: 'private queue details' })
     const response = await postMessage(jsonRequest('https://pillarsoftech.org/api/chat/messages', {
       conversationId,
+      clientMessageId,
       body: 'Can you help?',
       honeypot: '',
     }, { headers: { cookie: `${CHAT_TOKEN_COOKIE}=${token}` } }))
     expect(response.status).toBe(409)
     await expect(response.json()).resolves.toEqual({ error: 'chat_closed' })
+  })
+
+  it('acknowledges an exact idempotent message replay without availability or limiter work', async () => {
+    getChatMessageForVisitorMock.mockResolvedValueOnce({
+      id: visitorMessageId,
+      conversationId,
+      clientMessageId,
+      sender: 'visitor',
+      body: 'Can you help?',
+      deliveryStatus: 'pending',
+      createdAt: '2026-08-26T12:00:00.000Z',
+    })
+    const response = await postMessage(jsonRequest('https://pillarsoftech.org/api/chat/messages', {
+      conversationId,
+      clientMessageId,
+      body: 'Can you help?',
+      honeypot: '',
+    }, { headers: { cookie: `${CHAT_TOKEN_COOKIE}=${token}` } }))
+    expect(response.status).toBe(200)
+    await expect(response.json()).resolves.toMatchObject({ replayed: true, message: { id: visitorMessageId } })
+    expect(getStoredChatAvailabilityMock).not.toHaveBeenCalled()
+    expect(consumeChatRateLimitMock).not.toHaveBeenCalled()
+    expect(insertChatMessageForVisitorMock).not.toHaveBeenCalled()
   })
 
   it('re-reads availability before consuming the message limiter', async () => {
@@ -356,6 +412,7 @@ describe('public visitor chat APIs', () => {
     })
     const response = await postMessage(jsonRequest('https://pillarsoftech.org/api/chat/messages', {
       conversationId,
+      clientMessageId,
       body: 'Can you help?',
       honeypot: '',
     }, { headers: { cookie: `${CHAT_TOKEN_COOKIE}=${token}` } }))
@@ -369,6 +426,7 @@ describe('public visitor chat APIs', () => {
     getChatConversationForVisitorMock.mockResolvedValueOnce({ ...activeConversation, status: 'closed' })
     const closed = await postMessage(jsonRequest('https://pillarsoftech.org/api/chat/messages', {
       conversationId,
+      clientMessageId,
       body: 'Can I follow up?',
       honeypot: '',
     }, { headers: { cookie: `${CHAT_TOKEN_COOKIE}=${token}` } }))
@@ -378,6 +436,7 @@ describe('public visitor chat APIs', () => {
     getChatConversationForVisitorMock.mockResolvedValueOnce({ ...activeConversation, status: 'spam' })
     const spam = await postMessage(jsonRequest('https://pillarsoftech.org/api/chat/messages', {
       conversationId,
+      clientMessageId,
       body: 'Still here?',
       honeypot: '',
     }, { headers: { cookie: `${CHAT_TOKEN_COOKIE}=${token}` } }))
@@ -386,11 +445,12 @@ describe('public visitor chat APIs', () => {
     getChatConversationForVisitorMock.mockResolvedValueOnce(activeConversation)
     const sent = await postMessage(jsonRequest('https://pillarsoftech.org/api/chat/messages', {
       conversationId,
+      clientMessageId,
       body: 'Can you help?',
       honeypot: '',
     }, { headers: { cookie: `${CHAT_TOKEN_COOKIE}=${token}` } }))
     expect(sent.status).toBe(201)
-    expect(insertChatMessageForVisitorMock).toHaveBeenCalledWith(expect.objectContaining({ id: conversationId }), expect.stringMatching(/^[0-9a-f]{64}$/), 'Can you help?')
+    expect(insertChatMessageForVisitorMock).toHaveBeenCalledWith(expect.objectContaining({ id: conversationId }), expect.stringMatching(/^[0-9a-f]{64}$/), 'Can you help?', clientMessageId)
     expect(consumeChatRateLimitMock).toHaveBeenCalledWith('chat-message', expect.any(String), expect.any(Object))
   })
 })

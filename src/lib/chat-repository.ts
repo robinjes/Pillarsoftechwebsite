@@ -4,7 +4,9 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 import {
   CHAT_MAX_PAGE_SIZE,
+  CHAT_MESSAGE_ID_CONFLICT_ERROR,
   CHAT_TIME_ZONE,
+  CHAT_UNDER_13_ERROR,
   chatConversationRecordSchema,
   chatConversationStatusSchema,
   chatDeliveryStatusSchema,
@@ -18,6 +20,7 @@ import {
   type ChatMessageRecord,
 } from '@/lib/chat-contracts'
 import { getChatAvailability } from '@/lib/chat-availability'
+import { isChatLiveConfigured } from '@/lib/chat-config'
 import { decodeChatCursor, encodeChatCursor } from '@/lib/chat-pagination'
 import { createSupabaseServiceRoleClient } from '@/lib/supabase/service'
 
@@ -34,21 +37,23 @@ const conversationSelect = [
   'updated_at',
 ].join(',')
 
-const messageSelect = 'id,conversation_id,sender,body,delivery_status,created_at'
+const messageSelect = 'id,conversation_id,client_message_id,sender,body,delivery_status,created_at'
 const digestPattern = /^[0-9a-f]{64}$/
 
 export type ChatRepositoryRouteCode =
   | 'chat_closed'
   | 'conversation_not_found'
+  | 'under_13_requires_guardian'
+  | 'message_id_conflict'
   | 'chat_unavailable'
 
 export class ChatRepositoryError extends Error {
-  readonly status: 400 | 404 | 409 | 503
+  readonly status: 400 | 403 | 404 | 409 | 503
   readonly routeCode: ChatRepositoryRouteCode
 
   constructor(
     message: string,
-    status: 400 | 404 | 409 | 503 = 503,
+    status: 400 | 403 | 404 | 409 | 503 = 503,
     routeCode: ChatRepositoryRouteCode = 'chat_unavailable',
   ) {
     super(message)
@@ -101,6 +106,7 @@ function messageFromRow(row: Record<string, unknown>): ChatMessageRecord {
   const parsed = chatMessageRecordSchema.safeParse({
     id: safeString(row.id),
     conversationId: safeString(row.conversation_id),
+    clientMessageId: row.client_message_id == null ? null : safeString(row.client_message_id),
     sender: row.sender,
     body: safeString(row.body),
     deliveryStatus: row.delivery_status,
@@ -126,6 +132,10 @@ function throwRpcFailure(error: unknown): never {
       throw new ChatRepositoryError('Chat conversation was not found.', 404, 'conversation_not_found')
     case 'P0003':
       throw new ChatRepositoryError('Chat conversation is closed.', 409, 'chat_closed')
+    case 'P0004':
+      throw new ChatRepositoryError(CHAT_UNDER_13_ERROR, 403, 'under_13_requires_guardian')
+    case 'P0005':
+      throw new ChatRepositoryError(CHAT_MESSAGE_ID_CONFLICT_ERROR, 409, 'message_id_conflict')
     case '22023':
       throw new ChatRepositoryError('Invalid chat message.', 400)
     default:
@@ -169,26 +179,19 @@ async function ownedReadableConversation(
   return conversation
 }
 
-/** Write ownership is intentionally stricter than transcript read ownership. */
-async function ownedWritableConversation(
-  client: SupabaseClient,
-  conversationId: string,
-  digest: string,
-  now = new Date(),
-): Promise<ChatConversationRecord> {
-  const conversation = await ownedReadableConversation(client, conversationId, digest, now)
-  if (conversation.status !== 'open') {
-    throw new ChatRepositoryError('Chat conversation is closed.', 409, 'chat_closed')
-  }
-  return conversation
-}
-
 /**
  * Read schedule and queue state through the service role. A missing or
  * malformed row is represented as a closed availability result; database
  * failures remain a generic repository error for the route to redact.
  */
 export async function getStoredChatAvailability(now = new Date()): Promise<ChatAvailability> {
+  // Configuration is an explicit feature gate. Do not touch the database when
+  // chat is disabled or partially configured; this keeps the public route
+  // fail-closed even on a server that has only the older schema deployed.
+  if (!isChatLiveConfigured()) {
+    return getChatAvailability(now, { queueOpen: false, queueExpiresAt: null }, [])
+  }
+
   const client = serviceClient()
   const [scheduleResult, queueResult] = await Promise.all([
     client
@@ -198,7 +201,7 @@ export async function getStoredChatAvailability(now = new Date()): Promise<ChatA
       .order('weekday', { ascending: true }),
     client
       .from('chat_queue_state')
-      .select('id,queue_open,updated_at')
+      .select('id,queue_open,queue_expires_at,updated_at')
       .limit(1)
       .maybeSingle(),
   ])
@@ -223,6 +226,9 @@ export async function getStoredChatAvailability(now = new Date()): Promise<ChatA
     ? chatQueueStateSchema.safeParse({
       id: safeString((queueResult.data as Record<string, unknown>).id),
       queueOpen: (queueResult.data as Record<string, unknown>).queue_open,
+      queueExpiresAt: (queueResult.data as Record<string, unknown>).queue_expires_at == null
+        ? null
+        : safeString((queueResult.data as Record<string, unknown>).queue_expires_at),
       updatedAt: safeString((queueResult.data as Record<string, unknown>).updated_at),
     })
     : null
@@ -233,7 +239,7 @@ export async function getStoredChatAvailability(now = new Date()): Promise<ChatA
   const queueOpen = queue?.success ? queue.data.queueOpen : false
   return getChatAvailability(
     now,
-    { queueOpen },
+    { queueOpen, queueExpiresAt: queue?.success ? queue.data.queueExpiresAt : null },
     parsedSchedule.length === rawScheduleRows.length ? parsedSchedule : [],
   )
 }
@@ -261,41 +267,34 @@ export async function getChatConversationForVisitor(
 export async function createChatConversation(
   input: ChatConversationCreate,
   digest: string,
-  now = new Date(),
+  _now = new Date(),
 ): Promise<{ conversation: ChatConversationRecord; resumed: boolean }> {
+  // Retained as a compatibility parameter for deterministic callers; the
+  // production RPC intentionally uses database clock_timestamp().
+  void _now
   validDigest(digest)
-  const existing = await getChatConversationForVisitor(digest, undefined, now)
-  if (existing && existing.status === 'open') return { conversation: existing, resumed: true }
+  if (input.isUnder13) {
+    throw new ChatRepositoryError(CHAT_UNDER_13_ERROR, 403, 'under_13_requires_guardian')
+  }
 
   const client = serviceClient()
-  const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1_000).toISOString()
-  const { data, error } = await client
-    .from('chat_conversations')
-    .insert({
-      visitor_token_digest: digest,
-      display_name: input.displayName,
-      email: input.email,
-      is_under_13: input.isUnder13,
-      guardian_attested: input.guardianAttested,
-      status: 'open',
-      ownership_expires_at: expiresAt,
-      discord_delivery_status: 'pending',
-    })
-    .select(conversationSelect)
-    .single()
-  if (error) {
-    // Two first requests with the same nonce can race between the initial
-    // owner lookup and this insert. The digest uniqueness constraint is the
-    // serialization point; recover only that expected conflict by reading
-    // the same unexpired open conversation.
-    if (errorCode(error) === '23505') {
-      const resumed = await getChatConversationForVisitor(digest, undefined, now)
-      if (resumed?.status === 'open') return { conversation: resumed, resumed: true }
-    }
+  const { data, error } = await client.rpc('insert_chat_visitor_conversation', {
+    p_visitor_token_digest: digest,
+    p_display_name: input.displayName,
+    p_email: input.email,
+    p_is_under_13: input.isUnder13,
+    p_guardian_attested: input.guardianAttested,
+  })
+  if (error) throwRpcFailure(error)
+  const result = Array.isArray(data) ? data[0] : data
+  if (!result || typeof result !== 'object' || Array.isArray(result)) {
     throw new ChatRepositoryError('Chat storage is temporarily unavailable.', 503)
   }
-  if (!data) throw new ChatRepositoryError('Chat storage is temporarily unavailable.', 503)
-  return { conversation: conversationFromRow(data as unknown as Record<string, unknown>), resumed: false }
+  const resultRow = result as Record<string, unknown>
+  return {
+    conversation: conversationFromRow(resultRow),
+    resumed: resultRow.resumed === true,
+  }
 }
 
 /** Read bounded visitor messages in chronological keyset order. */
@@ -328,20 +327,62 @@ export async function listChatMessagesForVisitor(
   return { messages, nextCursor: hasNextPage && last ? encodeChatCursor(last.createdAt, last.id) : null }
 }
 
+/**
+ * Look up a visitor's idempotency key before a new send spends availability or
+ * rate-limit budget. This is deliberately owner-scoped and body-aware: an
+ * exact replay can be returned after the queue closes, while a reused key
+ * with a different body is a stable conflict.
+ */
+export async function getChatMessageForVisitor(
+  conversation: Pick<ChatConversationRecord, 'id'>,
+  digest: string,
+  clientMessageId: string,
+  body: string,
+): Promise<ChatMessageRecord | null> {
+  validDigest(digest)
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clientMessageId)) {
+    throw new ChatRepositoryError('Invalid chat message.', 400)
+  }
+  const client = serviceClient()
+  await ownedReadableConversation(client, conversation.id, digest)
+  const { data, error } = await client
+    .from('chat_messages')
+    .select(messageSelect)
+    .eq('conversation_id', conversation.id)
+    .eq('client_message_id', clientMessageId)
+    .maybeSingle()
+  if (error) throw new ChatRepositoryError('Chat storage is temporarily unavailable.', 503)
+  if (!data) return null
+  const message = messageFromRow(data as unknown as Record<string, unknown>)
+  if (message.sender !== 'visitor' || message.body !== body.trim()) {
+    throw new ChatRepositoryError(CHAT_MESSAGE_ID_CONFLICT_ERROR, 409, 'message_id_conflict')
+  }
+  return message
+}
+
 /** Persist visitor text as pending delivery; Task 4B owns Discord delivery. */
 export async function insertChatMessageForVisitor(
   conversation: Pick<ChatConversationRecord, 'id'>,
   digest: string,
   body: string,
+  clientMessageId: string,
   now = new Date(),
 ): Promise<ChatMessageRecord> {
   validDigest(digest)
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(clientMessageId)) {
+    throw new ChatRepositoryError('Invalid chat message.', 400)
+  }
   const client = serviceClient()
-  await ownedWritableConversation(client, conversation.id, digest, now)
+  // The RPC remains authoritative for a new send. A readable terminal owner
+  // is intentionally allowed through this preflight so an exact idempotent
+  // retry can return its original row after closure; a fresh body still gets
+  // the atomic `chat_closed` result from the database.
+  await ownedReadableConversation(client, conversation.id, digest, now)
 
   const { data, error } = await client.rpc('insert_chat_visitor_message', {
     p_conversation_id: conversation.id,
     p_visitor_token_digest: digest,
+    p_client_message_id: clientMessageId,
     p_body: body,
   })
   if (error) throwRpcFailure(error)

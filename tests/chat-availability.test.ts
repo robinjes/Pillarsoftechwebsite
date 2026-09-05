@@ -7,8 +7,8 @@ import {
   type ChatOfficeHour,
 } from '@/lib/chat-availability'
 
-const openQueue = { queueOpen: true }
-const closedQueue = { queueOpen: false }
+const openQueue = { queueOpen: true, queueExpiresAt: '2026-08-27T05:00:00.000Z' }
+const closedQueue = { queueOpen: false, queueExpiresAt: null }
 
 function instant(value: string): Date {
   return new Date(value)
@@ -30,7 +30,10 @@ describe('chat availability', () => {
 
   it('fails closed for a manually closed queue and never treats weekends as open', () => {
     expect(getChatAvailability(instant('2026-08-26T23:00:00.000Z'), closedQueue, CANONICAL_CHAT_SCHEDULE).state).toBe('scheduled_offline')
-    expect(getChatAvailability(instant('2026-08-29T23:00:00.000Z'), openQueue, CANONICAL_CHAT_SCHEDULE).state).toBe('closed')
+    expect(getChatAvailability(instant('2026-08-29T23:00:00.000Z'), {
+      queueOpen: true,
+      queueExpiresAt: '2026-08-30T05:00:00.000Z',
+    }, CANONICAL_CHAT_SCHEDULE).state).toBe('closed')
   })
 
   it('computes the next Monday opening across a weekend', () => {
@@ -52,7 +55,10 @@ describe('chat availability', () => {
   })
 
   it('fails closed when the schedule is missing or malformed', () => {
-    expect(getChatAvailability(instant('2026-08-26T23:00:00.000Z'), openQueue, [])).toMatchObject({
+    expect(getChatAvailability(instant('2026-08-26T23:00:00.000Z'), {
+      queueOpen: true,
+      queueExpiresAt: '2026-08-27T05:00:00.000Z',
+    }, [])).toMatchObject({
       state: 'closed',
       queueOpen: false,
       days: 'Monday–Friday',
@@ -61,8 +67,30 @@ describe('chat availability', () => {
       label: 'Monday–Friday, 4:00–10:00 PM Pacific',
     })
     const malformed = [{ weekday: 3, openTime: 'not-a-time', closeTime: '22:00', timezone: 'America/Los_Angeles' }] as unknown as ChatOfficeHour[]
-    expect(getChatAvailability(instant('2026-08-26T23:00:00.000Z'), openQueue, malformed).state).toBe('closed')
+    expect(getChatAvailability(instant('2026-08-26T23:00:00.000Z'), {
+      queueOpen: true,
+      queueExpiresAt: '2026-08-27T05:00:00.000Z',
+    }, malformed).state).toBe('closed')
     expect(getNextChatOpening(instant('2026-08-26T23:00:00.000Z'), malformed)).toBeNull()
-    expect(getChatAvailability(instant('2026-08-26T23:00:00.000Z'), openQueue, CANONICAL_CHAT_SCHEDULE.slice(0, 4)).state).toBe('closed')
+    expect(getChatAvailability(instant('2026-08-26T23:00:00.000Z'), {
+      queueOpen: true,
+      queueExpiresAt: '2026-08-27T05:00:00.000Z',
+    }, CANONICAL_CHAT_SCHEDULE.slice(0, 4)).state).toBe('closed')
+  })
+
+  it('treats a missing, expired, or prior-day queue lease as offline', () => {
+    const now = instant('2026-08-27T00:00:00.000Z')
+    expect(getChatAvailability(now, {
+      queueOpen: true,
+      queueExpiresAt: null,
+    }, CANONICAL_CHAT_SCHEDULE).state).toBe('scheduled_offline')
+    expect(getChatAvailability(now, {
+      queueOpen: true,
+      queueExpiresAt: '2026-08-26T05:00:00.000Z',
+    }, CANONICAL_CHAT_SCHEDULE).state).toBe('scheduled_offline')
+    expect(getChatAvailability(now, {
+      queueOpen: true,
+      queueExpiresAt: '2026-08-27T05:00:00.000Z',
+    }, CANONICAL_CHAT_SCHEDULE).state).toBe('open')
   })
 })

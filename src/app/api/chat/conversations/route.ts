@@ -1,5 +1,5 @@
 import { readJson } from '@/lib/admin-api'
-import { chatConversationCreateSchema } from '@/lib/chat-contracts'
+import { CHAT_UNDER_13_ERROR, chatConversationCreateSchema } from '@/lib/chat-contracts'
 import { getStoredChatAvailability, createChatConversation, getChatConversationForVisitor } from '@/lib/chat-repository'
 import { chatError, chatRepositoryFailure, sameOrigin, sameOriginFailure } from '@/lib/chat-route'
 import { consumeChatRateLimit } from '@/lib/contact-rate-limit'
@@ -12,12 +12,28 @@ import {
 import { getRequestIdentity } from '@/lib/request-identity'
 import { jsonNoStore } from '@/lib/volunteer-api'
 
-function publicConversation(conversation: { id: string; status: string; ownershipExpiresAt: string }, resumed: boolean) {
+function publicConversation(conversation: { id: string; status: string }, resumed: boolean) {
   return {
-    id: conversation.id,
-    status: conversation.status,
-    ownershipExpiresAt: conversation.ownershipExpiresAt,
+    conversation: {
+      id: conversation.id,
+      status: conversation.status,
+    },
     resumed,
+  }
+}
+
+/** Resume only the opaque cookie owner; never serialize private conversation fields. */
+export async function GET(request: Request) {
+  if (!sameOrigin(request)) return sameOriginFailure()
+  const token = getChatTokenFromRequest(request)
+  if (!token) return chatError('ownership_required', 401)
+
+  try {
+    const conversation = await getChatConversationForVisitor(hashChatToken(token))
+    if (!conversation || conversation.status === 'spam') return chatError('conversation_not_found', 404)
+    return jsonNoStore({ conversation: { id: conversation.id, status: conversation.status } })
+  } catch (error) {
+    return chatRepositoryFailure(error)
   }
 }
 
@@ -26,6 +42,7 @@ export async function POST(request: Request) {
 
   const parsed = chatConversationCreateSchema.safeParse(await readJson(request))
   if (!parsed.success) return chatError('invalid_chat_request', 400)
+  if (parsed.data.isUnder13) return chatError(CHAT_UNDER_13_ERROR, 403)
 
   let availability
   try {
@@ -65,7 +82,7 @@ export async function POST(request: Request) {
 
   try {
     const result = await createChatConversation(parsed.data, digest)
-    const response = jsonNoStore({ conversation: publicConversation(result.conversation, result.resumed) }, result.resumed ? 200 : 201)
+    const response = jsonNoStore(publicConversation(result.conversation, result.resumed), result.resumed ? 200 : 201)
     setChatTokenCookie(response, token)
     return response
   } catch (error) {
