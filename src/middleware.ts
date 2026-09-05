@@ -66,6 +66,15 @@ export function applySecurityHeaders(response: NextResponse, csp?: string): Next
   return response
 }
 
+/**
+ * These endpoints authenticate independently of the browser cookie session.
+ * Keep this exact-path allowlist narrow: a broad API bypass would let a future
+ * route accidentally skip the normal Supabase session refresh boundary.
+ */
+export function isIndependentlyAuthenticatedPath(pathname: string): boolean {
+  return pathname === '/api/integrations/discord/interactions'
+}
+
 export async function middleware(request: NextRequest) {
   const documentRequest = isDocumentRequest(request)
   const nonce = documentRequest ? randomBytes(16).toString('base64') : null
@@ -79,7 +88,7 @@ export async function middleware(request: NextRequest) {
 
   const response = NextResponse.next({ request: { headers: forwardedHeaders } })
   const config = getSupabasePublicConfig()
-  if (config) {
+  if (config && !isIndependentlyAuthenticatedPath(request.nextUrl.pathname)) {
     const client = createServerClient(config.url, config.anonKey, {
       cookies: {
         getAll() {
@@ -116,6 +125,7 @@ export async function middleware(request: NextRequest) {
     '/api/registrations',
     '/api/volunteer',
     '/api/media',
+    '/api/integrations/discord/interactions',
     '/register',
     '/volunteer/checkin',
   ]

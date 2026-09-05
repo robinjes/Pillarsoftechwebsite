@@ -6,11 +6,13 @@ import {
   chatAdminConversationListSchema,
   chatAdminConversationSchema,
   chatAdminMessageSchema,
+  chatAdminStoredMessageSchema,
   chatAdminQueueStateSchema,
   chatAdminReplySchema,
   chatAdminTerminalSchema,
   chatAdminTranscriptPageSchema,
   chatAdminQueueUpdateSchema,
+  chatDiscordActionContextSchema,
   type ChatAdminConversation,
   type ChatAdminConversationListInput,
   type ChatAdminConversationPage,
@@ -20,6 +22,7 @@ import {
   type ChatAdminReplyInput,
   type ChatAdminTerminalInput,
   type ChatAdminTranscriptPage,
+  type ChatDiscordActionContext,
 } from '@/lib/chat-admin-contracts'
 import { decodeChatCursor, encodeChatCursor } from '@/lib/chat-pagination'
 import { createSupabaseServiceRoleClient } from '@/lib/supabase/service'
@@ -134,7 +137,7 @@ function adminConversationFromRow(row: Record<string, unknown>): ChatAdminConver
 }
 
 function adminMessageFromRow(row: Record<string, unknown>): ChatAdminMessage {
-  const parsed = chatAdminMessageSchema.safeParse({
+  const parsed = chatAdminStoredMessageSchema.safeParse({
     id: text(row.id),
     conversationId: text(row.conversation_id),
     clientMessageId: row.client_message_id == null ? null : text(row.client_message_id),
@@ -147,7 +150,14 @@ function adminMessageFromRow(row: Record<string, unknown>): ChatAdminMessage {
     createdAt: text(row.created_at),
   })
   if (!parsed.success) throw new ChatAdminRepositoryError('Chat storage is temporarily unavailable.')
-  return parsed.data
+  return chatAdminMessageSchema.parse({
+    id: parsed.data.id,
+    conversationId: parsed.data.conversationId,
+    sender: parsed.data.sender,
+    body: parsed.data.body,
+    deliveryStatus: parsed.data.deliveryStatus,
+    createdAt: parsed.data.createdAt,
+  })
 }
 
 function adminQueueFromRow(row: Record<string, unknown>): ChatAdminQueueState {
@@ -286,9 +296,12 @@ export async function listChatMessagesForStaff(
 export async function insertChatStaffReply(
   input: ChatAdminReplyInput,
   actorUserId: string,
+  discordContext: ChatDiscordActionContext = {},
 ): Promise<ChatAdminMessage> {
   const parsedInput = chatAdminReplySchema.safeParse(input)
   if (!parsedInput.success) throw new ChatAdminRepositoryError('Invalid staff reply.', 400, 'invalid_request')
+  const parsedContext = chatDiscordActionContextSchema.safeParse(discordContext)
+  if (!parsedContext.success) throw new ChatAdminRepositoryError('Invalid staff reply.', 400, 'invalid_request')
   validateActor(actorUserId)
   const client = serviceClient()
   const { data, error } = await client.rpc('insert_chat_staff_message', {
@@ -296,8 +309,8 @@ export async function insertChatStaffReply(
     p_staff_user_id: actorUserId,
     p_staff_message_id: parsedInput.data.staffMessageId,
     p_body: parsedInput.data.body,
-    p_source_interaction_id: parsedInput.data.sourceInteractionId,
-    p_discord_actor_id: parsedInput.data.discordActorId,
+    p_source_interaction_id: parsedContext.data.sourceInteractionId,
+    p_discord_actor_id: parsedContext.data.discordActorId,
   })
   if (error) throwRpcFailure(error)
   const message = adminMessageFromRow(resultRow(data))
@@ -308,16 +321,19 @@ export async function insertChatStaffReply(
 export async function setChatConversationTerminal(
   input: ChatAdminTerminalInput,
   actorUserId: string,
+  discordContext: Pick<ChatDiscordActionContext, 'discordActorId'> = {},
 ): Promise<ChatAdminConversation> {
   const parsedInput = chatAdminTerminalSchema.safeParse(input)
   if (!parsedInput.success) throw new ChatAdminRepositoryError('Invalid terminal action.', 400, 'invalid_request')
+  const parsedContext = chatDiscordActionContextSchema.safeParse(discordContext)
+  if (!parsedContext.success) throw new ChatAdminRepositoryError('Invalid terminal action.', 400, 'invalid_request')
   validateActor(actorUserId)
   const client = serviceClient()
   const { data, error } = await client.rpc('set_chat_conversation_terminal', {
     p_conversation_id: parsedInput.data.conversationId,
     p_staff_user_id: actorUserId,
     p_status: parsedInput.data.status,
-    p_discord_actor_id: parsedInput.data.discordActorId,
+    p_discord_actor_id: parsedContext.data.discordActorId,
     p_action_id: parsedInput.data.actionId,
   })
   if (error) throwRpcFailure(error)
@@ -341,16 +357,19 @@ export async function getChatQueueStateForStaff(): Promise<ChatAdminQueueState> 
 export async function setChatQueueStateForStaff(
   input: ChatAdminQueueUpdateInput,
   actorUserId: string,
+  discordContext: Pick<ChatDiscordActionContext, 'discordActorId'> = {},
 ): Promise<ChatAdminQueueState> {
   const parsedInput = chatAdminQueueUpdateSchema.safeParse(input)
   if (!parsedInput.success) throw new ChatAdminRepositoryError('Invalid queue action.', 400, 'invalid_request')
+  const parsedContext = chatDiscordActionContextSchema.safeParse(discordContext)
+  if (!parsedContext.success) throw new ChatAdminRepositoryError('Invalid queue action.', 400, 'invalid_request')
   validateActor(actorUserId)
   const client = serviceClient()
   const { data, error } = await client.rpc('set_chat_queue_state', {
     p_staff_user_id: actorUserId,
     p_queue_open: parsedInput.data.queueOpen,
     p_action_id: parsedInput.data.actionId,
-    p_discord_actor_id: parsedInput.data.discordActorId,
+    p_discord_actor_id: parsedContext.data.discordActorId,
   })
   if (error) throwRpcFailure(error)
   return adminQueueFromRow(resultRow(data))

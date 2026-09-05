@@ -44,7 +44,24 @@ export const chatAdminConversationSchema = z.object({
 
 export type ChatAdminConversation = z.infer<typeof chatAdminConversationSchema>
 
+/**
+ * Browser transcript DTOs deliberately omit the private actor and Discord
+ * source fields.  The service repository parses those columns separately and
+ * only returns this projection to an authenticated dashboard.
+ */
 export const chatAdminMessageSchema = z.object({
+  id: uuid,
+  conversationId: uuid,
+  sender: z.enum(['visitor', 'staff', 'system']),
+  body: adminText(MAX_CHAT_MESSAGE),
+  deliveryStatus: chatDeliveryStatusSchema,
+  createdAt: z.string().datetime({ offset: true }),
+}).strict()
+
+export type ChatAdminMessage = z.infer<typeof chatAdminMessageSchema>
+
+/** Server-only storage projection; never parse browser input with this. */
+export const chatAdminStoredMessageSchema = z.object({
   id: uuid,
   conversationId: uuid,
   clientMessageId: uuid.nullable(),
@@ -57,14 +74,10 @@ export const chatAdminMessageSchema = z.object({
   createdAt: z.string().datetime({ offset: true }),
 }).strict()
 
-export type ChatAdminMessage = z.infer<typeof chatAdminMessageSchema>
-
 export const chatAdminReplySchema = z.object({
   conversationId: uuid,
   staffMessageId: uuid,
   body: adminText(MAX_CHAT_MESSAGE),
-  sourceInteractionId: interactionId.nullable().optional().default(null),
-  discordActorId: snowflake.nullable().optional().default(null),
 }).strict()
 
 export type ChatAdminReplyInput = z.infer<typeof chatAdminReplySchema>
@@ -73,7 +86,6 @@ export const chatAdminTerminalSchema = z.object({
   conversationId: uuid,
   status: z.enum(['closed', 'spam']),
   actionId: interactionId,
-  discordActorId: snowflake.nullable().optional().default(null),
 }).strict()
 
 export type ChatAdminTerminalInput = z.infer<typeof chatAdminTerminalSchema>
@@ -81,10 +93,20 @@ export type ChatAdminTerminalInput = z.infer<typeof chatAdminTerminalSchema>
 export const chatAdminQueueUpdateSchema = z.object({
   queueOpen: z.boolean(),
   actionId: interactionId,
-  discordActorId: snowflake.nullable().optional().default(null),
 }).strict()
 
 export type ChatAdminQueueUpdateInput = z.infer<typeof chatAdminQueueUpdateSchema>
+
+/**
+ * Discord-only context is supplied after a signed interaction has been
+ * authenticated.  It is intentionally not part of the browser schemas.
+ */
+export const chatDiscordActionContextSchema = z.object({
+  sourceInteractionId: interactionId.nullable().optional().default(null),
+  discordActorId: snowflake.nullable().optional().default(null),
+}).strict()
+
+export type ChatDiscordActionContext = z.input<typeof chatDiscordActionContextSchema>
 
 export const chatAdminQueueStateSchema = z.object({
   id: uuid,
