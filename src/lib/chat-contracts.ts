@@ -129,6 +129,7 @@ export const chatConversationRecordSchema = z.object({
   ownershipExpiresAt: isoDateTimeWithTimezone,
   terminalAt: isoDateTimeWithTimezone.nullable(),
   discordThreadId: z.string().regex(/^\d{1,30}$/).nullable(),
+  discordStarterMessageId: z.string().regex(/^\d{1,30}$/).nullable(),
   discordDeliveryStatus: chatDeliveryStatusSchema,
   createdAt: isoDateTimeWithTimezone,
   updatedAt: isoDateTimeWithTimezone,

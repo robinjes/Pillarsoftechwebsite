@@ -94,6 +94,7 @@ function conversationFromRow(row: Record<string, unknown>): ChatConversationReco
     ownershipExpiresAt: safeString(row.ownership_expires_at),
     terminalAt: row.terminal_at == null ? null : safeString(row.terminal_at),
     discordThreadId: optionalString(row.discord_thread_id),
+    discordStarterMessageId: optionalString(row.discord_starter_message_id),
     discordDeliveryStatus: row.discord_delivery_status,
     createdAt: safeString(row.created_at),
     updatedAt: safeString(row.updated_at),
