@@ -102,7 +102,7 @@ insert into public.chat_cleanup_jobs (
     '72000000-0000-4000-8000-000000000202',
     '72000000-0000-4000-8000-000000000302',
     '900000000000000001', '910000000000000001', 'claimed', '72000000-0000-4000-8000-000000000402',
-    now() - interval '1 minute', 20, null, null,
+    now() - interval '1 minute', 1, null, null,
     now() - interval '9 minutes', now() - interval '9 minutes'
   ),
   (
@@ -127,7 +127,7 @@ insert into public.chat_cleanup_jobs (
   (
     '72000000-0000-4000-8000-000000000206',
     '72000000-0000-4000-8000-000000000306',
-    '900000000000000001', '910000000000000001', 'uncertain', null, null, 20, 'timeout', null,
+    '900000000000000001', '910000000000000001', 'uncertain', null, null, 1, 'timeout', null,
     now() - interval '5 minutes', now() - interval '5 minutes'
   );
 
