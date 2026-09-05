@@ -25,6 +25,10 @@ export type ChatServerConfigurationStatus = 'disabled' | 'incomplete' | 'ready'
 export interface ChatServerConfig {
   enabled: boolean
   ready: boolean
+  /** All server-side prerequisites, independent of the public feature flag. */
+  credentialReady: boolean
+  /** Discord bot and fixed guild/channel coordinates are usable for delivery. */
+  discordDeliveryReady: boolean
   status: ChatServerConfigurationStatus
   discordApplicationId: string | null
   discordPublicKey: string | null
@@ -77,20 +81,23 @@ export function getChatServerConfig(): ChatServerConfig {
     discordChannelId: env(CHAT_DISCORD_ENV_NAMES.channelId),
     discordStaffRoleIds: roleIds(env(CHAT_DISCORD_ENV_NAMES.staffRoleIds)),
   }
-  const ready = enabled
-    && getSupabaseServiceConfig() !== null
+  const discordDeliveryReady = values.discordBotToken !== null
+    && validSnowflake(values.discordGuildId)
+    && validSnowflake(values.discordChannelId)
+  const credentialReady = getSupabaseServiceConfig() !== null
     && Boolean(process.env.CHAT_TOKEN_PEPPER?.trim())
     && validSnowflake(values.discordApplicationId)
     && validPublicKey(values.discordPublicKey)
-    && values.discordBotToken !== null
-    && validSnowflake(values.discordGuildId)
-    && validSnowflake(values.discordChannelId)
+    && discordDeliveryReady
     && values.discordStaffRoleIds.length > 0
     && values.discordStaffRoleIds.every(validSnowflake)
+  const ready = enabled && credentialReady
 
   return {
     enabled,
     ready,
+    credentialReady,
+    discordDeliveryReady,
     status: !enabled ? 'disabled' : ready ? 'ready' : 'incomplete',
     ...values,
   }

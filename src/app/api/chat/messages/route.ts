@@ -1,4 +1,5 @@
 import { readJson } from '@/lib/admin-api'
+import { after } from 'next/server'
 import type { NextResponse } from 'next/server'
 import { chatMessageCreateSchema } from '@/lib/chat-contracts'
 import { decodeChatCursor } from '@/lib/chat-pagination'
@@ -14,8 +15,19 @@ import { consumeChatRateLimit } from '@/lib/contact-rate-limit'
 import { getChatTokenFromRequest, hashChatToken } from '@/lib/chat-token'
 import { getRequestIdentity } from '@/lib/request-identity'
 import { jsonNoStore } from '@/lib/volunteer-api'
+import { deliverChatConversation } from '@/lib/chat-discord-delivery'
 
 const pageSizePattern = /^\d+$/
+
+/** Schedule only after the database has accepted the visitor message. */
+function scheduleChatDelivery(conversationId: string): void {
+  try {
+    after(() => deliverChatConversation(conversationId).then(() => undefined).catch(() => undefined))
+  } catch {
+    // Unit callers and non-Next contexts do not have an after() request store.
+    // The durable pending row remains available to staff dispatch/retry.
+  }
+}
 
 function queryValue(request: Request, key: string): string | undefined | null {
   const params = new URL(request.url).searchParams
@@ -93,7 +105,10 @@ export async function POST(request: Request): Promise<NextResponse> {
       parsed.data.clientMessageId,
       parsed.data.body,
     )
-    if (existing) return jsonNoStore({ message: existing, replayed: true }, 200)
+    if (existing) {
+      scheduleChatDelivery(existing.conversationId)
+      return jsonNoStore({ message: existing, replayed: true }, 200)
+    }
   } catch (error) {
     return chatRepositoryFailure(error)
   }
@@ -124,6 +139,7 @@ export async function POST(request: Request): Promise<NextResponse> {
       parsed.data.body,
       parsed.data.clientMessageId,
     )
+    scheduleChatDelivery(message.conversationId)
     return jsonNoStore({ message }, 201)
   } catch (error) {
     return chatRepositoryFailure(error)

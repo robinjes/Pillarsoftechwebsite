@@ -8,6 +8,8 @@ import {
   chatDeliveryOutcomeSchema,
   chatDeliveryPartDefinitionSchema,
   chatDeliveryPartSchema,
+  chatDeliveryConversationSchema,
+  chatDeliveryMessageSchema,
   chatDeliveryWorkCandidateSchema,
   chatStarterDeliverySchema,
   chatThreadLeaseSchema,
@@ -16,6 +18,8 @@ import {
   type ChatDeliveryOutcome,
   type ChatDeliveryPart,
   type ChatDeliveryPartDefinition,
+  type ChatDeliveryConversation,
+  type ChatDeliveryMessage,
   type ChatDeliveryWorkCandidate,
   type ChatStarterDelivery,
   type ChatThreadLease,
@@ -27,6 +31,31 @@ const snowflakePattern = /^\d{1,30}$/u
 const safeCodePattern = /^[a-z0-9_:-]{1,64}$/u
 const stableReferencePattern = /^[A-Za-z0-9._:-]{1,160}$/u
 const stableNoncePattern = /^[A-Za-z0-9_-]{16,128}$/u
+
+const deliveryConversationSelect = [
+  'id',
+  'status',
+  'discord_delivery_status',
+  'discord_thread_id',
+  'discord_starter_message_id',
+  'discord_starter_reference',
+  'discord_starter_nonce',
+  'discord_starter_state',
+  'discord_starter_claim_token',
+  'discord_starter_claim_expires_at',
+  'discord_starter_attempt_count',
+  'discord_starter_failure_code',
+  'discord_starter_next_retry_at',
+].join(',')
+const deliveryMessageSelect = [
+  'id',
+  'conversation_id',
+  'sender',
+  'body',
+  'delivery_status',
+  'delivery_part_count',
+  'created_at',
+].join(',')
 
 export type ChatDeliveryRepositoryErrorCode =
   | 'invalid_request'
@@ -203,6 +232,99 @@ function cleanupFromRow(value: unknown): ChatCleanupJob {
   })
   if (!parsed.success) throw new ChatDeliveryRepositoryError('Chat storage is temporarily unavailable.')
   return parsed.data
+}
+
+function deliveryConversationFromRow(value: unknown): ChatDeliveryConversation {
+  const source = row(value)
+  const parsed = chatDeliveryConversationSchema.safeParse({
+    id: text(source?.id),
+    status: source?.status,
+    discordDeliveryStatus: source?.discord_delivery_status,
+    discordThreadId: nullableText(source?.discord_thread_id),
+    discordStarterMessageId: nullableText(source?.discord_starter_message_id),
+    discordStarterReference: nullableText(source?.discord_starter_reference),
+    discordStarterNonce: nullableText(source?.discord_starter_nonce),
+    discordStarterState: source?.discord_starter_state,
+    discordStarterClaimToken: nullableText(source?.discord_starter_claim_token),
+    discordStarterClaimExpiresAt: source?.discord_starter_claim_expires_at == null ? null : text(source.discord_starter_claim_expires_at),
+    discordStarterAttemptCount: Number(source?.discord_starter_attempt_count),
+    discordStarterFailureCode: nullableText(source?.discord_starter_failure_code),
+    discordStarterNextRetryAt: source?.discord_starter_next_retry_at == null ? null : text(source.discord_starter_next_retry_at),
+  })
+  if (!parsed.success) throw new ChatDeliveryRepositoryError('Chat storage is temporarily unavailable.')
+  return parsed.data
+}
+
+function deliveryMessageFromRow(value: unknown): ChatDeliveryMessage {
+  const source = row(value)
+  const parsed = chatDeliveryMessageSchema.safeParse({
+    id: text(source?.id),
+    conversationId: text(source?.conversation_id),
+    sender: source?.sender,
+    body: text(source?.body),
+    deliveryStatus: source?.delivery_status,
+    deliveryPartCount: source?.delivery_part_count == null ? null : Number(source.delivery_part_count),
+    createdAt: text(source?.created_at),
+  })
+  if (!parsed.success) throw new ChatDeliveryRepositoryError('Chat storage is temporarily unavailable.')
+  return parsed.data
+}
+
+function deliveryWorkCandidateFromRow(candidate: Record<string, unknown>): ChatDeliveryWorkCandidate {
+  const parsed = chatDeliveryWorkCandidateSchema.safeParse({
+    conversationId: text(candidate.conversation_id),
+    messageId: candidate.message_id == null ? null : text(candidate.message_id),
+    partId: candidate.part_id == null ? null : text(candidate.part_id),
+    workKind: candidate.work_kind,
+    state: candidate.state,
+    attemptCount: Number(candidate.attempt_count),
+    nextRetryAt: candidate.next_retry_at == null ? null : text(candidate.next_retry_at),
+  })
+  if (!parsed.success) throw new ChatDeliveryRepositoryError('Chat storage is temporarily unavailable.')
+  return parsed.data
+}
+
+/** Read only the private delivery coordinates; contact fields are not selected. */
+export async function getChatDeliveryConversation(conversationId: string): Promise<ChatDeliveryConversation> {
+  validateUuid(conversationId, 'Invalid conversation id.')
+  const { data, error } = await serviceClient()
+    .from('chat_conversations')
+    .select(deliveryConversationSelect)
+    .eq('id', conversationId)
+    .maybeSingle()
+  if (error) throw new ChatDeliveryRepositoryError('Chat storage is temporarily unavailable.')
+  if (!data) throw new ChatDeliveryRepositoryError('Chat delivery record was not found.', 404, 'conversation_not_found')
+  return deliveryConversationFromRow(data)
+}
+
+/** Read one stored message body only after its conversation is known. */
+export async function getChatDeliveryMessage(messageId: string, conversationId?: string): Promise<ChatDeliveryMessage> {
+  validateUuid(messageId, 'Invalid chat message id.')
+  if (conversationId !== undefined) validateUuid(conversationId, 'Invalid conversation id.')
+  let query = serviceClient()
+    .from('chat_messages')
+    .select(deliveryMessageSelect)
+    .eq('id', messageId)
+  if (conversationId !== undefined) query = query.eq('conversation_id', conversationId)
+  const { data, error } = await query.maybeSingle()
+  if (error) throw new ChatDeliveryRepositoryError('Chat storage is temporarily unavailable.')
+  if (!data) throw new ChatDeliveryRepositoryError('Chat message was not found.', 404, 'message_not_found')
+  return deliveryMessageFromRow(data)
+}
+
+/** Find the chronological first message used to establish a conversation thread. */
+export async function getFirstChatDeliveryMessage(conversationId: string): Promise<ChatDeliveryMessage | null> {
+  validateUuid(conversationId, 'Invalid conversation id.')
+  const { data, error } = await serviceClient()
+    .from('chat_messages')
+    .select(deliveryMessageSelect)
+    .eq('conversation_id', conversationId)
+    .order('created_at', { ascending: true })
+    .order('id', { ascending: true })
+    .limit(1)
+  if (error) throw new ChatDeliveryRepositoryError('Chat storage is temporarily unavailable.')
+  const values = rows(data)
+  return values.length > 0 ? deliveryMessageFromRow(values[0]) : null
 }
 
 /** Record deterministic part metadata without copying the original message body. */
@@ -520,19 +642,24 @@ export async function listChatDeliveryWorkCandidates(limit = 50): Promise<ChatDe
     p_limit: limit,
   })
   if (error) throwRpcFailure(error)
-  return rows(data).map((candidate) => {
-    const parsed = chatDeliveryWorkCandidateSchema.safeParse({
-      conversationId: text(candidate.conversation_id),
-      messageId: candidate.message_id == null ? null : text(candidate.message_id),
-      partId: candidate.part_id == null ? null : text(candidate.part_id),
-      workKind: candidate.work_kind,
-      state: candidate.state,
-      attemptCount: Number(candidate.attempt_count),
-      nextRetryAt: candidate.next_retry_at == null ? null : text(candidate.next_retry_at),
-    })
-    if (!parsed.success) throw new ChatDeliveryRepositoryError('Chat storage is temporarily unavailable.')
-    return parsed.data
+  return rows(data).map(deliveryWorkCandidateFromRow)
+}
+
+/** Enumerate one conversation's work without starvation from an unrelated global backlog. */
+export async function listChatDeliveryWorkCandidatesForConversation(
+  conversationId: string,
+  limit = 50,
+): Promise<ChatDeliveryWorkCandidate[]> {
+  validateUuid(conversationId, 'Invalid conversation id.')
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) {
+    throw new ChatDeliveryRepositoryError('Invalid delivery pagination.', 400, 'invalid_request')
+  }
+  const { data, error } = await serviceClient().rpc('list_chat_delivery_work_candidates_for_conversation', {
+    p_conversation_id: conversationId,
+    p_limit: limit,
   })
+  if (error) throwRpcFailure(error)
+  return rows(data).map(deliveryWorkCandidateFromRow)
 }
 
 /** Prepare body-free deletion records and cascade only eligible terminal conversations. */
@@ -621,6 +748,7 @@ export async function finishChatCleanupJob(
 // Names used by the bridge read naturally while retaining one implementation.
 export const ensureChatMessageParts = prepareChatMessageParts
 export const claimMessageDelivery = claimNextChatDeliveryPart
+export const claimChatDeliveryPart = claimNextChatDeliveryPart
 export const finishMessageDelivery = finishChatDeliveryPart
 export const listDeliveryRetryCandidates = listChatDeliveryRetryCandidates
 export const listDeliveryWorkCandidates = listChatDeliveryWorkCandidates

@@ -1,5 +1,12 @@
 import { z } from 'zod'
 
+import {
+  chatConversationStatusSchema,
+  chatDeliveryStatusSchema,
+  chatMessageSenderSchema,
+  MAX_CHAT_MESSAGE,
+} from '@/lib/chat-contracts'
+
 const uuid = z.uuid()
 const snowflake = z.string().regex(/^\d{1,30}$/u)
 const dateTime = z.string().datetime({ offset: true })
@@ -110,3 +117,37 @@ export const chatDeliveryWorkCandidateSchema = z.object({
   nextRetryAt: dateTime.nullable(),
 }).strict()
 export type ChatDeliveryWorkCandidate = z.infer<typeof chatDeliveryWorkCandidateSchema>
+
+/**
+ * Server-only delivery reads deliberately omit display names and email.  The
+ * bridge needs the Discord coordinates and state machine fields, but neither
+ * optional contact information nor a visitor identity belongs in its query.
+ */
+export const chatDeliveryConversationSchema = z.object({
+  id: uuid,
+  status: chatConversationStatusSchema,
+  discordDeliveryStatus: chatDeliveryStatusSchema,
+  discordThreadId: snowflake.nullable(),
+  discordStarterMessageId: snowflake.nullable(),
+  discordStarterReference: stableReference.nullable(),
+  discordStarterNonce: stableNonce.nullable(),
+  discordStarterState: chatDeliveryPartStateSchema,
+  discordStarterClaimToken: uuid.nullable(),
+  discordStarterClaimExpiresAt: dateTime.nullable(),
+  discordStarterAttemptCount: z.number().int().min(0).max(20),
+  discordStarterFailureCode: safeCode.nullable(),
+  discordStarterNextRetryAt: dateTime.nullable(),
+}).strict()
+export type ChatDeliveryConversation = z.infer<typeof chatDeliveryConversationSchema>
+
+/** Body-bearing reads are kept in a distinct internal contract. */
+export const chatDeliveryMessageSchema = z.object({
+  id: uuid,
+  conversationId: uuid,
+  sender: chatMessageSenderSchema,
+  body: z.string().trim().min(1).max(MAX_CHAT_MESSAGE),
+  deliveryStatus: chatDeliveryStatusSchema,
+  deliveryPartCount: z.number().int().min(1).max(20).nullable(),
+  createdAt: dateTime,
+}).strict()
+export type ChatDeliveryMessage = z.infer<typeof chatDeliveryMessageSchema>
