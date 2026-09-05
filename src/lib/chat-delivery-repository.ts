@@ -553,14 +553,10 @@ export async function listChatCleanupJobs(limit = 50): Promise<ChatCleanupJob[]>
   if (!Number.isInteger(limit) || limit < 1 || limit > 50) {
     throw new ChatDeliveryRepositoryError('Invalid cleanup pagination.', 400, 'invalid_request')
   }
-  const { data, error } = await serviceClient()
-    .from('chat_cleanup_jobs')
-    .select('*')
-    .in('state', ['pending', 'failed', 'uncertain'])
-    .order('created_at', { ascending: true })
-    .order('id', { ascending: true })
-    .limit(limit)
-  if (error) throw new ChatDeliveryRepositoryError('Chat storage is temporarily unavailable.')
+  const { data, error } = await serviceClient().rpc('list_chat_cleanup_jobs', {
+    p_limit: limit,
+  })
+  if (error) throwRpcFailure(error)
   return rows(data).map(cleanupFromRow)
 }
 
