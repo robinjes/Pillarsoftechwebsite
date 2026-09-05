@@ -85,6 +85,16 @@ function starterFromConversation(conversation: ChatDeliveryConversation): ChatSt
 
 interface WorkflowOptions {
   starterState?: ChatDeliveryConversation['discordStarterState']
+  threadState?: ChatDeliveryConversation['discordThreadState']
+  threadFailureCode?: string | null
+  threadNextRetryAt?: string | null
+  threadAttemptCount?: number
+  existingThread?: boolean
+  expiredClaimedPart?: boolean
+  threadHistory?: unknown[]
+  parentHistoryResponse?: () => Response
+  threadHistoryResponse?: () => Response
+  threadSetupResponse?: () => Response
   starterResponse?: () => Response
   threadResponse?: () => Response
   parentHistory?: unknown[]
@@ -98,11 +108,15 @@ function makeWorkflow(options: WorkflowOptions = {}) {
     id: conversationId,
     status: 'open',
     discordDeliveryStatus: 'pending',
-    discordThreadId: null,
-    discordStarterMessageId: null,
-    discordStarterReference: options.starterState === 'uncertain' ? `chat:${conversationId}:starter` : null,
-    discordStarterNonce: options.starterState === 'uncertain' ? stableDiscordNonce(`chat:${conversationId}:starter`) : null,
-    discordStarterState: options.starterState ?? 'pending',
+    discordThreadId: options.existingThread ? starterId : null,
+    discordThreadState: options.threadState ?? (options.existingThread ? 'sent' : 'pending'),
+    discordThreadAttemptCount: options.threadAttemptCount ?? 0,
+    discordThreadFailureCode: options.threadFailureCode ?? null,
+    discordThreadNextRetryAt: options.threadNextRetryAt ?? null,
+    discordStarterMessageId: options.existingThread ? starterId : null,
+    discordStarterReference: options.existingThread || options.starterState === 'uncertain' ? `chat:${conversationId}:starter` : null,
+    discordStarterNonce: options.existingThread || options.starterState === 'uncertain' ? stableDiscordNonce(`chat:${conversationId}:starter`) : null,
+    discordStarterState: options.existingThread ? 'sent' : options.starterState ?? 'pending',
     discordStarterClaimToken: null,
     discordStarterClaimExpiresAt: null,
     discordStarterAttemptCount: 0,
@@ -141,11 +155,14 @@ function makeWorkflow(options: WorkflowOptions = {}) {
       })
     }
     if (method === 'GET' && url.startsWith(`${parentMessagesUrl}?`)) {
-      return jsonResponse(options.parentHistory ?? [])
+      return options.parentHistoryResponse?.() ?? jsonResponse(options.parentHistory ?? [])
     }
     if (method === 'GET' && url === threadUrl) {
       if (!threadCreated && conversation.discordThreadId === null) return jsonResponse({}, 404)
-      return channelResponse()
+      return options.threadSetupResponse?.() ?? channelResponse()
+    }
+    if (method === 'GET' && url.startsWith(`${threadUrl}/messages?`)) {
+      return options.threadHistoryResponse?.() ?? jsonResponse(options.threadHistory ?? [])
     }
     if (method === 'POST' && url === `${parentMessagesUrl}/${starterId}/threads`) {
       threadCreated = true
@@ -169,6 +186,33 @@ function makeWorkflow(options: WorkflowOptions = {}) {
       leaseExpiresAt: new Date(fixedNow.getTime() + 60_000).toISOString(),
     })),
     releaseChatThreadLease: vi.fn(async () => true),
+    beginChatThreadSetup: vi.fn(async () => {
+      if (conversation.discordThreadAttemptCount >= 20) {
+        throw new ChatDeliveryRepositoryError('thread setup attempts exhausted', 409, 'delivery_lease_unavailable')
+      }
+      if (conversation.discordThreadNextRetryAt && Date.parse(conversation.discordThreadNextRetryAt) > fixedNow.getTime()) {
+        throw new ChatDeliveryRepositoryError('thread setup is waiting for retry', 409, 'delivery_lease_unavailable')
+      }
+      conversation = {
+        ...conversation,
+        discordThreadState: 'claimed',
+        discordThreadAttemptCount: conversation.discordThreadAttemptCount + 1,
+        discordThreadFailureCode: null,
+        discordThreadNextRetryAt: null,
+      }
+      return conversation
+    }),
+    finishChatThreadSetup: vi.fn(async (_id: string, _lease: string, input: { outcome: string; threadId?: string | null; failureCode?: string | null; nextRetryAt?: string | null }) => {
+      conversation = {
+        ...conversation,
+        discordThreadId: input.outcome === 'sent' ? input.threadId ?? conversation.discordThreadId : conversation.discordThreadId,
+        discordThreadState: input.outcome as ChatDeliveryConversation['discordThreadState'],
+        discordThreadAttemptCount: input.outcome === 'sent' ? 0 : conversation.discordThreadAttemptCount,
+        discordThreadFailureCode: input.failureCode ?? null,
+        discordThreadNextRetryAt: input.nextRetryAt ?? null,
+      }
+      return conversation
+    }),
     getChatDeliveryConversation: vi.fn(async () => conversation),
     getFirstChatDeliveryMessage: vi.fn(async () => message),
     getChatDeliveryMessage: vi.fn(async () => message),
@@ -221,10 +265,10 @@ function makeWorkflow(options: WorkflowOptions = {}) {
         stableReference: definition.stableReference,
         stableNonce: definition.stableNonce,
         discordMessageId: null,
-        state: 'pending' as const,
-        claimToken: null,
-        leaseExpiresAt: null,
-        attemptCount: 0,
+        state: options.expiredClaimedPart ? 'claimed' as const : 'pending' as const,
+        claimToken: options.expiredClaimedPart ? uuidFor(250) : null,
+        leaseExpiresAt: options.expiredClaimedPart ? new Date(fixedNow.getTime() - 60_000).toISOString() : null,
+        attemptCount: options.expiredClaimedPart ? 1 : 0,
         failureCode: null,
         nextRetryAt: null,
         createdAt: fixedNow.toISOString(),
@@ -247,22 +291,53 @@ function makeWorkflow(options: WorkflowOptions = {}) {
       if (preparedParts.length === 0) return [{ conversationId, messageId, partId: null, workKind: 'message_prepare' as const, state: 'pending', attemptCount: 0, nextRetryAt: null }]
       const next = preparedParts.find((part) => !sentPartIds.has(part.id))
       if (!next) return []
-      return [{ conversationId, messageId, partId: next.id, workKind: 'part' as const, state: 'pending', attemptCount: next.attemptCount, nextRetryAt: null }]
+      if (next.nextRetryAt && Date.parse(next.nextRetryAt) > fixedNow.getTime()) return []
+      const reconcile = next.state === 'uncertain'
+        || (next.state === 'claimed' && next.leaseExpiresAt !== null && next.leaseExpiresAt <= fixedNow.toISOString())
+      return [{ conversationId, messageId, partId: next.id, workKind: reconcile ? 'part_reconcile' as const : 'part' as const, state: next.state, attemptCount: next.attemptCount, nextRetryAt: next.nextRetryAt }]
     }),
     listChatDeliveryWorkCandidatesForConversation: vi.fn(async () => {
       if (preparedParts.length === 0) return [{ conversationId, messageId, partId: null, workKind: 'message_prepare' as const, state: 'pending', attemptCount: 0, nextRetryAt: null }]
       const next = preparedParts.find((part) => !sentPartIds.has(part.id))
       if (!next) return []
-      return [{ conversationId, messageId, partId: next.id, workKind: 'part' as const, state: 'pending', attemptCount: next.attemptCount, nextRetryAt: null }]
+      if (next.nextRetryAt && Date.parse(next.nextRetryAt) > fixedNow.getTime()) return []
+      const reconcile = next.state === 'uncertain'
+        || (next.state === 'claimed' && next.leaseExpiresAt !== null && next.leaseExpiresAt <= fixedNow.toISOString())
+      return [{ conversationId, messageId, partId: next.id, workKind: reconcile ? 'part_reconcile' as const : 'part' as const, state: next.state, attemptCount: next.attemptCount, nextRetryAt: next.nextRetryAt }]
     }),
     claimChatDeliveryPart: vi.fn(async (_id: string, _lease: string, claimToken: string) => {
       const next = preparedParts.find((part) => !sentPartIds.has(part.id))
       if (!next) return null
+      if (next.state === 'claimed' && next.leaseExpiresAt !== null && next.leaseExpiresAt <= fixedNow.toISOString()) {
+        preparedParts = preparedParts.map((part) => part.state === 'claimed'
+          && part.leaseExpiresAt !== null
+          && part.leaseExpiresAt <= fixedNow.toISOString()
+          ? { ...part, state: 'uncertain' as const, claimToken: null, leaseExpiresAt: null, failureCode: 'lease_expired' }
+          : part)
+        return null
+      }
       return { ...next, state: 'claimed' as const, claimToken, leaseExpiresAt: new Date(fixedNow.getTime() + 60_000).toISOString(), attemptCount: next.attemptCount + 1 }
     }),
-    claimUncertainChatDeliveryPart: vi.fn(async () => { throw new Error('not used in normal workflow') }),
+    claimUncertainChatDeliveryPart: vi.fn(async (_id: string, _lease: string, partId: string, claimToken: string) => {
+      const part = preparedParts.find((candidate) => candidate.id === partId)
+      if (!part || part.state !== 'uncertain') throw new Error('message part is not uncertain')
+      const claimed = { ...part, state: 'claimed' as const, claimToken, leaseExpiresAt: new Date(fixedNow.getTime() + 60_000).toISOString(), attemptCount: part.attemptCount + 1 }
+      preparedParts = preparedParts.map((candidate) => candidate.id === partId ? claimed : candidate)
+      return claimed
+    }),
     finishChatDeliveryPart: vi.fn(async (_id: string, _lease: string, partId: string, _claim: string, input: { outcome: string; discordMessageId?: string | null; failureCode?: string | null; nextRetryAt?: string | null }) => {
       if (input.outcome === 'sent') sentPartIds.add(partId)
+      preparedParts = preparedParts.map((part) => part.id === partId
+        ? {
+          ...part,
+          state: input.outcome as ChatDeliveryPart['state'],
+          discordMessageId: input.outcome === 'sent' ? threadMessageId : part.discordMessageId,
+          claimToken: null,
+          leaseExpiresAt: null,
+          failureCode: input.failureCode ?? null,
+          nextRetryAt: input.nextRetryAt ?? null,
+        }
+        : part)
       if (input.outcome === 'failed') conversation = { ...conversation, discordDeliveryStatus: 'failed' }
       else if (input.outcome === 'uncertain') conversation = { ...conversation, discordDeliveryStatus: 'pending' }
       else if (preparedParts.length > 0 && sentPartIds.size === preparedParts.length) conversation = { ...conversation, discordDeliveryStatus: 'sent' }
@@ -325,6 +400,23 @@ describe('Discord REST client boundaries', () => {
       flags: DISCORD_SUPPRESS_EMBEDS,
     })).rejects.toMatchObject({ code: 'discord_timeout' })
   })
+
+  it('preserves a valid Retry-After header when a 429 body hangs', async () => {
+    const hangingResponse = {
+      status: 429,
+      headers: new Headers({ 'retry-after': '5' }),
+      json: () => new Promise<unknown>(() => undefined),
+    } as unknown as Response
+    const fetcher = vi.fn(async () => hangingResponse)
+    const client = new DiscordRestClient({ config, timeoutMs: 5, fetch: fetcher as unknown as typeof globalThis.fetch })
+    await expect(client.sendStarterMessage({
+      content: 'starter',
+      nonce: stableDiscordNonce('starter-rate-limit'),
+      enforceNonce: true,
+      allowedMentions: { parse: [] },
+      flags: DISCORD_SUPPRESS_EMBEDS,
+    })).rejects.toMatchObject({ code: 'discord_429', retryAfterSeconds: 5 })
+  })
 })
 
 describe('durable Discord delivery bridge', () => {
@@ -358,6 +450,28 @@ describe('durable Discord delivery bridge', () => {
     const postCount = workflow.calls.filter((call) => call.method === 'POST').length
     await expect(deliverChatConversation(conversationId, workflow.dependencies)).resolves.toMatchObject({ status: 'sent', starterAttempted: false, partsAttempted: 0 })
     expect(workflow.calls.filter((call) => call.method === 'POST')).toHaveLength(postCount)
+  })
+
+  it('normalizes an expired claimed part before history reconciliation without reposting', async () => {
+    const reference = `chat:${conversationId}:message:${messageId}:part:0`
+    const workflow = makeWorkflow({
+      existingThread: true,
+      expiredClaimedPart: true,
+      threadHistory: [{
+        id: threadMessageId,
+        content: `[pot-ref:${reference}]`,
+        nonce: stableDiscordNonce(reference),
+        author: { id: applicationId, bot: true },
+      }],
+    })
+    const result = await deliverChatConversation(conversationId, workflow.dependencies)
+    expect(result).toMatchObject({ status: 'sent', partsAttempted: 1, partsSent: 1, partsUncertain: 0, partsFailed: 0 })
+    expect(workflow.repository.claimChatDeliveryPart).toHaveBeenCalledTimes(1)
+    expect(workflow.repository.claimUncertainChatDeliveryPart).toHaveBeenCalledTimes(1)
+    expect(workflow.repository.claimChatDeliveryPart.mock.invocationCallOrder[0]).toBeLessThan(
+      workflow.repository.claimUncertainChatDeliveryPart.mock.invocationCallOrder[0]!,
+    )
+    expect(workflow.calls.filter((call) => call.method === 'POST')).toHaveLength(0)
   })
 
   it('does not starve target work behind an unrelated global backlog', async () => {
@@ -406,6 +520,86 @@ describe('durable Discord delivery bridge', () => {
     const wrongBotResult = await deliverChatConversation(conversationId, wrongBot.dependencies)
     expect(wrongBotResult).toMatchObject({ status: 'uncertain', failureCode: 'discord_reconcile_not_found' })
     expect(wrongBot.calls.filter((call) => call.method === 'POST')).toHaveLength(0)
+  })
+
+  it('keeps an uncertain starter on a 429 cooldown without an early history fetch', async () => {
+    const workflow = makeWorkflow({
+      starterState: 'uncertain',
+      parentHistoryResponse: () => jsonResponse({ retry_after: 5 }, 429, { 'retry-after': '5' }),
+    })
+    const first = await deliverChatConversation(conversationId, workflow.dependencies)
+    expect(first).toMatchObject({ status: 'uncertain', failureCode: 'discord_429', nextRetryAt: '2026-09-05T12:00:05.000Z' })
+    expect(workflow.repository.finishChatStarterDelivery).toHaveBeenCalledWith(
+      conversationId,
+      expect.any(String),
+      expect.any(String),
+      expect.objectContaining({ outcome: 'uncertain', failureCode: 'discord_429', nextRetryAt: '2026-09-05T12:00:05.000Z' }),
+    )
+    const historyFetches = () => workflow.calls.filter((call) => call.method === 'GET' && call.url.startsWith(`${DISCORD_API_V10}/channels/${channelId}/messages?`))
+    expect(historyFetches()).toHaveLength(1)
+
+    const second = await deliverChatConversation(conversationId, workflow.dependencies)
+    expect(second).toMatchObject({ status: 'skipped', failureCode: 'delivery_lease_unavailable' })
+    expect(historyFetches()).toHaveLength(1)
+  })
+
+  it('keeps part reconciliation on a 429 cooldown without reposting or early history fetch', async () => {
+    const workflow = makeWorkflow({
+      existingThread: true,
+      expiredClaimedPart: true,
+      threadHistoryResponse: () => jsonResponse({ retry_after: 5 }, 429, { 'retry-after': '5' }),
+    })
+    const first = await deliverChatConversation(conversationId, workflow.dependencies)
+    expect(first).toMatchObject({ status: 'uncertain', partsAttempted: 1, partsUncertain: 1, nextRetryAt: '2026-09-05T12:00:05.000Z' })
+    expect(workflow.repository.finishChatDeliveryPart).toHaveBeenCalledWith(
+      conversationId,
+      expect.any(String),
+      expect.any(String),
+      expect.any(String),
+      expect.objectContaining({ outcome: 'uncertain', failureCode: 'discord_429', nextRetryAt: '2026-09-05T12:00:05.000Z' }),
+    )
+    const historyFetches = () => workflow.calls.filter((call) => call.method === 'GET' && call.url.startsWith(`${DISCORD_API_V10}/channels/${starterId}/messages?`))
+    expect(historyFetches()).toHaveLength(1)
+    expect(workflow.calls.filter((call) => call.method === 'POST')).toHaveLength(0)
+
+    const second = await deliverChatConversation(conversationId, workflow.dependencies)
+    expect(second).toMatchObject({ status: 'uncertain', partsAttempted: 0 })
+    expect(historyFetches()).toHaveLength(1)
+    expect(workflow.calls.filter((call) => call.method === 'POST')).toHaveLength(0)
+  })
+
+  it('durably defers thread setup after a rate limit before any second worker fetch', async () => {
+    const workflow = makeWorkflow({
+      existingThread: true,
+      threadSetupResponse: () => jsonResponse({ retry_after: 5 }, 429, { 'retry-after': '5' }),
+    })
+    const first = await deliverChatConversation(conversationId, workflow.dependencies)
+    expect(first).toMatchObject({ status: 'failed', failureCode: 'discord_429', nextRetryAt: '2026-09-05T12:00:05.000Z' })
+    expect(workflow.repository.finishChatThreadSetup).toHaveBeenCalledWith(
+      conversationId,
+      expect.any(String),
+      expect.objectContaining({ outcome: 'failed', failureCode: 'discord_429', nextRetryAt: '2026-09-05T12:00:05.000Z' }),
+    )
+    const threadFetches = () => workflow.calls.filter((call) => call.method === 'GET' && call.url === `${DISCORD_API_V10}/channels/${starterId}`)
+    expect(threadFetches()).toHaveLength(1)
+
+    const second = await deliverChatConversation(conversationId, workflow.dependencies)
+    expect(second).toMatchObject({ status: 'skipped', failureCode: 'delivery_lease_unavailable' })
+    expect(threadFetches()).toHaveLength(1)
+  })
+
+  it('enforces the setup cap and resets it after validated success', async () => {
+    const capped = makeWorkflow({ existingThread: true, threadState: 'uncertain', threadAttemptCount: 20 })
+    const cappedResult = await deliverChatConversation(conversationId, capped.dependencies)
+    expect(cappedResult).toMatchObject({ status: 'skipped', failureCode: 'delivery_lease_unavailable' })
+    expect(capped.fetcher).not.toHaveBeenCalled()
+
+    const recovering = makeWorkflow({ existingThread: true, threadState: 'uncertain', threadAttemptCount: 19 })
+    await expect(deliverChatConversation(conversationId, recovering.dependencies)).resolves.toMatchObject({ status: 'sent' })
+    expect(recovering.getConversation().discordThreadAttemptCount).toBe(0)
+    await expect(deliverChatConversation(conversationId, recovering.dependencies)).resolves.toMatchObject({ status: 'sent' })
+    expect(recovering.repository.beginChatThreadSetup).toHaveBeenCalledTimes(2)
+    expect(recovering.getConversation().discordThreadAttemptCount).toBe(0)
   })
 
   it('maps rate limits to a future retry without sleeping', async () => {

@@ -289,7 +289,14 @@ export class DiscordRestClient {
           const payload = await Promise.race([response.json(), timeout]) as { retry_after?: unknown }
           retrySeconds = retryAfter(payload?.retry_after) ?? retrySeconds
         } catch (error) {
-          if (error instanceof DiscordRestError) throw error
+          // A valid Retry-After header is authoritative even when Discord's
+          // JSON body hangs. Preserve it as a durable rate-limit cooldown
+          // instead of converting the response into an ambiguous timeout.
+          if (error instanceof DiscordRestError && error.code === 'discord_timeout' && retrySeconds !== null) {
+            // Keep the header-derived value.
+          } else if (error instanceof DiscordRestError) {
+            throw error
+          }
           // Header-only rate limits are valid; body details are never surfaced.
         }
         throw new DiscordRestError('discord_429', 'Discord rate limit.', {

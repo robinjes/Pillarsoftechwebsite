@@ -30,9 +30,11 @@ import {
   claimUncertainChatCleanupJob,
   claimUncertainChatDeliveryPart,
   claimUncertainChatStarterDelivery,
+  beginChatThreadSetup,
   finishChatCleanupJob,
   finishChatDeliveryPart,
   finishChatStarterDelivery,
+  finishChatThreadSetup,
   getChatDeliveryConversation,
   getChatDeliveryMessage,
   getFirstChatDeliveryMessage,
@@ -45,6 +47,7 @@ import {
   type ChatCleanupJobFinish,
   type ChatDeliveryPartFinish,
   type ChatStarterDeliveryFinish,
+  type ChatThreadSetupFinish,
 } from '@/lib/chat-delivery-repository'
 
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu
@@ -97,6 +100,8 @@ interface DeliveryRepository {
   prepareChatMessageParts: typeof prepareChatMessageParts
   claimChatThreadLease: typeof claimChatThreadLease
   releaseChatThreadLease: typeof releaseChatThreadLease
+  beginChatThreadSetup: typeof beginChatThreadSetup
+  finishChatThreadSetup: typeof finishChatThreadSetup
   prepareChatStarterDelivery: typeof prepareChatStarterDelivery
   claimChatStarterDelivery: typeof claimChatStarterDelivery
   claimUncertainChatStarterDelivery: typeof claimUncertainChatStarterDelivery
@@ -119,6 +124,8 @@ const defaultRepository: DeliveryRepository = {
   prepareChatMessageParts,
   claimChatThreadLease,
   releaseChatThreadLease,
+  beginChatThreadSetup,
+  finishChatThreadSetup,
   prepareChatStarterDelivery,
   claimChatStarterDelivery,
   claimUncertainChatStarterDelivery,
@@ -198,6 +205,18 @@ function failureRetry(error: unknown, now: Date): string | null {
     'discord_malformed',
   ].includes(error.code)) return null
   return nextRetryAt(now, PERMANENT_FAILURE_RETRY_SECONDS)
+}
+
+/** Thread setup uncertainty needs a durable cooldown even for 5xx/timeouts. */
+function threadSetupRetryAt(error: unknown, now: Date): string {
+  return failureRetry(error, now) ?? nextRetryAt(now, RETRY_FALLBACK_SECONDS)
+}
+
+function reconciliationRetryAt(error: unknown, now: Date): string | null {
+  if (error instanceof DiscordRestError && error.code === 'discord_429') {
+    return threadSetupRetryAt(error, now)
+  }
+  return isUncertainExternalFailure(error) ? nextRetryAt(now, RETRY_FALLBACK_SECONDS) : null
 }
 
 function isUncertainExternalFailure(error: unknown): boolean {
@@ -351,38 +370,70 @@ function relationError(message: string): DiscordRestError {
 }
 
 async function readyThread(context: ConversationContext): Promise<ChatDeliveryConversation> {
-  const { repository, conversation, client, leaseToken } = context
-  let current = conversation
-  let threadId = current.discordThreadId
-  const starterId = current.discordStarterMessageId
+  const { repository, conversation, client, leaseToken, dependencies } = context
+  const starterId = conversation.discordStarterMessageId
   if (!starterId) throw relationError('A Discord starter is required before creating its thread.')
-  if (threadId !== null && threadId !== starterId) {
-    throw relationError('Stored Discord thread id must equal the starter message id.')
-  }
-
-  if (!threadId) {
-    // A timeout after Start Thread from Message is reconciled by fetching the
-    // invariant thread id before another POST is considered.
-    try {
-      const existing = await client.getThread(starterId)
-      threadId = existing.id
-    } catch (error) {
-      if (!(error instanceof DiscordRestError) || error.code !== 'discord_not_found') throw error
-      const created = await client.startThreadFromMessage(starterId, `Pillars of Tech chat ${current.id.slice(0, 8)}`)
-      threadId = created.id
+  const priorSetupWasUncertain = conversation.discordThreadState === 'uncertain'
+    || conversation.discordThreadState === 'claimed'
+    || (conversation.discordThreadState === 'failed' && [
+      'discord_timeout',
+      'discord_network',
+      'discord_http_5xx',
+      'discord_malformed',
+    ].includes(conversation.discordThreadFailureCode ?? ''))
+  let current: ChatDeliveryConversation | null = null
+  let setupClaimed = false
+  try {
+    // A durable setup attempt is claimed before any thread GET/POST/PATCH.
+    // Its state is reset only after the invariant thread has been validated.
+    current = await repository.beginChatThreadSetup(conversation.id, leaseToken)
+    setupClaimed = true
+    let threadId = current.discordThreadId
+    if (threadId !== null && threadId !== starterId) {
+      throw relationError('Stored Discord thread id must equal the starter message id.')
     }
-    if (threadId !== starterId) throw relationError('Discord thread id must equal the starter message id.')
-    current = conversationWithStarter(current, await repository.saveChatThreadId(current.id, leaseToken, threadId))
-  }
 
-  if (!validSnowflake(threadId)) throw relationError('Stored Discord thread id is invalid.')
-  let thread = await client.getThread(threadId)
-  if (thread.archived) {
-    if (thread.locked) throw new DiscordRestError('discord_thread_locked', 'Discord thread is locked.')
-    thread = await client.unarchiveThread(threadId)
+    if (!threadId) {
+      // A timeout after Start Thread from Message is reconciled by fetching the
+      // invariant thread id before another POST is considered.
+      try {
+        const existing = await client.getThread(starterId)
+        threadId = existing.id
+      } catch (error) {
+        if (!(error instanceof DiscordRestError) || error.code !== 'discord_not_found') throw error
+        const created = await client.startThreadFromMessage(starterId, `Pillars of Tech chat ${current.id.slice(0, 8)}`)
+        threadId = created.id
+      }
+      if (threadId !== starterId) throw relationError('Discord thread id must equal the starter message id.')
+    }
+
+    if (!validSnowflake(threadId)) throw relationError('Stored Discord thread id is invalid.')
+    let thread = await client.getThread(threadId)
+    if (thread.archived) {
+      if (thread.locked) throw new DiscordRestError('discord_thread_locked', 'Discord thread is locked.')
+      thread = await client.unarchiveThread(threadId)
+    }
+    if (thread.id !== threadId) throw relationError('Discord thread identity did not match storage.')
+    return await repository.finishChatThreadSetup(current.id, leaseToken, {
+      outcome: 'sent',
+      threadId,
+    })
+  } catch (error) {
+    if (setupClaimed && current) {
+      const uncertain = priorSetupWasUncertain || isUncertainExternalFailure(error)
+      const retryAt = threadSetupRetryAt(error, nowFor(dependencies))
+      const outcome: ChatThreadSetupFinish = uncertain
+        ? { outcome: 'uncertain', failureCode: safeErrorCode(error), nextRetryAt: retryAt }
+        : { outcome: 'failed', failureCode: safeErrorCode(error), nextRetryAt: retryAt }
+      try {
+        await repository.finishChatThreadSetup(current.id, leaseToken, outcome)
+      } catch {
+        // The outer result remains fenced/uncertain if durable completion lost
+        // its lease; a later worker can normalize the claimed setup row.
+      }
+    }
+    throw error
   }
-  if (thread.id !== threadId) throw relationError('Discord thread identity did not match storage.')
-  return current
 }
 
 async function finishStarter(
@@ -405,6 +456,10 @@ async function finishStarter(
 
 async function claimStarter(context: ConversationContext): Promise<{ claimToken: string; starter: ChatDeliveryConversation } | null> {
   const { repository, conversation, leaseToken, dependencies } = context
+  if (conversation.discordStarterNextRetryAt
+    && Date.parse(conversation.discordStarterNextRetryAt) > nowFor(dependencies).getTime()) {
+    return null
+  }
   const claimToken = uuidFor(dependencies)
   let claimed
   try {
@@ -470,10 +525,16 @@ async function ensureStarter(context: ConversationContext, hasMessage: boolean, 
       result.failureCode = 'discord_reconcile_not_found'
       return null
     } catch (error) {
-      const finished = await finishStarter(context, reconcileToken, { outcome: 'uncertain', failureCode: safeErrorCode(error) })
+      const retryAt = reconciliationRetryAt(error, nowFor(dependencies))
+      const finished = await finishStarter(context, reconcileToken, {
+        outcome: 'uncertain',
+        failureCode: safeErrorCode(error),
+        nextRetryAt: retryAt,
+      })
       if (!finished) throw error
       result.status = 'uncertain'
       result.failureCode = safeErrorCode(error)
+      result.nextRetryAt = retryAt
       return null
     }
   }
@@ -579,8 +640,20 @@ async function reconcilePart(context: ConversationContext, part: ChatDeliveryPar
       ? { attempted: true, sent: true, uncertain: false, failed: false, failureCode: null, nextRetryAt: null }
       : { attempted: true, sent: false, uncertain: true, failed: false, failureCode: 'discord_reconcile_not_found', nextRetryAt: null }
   } catch (error) {
-    const completed = await finishPart(context, claimed, token, { outcome: 'uncertain', failureCode: safeErrorCode(error) })
-    return { attempted: true, sent: false, uncertain: true, failed: false, failureCode: completed ? safeErrorCode(error) : 'delivery_fence_lost', nextRetryAt: null }
+    const retryAt = reconciliationRetryAt(error, nowFor(context.dependencies))
+    const completed = await finishPart(context, claimed, token, {
+      outcome: 'uncertain',
+      failureCode: safeErrorCode(error),
+      nextRetryAt: retryAt,
+    })
+    return {
+      attempted: true,
+      sent: false,
+      uncertain: true,
+      failed: false,
+      failureCode: completed ? safeErrorCode(error) : 'delivery_fence_lost',
+      nextRetryAt: completed ? retryAt : null,
+    }
   }
 }
 
@@ -740,9 +813,25 @@ export async function deliverChatConversation(
           createdAt: new Date(0).toISOString(),
           updatedAt: new Date(0).toISOString(),
         }
-        // The candidate is intentionally body-free; fetch the real metadata
-        // through the claim RPC, whose result is used by reconcilePart.
-        partResult = await reconcilePart(context, part)
+        // An expired ordinary claim is still durable `claimed` state.  Run the
+        // ordinary claim RPC first so its transaction normalizes that exact
+        // conversation's expired claims to `uncertain`; then reconcile the
+        // candidate by id.  If the ordinary claim found a different fresh
+        // part, process that returned claim before the exact reconciliation so
+        // no newly claimed lease is abandoned.
+        const normalized = candidate.state === 'claimed'
+          ? await repository.claimChatDeliveryPart(conversationId, leaseToken, uuidFor(dependencies), LEASE_SECONDS)
+          : null
+        if (normalized && normalized.id !== candidate.partId) {
+          partResult = normalized.state === 'uncertain'
+            ? await reconcilePart(context, normalized)
+            : await sendPart(context, normalized)
+        } else {
+          // The candidate is intentionally body-free; fetch the real metadata
+          // through the exact uncertain-claim RPC, whose result is used by
+          // reconcilePart.  This path never sends a stale claimed row.
+          partResult = await reconcilePart(context, part)
+        }
       } else {
         const claimed = await repository.claimChatDeliveryPart(conversationId, leaseToken, uuidFor(dependencies), LEASE_SECONDS)
         if (!claimed) continue
@@ -777,7 +866,9 @@ export async function deliverChatConversation(
   } catch (error) {
     result.status = isUncertainExternalFailure(error) ? 'uncertain' : isRepoLeaseBusy(error) ? 'skipped' : 'failed'
     result.failureCode = safeErrorCode(error)
-    result.nextRetryAt = failureRetry(error, nowFor(dependencies))
+    result.nextRetryAt = isUncertainExternalFailure(error)
+      ? nextRetryAt(nowFor(dependencies), RETRY_FALLBACK_SECONDS)
+      : failureRetry(error, nowFor(dependencies))
     return result
   } finally {
     if (leaseHeld) {

@@ -37,6 +37,10 @@ const deliveryConversationSelect = [
   'status',
   'discord_delivery_status',
   'discord_thread_id',
+  'discord_thread_state',
+  'discord_thread_attempt_count',
+  'discord_thread_failure_code',
+  'discord_thread_next_retry_at',
   'discord_starter_message_id',
   'discord_starter_reference',
   'discord_starter_nonce',
@@ -241,6 +245,10 @@ function deliveryConversationFromRow(value: unknown): ChatDeliveryConversation {
     status: source?.status,
     discordDeliveryStatus: source?.discord_delivery_status,
     discordThreadId: nullableText(source?.discord_thread_id),
+    discordThreadState: source?.discord_thread_state,
+    discordThreadAttemptCount: Number(source?.discord_thread_attempt_count),
+    discordThreadFailureCode: nullableText(source?.discord_thread_failure_code),
+    discordThreadNextRetryAt: source?.discord_thread_next_retry_at == null ? null : text(source.discord_thread_next_retry_at),
     discordStarterMessageId: nullableText(source?.discord_starter_message_id),
     discordStarterReference: nullableText(source?.discord_starter_reference),
     discordStarterNonce: nullableText(source?.discord_starter_nonce),
@@ -385,6 +393,60 @@ export async function releaseChatThreadLease(conversationId: string, leaseToken:
   })
   if (error) throwRpcFailure(error)
   return data === true || (Array.isArray(data) && data[0] === true)
+}
+
+/** Begin one durable, bounded Discord thread setup/repair attempt. */
+export async function beginChatThreadSetup(
+  conversationId: string,
+  threadLeaseToken: string,
+): Promise<ChatDeliveryConversation> {
+  validateUuid(conversationId, 'Invalid conversation id.')
+  validateUuid(threadLeaseToken, 'Invalid delivery lease token.')
+  const { data, error } = await serviceClient().rpc('begin_chat_thread_setup', {
+    p_conversation_id: conversationId,
+    p_thread_lease_token: threadLeaseToken,
+  })
+  if (error) throwRpcFailure(error)
+  return deliveryConversationFromRow(data)
+}
+
+export interface ChatThreadSetupFinish {
+  outcome: ChatDeliveryOutcome
+  threadId?: string | null
+  failureCode?: string | null
+  nextRetryAt?: string | null
+}
+
+/** Fence one thread setup result and reset the budget only after validation. */
+export async function finishChatThreadSetup(
+  conversationId: string,
+  threadLeaseToken: string,
+  input: ChatThreadSetupFinish,
+): Promise<ChatDeliveryConversation> {
+  validateUuid(conversationId, 'Invalid conversation id.')
+  validateUuid(threadLeaseToken, 'Invalid delivery lease token.')
+  const parsedOutcome = chatDeliveryOutcomeSchema.safeParse(input.outcome)
+  if (!parsedOutcome.success) throw new ChatDeliveryRepositoryError('Invalid thread setup outcome.', 400, 'invalid_request')
+  const threadId = input.threadId ?? null
+  const failureCode = input.failureCode ?? null
+  validateSnowflake(threadId)
+  validateSafeCode(failureCode)
+  if (parsedOutcome.data === 'sent' && threadId === null) {
+    throw new ChatDeliveryRepositoryError('Sent thread setup requires an id.', 400, 'invalid_request')
+  }
+  if (parsedOutcome.data !== 'sent' && (!failureCode || !input.nextRetryAt)) {
+    throw new ChatDeliveryRepositoryError('Deferred thread setup requires retry metadata.', 400, 'invalid_request')
+  }
+  const { data, error } = await serviceClient().rpc('finish_chat_thread_setup', {
+    p_conversation_id: conversationId,
+    p_thread_lease_token: threadLeaseToken,
+    p_outcome: parsedOutcome.data,
+    p_thread_id: threadId,
+    p_failure_code: failureCode,
+    p_next_retry_at: input.nextRetryAt ?? null,
+  })
+  if (error) throwRpcFailure(error)
+  return deliveryConversationFromRow(data)
 }
 
 /** Persist immutable starter reference/nonce before any Discord network call. */
