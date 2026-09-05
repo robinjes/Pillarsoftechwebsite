@@ -18,6 +18,7 @@ import { createSupabaseServiceRoleClient } from '@/lib/supabase/service'
 export const DISCORD_INTERACTION_PATH = '/api/integrations/discord/interactions'
 export const DISCORD_INTERACTION_MAX_BODY_BYTES = 64 * 1024
 export const DISCORD_INTERACTION_TIMESTAMP_TOLERANCE_SECONDS = 5 * 60
+export const DISCORD_INTERACTION_REQUEST_DEADLINE_MS = 2_500
 export const DISCORD_INTERACTION_AUTH_DEADLINE_MS = 2_200
 export const DISCORD_INTERACTION_EPHEMERAL_FLAG = 1 << 6
 
@@ -64,6 +65,8 @@ export interface DiscordInteractionResponse {
 
 export interface DiscordInteractionDependencies {
   config?: ChatServerConfig
+  /** Absolute wall-clock deadline shared by the HTTP route and authorization. */
+  deadlineAt?: number
   nowSeconds?: () => number
   fetch?: typeof globalThis.fetch
   uuid?: () => string
@@ -145,9 +148,45 @@ function uuidFor(dependencies: DiscordInteractionDependencies): string {
   return value
 }
 
+const READ_DEADLINE_MARKER = Symbol('read-deadline')
+
+function cancelBoundedReader(reader: ReadableStreamDefaultReader<Uint8Array>): void {
+  // Cancellation must not extend the acknowledgement path.  The underlying
+  // request stream gets a best-effort abort while the caller returns now.
+  void reader.cancel().catch(() => undefined)
+}
+
+async function readChunkUntil(
+  reader: ReadableStreamDefaultReader<Uint8Array>,
+  deadlineAt: number | undefined,
+): Promise<ReadableStreamReadResult<Uint8Array> | null> {
+  if (deadlineAt === undefined) return reader.read()
+  const remainingMs = deadlineAt - Date.now()
+  if (!Number.isFinite(remainingMs) || remainingMs <= 0) return null
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<typeof READ_DEADLINE_MARKER>((resolve) => {
+    timer = setTimeout(() => resolve(READ_DEADLINE_MARKER), remainingMs)
+  })
+  // Attach a rejection handler even when the timeout wins; otherwise a source
+  // which rejects after cancellation could become an unhandled rejection.
+  const read = reader.read().catch(() => null)
+  try {
+    const result = await Promise.race([read, timeout])
+    if (result === READ_DEADLINE_MARKER || result === null) return null
+    return result
+  } finally {
+    if (timer !== undefined) clearTimeout(timer)
+  }
+}
+
 /** Read a request body without accepting an unbounded body into memory. */
-export async function readBoundedRequestBytes(request: Request, maxBytes: number): Promise<Uint8Array | null> {
+export async function readBoundedRequestBytes(
+  request: Request,
+  maxBytes: number,
+  deadlineAt?: number,
+): Promise<Uint8Array | null> {
   if (!Number.isInteger(maxBytes) || maxBytes < 1) return null
+  if (deadlineAt !== undefined && (!Number.isFinite(deadlineAt) || deadlineAt <= Date.now())) return null
   const contentLength = request.headers.get('content-length')
   if (contentLength !== null) {
     const parsedLength = Number(contentLength)
@@ -157,6 +196,7 @@ export async function readBoundedRequestBytes(request: Request, maxBytes: number
   if (!request.body) {
     try {
       const bytes = new Uint8Array(await request.arrayBuffer())
+      if (deadlineAt !== undefined && Date.now() >= deadlineAt) return null
       return bytes.length <= maxBytes ? bytes : null
     } catch {
       return null
@@ -168,14 +208,22 @@ export async function readBoundedRequestBytes(request: Request, maxBytes: number
   let total = 0
   try {
     while (true) {
-      const next = await reader.read()
+      const next = await readChunkUntil(reader, deadlineAt)
+      if (!next) {
+        cancelBoundedReader(reader)
+        return null
+      }
       if (next.done) break
       const chunk = next.value
       if (!chunk || typeof chunk.byteLength !== 'number' || !Number.isSafeInteger(chunk.byteLength) || chunk.byteLength < 0) return null
       const normalizedChunk = new Uint8Array(chunk)
       total += normalizedChunk.byteLength
       if (total > maxBytes) {
-        try { await reader.cancel() } catch { /* bounded read cleanup is best effort */ }
+        cancelBoundedReader(reader)
+        return null
+      }
+      if (deadlineAt !== undefined && Date.now() >= deadlineAt) {
+        cancelBoundedReader(reader)
         return null
       }
       chunks.push(normalizedChunk)
@@ -493,6 +541,7 @@ async function authorize(
 }
 
 async function withDeadline<T>(promise: Promise<T>, deadlineMs: number): Promise<{ timedOut: boolean; value?: T; error?: unknown }> {
+  if (!Number.isFinite(deadlineMs) || deadlineMs <= 0) return { timedOut: true }
   let timeoutHandle: ReturnType<typeof setTimeout> | undefined
   const timeout = new Promise<{ timedOut: true }>((resolve) => {
     timeoutHandle = setTimeout(() => resolve({ timedOut: true }), deadlineMs)
@@ -551,8 +600,24 @@ function completionBody(content: string): JsonRecord {
   return { content, flags: DISCORD_INTERACTION_EPHEMERAL_FLAG, allowed_mentions: { parse: [] } }
 }
 
+function replyCompletionContent(deliveryStatus: unknown): string {
+  return deliveryStatus === 'sent'
+    ? 'Reply saved on the website and relayed to Discord.'
+    : 'Reply saved on the website. Discord relay is pending or needs retry.'
+}
+
 function interactionActionId(payload: JsonRecord): string {
   return snowflake(payload.id) ?? ''
+}
+
+function deadlineRemaining(dependencies: DiscordInteractionDependencies): number | null {
+  if (dependencies.deadlineAt === undefined) return null
+  if (!Number.isFinite(dependencies.deadlineAt)) return 0
+  return dependencies.deadlineAt - Date.now()
+}
+
+function authorizationFailureResponse(error: unknown, timedOut: boolean): DiscordInteractionResponse {
+  return timedOut ? unavailableResponse() : safeInteractionErrorResponse(error)
 }
 
 async function runTerminalAction(
@@ -603,8 +668,9 @@ async function runReplyAction(
   dependencies: DiscordInteractionDependencies,
 ): Promise<void> {
   const token = interactionToken(payload.token)
+  let message: Awaited<ReturnType<typeof insertChatStaffReply>>
   try {
-    const message = await actionsFor(dependencies).reply({
+    message = await actionsFor(dependencies).reply({
       conversationId: action.conversationId,
       staffMessageId: uuidFor(dependencies),
       body,
@@ -612,10 +678,23 @@ async function runReplyAction(
       sourceInteractionId: interactionActionId(payload),
       discordActorId: authorized.discordActorId,
     })
-    await actionsFor(dependencies).deliver(message.conversationId)
-    if (token && config.discordApplicationId) await editOriginalInteractionResponse(config.discordApplicationId, token, completionBody(successContent('reply')), dependencies)
   } catch {
     if (token && config.discordApplicationId) await editOriginalInteractionResponse(config.discordApplicationId, token, completionBody('The reply could not be saved.'), dependencies)
+    return
+  }
+
+  try {
+    const delivery = await actionsFor(dependencies).deliver(message.conversationId)
+    if (token && config.discordApplicationId) {
+      const status = delivery && typeof delivery === 'object' && 'status' in delivery
+        ? (delivery as { status?: unknown }).status
+        : undefined
+      await editOriginalInteractionResponse(config.discordApplicationId, token, completionBody(replyCompletionContent(status)), dependencies)
+    }
+  } catch {
+    // The website reply was already committed.  Delivery remains durable and
+    // retryable, so never report this Discord-side failure as a lost reply.
+    if (token && config.discordApplicationId) await editOriginalInteractionResponse(config.discordApplicationId, token, completionBody(replyCompletionContent('pending')), dependencies)
   }
 }
 
@@ -633,6 +712,8 @@ export async function handleVerifiedDiscordInteraction(
   dependencies: DiscordInteractionDependencies = {},
 ): Promise<DiscordInteractionWorkResult> {
   const config = configFor(dependencies)
+  const initialRemaining = deadlineRemaining(dependencies)
+  if (initialRemaining !== null && initialRemaining <= 0) return { response: unavailableResponse() }
   if (payload.type === INTERACTION_TYPE_PING) {
     // Discord's endpoint verification PING is not a staff action, but the
     // signed application id still has to bind it to this installation.
@@ -650,7 +731,7 @@ export async function handleVerifiedDiscordInteraction(
   const queue = parseQueueAction(payload, config)
   if (!button && !modal && !queue) return { response: unavailableResponse() }
   if (queue && queue.queueOpen && !config.ready) return { response: unavailableResponse('Chat is not currently configured for new conversations.') }
-  if ((button || modal) && !hasAllowedRole(payload, config)) return { response: unavailableResponse() }
+  if ((button || modal) && !hasAllowedRole(payload, config)) return { response: unavailableResponse('This action is not authorized.') }
   if (queue && text(payload.guild_id) !== config.discordGuildId) return { response: unavailableResponse() }
   const body = modal ? modalBody(payload) : null
   if (modal && !body) return { response: unavailableResponse('Use a plain-text reply of 4,000 characters or fewer.') }
@@ -665,12 +746,18 @@ export async function handleVerifiedDiscordInteraction(
     const authorized = await authorize(payload, config, dependencies, conversation ?? undefined, modal)
     return { conversation: conversation ?? undefined, authorized }
   })()
-  const authorizedResult = await withDeadline(authPromise, DISCORD_INTERACTION_AUTH_DEADLINE_MS)
-  const authorized = !authorizedResult.timedOut && !authorizedResult.error ? authorizedResult.value?.authorized : undefined
-  const conversation = !authorizedResult.timedOut && !authorizedResult.error ? authorizedResult.value?.conversation : undefined
+  const remaining = deadlineRemaining(dependencies)
+  const authorizationDeadline = remaining === null
+    ? DISCORD_INTERACTION_AUTH_DEADLINE_MS
+    : Math.min(DISCORD_INTERACTION_AUTH_DEADLINE_MS, remaining)
+  const authorizedResult = await withDeadline(authPromise, authorizationDeadline)
+  const deadlineExpired = deadlineRemaining(dependencies) !== null && (deadlineRemaining(dependencies) ?? 0) <= 0
+  const authorizationTimedOut = authorizedResult.timedOut || deadlineExpired
+  const authorized = !authorizationTimedOut && !authorizedResult.error ? authorizedResult.value?.authorized : undefined
+  const conversation = !authorizationTimedOut && !authorizedResult.error ? authorizedResult.value?.conversation : undefined
 
   if (button?.kind === 'reply') {
-    if (!authorized) return { response: unavailableResponse() }
+    if (!authorized) return { response: authorizationFailureResponse(authorizedResult.error, authorizationTimedOut) }
     const sourceContext = text(payload.channel_id) === config.discordChannelId ? 'starter' : 'thread'
     return { response: modalResponse(button.conversationId, interaction, sourceContext) }
   }
@@ -691,7 +778,7 @@ export async function handleVerifiedDiscordInteraction(
     }
     // A known authorization failure is answered immediately.  Only a slow
     // dependency receives a deferred response and a lifecycle-tracked retry.
-    if (!authorized && !authorizedResult.timedOut) return { response: unavailableResponse() }
+    if (!authorized && !authorizationTimedOut) return { response: authorizationFailureResponse(authorizedResult.error, false) }
     return { response: deferredResponse(), work: () => scheduleWork(work) }
   }
 
@@ -705,7 +792,7 @@ export async function handleVerifiedDiscordInteraction(
         if (token && config.discordApplicationId) await editOriginalInteractionResponse(config.discordApplicationId, token, completionBody('This queue action is temporarily unavailable.'), dependencies)
       }
     }
-    if (!authorized && !authorizedResult.timedOut) return { response: unavailableResponse() }
+    if (!authorized && !authorizationTimedOut) return { response: authorizationFailureResponse(authorizedResult.error, false) }
     return { response: deferredResponse(), work: () => scheduleWork(work) }
   }
 
@@ -723,7 +810,7 @@ export async function handleVerifiedDiscordInteraction(
         if (token && config.discordApplicationId) await editOriginalInteractionResponse(config.discordApplicationId, token, completionBody('This action is temporarily unavailable.'), dependencies)
       }
     }
-    if (!authorized && !authorizedResult.timedOut) return { response: unavailableResponse() }
+    if (!authorized && !authorizationTimedOut) return { response: authorizationFailureResponse(authorizedResult.error, false) }
     return { response: deferredResponse(), work: () => scheduleWork(work) }
   }
 

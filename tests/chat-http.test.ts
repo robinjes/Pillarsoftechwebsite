@@ -174,6 +174,41 @@ describe('signed Discord interaction boundaries', () => {
     }))
   })
 
+  it('reports website-save and Discord relay states separately, including delivery throws', async () => {
+    const cases: Array<{ label: string; delivery: 'sent' | 'failed' | 'throw'; content: string }> = [
+      { label: 'sent', delivery: 'sent', content: 'Reply saved on the website and relayed to Discord.' },
+      { label: 'failed', delivery: 'failed', content: 'Reply saved on the website. Discord relay is pending or needs retry.' },
+      { label: 'throw', delivery: 'throw', content: 'Reply saved on the website. Discord relay is pending or needs retry.' },
+    ]
+    for (const testCase of cases) {
+      const deps = dependencies()
+      const patchBodies: string[] = []
+      const originalFetch = deps.fetch!
+      deps.fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        if (init?.method === 'PATCH') patchBodies.push(String(init.body))
+        return originalFetch(input, init)
+      }) as unknown as typeof globalThis.fetch
+      if (!deps.actions) throw new Error('test actions are missing')
+      deps.actions.deliver = testCase.delivery === 'throw'
+        ? vi.fn().mockRejectedValue(new Error('delivery unavailable'))
+        : vi.fn().mockResolvedValue({ status: testCase.delivery })
+
+      const modal = await handleVerifiedDiscordInteraction({
+        ...basePayload(5, {
+          custom_id: `pot:v1:reply-modal:${conversationId}:900000000000000020:thread`,
+          components: [{ type: 1, components: [{ type: 4, custom_id: 'body', value: 'Saved reply' }] }],
+        }),
+        id: '900000000000000022',
+      }, deps)
+      await modal.work?.()
+
+      const completion = JSON.parse(patchBodies.at(-1) ?? '{}') as { content?: string }
+      expect(completion.content, testCase.label).toBe(testCase.content)
+      expect(completion.content, testCase.label).not.toContain('could not be saved')
+      expect(deps.actions?.reply, testCase.label).toHaveBeenCalled()
+    }
+  })
+
   it('returns a deferred response for terminal actions and does not mutate for denied mappings', async () => {
     const deps = dependencies()
     const close = await handleVerifiedDiscordInteraction(basePayload(3, {
@@ -195,12 +230,13 @@ describe('signed Discord interaction boundaries', () => {
       custom_id: `pot:v1:spam:${conversationId}`,
     }), denied)
     expect(deniedResponse.response.type).toBe(4)
+    expect(deniedResponse.response.data?.content).toBe('This action is not authorized.')
     expect(deniedResponse.work).toBeUndefined()
     expect(denied.actions?.terminal).not.toHaveBeenCalled()
   })
 
   it('rejects every Discord binding before mutation for wrong app, guild, relation, role, or mapping', async () => {
-    const cases: Array<{ name: string; payload: Record<string, unknown>; deps?: DiscordInteractionDependencies }> = [
+    const cases: Array<{ name: string; payload: Record<string, unknown>; deps?: DiscordInteractionDependencies; explicitDenied?: boolean }> = [
       {
         name: 'wrong application',
         payload: { ...basePayload(3, { component_type: 2, custom_id: `pot:v1:close:${conversationId}` }), application_id: '900000000000000099' },
@@ -226,6 +262,7 @@ describe('signed Discord interaction boundaries', () => {
       {
         name: 'missing allowed role',
         payload: { ...basePayload(3, { component_type: 2, custom_id: `pot:v1:close:${conversationId}` }), member: { user: { id: actorId }, roles: [] } },
+        explicitDenied: true,
       },
       {
         name: 'inactive mapping',
@@ -236,6 +273,7 @@ describe('signed Discord interaction boundaries', () => {
             getConversation: vi.fn().mockResolvedValue(conversation()),
           },
         }),
+        explicitDenied: true,
       },
       {
         name: 'unmapped nonstaff actor',
@@ -246,6 +284,7 @@ describe('signed Discord interaction boundaries', () => {
             getConversation: vi.fn().mockResolvedValue(conversation()),
           },
         }),
+        explicitDenied: true,
       },
     ]
 
@@ -253,6 +292,7 @@ describe('signed Discord interaction boundaries', () => {
       const deps = testCase.deps ?? dependencies()
       const result = await handleVerifiedDiscordInteraction(testCase.payload, deps)
       expect(result.response.type, testCase.name).toBe(4)
+      if (testCase.explicitDenied) expect(result.response.data?.content, testCase.name).toBe('This action is not authorized.')
       expect(result.work, testCase.name).toBeUndefined()
       expect(deps.actions?.reply, testCase.name).not.toHaveBeenCalled()
       expect(deps.actions?.terminal, testCase.name).not.toHaveBeenCalled()
