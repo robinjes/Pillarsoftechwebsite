@@ -122,7 +122,7 @@ describe('Discord interaction POST ingress', () => {
       await vi.advanceTimersByTimeAsync(1_500)
       const response = await pending
 
-      expect(response.status).toBe(408)
+      expect(response.status).toBe(200)
       expect((await response.json()).type).toBe(4)
       expect(mutations).toBe(0)
       expect(handlerMock).toHaveBeenCalledTimes(1)

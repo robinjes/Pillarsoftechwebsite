@@ -56,7 +56,7 @@ async function postDiscordInteraction(
   // never use malformed JSON to reach authorization or storage code.
   const payload = parseDiscordInteractionBody(rawBody)
   if (!payload) return failure(400, 'invalid_request')
-  if (Date.now() >= deadlineAt) return failure(408, 'deadline')
+  if (Date.now() >= deadlineAt) return failure(200, 'deadline')
 
   try {
     const handledResult = await handleInteractionWithinDeadline(payload, {
@@ -64,16 +64,16 @@ async function postDiscordInteraction(
       config,
       deadlineAt,
     }, deadlineAt)
-    if (!handledResult) return failure(408, 'deadline')
+    if (!handledResult) return failure(200, 'deadline')
     const handled = handledResult
-    if (Date.now() >= deadlineAt) return failure(408, 'deadline')
+    if (Date.now() >= deadlineAt) return failure(200, 'deadline')
     // The interaction module uses Next's after() scheduler for deferred work.
     // Its callback is part of the request lifecycle; no detached promise is
     // created by this route.
     if (handled.work) await handled.work()
     return response(handled.response)
   } catch (error) {
-    if (Date.now() >= deadlineAt) return failure(408, 'deadline')
+    if (Date.now() >= deadlineAt) return failure(200, 'deadline')
     return response(safeInteractionErrorResponse(error))
   }
 }
