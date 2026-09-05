@@ -178,6 +178,13 @@ The repository owner must separately verify and enable, where appropriate, Depen
 
 ## 10. Website, branch, metadata, and deferred chat release gates
 
+The owner-operated Discord preflight, mapping template, exact environment
+names, deployment-protection boundary, and synthetic acceptance sequence are
+now maintained in [`docs/discord-chat-setup.md`](./discord-chat-setup.md) and
+[`docs/discord-staff-mapping.sql`](./discord-staff-mapping.sql). Keep
+`CHAT_ENABLED=false` until the staging, migration, backup, deployment, and
+owner-approval gates below are recorded for the exact release.
+
 Task 6 adds authoritative `ca`/`ga` event branches, a dedicated typed branch-document table, and public discovery surfaces. The following owner gates are required before any hosted release:
 
 1. Apply the event/branch migrations to a separately approved staging project first, after recording its schema/data backup marker. Confirm the event `branch` default/check/index and the branch-document RLS/column grants with the local and staging pgTAP suites.
@@ -185,9 +192,24 @@ Task 6 adds authoritative `ca`/`ga` event branches, a dedicated typed branch-doc
 3. In the preview, verify that `/ga` returns a 404 while the packet is missing, incomplete, unpublished, or unapproved. Confirm its draft fields do not appear in HTML, metadata, client responses, `sitemap.xml`, robots output, or structured data. After an owner-approved packet is staged, verify the page, event links, canonical metadata, and only public Organization/Event JSON-LD with `<` escaping. Do not publish Georgia from this repository or migration.
 4. Review the canonical origin, public cache policy, private `no-store` responses, and CSP nonce on both Organization and Event JSON-LD. `robots.txt` is defense-in-depth only; it does not replace authorization or the server-side publication predicate.
 
-The current owner-managed environment names are listed in `.env.example`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `CHAT_TOKEN_PEPPER`, `NEXT_PUBLIC_SITE_URL`, and the optional `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`. Public values still require owner-controlled origin/repository configuration; the service-role key and pepper are server-only. If the deferred Discord bridge is later approved, add its server-only application/bot/signature, guild, private-channel, allowed-role, and retention-job credentials through the platform secret store only; do not guess names, commit values, or treat a Discord role as application staff authorization.
+The current owner-managed environment names are listed in `.env.example`:
+`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+`SUPABASE_SERVICE_ROLE_KEY`, `CHAT_TOKEN_PEPPER`, `NEXT_PUBLIC_SITE_URL`, and
+the optional `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`. The chat setup guide adds the
+exact server-only names `CHAT_ENABLED`, `DISCORD_APPLICATION_ID`,
+`DISCORD_PUBLIC_KEY`, `DISCORD_BOT_TOKEN`, `DISCORD_GUILD_ID`,
+`DISCORD_CHAT_CHANNEL_ID`, `DISCORD_CHAT_STAFF_ROLE_IDS`, and `CRON_SECRET`.
+Public values still require owner-controlled origin/repository configuration;
+the service-role key, pepper, bot token, public key, and cron secret are
+server-only. Never guess names, commit values, or treat a Discord role as
+application staff authorization.
 
 ### Deferred Discord setup and synthetic acceptance
+
+Follow [`docs/discord-chat-setup.md`](./discord-chat-setup.md) for the
+read-only `npm run chat:setup-check` and owner-run mapping transaction. The
+preflight may run while `CHAT_ENABLED=false`; it must report incomplete or
+unsafe configuration rather than enabling anything.
 
 Discord work is intentionally deferred from this website tranche. Before enabling it in a later, separately reviewed change:
 
