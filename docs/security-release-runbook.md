@@ -204,19 +204,19 @@ the service-role key, pepper, bot token, public key, and cron secret are
 server-only. Never guess names, commit values, or treat a Discord role as
 application staff authorization.
 
-### Deferred Discord setup and synthetic acceptance
+### Owner-controlled Discord setup and synthetic acceptance
 
 Follow [`docs/discord-chat-setup.md`](./discord-chat-setup.md) for the
 read-only `npm run chat:setup-check` and owner-run mapping transaction. The
 preflight may run while `CHAT_ENABLED=false`; it must report incomplete or
 unsafe configuration rather than enabling anything.
 
-Discord work is intentionally deferred from this website tranche. Before enabling it in a later, separately reviewed change:
+The bridge implementation does not activate the hosted service. Before enabling the approved preview:
 
-1. Create a separate staging Discord application and private test guild. Configure the preview interaction endpoint and verify the application ID/public key, bot token, guild ID, parent channel ID, and allowed role ID out of band. Store each value in the platform secret manager, never in source, logs, fixtures, or client code.
-2. Create one private `#website-live-chat` parent channel and restrict it to the mapped staff role. Provision one thread per synthetic website conversation; do not use visitor email, names, or real transcripts during acceptance.
+1. Reuse the existing dedicated Discord application, bot, and approved guild. Configure the preview interaction endpoint and verify the application ID/public key, bot token, guild ID, parent channel ID, and allowed role ID out of band. Store each value in the platform secret manager, never in source, logs, fixtures, or client code. New resources require an owner decision.
+2. Validate the existing restricted `#website-live-chat` parent channel and approved staff role. The bot creates one thread per synthetic website conversation; do not use visitor email, real names, or real transcripts during acceptance.
 3. Add only owner-approved staff mappings linked to existing `staff_members.user_id` rows. Verify signature, application, guild, parent channel/thread, role, and active mapping checks independently; a Discord role or username never grants website staff access.
-4. Run a synthetic preview flow: website message → private Discord thread → mapped staff modal reply → website display, plus close/spam/retry and queue-open/close cases. Confirm failed delivery remains retryable, no sensitive values are logged, and the protected email contact path still works.
+4. After preflight passes, enable chat only on preview and explicitly open the queue during weekday 4–10 PM Pacific hours; keep production disabled. Run a synthetic preview flow: website message → private Discord thread → mapped staff modal reply → website display, plus close/spam/retry and queue-open/close cases. Confirm failed delivery remains retryable, no sensitive values are logged, and the protected email contact path still works. Queue access expires at 10 PM and must be reopened each staffed day.
 5. Schedule the protected daily retention job only after preview approval. It may delete resolved/spam conversations and their messages after 30 days; it must not delete open conversations solely because they are old. Record the scheduler, secret/authorization method, cutoff result, and last successful run in the release ticket.
 
 ### Independent chat rollback
