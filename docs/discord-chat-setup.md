@@ -8,7 +8,7 @@ read-only preflight; its output contains statuses and counts only.
 ## Prerequisites and owner approvals
 
 Use Node.js >=24.15.0 and npm >=11, a separately approved staging Supabase
-project, a separately approved staging Discord guild, and an HTTPS preview
+project, the existing approved dedicated Discord bot and restricted channel, and an HTTPS preview
 deployment. Complete the migration backup/rollback gate in
 [security-release-runbook.md](./security-release-runbook.md) before supplying
 service credentials. Never copy local env values into source, reports, tickets,
@@ -85,8 +85,9 @@ npm run typecheck
 
 ## Dedicated Discord application
 
-Create a separate application and bot. Install it into the approved staging
-guild with OAuth2 scopes bot and applications.commands. Grant only the
+Reuse the existing dedicated application, bot, and restricted channel. Do not
+create replacement resources without an owner decision. Verify its installation
+has OAuth2 scopes bot and applications.commands. Grant only the
 reviewed bot permissions above on the private parent and its threads; do not
 grant Administrator as a shortcut. Keep the parent inaccessible to @everyone,
 then add only approved responder role(s) and the bot managed role. Do not
@@ -121,7 +122,8 @@ close:
 Registration is an owner-operated external action; this repository and the
 checker do not perform it. The queue is disabled by default and should be
 opened only during Monday-Friday 16:00-22:00 America/Los_Angeles after
-approval.
+approval. Opening the queue expires that day at 22:00 Pacific; staff must
+explicitly reopen it each staffed day.
 
 ## Owner-run mapping
 
@@ -141,8 +143,9 @@ existing staff membership. Do not add a PostgREST grant or second RPC.
 
 ## Retention, preview, rollback, and failures
 
-Daily cleanup uses the existing protected CRON_SECRET route and Vercel cron
-configuration. Vercel scheduled cron runs only on Production deployments;
+Daily cleanup uses `/api/cron/chat-retention`, protected by CRON_SECRET, once
+daily at 07:00 UTC. Closed/spam transcripts become eligible after 30 days;
+open conversations are preserved. Vercel scheduled cron runs only on Production deployments;
 preview acceptance must manually invoke the protected endpoint with the
 owner-managed bearer secret against synthetic preview data. Do not claim a
 preview schedule is installed or activate production from this repo. See
@@ -171,7 +174,9 @@ the exact staging/preview pair:
 1. Run the checker and retain sanitized statuses/counts.
 2. Verify the preview interaction URL is reachable without weakening site-wide
    protection; send a signed Discord PING and confirm application ID.
-3. With synthetic data only, submit one website message and verify one private
+3. After preflight passes, enable CHAT_ENABLED only on the approved preview and
+   have approved staff open the queue during weekday 16:00–22:00 Pacific hours.
+   Keep production disabled. With synthetic data only, submit one website message and verify one private
    parent thread, no email/name/transcript in logs, and no ordinary-thread
    forwarding.
 4. Reply through the mapped Discord modal; exercise close, spam, queue
@@ -180,8 +185,8 @@ the exact staging/preview pair:
    old terminal data is eligible while open data is retained.
 6. Verify an unmapped/nonstaff member is denied and an unapproved role/member
    grant makes setup fail; record Administrator/owner warnings.
-7. Verify protected email still works; keep CHAT_ENABLED=false until the owner
-   approves production.
+7. Verify protected email still works; disable preview chat after testing and
+   keep production CHAT_ENABLED=false until hosted acceptance and owner approval.
 
 Primary references: [Discord permissions](https://docs.discord.com/developers/topics/permissions),
 [Discord OAuth2](https://docs.discord.com/developers/topics/oauth2),
