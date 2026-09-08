@@ -104,6 +104,58 @@ npx --yes supabase@2.114.0 test db --project-ref <STAGING_PROJECT_REF>
 
 The policy suite covers public projections, unpublished/approved boundaries, atomic participant capacity, service-role repository privileges, staff-only functions, media storage, forms, and volunteer/profile hardening. A green local suite does not establish that the remote candidate is authorized for production.
 
+### 4.1 Legacy volunteer data repair gate
+
+The forward migration `202609070001_legacy_release_backfill.sql` is the
+upgrade path for a project that already used the original `profiles.role`,
+`event_volunteers`, `check_in_sessions`, `attendance_logs`, and
+`volunteer_hour_adjustments` tables. The foundation migration leaves the
+legacy role column and source tables in place. Staff authority is copied only
+when `profiles.id` is an existing `auth.users.id`; the migration never reads
+or authorizes by email, provider metadata, or a client claim.
+
+The migration copies valid registration and attendance rows into the
+versioned tables while preserving UUIDs, statuses, hours, check-in/out times,
+and created timestamps. It does not delete or rewrite a legacy row. A missing
+or conflicting event identifier is left in the legacy source and recorded as
+unresolved; the migration never synthesizes an event mapping. Import or map
+the event in staging through the separate owner-reviewed content operation,
+then rerun the private backfill. Imported events remain unpublished until
+approval, and existing configured event rows are never replaced.
+
+Before enabling the new volunteer flow, the authorized database operator must
+run the read-only reconciliation queries below on staging and the production
+candidate, using the provider backup marker from Section 1:
+
+```sql
+select source_table, issue_code, count(*)
+from public.release_migration_issues
+where resolved_at is null
+group by source_table, issue_code
+order by source_table, issue_code;
+
+select count(*) as legacy_registration_rows from public.event_volunteers;
+select count(*) as versioned_registration_rows from public.volunteer_registrations;
+select count(*) as legacy_session_rows from public.check_in_sessions;
+select count(*) as versioned_session_rows from public.attendance_sessions;
+select count(*) as legacy_log_rows from public.attendance_logs;
+select count(*) as migrated_staff_rows from public.staff_members;
+```
+
+Any row in `release_migration_issues` is a release blocker. Resolve its exact
+owner-approved mapping out of band, verify the source row and destination on
+staging, and rerun the private owner function:
+
+```sql
+select public.run_release_legacy_backfill();
+```
+
+The function has no browser or service-role execution grant. Do not drop
+`profiles.role` or any legacy source table until row counts, sampled volunteer
+history, active check-ins, staff UUID memberships, and rollback evidence have
+been verified. If an issue remains unresolved, stop and restore or continue
+serving the legacy application according to the provider rollback procedure.
+
 ## 5. Owner-only staff allowlist grant
 
 After staging migration and before staff smoke tests, the database owner or explicitly authorized database operator may run reviewed SQL using owner-provided, out-of-band-verified UUIDs:
@@ -124,6 +176,13 @@ node scripts/import-content.mjs > <REVIEWED_IMPORT_SQL_PATH>
 ```
 
 Remove unapproved rows/resources before an operator applies the file. Keep imported events unpublished until separately approved. Do not seed impact totals, finance figures, partnership/outcome claims, destination fields, webhook URLs, or script URLs.
+
+The public events API treats a successful database read as authoritative,
+including a deliberately empty published result. It uses the checked-in event
+snapshot only when the public database client/read is unavailable, and an
+empty snapshot produces a generic 503 rather than silently rendering an empty
+event experience. This keeps an outage fallback useful without replacing
+configured publication state with guessed content.
 
 Run these staging smoke checks and record exact responses:
 

@@ -51,11 +51,12 @@ $$;
 
 revoke all on function public.valid_form_fields(jsonb) from public;
 
--- Remove legacy policies before removing the old role column or helper
--- overload. Legacy policies can depend on public.is_staff(uuid), so every
--- known application table is cleared before that function is replaced. The
--- dynamic guard keeps a fresh install (where these tables do not exist yet)
--- idempotent.
+-- Remove legacy policies before replacing the old staff helper overload.
+-- Legacy policies can depend on public.is_staff(uuid), so every known
+-- application table is cleared before that function is replaced. The legacy
+-- role column, when present, is retained for the forward backfill and audit;
+-- the dynamic guard keeps a fresh install (where these tables do not exist
+-- yet) idempotent.
 do $$
 declare
   table_name text;
@@ -138,7 +139,11 @@ alter table public.profiles alter column member_code set not null;
 alter table public.profiles alter column total_hours set not null;
 alter table public.profiles alter column created_at set not null;
 alter table public.profiles alter column updated_at set not null;
-alter table public.profiles drop column if exists role;
+-- Keep a legacy role column, when upgrading the original volunteer schema, as
+-- rollback/audit data until the owner verifies the staff_members backfill.
+-- It is deliberately not consulted by public.is_staff(); staff authority is
+-- keyed only by an existing auth.users UUID in public.staff_members. Fresh
+-- installs do not create this compatibility column.
 alter table public.profiles drop constraint if exists profiles_total_hours_nonnegative;
 alter table public.profiles add constraint profiles_total_hours_nonnegative check (total_hours >= 0);
 alter table public.profiles drop constraint if exists profiles_member_code_key;

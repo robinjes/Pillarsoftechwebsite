@@ -231,6 +231,17 @@ function asRows(data: unknown): Record<string, unknown>[] {
   return Array.isArray(data) ? data as Record<string, unknown>[] : []
 }
 
+function checkedInEventFallback(branch?: BranchCode): PublicEvent[] {
+  const snapshot = getPublicEventSnapshot()
+  // An unavailable database may use the reviewed local snapshot, but an empty
+  // snapshot is not a successful content response. Surface that state so the
+  // API can return its generic 503 instead of silently rendering no events.
+  if (snapshot.length === 0) {
+    throw new ContentRepositoryError('Stored event snapshot is empty.', 503)
+  }
+  return branch ? snapshot.filter((event) => event.branch === branch) : snapshot
+}
+
 function publicClient(): SupabaseClient | null {
   return createSupabasePublicClient()
 }
@@ -249,8 +260,7 @@ export async function listPublicEvents(branch?: BranchCode): Promise<PublicEvent
   }
   const client = publicClient()
   if (!client) {
-    const snapshot = getPublicEventSnapshot()
-    return branch ? snapshot.filter((event) => event.branch === branch) : snapshot
+    return checkedInEventFallback(branch)
   }
 
   let query = client
@@ -262,8 +272,7 @@ export async function listPublicEvents(branch?: BranchCode): Promise<PublicEvent
     .neq('status', 'draft')
     .order('starts_at', { ascending: true, nullsFirst: false })
   if (error) {
-    const snapshot = getPublicEventSnapshot()
-    return branch ? snapshot.filter((event) => event.branch === branch) : snapshot
+    return checkedInEventFallback(branch)
   }
   return asRows(data).map(publicEventFromRow)
 }
