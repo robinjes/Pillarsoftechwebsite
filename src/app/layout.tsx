@@ -1,18 +1,19 @@
 import type { Metadata } from 'next'
+import { connection } from 'next/server'
+import { headers } from 'next/headers'
 import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
-import GlobalShortcut from '@/components/GlobalShortcut'
-import { quicksand } from '@/lib/fonts'
+import { bodyFont, displayFont } from '@/lib/fonts'
 
 export const metadata: Metadata = {
-  title: 'Pillars of Tech',
-  description: 'Enabling the next generation of STEM leaders',
-  manifest: '/site.webmanifest',
-  metadataBase: new URL('https://pillarsoftech.org'), // Adding reasonable fallback
+  title: 'Pillars of Tech | STEM belongs in every student’s hands.',
+  description: 'Pillars of Tech brings hands-on STEM learning to students, families, schools, and communities.',
+  manifest: '/site.webmanifest?v=20260907',
+  metadataBase: new URL('https://pillarsoftech.org'),
   openGraph: {
-    title: 'Pillars of Tech',
-    description: 'Enabling the next generation of STEM leaders',
+    title: 'Pillars of Tech | STEM belongs in every student’s hands.',
+    description: 'Hands-on STEM learning for students, families, schools, and communities.',
     images: [
       {
         url: '/potofficiallogo.png',
@@ -24,37 +25,52 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pillars of Tech',
-    description: 'Enabling the next generation of STEM leaders',
+    title: 'Pillars of Tech | STEM belongs in every student’s hands.',
+    description: 'Hands-on STEM learning for students, families, schools, and communities.',
     images: ['/potofficiallogo.png'],
   },
   icons: {
     icon: [
-      { url: '/logonotext.png', sizes: 'any' },
-      { url: '/logonotext.png', sizes: '16x16', type: 'image/png' },
-      { url: '/logonotext.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon.ico?v=20260907', sizes: 'any' },
+      { url: '/favicon-16x16.png?v=20260907', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png?v=20260907', sizes: '32x32', type: 'image/png' },
     ],
     apple: [
-      { url: '/logonotext.png', sizes: '180x180', type: 'image/png' },
+      { url: '/apple-touch-icon.png?v=20260907', sizes: '180x180', type: 'image/png' },
     ],
     other: [
-      { url: '/logonotext.png', sizes: '192x192', type: 'image/png' },
-      { url: '/logonotext.png', sizes: '512x512', type: 'image/png' },
+      { url: '/android-chrome-192x192.png?v=20260907', sizes: '192x192', type: 'image/png' },
+      { url: '/android-chrome-512x512.png?v=20260907', sizes: '512x512', type: 'image/png' },
     ],
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  await connection()
+  const nonce = (await headers()).get('x-nonce') || undefined
+  const organizationJsonLd = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Pillars of Tech',
+    url: 'https://pillarsoftech.org',
+    logo: 'https://pillarsoftech.org/potofficiallogo.png',
+    email: 'pillarsoftech@gmail.com',
+    description: 'Pillars of Tech brings hands-on STEM learning to students, families, schools, and communities.',
+  }).replace(/</g, '\\u003c')
+
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={quicksand.className} suppressHydrationWarning>
-        <GlobalShortcut />
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
+      <body className={`${bodyFont.variable} ${displayFont.variable}`} suppressHydrationWarning>
+        <script id="organization-jsonld" nonce={nonce} suppressHydrationWarning type="application/ld+json">{organizationJsonLd}</script>
+        <a href="#main-content" className="skip-link">Skip to content</a>
         <Navbar />
-        {children}
+        <div id="main-content" tabIndex={-1}>
+          {children}
+        </div>
         <Footer />
       </body>
     </html>

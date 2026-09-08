@@ -1,18 +1,10 @@
-import { createClient } from '@supabase/supabase-js'
+'use client'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-
-// Initialize client. Will be null if keys are not configured in .env.local,
-// enabling a seamless fallback to local mock mode for development and testing.
-export const supabase = supabaseUrl && supabaseAnonKey
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        detectSessionInUrl: false,
-        persistSession: true,
-        flowType: 'pkce',
-      },
-    })
-  : null
-
-export const isSupabaseConfigured = () => !!supabase
+// Compatibility exports for existing browser components. This module only
+// creates the publishable-key browser client; service-role credentials never
+// cross this boundary and an unconfigured app has no mock auth fallback.
+export {
+  createSupabaseBrowserClient as createClient,
+  isSupabaseConfigured,
+  supabase,
+} from '@/lib/supabase/client'

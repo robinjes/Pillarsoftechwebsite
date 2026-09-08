@@ -1,6 +1,16 @@
-import { Fredoka, Inter, Quicksand, Space_Grotesk } from 'next/font/google'
+import { Atkinson_Hyperlegible, Fredoka } from 'next/font/google'
 
-export const inter = Inter({ subsets: ['latin'], display: 'swap' })
-export const fredoka = Fredoka({ subsets: ['latin'], display: 'swap' })
-export const quicksand = Quicksand({ subsets: ['latin'], display: 'swap' })
-export const spaceGrotesk = Space_Grotesk({ subsets: ['latin'], display: 'swap' })
+export const displayFont = Fredoka({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-display',
+  weight: ['500', '600', '700'],
+})
+
+export const bodyFont = Atkinson_Hyperlegible({
+  subsets: ['latin'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-body',
+  weight: ['400', '700'],
+})

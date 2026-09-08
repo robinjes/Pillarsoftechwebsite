@@ -1,256 +1,213 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Fredoka, Space_Grotesk } from 'next/font/google'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import Link from 'next/link'
-import { Html5Qrcode } from 'html5-qrcode'
+import { useRouter } from 'next/navigation'
+import type { Html5Qrcode } from 'html5-qrcode'
+import type { Event } from '@/data/events'
 import {
   volunteerService,
-  EventRosterEntry,
-  VolunteerProfile,
-  VolunteerSignup,
+  type ActiveCheckInSession,
+  type EventRosterEntry,
+  type StaffAttendanceResult,
+  type VolunteerProfile,
 } from '@/lib/volunteerService'
-import { Event } from '@/data/events'
-import { 
-  Camera, 
-  ArrowLeft, 
-  Search, 
-  CheckCircle2, 
+import {
   AlertCircle,
+  ArrowLeft,
   Calendar,
+  Camera,
+  CheckCircle2,
   Clock,
-  UserCheck,
-  RefreshCw,
+  Download,
+  Loader2,
   LogOut,
+  MapPin,
+  RefreshCw,
+  Search,
   Settings,
-  Shield,
-  User,
-  Users,
-  Download
+  ShieldCheck,
+  UserCheck,
 } from 'lucide-react'
 
-const fredoka = Fredoka({ subsets: ['latin'] })
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
+type ScannerState = 'idle' | 'loading' | 'active' | 'error'
+
+const isCheckInEvent = (event: Event) => event.status === 'upcoming' || event.status === 'ongoing'
+
+async function stopScanner(scanner: Html5Qrcode) {
+  try {
+    if (scanner.isScanning) await scanner.stop()
+  } catch {
+    // The camera may already be stopped by the browser.
+  }
+  try {
+    scanner.clear()
+  } catch {
+    // Clearing an already detached scanner is harmless.
+  }
+}
+
+function EventMeta({ event }: { event: Event }) {
+  return (
+    <div className="grid gap-3 border-t border-[var(--ink)]/20 pt-4 font-body text-sm text-[var(--ink)]/70 sm:grid-cols-3">
+      <p className="flex items-start gap-2"><Calendar aria-hidden="true" className="mt-0.5 h-4 w-4 flex-none text-[var(--cobalt)]" /><span>{event.date || 'Date coming soon'}</span></p>
+      <p className="flex items-start gap-2"><Clock aria-hidden="true" className="mt-0.5 h-4 w-4 flex-none text-[var(--cobalt)]" /><span>{event.time || 'Time coming soon'}</span></p>
+      <p className="flex items-start gap-2"><MapPin aria-hidden="true" className="mt-0.5 h-4 w-4 flex-none text-[var(--cobalt)]" /><span>{event.location || 'Location coming soon'}</span></p>
+    </div>
+  )
+}
 
 export default function CheckinPage() {
   const router = useRouter()
   const [events, setEvents] = useState<Event[]>([])
-  const [selectedEventId, setSelectedEventId] = useState<string>('')
+  const [selectedEventId, setSelectedEventId] = useState('')
   const [loading, setLoading] = useState(true)
+  const [pageError, setPageError] = useState('')
 
-  // Scanner state
   const [cameraActive, setCameraActive] = useState(false)
+  const [cameraLoading, setCameraLoading] = useState(false)
   const [cameraError, setCameraError] = useState('')
-  const [scannerInstance, setScannerInstance] = useState<Html5Qrcode | null>(null)
+  const [scannerState, setScannerState] = useState<ScannerState>('idle')
+  const scannerRef = useRef<Html5Qrcode | null>(null)
 
-  // Scan result state
-  const [recentScan, setRecentScan] = useState<{
-    profile: VolunteerProfile
-    signup: VolunteerSignup
-    action: 'checkedIn' | 'checkedOut'
-    hoursLogged: number
-    checkInTime: string
-    checkOutTime?: string
-  } | null>(null)
+  const [recentScan, setRecentScan] = useState<StaffAttendanceResult | null>(null)
   const [checkinLoading, setCheckinLoading] = useState(false)
   const [checkinError, setCheckinError] = useState('')
-  const [activeCheckIns, setActiveCheckIns] = useState<Array<{
-    profile: VolunteerProfile
-    eventId: string
-    checkInTime: string
-    sessionId: string
-    hoursLogged: number
-  }>>([])
+  const [activeCheckIns, setActiveCheckIns] = useState<ActiveCheckInSession[]>([])
+  const [activeLoading, setActiveLoading] = useState(false)
+  const [activeError, setActiveError] = useState('')
   const [eventRoster, setEventRoster] = useState<EventRosterEntry[]>([])
   const [rosterLoading, setRosterLoading] = useState(false)
+  const [rosterError, setRosterError] = useState('')
 
-  // Manual code input state
   const [manualCode, setManualCode] = useState('')
   const [manualSearch, setManualSearch] = useState('')
   const [manualSearchResults, setManualSearchResults] = useState<VolunteerProfile[]>([])
   const [manualSearchLoading, setManualSearchLoading] = useState(false)
+  const [manualSearchError, setManualSearchError] = useState('')
 
-  // Role management state
   const [allProfiles, setAllProfiles] = useState<VolunteerProfile[]>([])
   const [showSettings, setShowSettings] = useState(false)
   const [settingsLoading, setSettingsLoading] = useState(false)
+  const [settingsError, setSettingsError] = useState('')
 
   const beepPlayTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const handleCodeScanRef = useRef<(code: string) => void>(() => undefined)
 
-  // Programmatic synthesizer check-in beep
-  const playSuccessBeep = () => {
+  const selectedEvent = events.find((event) => event.id === selectedEventId)
+  const checkInEvents = events.filter(isCheckInEvent)
+
+  const loadActiveCheckIns = useCallback(async () => {
+    setActiveLoading(true)
+    setActiveError('')
     try {
-      type WindowWithWebkitAudioContext = Window & {
-        webkitAudioContext?: typeof AudioContext
-      }
-      const AudioContextConstructor =
-        window.AudioContext || (window as WindowWithWebkitAudioContext).webkitAudioContext
-      if (!AudioContextConstructor) return
-
-      const audioCtx = new AudioContextConstructor()
-      const oscillator = audioCtx.createOscillator()
-      const gainNode = audioCtx.createGain()
-
-      oscillator.connect(gainNode)
-      gainNode.connect(audioCtx.destination)
-
-      oscillator.type = 'sine'
-      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime) // A5 pitch
-      gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime)
-      
-      oscillator.start()
-      // Decay sound
-      gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3)
-      oscillator.stop(audioCtx.currentTime + 0.35)
-    } catch (e) {
-      console.warn('Audio beep failed (waiting for user interaction):', e)
+      setActiveCheckIns(await volunteerService.getActiveCheckInSessions())
+    } catch {
+      setActiveError('Active check-ins are temporarily unavailable.')
+    } finally {
+      setActiveLoading(false)
     }
-  }
+  }, [])
 
-  // Verify staff access and load upcoming events
+  const loadEventRoster = useCallback(async (eventId = selectedEventId) => {
+    if (!eventId) {
+      setEventRoster([])
+      return
+    }
+    setRosterLoading(true)
+    setRosterError('')
+    try {
+      setEventRoster(await volunteerService.getEventRoster(eventId))
+    } catch {
+      setRosterError('This event roster is temporarily unavailable.')
+    } finally {
+      setRosterLoading(false)
+    }
+  }, [selectedEventId])
+
   useEffect(() => {
     let mounted = true
 
     const init = async () => {
-      await volunteerService.handleAuthCallback()
-      const profile = await volunteerService.getCurrentUser()
+      let profile: VolunteerProfile | null = null
+      try {
+        profile = await volunteerService.getCurrentUser()
+      } catch {
+        if (mounted) {
+          setPageError('Staff verification is temporarily unavailable.')
+          setLoading(false)
+        }
+        return
+      }
 
       if (!mounted) return
-
       if (!profile || profile.role !== 'staff') {
         router.replace('/volunteer')
         return
       }
 
       try {
-        const res = await fetch('/api/events')
-        const data = await res.json()
-        if (mounted && Array.isArray(data)) {
-          setEvents(data)
-          const upcoming = data.filter((e: Event) => e.status === 'upcoming')
-          if (upcoming.length > 0) {
-            setSelectedEventId(upcoming[0].id)
-          }
+        const response = await fetch('/api/events', { cache: 'no-store' })
+        const data: unknown = await response.json()
+        if (!response.ok || !Array.isArray(data)) throw new Error('Events unavailable')
+        if (mounted) {
+          const nextEvents = data as Event[]
+          setEvents(nextEvents)
+          const firstActiveEvent = nextEvents.find(isCheckInEvent)
+          if (firstActiveEvent) setSelectedEventId(firstActiveEvent.id)
         }
-      } catch (err) {
-        console.error('Failed to fetch events:', err)
+      } catch {
+        if (mounted) setPageError('Event data is temporarily unavailable.')
       }
 
       if (mounted) {
         setLoading(false)
-        loadActiveCheckIns()
+        void loadActiveCheckIns()
       }
     }
 
-    init()
-
+    void init()
     return () => {
       mounted = false
     }
-  }, [router])
-
-  // Start scanner when cameraActive is true and an event is selected
-  useEffect(() => {
-    if (!cameraActive || !selectedEventId) return
-
-    // Give react time to mount the qr-reader div element
-    const timer = setTimeout(() => {
-      const qrCodeId = 'qr-reader'
-      const html5QrCode = new Html5Qrcode(qrCodeId)
-      
-      html5QrCode.start(
-        { facingMode: 'environment' },
-        {
-          fps: 10,
-          qrbox: (width, height) => {
-            const size = Math.min(width, height) * 0.7
-            return { width: size, height: size }
-          }
-        },
-        async (decodedText) => {
-          // Success callback
-          handleCodeScanRef.current(decodedText)
-        },
-        () => {
-          // Silent scan failure per frame
-        }
-      )
-      .then(() => {
-        setScannerInstance(html5QrCode)
-        setCameraError('')
-      })
-      .catch(err => {
-        console.error('Camera start failed:', err)
-        setCameraError('Camera access denied or device busy.')
-        setCameraActive(false)
-      })
-    }, 100)
-
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [cameraActive, selectedEventId])
-
-  // Stop the active scanner when the camera is deactivated.
-  useEffect(() => {
-    if (cameraActive || !scannerInstance) return
-
-    if (scannerInstance.isScanning) {
-      scannerInstance.stop().then(() => {
-        scannerInstance.clear()
-        setScannerInstance(null)
-      }).catch(console.error)
-    } else {
-      scannerInstance.clear()
-      setScannerInstance(null)
-    }
-  }, [cameraActive, scannerInstance])
-
-  // Stop scanner on unmount
-  useEffect(() => {
-    return () => {
-      if (scannerInstance && scannerInstance.isScanning) {
-        scannerInstance.stop().catch(console.error)
-      }
-    }
-  }, [scannerInstance])
-
-  const loadEventRoster = useCallback(async (eventId = selectedEventId) => {
-    if (!eventId) return
-    setRosterLoading(true)
-    const roster = await volunteerService.getEventRoster(eventId)
-    setEventRoster(roster)
-    setRosterLoading(false)
-  }, [selectedEventId])
+  }, [loadActiveCheckIns, router])
 
   useEffect(() => {
     if (!selectedEventId) {
       setEventRoster([])
       return
     }
-
     void loadEventRoster(selectedEventId)
-  }, [selectedEventId, loadEventRoster])
+  }, [loadEventRoster, selectedEventId])
 
   useEffect(() => {
     let mounted = true
     const query = manualSearch.trim()
-
     if (query.length < 2) {
       setManualSearchResults([])
-      return
+      setManualSearchLoading(false)
+      setManualSearchError('')
+      return () => {
+        mounted = false
+      }
     }
 
     setManualSearchLoading(true)
-    const timer = window.setTimeout(async () => {
-      const results = await volunteerService.searchProfiles(query)
-      if (mounted) {
-        setManualSearchResults(results)
-        setManualSearchLoading(false)
-      }
+    setManualSearchError('')
+    const timer = window.setTimeout(() => {
+      void volunteerService.searchProfiles(query)
+        .then((results) => {
+          if (mounted) setManualSearchResults(results)
+        })
+        .catch(() => {
+          if (mounted) {
+            setManualSearchResults([])
+            setManualSearchError('Volunteer search is temporarily unavailable.')
+          }
+        })
+        .finally(() => {
+          if (mounted) setManualSearchLoading(false)
+        })
     }, 250)
 
     return () => {
@@ -259,28 +216,113 @@ export default function CheckinPage() {
     }
   }, [manualSearch])
 
-  const handleCodeScan = async (code: string) => {
-    // Prevent double triggers during active checkin or shown result
-    if (checkinLoading || recentScan) return
+  useEffect(() => {
+    if (!cameraActive || !selectedEventId) {
+      setCameraLoading(false)
+      return undefined
+    }
 
+    let cancelled = false
+    setCameraLoading(true)
+    setScannerState('loading')
+    setCameraError('')
+
+    const timer = window.setTimeout(() => {
+      void import('html5-qrcode')
+        .then(async ({ Html5Qrcode }) => {
+          if (cancelled) return
+          const scanner = new Html5Qrcode('qr-reader')
+          scannerRef.current = scanner
+          try {
+            await scanner.start(
+              { facingMode: 'environment' },
+              {
+                fps: 10,
+                qrbox: (width, height) => {
+                  const size = Math.min(width, height) * 0.7
+                  return { width: size, height: size }
+                },
+              },
+              (decodedText) => handleCodeScanRef.current(decodedText),
+              () => undefined,
+            )
+            if (cancelled) {
+              await stopScanner(scanner)
+              return
+            }
+            setCameraLoading(false)
+            setScannerState('active')
+          } catch {
+            await stopScanner(scanner)
+            if (!cancelled) {
+              setCameraLoading(false)
+              setScannerState('error')
+              setCameraError('Camera access was denied or the device is busy.')
+              setCameraActive(false)
+            }
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setCameraLoading(false)
+            setScannerState('error')
+            setCameraError('The scanner could not be loaded. Use manual member-code entry instead.')
+            setCameraActive(false)
+          }
+        })
+    }, 0)
+
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+      const scanner = scannerRef.current
+      scannerRef.current = null
+      if (scanner) void stopScanner(scanner)
+    }
+  }, [cameraActive, selectedEventId])
+
+  useEffect(() => {
+    return () => {
+      if (beepPlayTimeoutRef.current) clearTimeout(beepPlayTimeoutRef.current)
+      const scanner = scannerRef.current
+      if (scanner) void stopScanner(scanner)
+    }
+  }, [])
+
+  const playSuccessBeep = () => {
+    try {
+      type WindowWithWebkitAudioContext = Window & { webkitAudioContext?: typeof AudioContext }
+      const AudioContextConstructor = window.AudioContext || (window as WindowWithWebkitAudioContext).webkitAudioContext
+      if (!AudioContextConstructor) return
+      const audioContext = new AudioContextConstructor()
+      const oscillator = audioContext.createOscillator()
+      const gain = audioContext.createGain()
+      oscillator.connect(gain)
+      gain.connect(audioContext.destination)
+      oscillator.type = 'sine'
+      oscillator.frequency.setValueAtTime(880, audioContext.currentTime)
+      gain.gain.setValueAtTime(0.15, audioContext.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3)
+      oscillator.start()
+      oscillator.stop(audioContext.currentTime + 0.35)
+    } catch {
+      // A browser may block audio until the first user interaction.
+    }
+  }
+
+  const handleCodeScan = async (code: string) => {
+    if (checkinLoading || recentScan || !selectedEventId) return
     setCheckinLoading(true)
     setCheckinError('')
-    
     try {
       const result = await volunteerService.checkInVolunteer(code, selectedEventId)
       playSuccessBeep()
       setRecentScan(result)
-      await loadActiveCheckIns()
-      await loadEventRoster()
-      
-      // Auto-clear result after 4 seconds to enable continuous scanning
+      await Promise.all([loadActiveCheckIns(), loadEventRoster()])
       if (beepPlayTimeoutRef.current) clearTimeout(beepPlayTimeoutRef.current)
-      beepPlayTimeoutRef.current = setTimeout(() => {
-        setRecentScan(null)
-      }, 4000)
-    } catch (err: unknown) {
-      console.error(err)
-      setCheckinError(err instanceof Error ? err.message : 'Check-in failed. Check member code.')
+      beepPlayTimeoutRef.current = setTimeout(() => setRecentScan(null), 4000)
+    } catch (error) {
+      setCheckinError(error instanceof Error ? error.message : 'Check-in failed. Check the member code.')
     } finally {
       setCheckinLoading(false)
     }
@@ -288,609 +330,157 @@ export default function CheckinPage() {
 
   handleCodeScanRef.current = handleCodeScan
 
-  const handleManualCheckIn = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleManualCheckIn = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
     if (!manualCode || !selectedEventId) return
-    handleCodeScan(manualCode)
+    void handleCodeScan(manualCode)
     setManualCode('')
   }
 
   const loadAllProfiles = async () => {
     setSettingsLoading(true)
-    const profiles = await volunteerService.getAllProfiles()
-    setAllProfiles(profiles)
-    setSettingsLoading(false)
+    setSettingsError('')
+    try {
+      setAllProfiles(await volunteerService.getAllProfiles())
+    } catch {
+      setSettingsError('Staff profile data is temporarily unavailable.')
+    } finally {
+      setSettingsLoading(false)
+    }
   }
 
-  const loadActiveCheckIns = async () => {
-    const sessions = await volunteerService.getActiveCheckInSessions()
-    setActiveCheckIns(sessions)
-  }
-
-  const exportRosterCsv = () => {
+  const exportRosterCsv = async () => {
     if (!selectedEvent) return
-
-    const rows = [
-      ['Name', 'Email', 'Member Code', 'Status', 'Hours', 'Checked In At'],
-      ...eventRoster.map(({ signup, profile }) => [
-        profile?.fullName || 'Unknown volunteer',
-        profile?.email || '',
-        profile?.memberCode || '',
-        signup.status,
-        signup.hours.toString(),
-        signup.checkedInAt || '',
-      ]),
-    ]
-
-    const csv = rows
-      .map((row) => row.map((value) => `"${value.replace(/"/g, '""')}"`).join(','))
-      .join('\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
-    const link = document.createElement('a')
-    link.href = URL.createObjectURL(blob)
-    link.download = `${selectedEvent.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}-volunteer-roster.csv`
-    link.click()
-    URL.revokeObjectURL(link.href)
-  }
-
-  const handleManualProfileSelect = (profile: VolunteerProfile) => {
-    setManualCode(profile.memberCode)
-    setManualSearch('')
-    setManualSearchResults([])
-  }
-
-  const handleUpdateRole = async (userId: string, newRole: 'volunteer' | 'staff') => {
-    const result = await volunteerService.updateUserRole(userId, newRole)
-    if (result) {
-      setAllProfiles(allProfiles.map(p => p.id === userId ? result : p))
+    try {
+      await volunteerService.downloadAttendanceCsv(selectedEvent.id)
+    } catch (error) {
+      setCheckinError(error instanceof Error ? error.message : 'The roster export could not be created.')
     }
   }
 
   const handleLogout = async () => {
-    if (confirm('Are you sure you want to log out?')) {
+    if (!window.confirm('Are you sure you want to log out?')) return
+    try {
       await volunteerService.signOut()
+    } catch {
+      setPageError('We could not sign you out. Please try again.')
     }
   }
 
-  const selectedEvent = events.find(e => e.id === selectedEventId)
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-primary flex flex-col items-center justify-center p-6">
-        <RefreshCw className="w-12 h-12 text-accent animate-spin mb-4" />
-        <p className={`${spaceGrotesk.className} text-blue-200 text-lg`}>Loading Staff Scanner... (If it does not load within 10 seconds, please refresh the page.)</p>
-      </div>
+      <main className="flex min-h-screen items-center justify-center bg-[var(--cream)] px-5 pt-16 text-[var(--ink)]">
+        <div className="text-center">
+          <RefreshCw aria-hidden="true" className="mx-auto h-8 w-8 animate-spin text-[var(--cobalt)] motion-reduce:animate-none" />
+          <p className="mt-4 font-body text-sm text-[var(--ink)]/70">Verifying staff access…</p>
+        </div>
+      </main>
     )
   }
 
   return (
-    <main className="min-h-screen pt-24 pb-20 bg-primary text-white relative overflow-hidden">
-      {/* Glow backgrounds */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl -z-10 animate-pulse"></div>
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl -z-10 animate-pulse delay-1000"></div>
-
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10">
-        
-        {/* Header navigation */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10">
-          <Link
-            href="/volunteer"
-            onClick={() => setCameraActive(false)}
-            className={`${spaceGrotesk.className} text-sm font-bold text-blue-200 hover:text-white transition-colors flex items-center gap-2 group`}
-          >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            Volunteer Portal
-          </Link>
-          <div className="flex flex-wrap items-center gap-3">
-  <button
-    onClick={() => {
-      setShowSettings(!showSettings)
-      if (!showSettings) loadAllProfiles()
-    }}
-    className={`${spaceGrotesk.className} px-3 py-1 bg-blue-500/10 border border-blue-500/25 rounded-full text-xs font-bold text-blue-300 hover:bg-blue-500/20 transition-colors flex items-center gap-1.5`}
-  >
-    <Settings className="w-3.5 h-3.5" />
-    Staff Settings
-  </button>
-
-  <button
-    onClick={handleLogout}
-    className={`${spaceGrotesk.className} px-3 py-1 bg-rose-500/10 border border-rose-500/25 rounded-full text-xs font-bold text-rose-300 hover:bg-rose-500/20 transition-colors flex items-center gap-1.5`}
-  >
-    <LogOut className="w-3.5 h-3.5" />
-    Log Out
-  </button>
-
-  <span className={`${spaceGrotesk.className} px-3 py-1 bg-emerald-500/10 border border-emerald-500/25 rounded-full text-xs font-bold text-emerald-400 flex items-center gap-1.5`}>
-    <Shield className="w-3.5 h-3.5" />
-    Staff Mode
-  </span>
-</div>
-        </div>
-
-        <div className="text-center mb-8">
-          <h1 className={`${fredoka.className} text-3xl sm:text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 via-accent to-purple-400 pb-2`}>
-            Webcam Attendance Check-In
-          </h1>
-          <p className={`${spaceGrotesk.className} text-blue-200`}>
-            Scan volunteer QR codes or enter member codes to record arrival and departure for accurate hours.
-          </p>
-        </div>
-<AnimatePresence>
-  {showSettings && (
-    <motion.div
-      initial={{ opacity: 0, y: -12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -12 }}
-      className="bg-slate-900/60 border border-white/10 rounded-3xl p-6 mb-8"
-    >
-      <div className="flex items-center justify-between gap-4 mb-5">
-        <div>
-          <h2 className={`${fredoka.className} text-2xl font-bold flex items-center gap-2`}>
-            <Settings className="w-5 h-5 text-accent" />
-            Staff Settings
-          </h2>
-          <p className={`${spaceGrotesk.className} text-sm text-blue-200`}>
-            Manage who is staff and who is a volunteer.
-          </p>
-        </div>
-
-        <button
-          onClick={loadAllProfiles}
-          disabled={settingsLoading}
-          className={`${spaceGrotesk.className} px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-2`}
-        >
-          <RefreshCw className={`w-4 h-4 ${settingsLoading ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
-      </div>
-
-      {settingsLoading ? (
-        <div className="py-8 flex items-center justify-center text-blue-200">
-          <RefreshCw className="w-5 h-5 animate-spin mr-2" />
-          Loading users...
-        </div>
-      ) : (
-        <div className="space-y-3 max-h-[420px] overflow-y-auto pr-1">
-          {allProfiles.map(profile => (
-            <div
-              key={profile.id}
-              className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/20 p-4"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 flex items-center justify-center flex-shrink-0">
-                  <User className="w-5 h-5 text-blue-200" />
-                </div>
-
-                <div>
-                  <p className={`${spaceGrotesk.className} font-bold text-white`}>
-                    {profile.fullName}
-                  </p>
-                  <p className={`${spaceGrotesk.className} text-xs text-blue-200`}>
-                    {profile.email}
-                  </p>
-                  <p className={`${spaceGrotesk.className} text-[10px] text-slate-400 mt-1`}>
-                    {profile.memberCode}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3">
-                <span
-                  className={`${spaceGrotesk.className} px-3 py-1 rounded-full text-xs font-bold ${
-                    profile.role === 'staff'
-                      ? 'bg-blue-500/10 text-blue-300 border border-blue-500/25'
-                      : 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/25'
-                  }`}
-                >
-                  {profile.role}
-                </span>
-
-                <select
-                  value={profile.role}
-                  onChange={(e) =>
-                    handleUpdateRole(
-                      profile.id,
-                      e.target.value as 'volunteer' | 'staff'
-                    )
-                  }
-                  className={`${spaceGrotesk.className} bg-slate-800 border border-white/10 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-accent`}
-                >
-                  <option value="volunteer">Volunteer</option>
-                  <option value="staff">Staff</option>
-                </select>
-              </div>
+    <main className="min-h-screen overflow-x-hidden bg-[var(--cream)] pt-16 text-[var(--ink)]">
+      <header className="border-b-2 border-[var(--ink)]/20">
+        <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:px-12 lg:py-16">
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <Link href="/volunteer" onClick={() => setCameraActive(false)} className="inline-flex min-h-11 items-center gap-2 font-body text-sm font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-4 transition hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]">
+                <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+                Volunteer portal
+              </Link>
+              <p className="mt-8 font-body text-xs font-bold uppercase tracking-[0.28em] text-[var(--cobalt)]">Staff / Attendance desk</p>
+              <h1 className="mt-3 max-w-4xl font-display text-5xl leading-[0.96] tracking-tight text-[var(--midnight)] sm:text-7xl">Check in the room.</h1>
+              <p className="mt-5 max-w-2xl font-body text-base leading-7 text-[var(--ink)]/65">Use the scanner or a member code to record arrival and departure. Staff access is verified by the server before this page loads.</p>
             </div>
-          ))}
-
-          {allProfiles.length === 0 && (
-            <div className={`${spaceGrotesk.className} py-8 text-center text-blue-200 border border-dashed border-white/10 rounded-2xl`}>
-              No profiles found.
+            <div className="flex flex-wrap gap-3 sm:pt-11">
+              <button type="button" onClick={() => { setShowSettings((current) => !current); if (!showSettings) void loadAllProfiles() }} className="inline-flex min-h-11 items-center justify-center gap-2 border-2 border-[var(--ink)] px-4 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"><Settings aria-hidden="true" className="h-4 w-4" /> Staff settings</button>
+              <button type="button" onClick={handleLogout} className="inline-flex min-h-11 items-center justify-center gap-2 border-2 border-red-800 px-4 py-3 font-body text-sm font-bold text-red-900 transition hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"><LogOut aria-hidden="true" className="h-4 w-4" /> Log out</button>
             </div>
-          )}
-        </div>
-      )}
-    </motion.div>
-  )}
-</AnimatePresence>
-        {/* 1. SELECT EVENT DROPDOWN */}
-        <div className="bg-slate-900/60 border border-white/10 rounded-3xl p-6 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex-grow">
-            <label htmlFor="event-select" className={`${spaceGrotesk.className} text-xs font-bold text-blue-200 uppercase tracking-wide block mb-2`}>
-              Check-in Event
-            </label>
-            <select
-              id="event-select"
-              value={selectedEventId}
-              onChange={(e) => {
-                setSelectedEventId(e.target.value)
-                setCameraActive(false) // stop camera when switching events
-              }}
-              className={`${spaceGrotesk.className} w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-accent appearance-none`}
-            >
-              <option value="" disabled>-- Select an Event --</option>
-              {events.map(event => (
-                <option key={event.id} value={event.id}>{event.title} ({event.status})</option>
-              ))}
-            </select>
           </div>
-          {selectedEvent && (
-            <div className={`p-4 bg-black/35 border border-white/5 rounded-2xl md:max-w-xs text-xs space-y-1.5 text-blue-200 ${spaceGrotesk.className}`}>
-              <div className="flex items-center">
-                <Calendar className="w-3.5 h-3.5 mr-2 text-accent" />
-                <span>{selectedEvent.date}</span>
-              </div>
-              <div className="flex items-center">
-                <Clock className="w-3.5 h-3.5 mr-2 text-accent" />
-                <span>{selectedEvent.time}</span>
-              </div>
-            </div>
-          )}
         </div>
+      </header>
 
-        {selectedEvent && (
-          <div className="bg-slate-900/60 border border-white/10 rounded-3xl p-6 mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+      <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-12 lg:py-16">
+        {pageError && <div role="alert" className="mb-8 border-l-4 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950">{pageError}</div>}
+
+        {showSettings && (
+          <section className="mb-10 border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7" aria-labelledby="staff-settings-title">
+            <div className="flex flex-col gap-5 border-b-2 border-[var(--ink)] pb-5 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className={`${fredoka.className} text-2xl font-bold flex items-center gap-2`}>
-                  <Users className="w-5 h-5 text-accent" />
-                  Event Volunteer Roster
-                </h2>
-                <p className={`${spaceGrotesk.className} text-sm text-blue-200`}>
-                  {selectedEvent.title}
-                </p>
+                <p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Read-only directory</p>
+                <h2 id="staff-settings-title" className="mt-2 font-display text-3xl text-[var(--midnight)]">Staff settings</h2>
+                <p className="mt-2 font-body text-sm leading-6 text-[var(--ink)]/65">View server-controlled profiles. Membership changes remain owner-only operations.</p>
               </div>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => loadEventRoster()}
-                  disabled={rosterLoading}
-                  className={`${spaceGrotesk.className} px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-xs font-bold transition-colors disabled:opacity-50 flex items-center gap-2`}
-                >
-                  <RefreshCw className={`w-4 h-4 ${rosterLoading ? 'animate-spin' : ''}`} />
-                  Refresh
-                </button>
-                <button
-                  onClick={exportRosterCsv}
-                  disabled={eventRoster.length === 0}
-                  className={`${spaceGrotesk.className} px-4 py-2 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-xl text-xs font-bold text-emerald-300 transition-colors disabled:opacity-50 flex items-center gap-2`}
-                >
-                  <Download className="w-4 h-4" />
-                  Export CSV
-                </button>
-              </div>
+              <button type="button" onClick={() => void loadAllProfiles()} disabled={settingsLoading} className="inline-flex min-h-11 items-center justify-center gap-2 border-2 border-[var(--ink)] px-4 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"><RefreshCw aria-hidden="true" className={`h-4 w-4 ${settingsLoading ? 'animate-spin motion-reduce:animate-none' : ''}`} /> Refresh</button>
             </div>
-
-            {eventRoster.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-[300px] overflow-y-auto pr-1">
-                {eventRoster.map(({ signup, profile }) => (
-                  <div key={signup.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className={`${spaceGrotesk.className} font-bold text-white`}>
-                          {profile?.fullName || 'Unknown volunteer'}
-                        </p>
-                        <p className={`${spaceGrotesk.className} text-xs text-blue-200`}>
-                          {profile?.email || 'No email available'}
-                        </p>
-                        <p className={`${spaceGrotesk.className} text-[10px] text-slate-400 mt-1`}>
-                          {profile?.memberCode || 'No member code'}
-                        </p>
-                      </div>
-                      <span
-                        className={`${spaceGrotesk.className} px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${
-                          signup.status === 'attended'
-                            ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                            : signup.status === 'registered'
-                              ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                              : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                        }`}
-                      >
-                        {signup.status}
-                      </span>
-                    </div>
-                    <div className={`${spaceGrotesk.className} mt-3 flex items-center justify-between text-xs text-blue-200`}>
-                      <span>{signup.hours.toFixed(2)}h logged</span>
-                      {signup.checkedInAt && <span>{new Date(signup.checkedInAt).toLocaleTimeString()}</span>}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className={`${spaceGrotesk.className} py-8 text-center text-blue-200 border border-dashed border-white/10 rounded-2xl`}>
-                No volunteers are registered for this event yet.
-              </div>
-            )}
-          </div>
+            {settingsError && <p role="alert" className="mt-5 border-l-4 border-red-700 bg-red-100 px-4 py-3 font-body text-sm text-red-950">{settingsError}</p>}
+            {settingsLoading ? <p className="py-8 text-center font-body text-sm text-[var(--ink)]/65">Loading profiles…</p> : allProfiles.length > 0 ? (
+              <ul className="divide-y divide-[var(--ink)]/20">
+                {allProfiles.map((profile) => <li key={profile.id} className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-body font-bold text-[var(--midnight)]">{profile.fullName}</p><p className="mt-1 break-all font-body text-xs text-[var(--ink)]/60">{profile.email} · {profile.memberCode}</p></div><span className="font-body text-xs font-bold uppercase tracking-[0.16em] text-[var(--cobalt)]">{profile.role}</span></li>)}
+              </ul>
+            ) : <p className="py-8 text-center font-body text-sm text-[var(--ink)]/65">No profiles found.</p>}
+          </section>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          
-          {/* WEBCAM SCANNER CARD */}
-          <div className="bg-slate-900/60 border border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center min-h-[350px] relative overflow-hidden">
-            <h2 className={`${fredoka.className} text-xl font-bold mb-4 flex items-center gap-2`}>
-              <Camera className="w-5 h-5 text-accent" /> QR Code Scanner
-            </h2>
-
-            {/* Video Container */}
-            <div className="relative w-full max-w-[280px] aspect-square rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center overflow-hidden mb-6">
-              
-              {cameraActive ? (
-                <>
-                  <div id="qr-reader" className="w-full h-full"></div>
-                  
-                  {/* Glowing Laser Scan Line */}
-                  <motion.div 
-                    initial={{ top: '0%' }}
-                    animate={{ top: '100%' }}
-                    transition={{ repeat: Infinity, repeatType: 'reverse', duration: 2.5, ease: 'easeInOut' }}
-                    className="absolute left-0 w-full h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_10px_#10b981] pointer-events-none"
-                  />
-                  
-                  {/* Scan boundary indicators */}
-                  <div className="absolute inset-5 border-2 border-white/10 pointer-events-none rounded-xl" />
-                </>
-              ) : (
-                <div className="text-center p-6 space-y-4 text-blue-300">
-                  <Camera className="w-12 h-12 mx-auto opacity-35" />
-                  <p className={`${spaceGrotesk.className} text-xs font-semibold px-4`}>
-                    Scanner is currently idle. Click below to start the webcam.
-                  </p>
-                </div>
-              )}
-
-              {/* Loader */}
-              {checkinLoading && (
-                <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
-                  <RefreshCw className="w-10 h-10 text-accent animate-spin" />
-                </div>
-              )}
+        <section className="border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7" aria-labelledby="event-selection-title">
+          <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
+            <div>
+              <p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Step one</p>
+              <h2 id="event-selection-title" className="mt-2 font-display text-3xl text-[var(--midnight)]">Select a check-in event.</h2>
+              <label htmlFor="event-select" className="mt-5 block font-body text-sm font-bold text-[var(--midnight)]">Event</label>
+              <select id="event-select" value={selectedEventId} onChange={(event) => { setSelectedEventId(event.target.value); setCameraActive(false) }} disabled={checkInEvents.length === 0} className="mt-2 min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--cream)] px-4 py-3 font-body text-[var(--ink)] outline-none focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)] sm:max-w-xl">
+                <option value="" disabled>{checkInEvents.length === 0 ? 'No active events available' : 'Select an event'}</option>
+                {checkInEvents.map((event) => <option key={event.id} value={event.id}>{event.title}</option>)}
+              </select>
             </div>
-
-            {/* Toggle Button */}
-            <button
-              onClick={() => {
-                if (!selectedEventId) {
-                  setCheckinError('Please select a check-in event first.')
-                  return
-                }
-                setCameraActive(!cameraActive)
-                setCheckinError('')
-              }}
-              className={`${spaceGrotesk.className} w-full max-w-[280px] py-3 text-sm font-bold rounded-xl transition-all ${
-                cameraActive 
-                  ? 'bg-rose-500 hover:bg-rose-600 text-white' 
-                  : 'bg-accent hover:bg-blue-600 text-white'
-              }`}
-            >
-              {cameraActive ? 'Stop Scanner' : 'Activate Scanner'}
-            </button>
-
-            {cameraError && (
-              <p className={`${spaceGrotesk.className} text-xs text-rose-400 font-bold mt-4`}>{cameraError}</p>
-            )}
+            {selectedEvent && <div className="border-l-4 border-[var(--sky)] pl-4 lg:max-w-xs"><p className="font-body text-xs font-bold uppercase tracking-[0.18em] text-[var(--cobalt)]">Selected event</p><p className="mt-2 font-display text-2xl text-[var(--midnight)]">{selectedEvent.title}</p><EventMeta event={selectedEvent} /></div>}
           </div>
+        </section>
 
-          {/* MANUAL OVERRIDE & RECENT STATUS CARD */}
-          <div className="space-y-6 flex flex-col">
-            
-            {/* MANUAL CHECK-IN */}
-            <div className="bg-slate-900/60 border border-white/10 rounded-3xl p-6">
-              <h2 className={`${fredoka.className} text-xl font-bold mb-4 flex items-center gap-2`}>
-                <Search className="w-5 h-5 text-accent" /> Manual Override
-              </h2>
-
-              <div className={`space-y-2 mb-4 ${spaceGrotesk.className}`}>
-                <label htmlFor="volunteer-search" className="text-xs font-semibold text-slate-300">
-                  Search Volunteer
-                </label>
-                <input
-                  id="volunteer-search"
-                  type="text"
-                  placeholder="Name, email, or member code"
-                  value={manualSearch}
-                  onChange={(e) => setManualSearch(e.target.value)}
-                  className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-accent"
-                />
-                {manualSearchLoading && (
-                  <p className="text-xs text-blue-200">Searching volunteers...</p>
-                )}
-                {manualSearchResults.length > 0 && (
-                  <div className="space-y-2 max-h-44 overflow-y-auto">
-                    {manualSearchResults.map((profile) => (
-                      <button
-                        key={profile.id}
-                        type="button"
-                        onClick={() => handleManualProfileSelect(profile)}
-                        className="w-full text-left rounded-xl border border-white/10 bg-black/20 hover:bg-white/10 p-3 transition-colors"
-                      >
-                        <span className="block text-sm font-bold text-white">{profile.fullName}</span>
-                        <span className="block text-xs text-blue-200">{profile.email}</span>
-                        <span className="block text-[10px] text-slate-400 mt-1">{profile.memberCode}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-              
-              <form onSubmit={handleManualCheckIn} className={`space-y-4 ${spaceGrotesk.className}`}>
-                <div className="space-y-1.5">
-                  <label htmlFor="code-input" className="text-xs font-semibold text-slate-300">
-                    Volunteer Member Code
-                  </label>
-                  <input
-                    id="code-input"
-                    type="text"
-                    placeholder="POT-123456"
-                    value={manualCode}
-                    onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-                    className="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-accent"
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={checkinLoading || !selectedEventId}
-                  className="w-full py-2.5 bg-white/10 hover:bg-white text-white hover:text-slate-900 border border-white/10 rounded-xl font-bold text-sm transition-all disabled:opacity-50"
-                >
-                  Submit Code
-                </button>
-              </form>
+        {selectedEvent && (
+          <section className="mt-10 border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7" aria-labelledby="roster-title">
+            <div className="flex flex-col gap-5 border-b-2 border-[var(--ink)] pb-5 sm:flex-row sm:items-end sm:justify-between">
+              <div><p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Staff view</p><h2 id="roster-title" className="mt-2 font-display text-3xl text-[var(--midnight)]">Event volunteer roster.</h2></div>
+              <div className="flex flex-wrap gap-3"><button type="button" onClick={() => void loadEventRoster()} disabled={rosterLoading} className="inline-flex min-h-11 items-center justify-center gap-2 border-2 border-[var(--ink)] px-4 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"><RefreshCw aria-hidden="true" className={`h-4 w-4 ${rosterLoading ? 'animate-spin motion-reduce:animate-none' : ''}`} /> Refresh</button><button type="button" onClick={() => void exportRosterCsv()} disabled={eventRoster.length === 0} className="inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--midnight)] px-4 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"><Download aria-hidden="true" className="h-4 w-4" /> Export CSV</button></div>
             </div>
+            {rosterError && <p role="alert" className="mt-5 border-l-4 border-red-700 bg-red-100 px-4 py-3 font-body text-sm text-red-950">{rosterError}</p>}
+            {rosterLoading ? <p className="py-10 text-center font-body text-sm text-[var(--ink)]/65">Loading roster…</p> : eventRoster.length > 0 ? <ul className="grid gap-0 divide-y divide-[var(--ink)]/20 sm:grid-cols-2 sm:divide-x sm:divide-y-0">{eventRoster.map(({ signup, profile }) => <li key={signup.id} className="border-b border-[var(--ink)]/20 p-5 first:pt-5 sm:border-b-0 sm:even:border-l sm:last:border-b-0"><div className="flex items-start justify-between gap-4"><div><p className="font-body font-bold text-[var(--midnight)]">{profile?.fullName || 'Unknown volunteer'}</p><p className="mt-1 break-all font-body text-xs text-[var(--ink)]/60">{profile?.email || 'No email available'}</p><p className="mt-1 font-body text-[10px] text-[var(--ink)]/50">{profile?.memberCode || 'No member code'}</p></div><span className="font-body text-xs font-bold uppercase tracking-[0.12em] text-[var(--cobalt)]">{signup.status}</span></div><div className="mt-4 flex items-center justify-between font-body text-xs text-[var(--ink)]/60"><span>{signup.hours.toFixed(2)}h logged</span>{signup.checkedInAt && <span>{new Date(signup.checkedInAt).toLocaleTimeString()}</span>}</div></li>)}</ul> : <p className="py-10 text-center font-body text-sm text-[var(--ink)]/65">No volunteers are registered for this event yet.</p>}
+          </section>
+        )}
 
-            {/* CURRENTLY CHECKED-IN VOLUNTEERS */}
-            <div className="bg-slate-900/60 border border-white/10 rounded-3xl p-6">
-              <h2 className={`${fredoka.className} text-xl font-bold mb-4 flex items-center gap-2`}>
-                <UserCheck className="w-5 h-5 text-accent" /> Currently Checked In
-              </h2>
-              {activeCheckIns.length > 0 ? (
-                <div className="space-y-3 max-h-[260px] overflow-y-auto pr-1">
-                  {activeCheckIns.map((session) => (
-                    <div key={session.sessionId} className="border border-white/10 rounded-2xl p-4 bg-black/20">
-                      <div className="flex items-center justify-between gap-4">
-                        <div>
-                          <p className={`${spaceGrotesk.className} text-sm text-blue-200 font-semibold`}>{session.profile.fullName}</p>
-                          <p className={`${spaceGrotesk.className} text-xs text-slate-400`}>{session.profile.memberCode}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className={`${spaceGrotesk.className} text-xs text-slate-400`}>Event</p>
-                          <p className={`${spaceGrotesk.className} text-sm text-white`}>{events.find((e) => e.id === session.eventId)?.title ?? session.eventId}</p>
-                        </div>
-                      </div>
-                      <div className="mt-3 flex items-center justify-between text-xs text-blue-200">
-                        <span>Checked in at {new Date(session.checkInTime).toLocaleTimeString()}</span>
-                        <span>{session.hoursLogged.toFixed(2)}h logged</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className={`${spaceGrotesk.className} text-sm text-blue-200`}>No volunteers are currently checked in.</p>
-              )}
+        <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_0.9fr]">
+          <section className="border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7" aria-labelledby="scanner-title">
+            <div className="border-b-2 border-[var(--ink)] pb-5"><p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Step two</p><h2 id="scanner-title" className="mt-2 font-display text-3xl text-[var(--midnight)]">Scan a member code.</h2><p className="mt-2 font-body text-sm leading-6 text-[var(--ink)]/65">The webcam scanner loads only after a verified staff member activates it.</p></div>
+            <div className="relative mt-6 flex aspect-square w-full items-center justify-center border-2 border-[var(--ink)]/20 bg-[var(--midnight)] p-4 sm:max-w-[420px]">
+              {cameraActive ? <div id="qr-reader" className="h-full w-full" aria-label="Camera QR scanner" /> : <div className="max-w-xs text-center text-[var(--cream)]"><Camera aria-hidden="true" className="mx-auto h-10 w-10 text-[var(--sky)]" /><p className="mt-4 font-body text-sm leading-6 text-[var(--cream)]/75">Activate the webcam when you are ready to scan.</p></div>}
+              {cameraLoading && <div className="absolute inset-0 flex flex-col items-center justify-center bg-[var(--midnight)]/90 text-[var(--cream)]"><Loader2 aria-hidden="true" className="h-8 w-8 animate-spin text-[var(--sky)] motion-reduce:animate-none" /><p className="mt-3 font-body text-sm">Loading scanner…</p></div>}
             </div>
+            <div className="mt-5 flex flex-col gap-3 sm:max-w-[420px]"><button type="button" onClick={() => { if (!selectedEventId) { setCheckinError('Select a check-in event first.'); return } setCameraError(''); setCheckinError(''); setCameraActive((current) => !current) }} disabled={cameraLoading} className={`inline-flex min-h-11 w-full items-center justify-center gap-2 px-5 py-3 font-body font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] ${cameraActive ? 'bg-red-800 text-[var(--cream)] hover:bg-red-900' : 'bg-[var(--midnight)] text-[var(--cream)] hover:bg-[var(--cobalt)]'} disabled:cursor-not-allowed disabled:opacity-50`}><Camera aria-hidden="true" className="h-4 w-4" /> {cameraActive ? 'Stop scanner' : 'Activate scanner'}</button><p className="font-body text-xs text-[var(--ink)]/55" aria-live="polite">Scanner status: {scannerState === 'active' ? 'ready' : scannerState === 'loading' ? 'loading' : scannerState === 'error' ? 'unavailable' : 'idle'}</p></div>
+            {cameraError && <p role="alert" className="mt-4 border-l-4 border-red-700 bg-red-100 px-4 py-3 font-body text-sm leading-6 text-red-950 sm:max-w-[420px]">{cameraError}</p>}
+          </section>
 
-            {/* STATUS / SCAN RESULTS OVERLAY CONTAINER */}
-            <div className="flex-grow min-h-[260px] relative">
-              <AnimatePresence mode="wait">
-                {recentScan ? (
-                  /* SUCCESS OVERLAY */
-                  <motion.div
-                    key="success"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="absolute inset-0 bg-emerald-500/10 border border-emerald-500/20 rounded-3xl p-6 flex flex-col justify-between"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-emerald-500/20 rounded-xl border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
-                        <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-                      </div>
-                      <div>
-                        <span className={`${spaceGrotesk.className} text-[10px] text-emerald-400 font-bold uppercase tracking-wider`}>
-                          {recentScan.action === 'checkedIn' ? 'Checked In' : 'Checked Out'} Successfully!
-                        </span>
-                        <h3 className={`${fredoka.className} text-xl font-bold mt-1 text-white`}>
-                          {recentScan.profile.fullName}
-                        </h3>
-                        <p className={`${spaceGrotesk.className} text-xs text-blue-200 mt-2`}>
-                          Member: <strong>{recentScan.profile.memberCode}</strong>
-                        </p>
-                        <p className={`${spaceGrotesk.className} text-xs text-blue-200 mt-1`}>
-                          {recentScan.action === 'checkedIn'
-                            ? `Checked in at ${new Date(recentScan.checkInTime).toLocaleTimeString()}`
-                            : `Checked out at ${new Date(recentScan.checkOutTime || '').toLocaleTimeString()}, ${recentScan.hoursLogged.toFixed(2)}h logged`}
-                        </p>
-                        {recentScan.action === 'checkedOut' && (
-                          <div className={`${spaceGrotesk.className} mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs text-emerald-100`}>
-                            This checkout added <strong>{recentScan.hoursLogged.toFixed(2)} hours</strong> to the event record.
-                            Admins can adjust total hours later from the hours dashboard if anything looks off.
-                          </div>
-                        )}
-                      </div>
-                    </div>
+          <div className="space-y-10">
+            <section className="border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7" aria-labelledby="manual-title">
+              <div className="border-b-2 border-[var(--ink)] pb-5"><p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Fallback</p><h2 id="manual-title" className="mt-2 font-display text-3xl text-[var(--midnight)]">Use a member code.</h2></div>
+              <label htmlFor="volunteer-search" className="mt-5 block font-body text-sm font-bold text-[var(--midnight)]">Search volunteer</label>
+              <input id="volunteer-search" type="search" value={manualSearch} onChange={(event) => setManualSearch(event.target.value)} placeholder="Name, email, or member code" className="mt-2 min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--cream)] px-4 py-3 font-body text-[var(--ink)] outline-none focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]" />
+              {manualSearchLoading && <p className="mt-2 font-body text-xs text-[var(--ink)]/60">Searching volunteers…</p>}
+              {manualSearchError && <p role="alert" className="mt-2 font-body text-xs text-red-800">{manualSearchError}</p>}
+              {manualSearchResults.length > 0 && <ul className="mt-3 divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20">{manualSearchResults.map((profile) => <li key={profile.id}><button type="button" onClick={() => { setManualCode(profile.memberCode); setManualSearch(''); setManualSearchResults([]) }} className="min-h-11 w-full py-3 text-left font-body text-sm transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"><span className="block font-bold text-[var(--midnight)]">{profile.fullName}</span><span className="mt-1 block text-xs text-[var(--ink)]/60">{profile.email} · {profile.memberCode}</span></button></li>)}</ul>}
+              <form onSubmit={handleManualCheckIn} className="mt-6 border-t border-[var(--ink)]/20 pt-5"><label htmlFor="code-input" className="block font-body text-sm font-bold text-[var(--midnight)]">Volunteer member code</label><input id="code-input" type="text" value={manualCode} onChange={(event) => setManualCode(event.target.value.toUpperCase())} placeholder="POT-123456" required className="mt-2 min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--cream)] px-4 py-3 font-body tracking-[0.12em] text-[var(--ink)] outline-none focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]" /><button type="submit" disabled={checkinLoading || !selectedEventId} className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] disabled:cursor-not-allowed disabled:opacity-45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]">{checkinLoading ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin motion-reduce:animate-none" /> : <Search aria-hidden="true" className="h-4 w-4" />} Submit code</button></form>
+            </section>
 
-                    <button
-                      onClick={() => setRecentScan(null)}
-                      className={`${spaceGrotesk.className} w-full py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-xs font-bold transition-colors`}
-                    >
-                      Next Scan
-                    </button>
-                  </motion.div>
-                ) : checkinError ? (
-                  /* ERROR OVERLAY */
-                  <motion.div
-                    key="error"
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="absolute inset-0 bg-rose-500/10 border border-rose-500/20 rounded-3xl p-6 flex flex-col justify-between"
-                  >
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-rose-500/20 rounded-xl border border-rose-500/30 flex items-center justify-center flex-shrink-0">
-                        <AlertCircle className="w-6 h-6 text-rose-400" />
-                      </div>
-                      <div>
-                        <span className={`${spaceGrotesk.className} text-[10px] text-rose-400 font-bold uppercase tracking-wider`}>
-                          Scan Error
-                        </span>
-                        <p className={`${spaceGrotesk.className} text-sm font-semibold text-rose-200 mt-2 leading-relaxed`}>
-                          {checkinError}
-                        </p>
-                      </div>
-                    </div>
+            <section className="border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7" aria-labelledby="active-title">
+              <div className="flex items-end justify-between gap-4 border-b-2 border-[var(--ink)] pb-5"><div><p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Live view</p><h2 id="active-title" className="mt-2 font-display text-3xl text-[var(--midnight)]">Currently checked in.</h2></div><UserCheck aria-hidden="true" className="h-6 w-6 text-[var(--cobalt)]" /></div>
+              {activeError && <p role="alert" className="mt-5 border-l-4 border-red-700 bg-red-100 px-4 py-3 font-body text-sm text-red-950">{activeError}</p>}
+              {activeLoading ? <p className="py-8 text-center font-body text-sm text-[var(--ink)]/65">Loading active check-ins…</p> : activeCheckIns.length > 0 ? <ul className="divide-y divide-[var(--ink)]/20">{activeCheckIns.map((session) => <li key={session.sessionId} className="py-4"><div className="flex items-start justify-between gap-4"><div><p className="font-body text-sm font-bold text-[var(--midnight)]">{session.profile.fullName}</p><p className="mt-1 font-body text-xs text-[var(--ink)]/60">{session.profile.memberCode}</p></div><p className="text-right font-body text-xs text-[var(--ink)]/60">{events.find((event) => event.id === session.eventId)?.title ?? session.eventId}</p></div><div className="mt-3 flex items-center justify-between font-body text-xs text-[var(--ink)]/60"><span>In at {new Date(session.checkInTime).toLocaleTimeString()}</span><span>{session.hoursLogged.toFixed(2)}h logged</span></div></li>)}</ul> : <p className="py-8 font-body text-sm text-[var(--ink)]/65">No volunteers are currently checked in.</p>}
+            </section>
 
-                    <button
-                      onClick={() => setCheckinError('')}
-                      className={`${spaceGrotesk.className} w-full py-2 bg-white/5 hover:bg-white/10 rounded-xl text-xs font-bold transition-colors`}
-                    >
-                      Dismiss Error
-                    </button>
-                  </motion.div>
-                ) : (
-                  /* READY / INSTRUCTIONS STATE */
-                  <motion.div
-                    key="idle"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="absolute inset-0 border border-dashed border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center text-center text-blue-300"
-                  >
-                    <UserCheck className="w-12 h-12 mb-3 opacity-30 text-accent animate-pulse" />
-                    <p className={`${spaceGrotesk.className} text-xs font-bold uppercase tracking-widest`}>
-                      Ready for Scan
-                    </p>
-                    <p className={`${spaceGrotesk.className} text-[10px] text-blue-200 mt-2 px-6`}>
-                      Please activate the webcam or enter a member code to initiate check-in records.
-                    </p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
+            <section aria-live="polite" className="min-h-[220px] border-2 border-[var(--ink)]/25 bg-[var(--paper)] p-5 sm:p-7">
+              {recentScan ? <div className="flex min-h-[180px] flex-col justify-between"><div><CheckCircle2 aria-hidden="true" className="h-8 w-8 text-[var(--cobalt)]" /><p className="mt-5 font-body text-xs font-bold uppercase tracking-[0.2em] text-[var(--cobalt)]">{recentScan.action === 'checkedIn' ? 'Checked in' : 'Checked out'} successfully</p><h2 className="mt-2 font-display text-3xl text-[var(--midnight)]">{recentScan.profile.fullName}</h2><p className="mt-2 font-body text-sm text-[var(--ink)]/65">Member {recentScan.profile.memberCode}</p><p className="mt-3 font-body text-sm text-[var(--ink)]/65">{recentScan.action === 'checkedIn' ? `Checked in at ${new Date(recentScan.checkInTime).toLocaleTimeString()}` : `Checked out at ${new Date(recentScan.checkOutTime || '').toLocaleTimeString()}, ${recentScan.hoursLogged.toFixed(2)}h logged`}</p></div><button type="button" onClick={() => setRecentScan(null)} className="mt-6 inline-flex min-h-11 w-full items-center justify-center bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]">Next scan</button></div> : checkinError ? <div className="flex min-h-[180px] flex-col justify-between"><div><AlertCircle aria-hidden="true" className="h-8 w-8 text-red-800" /><p className="mt-5 font-body text-xs font-bold uppercase tracking-[0.2em] text-red-800">Scan error</p><p role="alert" className="mt-2 font-body text-sm leading-6 text-red-950">{checkinError}</p></div><button type="button" onClick={() => setCheckinError('')} className="mt-6 inline-flex min-h-11 w-full items-center justify-center border-2 border-[var(--ink)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]">Dismiss error</button></div> : <div className="flex min-h-[180px] flex-col items-center justify-center text-center"><ShieldCheck aria-hidden="true" className="h-9 w-9 text-[var(--cobalt)]" /><p className="mt-4 font-body text-xs font-bold uppercase tracking-[0.2em] text-[var(--cobalt)]">Ready for check-in</p><p className="mt-2 max-w-xs font-body text-sm leading-6 text-[var(--ink)]/65">Activate the webcam or enter a member code to record attendance.</p></div>}
+            </section>
           </div>
-
         </div>
-
       </div>
     </main>
   )

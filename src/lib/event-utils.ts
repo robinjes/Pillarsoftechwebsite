@@ -19,7 +19,11 @@ export function normalizeAssetPath(asset?: string | null) {
     return undefined;
   }
 
-  if (isAbsoluteUrl(trimmed) || trimmed.startsWith('data:') || trimmed.startsWith('blob:')) {
+  if (/^(?:javascript|data|blob|file):/i.test(trimmed) || trimmed.startsWith('//')) {
+    return undefined;
+  }
+
+  if (isAbsoluteUrl(trimmed)) {
     return trimmed;
   }
 
@@ -74,20 +78,30 @@ export function normalizeEvents(events: Event[]) {
 export function toYouTubeEmbedUrl(url: string) {
   try {
     const parsed = new URL(url);
-    const host = parsed.hostname.replace(/^www\./, '');
+    if (parsed.protocol !== 'https:' || parsed.username || parsed.password) {
+      return null;
+    }
+
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+    const videoIdPattern = /^[a-zA-Z0-9_-]{6,32}$/;
 
     if (host === 'youtu.be') {
       const videoId = parsed.pathname.slice(1);
-      return videoId ? `https://www.youtube-nocookie.com/embed/${videoId}` : null;
+      return videoIdPattern.test(videoId)
+        ? `https://www.youtube-nocookie.com/embed/${videoId}`
+        : null;
     }
 
-    if (host.endsWith('youtube.com')) {
+    if (host === 'youtube.com') {
       if (parsed.pathname.startsWith('/embed/')) {
-        return `https://www.youtube-nocookie.com${parsed.pathname}`;
+        const videoId = parsed.pathname.slice('/embed/'.length);
+        return videoIdPattern.test(videoId)
+          ? `https://www.youtube-nocookie.com/embed/${videoId}`
+          : null;
       }
 
       const videoId = parsed.searchParams.get('v');
-      if (!videoId) {
+      if (!videoId || !videoIdPattern.test(videoId)) {
         return null;
       }
 

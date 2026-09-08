@@ -1,12 +1,18 @@
-import { Suspense } from 'react'
+import type { Metadata } from 'next'
 import Contact from '@/components/Contact'
 
-export default function ContactPage() {
+export const metadata: Metadata = {
+  title: 'Contact | Pillars of Tech',
+  description: 'Ask a question, plan a workshop, volunteer, or coordinate equipment with Pillars of Tech.',
+}
+
+export default async function ContactPage({ searchParams }: { searchParams: Promise<{ reason?: string | string[] }> }) {
+  const { reason } = await searchParams
+  const initialReason = typeof reason === 'string' ? reason : undefined
+
   return (
-    <main className="min-h-screen pt-16">
-      <Suspense fallback={<div className="mx-auto max-w-7xl px-4 py-24 text-center text-blue-100 sm:px-6 lg:px-8">Loading contact form...</div>}>
-        <Contact />
-      </Suspense>
+    <main className="min-h-screen overflow-x-hidden">
+      <Contact initialReason={initialReason} />
     </main>
   )
 }
