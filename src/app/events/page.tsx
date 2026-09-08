@@ -348,7 +348,7 @@ export default function EventsPage() {
           <div>
             {filter !== 'completed' && filter !== 'cancelled' && (
               <section aria-labelledby="upcoming-heading" className="pt-12">
-                <div className="flex items-end justify-between gap-4">
+                <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
                   <div>
                     <p className="text-sm font-semibold text-[var(--cobalt)]">{filter === 'ongoing' ? 'Now' : 'Now / next'}</p>
                     <h2 id="upcoming-heading" className="mt-2 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">
@@ -367,7 +367,7 @@ export default function EventsPage() {
 
             {filter !== 'upcoming' && filter !== 'ongoing' && filter !== 'cancelled' && (
               <section aria-labelledby="completed-heading" className="pt-14">
-                <div className="flex items-end justify-between gap-4">
+                <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
                   <div>
                     <p className="text-sm font-semibold text-[var(--cobalt)]">Archive / stories</p>
                     <h2 id="completed-heading" className="mt-2 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">Completed programs</h2>
@@ -384,7 +384,7 @@ export default function EventsPage() {
 
             {filter !== 'upcoming' && filter !== 'ongoing' && filter !== 'completed' && (filter === 'cancelled' || sections.cancelled.length > 0) && (
               <section aria-labelledby="cancelled-heading" className="pt-14">
-                <div className="flex items-end justify-between gap-4">
+                <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
                   <div>
                     <p className="text-sm font-semibold text-[var(--cobalt)]">Archive / changes</p>
                     <h2 id="cancelled-heading" className="mt-2 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">Cancelled programs</h2>

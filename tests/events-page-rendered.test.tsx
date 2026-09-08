@@ -147,4 +147,48 @@ describe('EventsPage rendered filtering behavior', () => {
     expect(screen.getByRole('link', { name: /Participant Registration/ })).toHaveAttribute('href', '/register/open-program')
     expect(screen.getByRole('link', { name: /Volunteer/ })).toHaveAttribute('href', '/volunteer?eventId=open-program')
   })
+
+  it('keeps consistent spacing between every section heading and its content', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        makeEvent(),
+        makeEvent({ id: 'completed-program', slug: 'completed-program', title: 'Completed build', status: 'completed' }),
+        makeEvent({ id: 'cancelled-program', slug: 'cancelled-program', title: 'Cancelled build', status: 'cancelled' }),
+      ],
+    })
+
+    render(<EventsPage />)
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Upcoming & ongoing' })).toBeInTheDocument())
+
+    for (const name of ['Upcoming & ongoing', 'Completed programs', 'Cancelled programs']) {
+      const heading = screen.getByRole('heading', { name })
+      const headingWrapper = heading.parentElement?.parentElement
+      expect(headingWrapper).not.toBeNull()
+      expect(headingWrapper).toHaveClass('mb-6', 'sm:mb-8')
+    }
+  })
+
+  it('keeps the same heading spacing when sections render empty states', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => [],
+    })
+
+    render(<EventsPage />)
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Upcoming & ongoing' })).toBeInTheDocument())
+
+    for (const name of ['Upcoming & ongoing', 'Completed programs']) {
+      const heading = screen.getByRole('heading', { name })
+      const headingWrapper = heading.parentElement?.parentElement
+      expect(headingWrapper).not.toBeNull()
+      expect(headingWrapper).toHaveClass('mb-6', 'sm:mb-8')
+    }
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancelled' }))
+    const cancelledHeading = screen.getByRole('heading', { name: 'Cancelled programs' })
+    const cancelledHeadingWrapper = cancelledHeading.parentElement?.parentElement
+    expect(cancelledHeadingWrapper).not.toBeNull()
+    expect(cancelledHeadingWrapper).toHaveClass('mb-6', 'sm:mb-8')
+  })
 })
