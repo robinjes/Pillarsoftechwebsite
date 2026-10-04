@@ -180,7 +180,7 @@
   {
     "id": "foil-boat-stockmens",
     "branch": "ca",
-    "title": "Science At Stockmens Park",
+    "title": "Science at Stockmen’s Park 2025",
     "date": "10/4/25",
     "time": "3 Hours",
     "location": "Stockmens Park",
@@ -214,6 +214,20 @@
         "value": "3"
       }
     ]
+  },
+  {
+    "id": "science-at-stockmens-park-2026",
+    "branch": "ca",
+    "title": "Science at Stockmen’s Park 2026",
+    "date": "2026 — date not recorded",
+    "time": "Not recorded",
+    "location": "Stockmen’s Park",
+    "status": "completed",
+    "image": "/potofficiallogo.png",
+    "heroImage": "/potofficiallogo.png",
+    "imageAlt": "Pillars of Tech logo",
+    "heroImageAlt": "Pillars of Tech logo",
+    "description": "Pillars of Tech completed Science at Stockmen’s Park in 2026."
   },
   {
     "id": "pedrozzi-connect-egg-drop",

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -110,7 +111,7 @@ export default function Navbar() {
         </button>
       </div>
 
-      {isOpen ? (
+      {isOpen && typeof document !== 'undefined' ? createPortal(
         <div className="mobile-navigation" role="presentation">
           <button type="button" tabIndex={-1} aria-hidden="true" className="absolute inset-0 h-full w-full border-0 bg-transparent" onClick={closeMenu} />
           <div id="mobile-navigation" className="mobile-navigation__dialog" role="dialog" aria-modal="true" aria-label="Mobile navigation">
@@ -129,7 +130,8 @@ export default function Navbar() {
               ))}
             </nav>
           </div>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </header>
   )

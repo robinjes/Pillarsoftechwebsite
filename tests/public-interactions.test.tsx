@@ -160,6 +160,32 @@ describe('Navbar rendered behavior', () => {
     expect(openButton).toHaveFocus()
   })
 
+  it('renders the mobile overlay in the body and closes it after navigation', async () => {
+    const { getByRole, queryByRole, rerender } = render(<Navbar />)
+    const openButton = getByRole('button', { name: 'Open navigation menu' })
+
+    fireEvent.click(openButton)
+    const dialog = await waitFor(() => getByRole('dialog', { name: 'Mobile navigation' }))
+
+    expect(openButton).toHaveAttribute('aria-expanded', 'true')
+    expect(document.body).toContainElement(dialog)
+    expect(dialog.closest('header')).toBeNull()
+    expect(dialog.closest('.mobile-navigation')?.parentElement).toBe(document.body)
+
+    const eventsLink = within(dialog).getByRole('link', { name: 'Events' })
+    eventsLink.addEventListener('click', (event) => event.preventDefault(), { once: true })
+    fireEvent.click(eventsLink)
+    await waitFor(() => expect(queryByRole('dialog', { name: 'Mobile navigation' })).not.toBeInTheDocument())
+    expect(openButton).toHaveAttribute('aria-expanded', 'false')
+
+    fireEvent.click(openButton)
+    await waitFor(() => expect(getByRole('dialog', { name: 'Mobile navigation' })).toBeInTheDocument())
+    navigationState.pathname = '/events'
+    rerender(<Navbar />)
+    await waitFor(() => expect(queryByRole('dialog', { name: 'Mobile navigation' })).not.toBeInTheDocument())
+    expect(document.body.style.overflow).toBe('')
+  })
+
   it('keeps secondary support pages out of the primary navigation', () => {
     render(<Navbar />)
     const primaryNavigation = screen.getByRole('navigation', { name: 'Primary navigation' })
