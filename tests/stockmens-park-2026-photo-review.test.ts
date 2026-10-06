@@ -18,6 +18,8 @@ const events = JSON.parse(readFileSync(join(process.cwd(), 'src/data/events.json
 const review = JSON.parse(readFileSync(join(process.cwd(), 'docs/stockmens-park-2026-photo-review.json'), 'utf8')) as {
   version: number
   previewOnly: boolean
+  approvalSource: string
+  approvalDate: string
   reviewNote: string
   records: Array<{
     eventId: string
@@ -50,7 +52,7 @@ const diskPath = (assetPath: string) => join(process.cwd(), 'public', assetPath.
 const hashFile = (path: string) => createHash('sha256').update(readFileSync(path)).digest('hex')
 
 describe('2026 Stockmen’s Park photo review', () => {
-  it('wires the selected gallery while keeping its separate approval gate', () => {
+  it('wires the selected gallery and records dated user approval', () => {
     const event = events.find((candidate) => candidate.id === 'science-at-stockmens-park-2026')
     expect(event).toBeDefined()
     expect(event).toMatchObject({
@@ -64,8 +66,11 @@ describe('2026 Stockmen’s Park photo review', () => {
       galleryAlts: alts,
     })
     expect(review.version).toBe(1)
-    expect(review.previewOnly).toBe(true)
-    expect(review.reviewNote).toContain('not approved for public use')
+    expect(review.previewOnly).toBe(false)
+    expect(review.approvalSource).toBe('User confirmation in this task')
+    expect(review.approvalDate).toBe('2026-10-05')
+    expect(review.reviewNote).toContain('Approved for public website use')
+    expect(review.reviewNote).toContain('parental permissions')
     expect(review.records).toHaveLength(paths.length)
     expect(review.records.map((record) => record.eventId)).toEqual(Array(paths.length).fill('science-at-stockmens-park-2026'))
     expect(review.records.map((record) => record.outputPath)).toEqual(paths)
@@ -76,7 +81,7 @@ describe('2026 Stockmen’s Park photo review', () => {
       expect(record.mappingBasis).toContain('capture date')
       expect(record.location).toBe('Stockmen’s Park')
       expect(record.locationSource).toContain('no embedded GPS')
-      expect(record.permissionStatus).toBe('pending-leadership-and-parental-review')
+      expect(record.permissionStatus).toBe('approved-for-public-use')
       expect(record.metadataStripped).toBe(true)
       expect(record).not.toHaveProperty('sourceId')
       expect(record).not.toHaveProperty('sourceUrl')

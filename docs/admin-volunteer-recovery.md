@@ -49,11 +49,14 @@ staff grants, content import, and production-candidate release. In particular:
    counts. Any unresolved issue blocks release; preserve legacy rows until
    sampled history, active check-ins, UUID staff memberships, and rollback
    evidence reconcile.
-5. Grant staff access only after an owner-approved Google user has signed in
-   and an authorized operator has independently verified that user's existing
-   `auth.users.id`. Use the owner-only `staff_members` insert in section 5.
-   Keep the UUID and identity out of this repository. Never infer staff status
-   from `profiles.role`, email, provider metadata, or a client-supplied value.
+5. Reconcile the staff memberships copied by the legacy backfill before
+   considering a new grant. It preserves existing staff/admin profiles only
+   when their UUID matches an existing Auth user; the application still checks
+   `staff_members`. If a new grant is needed, first independently verify the
+   owner-approved Google user's existing `auth.users.id`, then use the
+   owner-only insert in section 5. Keep the UUID and identity out of this
+   repository. Never authorize application access from `profiles.role`, email,
+   provider metadata, or a client-supplied value.
 6. Complete the staging smoke checks in sections 4–6, including anonymous
    denial, verified staff access, unlisted-account denial, event reads, private
    data, and sign-out. Confirm PostgREST recognizes `events` and the server can

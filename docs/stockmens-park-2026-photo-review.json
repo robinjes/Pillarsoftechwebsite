@@ -1,7 +1,9 @@
 {
   "version": 1,
-  "previewOnly": true,
-  "reviewNote": "These four Drive-sourced previews are not approved for public use until leadership confirms photo and parental permissions. Direct Drive locators, second-level capture times, and embedded GPS values are omitted.",
+  "previewOnly": false,
+  "approvalSource": "User confirmation in this task",
+  "approvalDate": "2026-10-05",
+  "reviewNote": "Approved for public website use, including parental permissions. Approver identity, direct Drive locators, capture timestamps, and embedded GPS values are omitted.",
   "records": [
     {
       "eventId": "science-at-stockmens-park-2026",
@@ -12,7 +14,7 @@
       "mappingBasis": "selected triage frame 2026-10-03:1; capture date matched the supplied event photo set; first selected wide frame",
       "location": "Stockmen’s Park",
       "locationSource": "event record; no embedded GPS used",
-      "permissionStatus": "pending-leadership-and-parental-review",
+      "permissionStatus": "approved-for-public-use",
       "metadataStripped": true,
       "captureDate": "2026-10-03"
     },
@@ -25,7 +27,7 @@
       "mappingBasis": "selected triage frame 2026-10-03:5; capture date matched the supplied event photo set",
       "location": "Stockmen’s Park",
       "locationSource": "event record; no embedded GPS used",
-      "permissionStatus": "pending-leadership-and-parental-review",
+      "permissionStatus": "approved-for-public-use",
       "metadataStripped": true,
       "captureDate": "2026-10-03"
     },
@@ -38,7 +40,7 @@
       "mappingBasis": "selected triage frame 2026-10-03:13; capture date matched the supplied event photo set",
       "location": "Stockmen’s Park",
       "locationSource": "event record; no embedded GPS used",
-      "permissionStatus": "pending-leadership-and-parental-review",
+      "permissionStatus": "approved-for-public-use",
       "metadataStripped": true,
       "captureDate": "2026-10-03"
     },
@@ -51,7 +53,7 @@
       "mappingBasis": "selected triage frame 2026-10-03:22; capture date matched the supplied event photo set",
       "location": "Stockmen’s Park",
       "locationSource": "event record; no embedded GPS used",
-      "permissionStatus": "pending-leadership-and-parental-review",
+      "permissionStatus": "approved-for-public-use",
       "metadataStripped": true,
       "captureDate": "2026-10-03"
     }
