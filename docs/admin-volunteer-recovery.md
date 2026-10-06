@@ -56,11 +56,26 @@ production data. Test fixtures roll back; the original source tables, role
 constraint, and seven legacy data projections are unchanged afterward. The
 hosted CLI's restricted login role requires the existing authorized operator
 role for pgTAP; do not grant it extra privileges or alter global search paths.
+The unchanged suite also passes on hosted staging using that operator role and
+verified TLS. Private operator tooling and its credential captures stay out of
+this repository.
+
+The three requested events are published on the staging preview for review.
+Hosted HTTP checks confirmed participant and contact persistence, participant
+capacity enforcement, anonymous denial for admin/CSV/volunteer/media endpoints,
+private saved records, and cross-origin sign-out rejection. Disposable HTTP
+fixtures were removed after their saved data was verified. Real Google staff
+sign-in/sign-out, staff CSV/media flows, and an unlisted Google-account denial
+remain pending the OAuth client owner; they are not established by the SQL
+fixtures or anonymous sign-out check.
 
 The nine development dependency audit findings have been cleared by upgrading
 to Tailwind 4 and replacing the vulnerable Next ESLint glob dependency with a
 scoped, behavior-tested implementation. `npm audit --audit-level=low` reports
 zero findings. Tailwind 4 requires Safari 16.4+, Chrome 111+, or Firefox 128+.
+The current lockfile also pins Sharp 0.35.5, addressing the image-library advisory
+added to the public audit database on October 6. See the maintainer's
+[advisory](https://github.com/advisories/GHSA-wq5f-xc86-pv6w).
 
 ## Owner recovery order
 
