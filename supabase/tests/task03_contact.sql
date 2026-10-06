@@ -2,6 +2,7 @@
 -- Run with `supabase db reset` followed by `supabase test db`.
 
 begin;
+set local search_path = public, extensions;
 select plan(29);
 
 select has_table('public', 'contact_submissions', 'contact submissions remain available');

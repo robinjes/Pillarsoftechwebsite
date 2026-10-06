@@ -1,10 +1,33 @@
 -- Forward release-migration tests.
 --
--- This file creates a transaction-scoped copy of the original volunteer and
--- attendance tables. It never targets a hosted project and rolls all rows
--- back before the test exits.
+-- This file creates rollback-only fixtures for release-migration behavior.
+-- It supports isolated local copies and the approved Supabase test gate; all
+-- temporary catalog and data changes roll back before it exits.
 begin;
-select plan(40);
+set local search_path = public, extensions;
+select plan(42);
+
+-- A local actual-data restore may already contain these original legacy source
+-- tables. Move them into a private, transaction-scoped schema before making
+-- synthetic public replacements; the final ROLLBACK restores their names,
+-- definitions, privileges, and rows without deleting source data.
+create schema release_migration_safety_fixture;
+do $$
+declare
+  table_name text;
+begin
+  foreach table_name in array array[
+    'event_volunteers', 'check_in_sessions', 'attendance_logs'
+  ] loop
+    if to_regclass(format('public.%I', table_name)) is not null then
+      execute format(
+        'alter table public.%I set schema release_migration_safety_fixture',
+        table_name
+      );
+    end if;
+  end loop;
+end;
+$$;
 
 select has_table(
   'public',
@@ -34,10 +57,28 @@ select ok(
     and not has_function_privilege('service_role', 'public.run_release_legacy_backfill()', 'EXECUTE'),
   'legacy backfill has no API execution grant'
 );
+select ok(
+  exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.volunteer_hour_adjustments'::regclass
+      and conname = 'volunteer_hour_adjustments_hours_delta_nonzero'
+      and contype = 'c'
+      and not convalidated
+      and pg_get_constraintdef(oid) = 'CHECK ((hours_delta <> (0)::numeric)) NOT VALID'
+  ),
+  'existing casted-zero adjustment check keeps its definition and NOT VALID state'
+);
 
 -- Simulate the legacy profiles table after the additive foundation migration.
-alter table public.profiles add column role text;
+alter table public.profiles add column if not exists role text;
 select has_column('public', 'profiles', 'role', 'legacy role data remains available for backfill/audit');
+
+-- Some restored legacy schemas constrain role to volunteer/staff even though
+-- the backfill must also recognize historical admin values. Relax only this
+-- fixture constraint inside the test transaction; ROLLBACK restores it.
+alter table public.profiles
+  drop constraint if exists profiles_role_check;
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password,
@@ -62,6 +103,21 @@ insert into auth.users (
     now(), '{}'::jsonb, '{}'::jsonb, now(), now()
   )
 on conflict (id) do nothing;
+
+-- The migration's fresh-table definition also has an inline CHECK. Remove that
+-- duplicate only inside this test transaction so the insert exercises the
+-- preserved named NOT VALID constraint specifically; the final rollback puts
+-- both constraints back.
+alter table public.volunteer_hour_adjustments
+  drop constraint if exists volunteer_hour_adjustments_hours_delta_check;
+
+select throws_ok(
+  $$insert into public.volunteer_hour_adjustments (user_id, hours_delta, reason)
+    values ('81000000-0000-0000-0000-000000000003', 0, 'zero-delta regression fixture')$$,
+  '23514',
+  'new row for relation "volunteer_hour_adjustments" violates check constraint "volunteer_hour_adjustments_hours_delta_nonzero"',
+  'existing NOT VALID adjustment check still rejects new zero-hour rows'
+);
 
 update public.profiles
 set role = case id
@@ -411,9 +467,14 @@ insert into public.events (id, slug, title, status, publication_state, branch)
 values ('release-unmapped-event', 'release-unmapped-event', 'Mapped after review', 'completed', 'unpublished', 'ca');
 select public.run_release_legacy_backfill();
 select is(
-  (select count(*) from public.volunteer_registrations),
+  (select count(*) from public.volunteer_registrations where id in (
+    '82000000-0000-0000-0000-000000000001',
+    '82000000-0000-0000-0000-000000000002',
+    '82000000-0000-0000-0000-000000000004',
+    '82000000-0000-0000-0000-000000000005'
+  )),
   4::bigint,
-  'backfill imports a newly owner-mapped registration without duplicates'
+  'backfill imports the four synthetic owner-mapped registrations without duplicates'
 );
 select is(
   (select count(*) from public.attendance_sessions),

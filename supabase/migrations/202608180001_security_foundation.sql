@@ -436,8 +436,8 @@ begin
     select 1
     from pg_constraint
     where conrelid = 'public.volunteer_hour_adjustments'::regclass
+      and conname = 'volunteer_hour_adjustments_hours_delta_nonzero'
       and contype = 'c'
-      and pg_get_constraintdef(oid) ilike '%hours_delta <> 0%'
   ) then
     alter table public.volunteer_hour_adjustments
       add constraint volunteer_hour_adjustments_hours_delta_nonzero

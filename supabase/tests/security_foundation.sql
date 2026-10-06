@@ -5,7 +5,8 @@
 -- The repository validation workflow runs these against a fresh local stack.
 
 begin;
-select plan(67);
+set local search_path = public, extensions;
+select plan(68);
 
 select has_table('public', 'profiles', 'profiles exists');
 select has_table('public', 'staff_members', 'staff membership exists');
@@ -126,6 +127,16 @@ begin
   on conflict (id) do nothing;
 end;
 $$;
+
+select ok(
+  exists (
+    select 1
+    from public.profiles
+    where id = '10000000-0000-0000-0000-000000000001'
+      and member_code ~ '^POT-(?:[0-9]{6}|[A-F0-9]{16})$'
+  ),
+  'auth profile trigger generates a member code in the established POT format'
+);
 
 -- The email contains "staff", but membership is still the only authority.
 set local role authenticated;

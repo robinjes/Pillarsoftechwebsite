@@ -1,5 +1,6 @@
 -- Service-role PostgREST privilege boundary tests.
 begin;
+set local search_path = public, extensions;
 select plan(34);
 
 -- The server-side content repository uses these operations directly through

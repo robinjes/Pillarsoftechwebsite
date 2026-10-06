@@ -1,5 +1,6 @@
 -- Task 06 profile-input hardening contract tests.
 begin;
+set local search_path = public, extensions;
 select plan(8);
 
 select has_function(

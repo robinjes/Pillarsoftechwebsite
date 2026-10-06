@@ -1,6 +1,7 @@
 -- Public registration forms compose with events RLS without exposing
 -- publication or internal ownership fields.
 begin;
+set local search_path = public, extensions;
 select plan(13);
 
 select has_table('public', 'events', 'events table exists for the public-read join');

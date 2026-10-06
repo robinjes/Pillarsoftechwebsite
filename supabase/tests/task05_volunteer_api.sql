@@ -1,4 +1,5 @@
 begin;
+set local search_path = public, extensions;
 select plan(30);
 
 select has_function('public', 'register_for_event', array['text'], 'bounded volunteer registration RPC exists');

@@ -43,9 +43,19 @@ staff/unlisted-account smoke check after the client owner adds the URI.
 
 The migration recovery qualifies the existing `extensions.gen_random_bytes`
 function so it works under the hosted operator's restricted search path. It
+recognizes the existing nonzero-hours constraint by its table, name, and type,
+preserving its definition and validation state on an upgrade. It
 also accepts the real legacy `event_volunteers` shape without `checked_in_at`,
 preserving a supplied timestamp and using NULL when the source has none. Neither
 fix removes legacy data or fabricates a check-in time.
+
+All 15 migrations have been applied to the separate hosted staging database.
+The frozen source passes 384 pgTAP assertions on a fresh PostgreSQL 17 install,
+a clone of the staging backup, and a clone containing the actual migrated
+production data. Test fixtures roll back; the original source tables, role
+constraint, and seven legacy data projections are unchanged afterward. The
+hosted CLI's restricted login role requires the existing authorized operator
+role for pgTAP; do not grant it extra privileges or alter global search paths.
 
 The nine development dependency audit findings have been cleared by upgrading
 to Tailwind 4 and replacing the vulnerable Next ESLint glob dependency with a

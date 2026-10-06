@@ -1,5 +1,6 @@
 -- Task 03 schema-level validation tests. Run on a fresh local database.
 begin;
+set local search_path = public, extensions;
 select plan(14);
 
 select ok(

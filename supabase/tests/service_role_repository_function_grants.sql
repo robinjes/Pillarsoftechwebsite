@@ -1,5 +1,6 @@
 -- Service-role EXECUTE privileges required by migration-007 table writes.
 begin;
+set local search_path = public, extensions;
 select plan(9);
 
 select has_function(

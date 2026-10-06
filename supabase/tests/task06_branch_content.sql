@@ -2,6 +2,7 @@
 -- Run against a fresh local database after all checked-in migrations.
 
 begin;
+set local search_path = public, extensions;
 select plan(20);
 
 select has_table('public', 'branch_documents', 'typed branch document table exists');
