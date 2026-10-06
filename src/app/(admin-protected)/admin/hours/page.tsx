@@ -114,7 +114,7 @@ export default function AdminHours() {
               exit={{ opacity: 0, y: -10 }}
               className="flex items-center gap-3 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 px-4 py-3 rounded-xl mb-4"
             >
-              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
               <span className={`${spaceGrotesk.className} font-bold`}>{successMessage}</span>
             </motion.div>
           )}
@@ -132,7 +132,7 @@ export default function AdminHours() {
             placeholder="Search by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`${spaceGrotesk.className} w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-blue-300/50 focus:outline-none focus:ring-2 focus:ring-blue-400`}
+            className={`${spaceGrotesk.className} w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-blue-300/50 focus:outline-hidden focus:ring-2 focus:ring-blue-400`}
           />
         </motion.div>
 
@@ -195,7 +195,7 @@ export default function AdminHours() {
                               type="number"
                               value={editingDelta}
                               onChange={(e) => setEditingDelta(parseFloat(e.target.value) || 0)}
-                              className="w-24 bg-slate-800 border border-white/20 rounded-lg px-2 py-1 text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              className="w-24 bg-slate-800 border border-white/20 rounded-lg px-2 py-1 text-white text-center focus:outline-hidden focus:ring-2 focus:ring-blue-400"
                               step="0.5"
                             />
                             <input
@@ -204,7 +204,7 @@ export default function AdminHours() {
                               onChange={(e) => setEditingReason(e.target.value)}
                               placeholder="Reason (required)"
                               aria-label={`Reason for ${volunteer.fullName}`}
-                              className="w-44 bg-slate-800 border border-white/20 rounded-lg px-2 py-1 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              className="w-44 bg-slate-800 border border-white/20 rounded-lg px-2 py-1 text-xs text-white focus:outline-hidden focus:ring-2 focus:ring-blue-400"
                             />
                           </div>
                         ) : (

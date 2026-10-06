@@ -3,7 +3,8 @@
 -- public clients receive only explicitly public rows, while all sensitive
 -- writes go through server/service-role code or security-definer RPCs.
 
-create extension if not exists pgcrypto;
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
 
 -- ---------------------------------------------------------------------------
 -- Shared timestamp and validation helpers
@@ -96,7 +97,7 @@ create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null default 'POT Volunteer',
   email text not null default '',
-  member_code text not null default ('POT-' || upper(encode(gen_random_bytes(8), 'hex'))),
+  member_code text not null default ('POT-' || upper(encode(extensions.gen_random_bytes(8), 'hex'))),
   total_hours numeric(10, 2) not null default 0,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
@@ -111,7 +112,7 @@ alter table public.profiles add column if not exists created_at timestamptz;
 alter table public.profiles add column if not exists updated_at timestamptz;
 alter table public.profiles alter column full_name set default 'POT Volunteer';
 alter table public.profiles alter column email set default '';
-alter table public.profiles alter column member_code set default ('POT-' || upper(encode(gen_random_bytes(8), 'hex')));
+alter table public.profiles alter column member_code set default ('POT-' || upper(encode(extensions.gen_random_bytes(8), 'hex')));
 alter table public.profiles alter column total_hours set default 0;
 alter table public.profiles alter column created_at set default timezone('utc', now());
 alter table public.profiles alter column updated_at set default timezone('utc', now());

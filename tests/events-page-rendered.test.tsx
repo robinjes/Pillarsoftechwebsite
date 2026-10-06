@@ -1,4 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
+/* eslint-disable @next/next/no-sync-scripts */
 import type { AnchorHTMLAttributes, ImgHTMLAttributes, ReactNode } from 'react'
 
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
@@ -18,6 +19,12 @@ vi.mock('next/image', () => ({
       data-next-fill={fill ? 'true' : undefined}
       data-next-priority={priority ? 'true' : undefined}
     />
+  ),
+}))
+
+vi.mock('next/script', () => ({
+  default: ({ id, src, nonce, strategy }: { id: string; src: string; nonce?: string; strategy?: string }) => (
+    <script id={id} src={src} nonce={nonce} data-next-script-strategy={strategy} />
   ),
 }))
 
@@ -54,10 +61,15 @@ describe('EventsPage rendered filtering behavior', () => {
 
   beforeEach(() => {
     vi.stubGlobal('fetch', fetchMock)
+    const nonceSource = document.createElement('script')
+    nonceSource.id = 'organization-jsonld'
+    nonceSource.nonce = 'events-test-nonce'
+    document.body.append(nonceSource)
   })
 
   afterEach(() => {
     cleanup()
+    document.getElementById('organization-jsonld')?.remove()
     vi.unstubAllGlobals()
     fetchMock.mockReset()
   })
@@ -186,6 +198,40 @@ describe('EventsPage rendered filtering behavior', () => {
     expect(screen.getAllByRole('link', { name: 'Register on Luma' })).toHaveLength(1)
     expect(screen.getByRole('link', { name: 'Register on Luma' })).toHaveAttribute('href', 'https://luma.com/tnnv1nlg')
     expect(pastCard?.querySelector('a[href="https://luma.com/old-event"]')).toBeNull()
+  })
+
+  it('renders the Career Panel Luma checkout anchor and nonce-bearing vendor script', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        makeEvent({
+          id: 'career-panel-granada',
+          slug: 'career-panel-granada',
+          title: 'Career Panel',
+          branch: 'ca',
+          registrationLink: 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2',
+          registrationNote: 'Use a non-school email.',
+          participantRegistrationState: 'closed',
+          volunteerRegistrationState: 'open',
+        }),
+      ],
+    })
+
+    render(<EventsPage />)
+    const checkout = await screen.findByRole('link', { name: 'Register for Event' })
+
+    expect(checkout).toHaveAttribute('href', 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2')
+    expect(checkout).toHaveClass('luma-checkout--button')
+    expect(checkout).toHaveAttribute('data-luma-action', 'checkout')
+    expect(checkout).toHaveAttribute('data-luma-event-id', 'evt-Kt3fAmxzXjJdAH2')
+    expect(checkout).toHaveAttribute('target', '_blank')
+    expect(screen.getByText('Use a non-school email.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Volunteer/ })).toHaveAttribute('href', '/volunteer?eventId=career-panel-granada')
+    expect(screen.queryByRole('link', { name: 'Participant Registration' })).not.toBeInTheDocument()
+
+    await waitFor(() => expect(document.getElementById('luma-checkout')).toBeInTheDocument())
+    expect(document.getElementById('luma-checkout')).toHaveAttribute('src', 'https://embed.lu.ma/checkout-button.js')
+    expect(document.getElementById('luma-checkout')).toHaveAttribute('nonce', 'events-test-nonce')
   })
 
   it('keeps consistent spacing between every section heading and its content', async () => {

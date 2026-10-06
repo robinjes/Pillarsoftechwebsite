@@ -1,6 +1,6 @@
 # Admin and volunteer deployment recovery
 
-## Current observed state
+## Current observed state (2026-10-06)
 
 The latest production check found only the legacy tables `attendance_logs`,
 `check_in_sessions`, `event_volunteers`, `hour_adjustments`, `profiles`, and
@@ -21,6 +21,37 @@ The Google provider is enabled, and the observed apex callback forwards to the
 canonical `www` origin with a `307` before code exchange. Keep the existing
 OAuth bridge; the observed blocker is the database deployment.
 
+The existing separate **Pillars of Tech Staging** project has been resumed.
+Provider-supported CLI schema/data exports for staging and production have
+passed isolated PostgreSQL 17 restore checks, including source row-count
+reconciliation. Private exports, identities, credentials, and restore-marker
+paths are held out of band; they are not release artifacts in this repository.
+
+A dedicated staging website is deployed at
+`https://pillarsoftech-staging.vercel.app`. It uses staging Supabase credentials,
+a server-only service role and chat pepper, and the matching canonical site URL.
+The Supabase staging Site URL and exact application callback allowlist entry
+have been saved. The production website and production database have not been
+promoted or migrated by this recovery.
+
+Staging Google sign-in currently fails with `redirect_uri_mismatch`. The existing
+Google provider is enabled, but its Google OAuth client must allow
+`https://axofzbojdudjlfuehccd.supabase.co/auth/v1/callback`. The available Google
+Cloud account does not own that client. This provider callback is distinct from
+the application's `/auth/callback` URL. Complete a real sign-in/sign-out and
+staff/unlisted-account smoke check after the client owner adds the URI.
+
+The migration recovery qualifies the existing `extensions.gen_random_bytes`
+function so it works under the hosted operator's restricted search path. It
+also accepts the real legacy `event_volunteers` shape without `checked_in_at`,
+preserving a supplied timestamp and using NULL when the source has none. Neither
+fix removes legacy data or fabricates a check-in time.
+
+The nine development dependency audit findings have been cleared by upgrading
+to Tailwind 4 and replacing the vulnerable Next ESLint glob dependency with a
+scoped, behavior-tested implementation. `npm audit --audit-level=low` reports
+zero findings. Tailwind 4 requires Safari 16.4+, Chrome 111+, or Firefox 128+.
+
 ## Owner recovery order
 
 Use [`security-release-runbook.md`](security-release-runbook.md) as the
@@ -28,14 +59,14 @@ operator procedure. Its sections 1–7 cover approvals and backups, OAuth
 configuration, local migration checks, staging, the legacy data repair, UUID
 staff grants, content import, and production-candidate release. In particular:
 
-1. Create and approve a separate staging project. Record provider-supported
+1. Reuse the separate staging project recorded above. Record provider-supported
    schema and data backup/restore evidence for staging and for the production
    candidate before applying migrations. Do not use the current production
    project as staging. Follow runbook sections 1 and 4.
 2. Apply the complete checked-in migration chain in filename order to a fresh
    local database, then staging. The foundation migration
-   `202608180001_security_foundation.sql` creates `events` and
-   `staff_members`; the forward migration
+   `202608180001_security_foundation.sql` creates `staff_members`, and
+   `202608180002_content_registration.sql` adds the event content schema. The forward migration
    `202609070001_legacy_release_backfill.sql` reconciles legacy volunteer and
    staff data. Run every intervening migration and the local pgTAP checks as
    specified in sections 3–4. Do not hand-edit migration history.

@@ -81,7 +81,7 @@ export default function AdminLogin() {
               onClick={handleGoogleSignIn}
               disabled={loading || !configured}
               aria-busy={loading}
-              className="mt-8 inline-flex min-h-12 w-full items-center justify-center gap-3 border border-midnight bg-warm px-5 text-sm font-bold text-midnight transition-colors hover:bg-sky focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky focus-visible:ring-offset-2 focus-visible:ring-offset-midnight disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-8 inline-flex min-h-12 w-full items-center justify-center gap-3 border border-midnight bg-warm px-5 text-sm font-bold text-midnight transition-colors hover:bg-sky focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sky focus-visible:ring-offset-2 focus-visible:ring-offset-midnight disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? (
                 <span role="status" aria-live="polite">Opening Google sign-in…</span>

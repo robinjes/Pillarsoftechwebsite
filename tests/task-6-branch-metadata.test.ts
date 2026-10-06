@@ -297,6 +297,9 @@ describe('Task 6 gated public metadata and discovery', () => {
 
     const careerUpdate = update.split('update public.events')[1]?.split('get diagnostics')[0] ?? ''
     expect(careerUpdate).toContain("set volunteer_registration_state = 'open'")
+    expect(careerUpdate).toContain("resources = coalesce(resources, '{}'::jsonb) || jsonb_build_object(")
+    expect(careerUpdate).toContain("'registrationLink', 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2'")
+    expect(careerUpdate).toContain("'registrationNote', 'Use a non-school email.'")
     for (const protectedField of ['participant_capacity', 'volunteer_capacity', 'outcomes', 'participant_registration_state']) {
       expect(careerUpdate).not.toMatch(new RegExp(`^\\s*set\\s+${protectedField}\\s*=`, 'm'))
     }

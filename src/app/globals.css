@@ -1,6 +1,5 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../../tailwind.config.js";
 
 @layer base {
   :root {
@@ -32,9 +31,12 @@
   }
 
   *,
-  *::before,
-  *::after {
+  ::before,
+  ::after,
+  ::backdrop,
+  ::file-selector-button {
     box-sizing: border-box;
+    border-color: var(--color-gray-200, currentColor);
   }
 
   html {
@@ -74,6 +76,16 @@
   textarea,
   select {
     font: inherit;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 
   button,

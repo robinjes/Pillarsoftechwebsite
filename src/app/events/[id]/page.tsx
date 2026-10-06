@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Clock3, ExternalLink, FileText, MapPin, Play, X } from 'lucide-react'
+import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
 import type { PublicEvent } from '@/lib/content-contracts'
 import { resolveEventImageAlt } from '@/lib/event-media'
 import { toYouTubeEmbedUrl } from '@/lib/event-utils'
@@ -349,7 +350,11 @@ export default function EventPage() {
             <div className="mt-5 space-y-3">
               {participant.canRegister ? <a href={registrationHref} className="flex min-h-11 items-center justify-between gap-3 bg-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register as a participant <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{isCurrent && event.registrationLink ? 'Register using the event link below.' : participant.label}</p>}
               {volunteer.canRegister ? <a href={volunteerHref} className="flex min-h-11 items-center justify-between gap-3 border border-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cobalt)] hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Volunteer at this event <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{volunteer.label}</p>}
-              {isCurrent && event.registrationLink ? <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">{event.registrationNote || 'External event link'} <ExternalLink className="h-4 w-4" aria-hidden="true" /></a> : null}
+              {event.id === 'career-panel-granada' ? (
+                <CareerPanelLumaCheckout event={event} />
+              ) : isCurrent && event.registrationLink ? (
+                <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">{event.registrationNote || 'External event link'} <ExternalLink className="h-4 w-4" aria-hidden="true" /></a>
+              ) : null}
               {event.id === 'wildcat-tank-altamont' ? <><a href="/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Results &amp; presentation record <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a><a href="/photos/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Open photo archive <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a></> : null}
             </div>
           </aside>

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, CalendarDays, MapPin, Search, UsersRound } from 'lucide-react'
+import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
 import { publicEventSchema, type BranchCode, type PublicEvent } from '@/lib/content-contracts'
 import { resolveEventImageAlt } from '@/lib/event-media'
 
@@ -170,7 +171,9 @@ function EventCard({ event }: { event: PublicEvent }) {
             Participant List Is Full
           </span>
         ) : null}
-        {isCurrentEvent(event) && event.registrationLink ? (
+        {event.id === 'career-panel-granada' ? (
+          <CareerPanelLumaCheckout event={event} />
+        ) : isCurrentEvent(event) && event.registrationLink ? (
           <a
             href={event.registrationLink}
             target="_blank"

@@ -154,7 +154,7 @@ export default function AdminVolunteers() {
               placeholder="Search by name, email, or member code..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
-              className={`${spaceGrotesk.className} w-full bg-slate-900/80 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-blue-300/50 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all`}
+              className={`${spaceGrotesk.className} w-full bg-slate-900/80 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-white placeholder-blue-300/50 focus:outline-hidden focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all`}
             />
           </div>
 
@@ -205,7 +205,7 @@ export default function AdminVolunteers() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-start gap-4 flex-1">
                     {/* Avatar */}
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center flex-shrink-0 text-lg font-bold">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center shrink-0 text-lg font-bold">
                       {volunteer.fullName.charAt(0).toUpperCase()}
                     </div>
 

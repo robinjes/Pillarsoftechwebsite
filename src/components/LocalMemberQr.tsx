@@ -68,7 +68,7 @@ export function LocalMemberQr({ value, size, alt = 'Membership QR code', classNa
         <button
           type="button"
           onClick={() => setAttempt((current) => current + 1)}
-          className="inline-flex min-h-11 items-center justify-center border-2 border-red-900 px-3 py-2 font-bold text-red-950 transition hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-red-50"
+          className="inline-flex min-h-11 items-center justify-center border-2 border-red-900 px-3 py-2 font-bold text-red-950 transition hover:bg-red-100 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-red-50"
         >
           Try again
         </button>

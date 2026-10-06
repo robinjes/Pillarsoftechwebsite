@@ -280,10 +280,17 @@ begin
   -- -------------------------------------------------------------------------
   if pg_catalog.to_regclass('public.event_volunteers') is not null then
     for legacy_row in execute $query$
-      select id, user_id, event_id, event_title, status, hours,
-             checked_in_at, created_at
-      from public.event_volunteers
-      order by created_at, id
+      select legacy_source.id,
+             legacy_source.user_id,
+             legacy_source.event_id,
+             legacy_source.event_title,
+             legacy_source.status,
+             legacy_source.hours,
+             (pg_catalog.to_jsonb(legacy_source) ->> 'checked_in_at')::timestamptz
+               as checked_in_at,
+             legacy_source.created_at
+      from public.event_volunteers as legacy_source
+      order by legacy_source.created_at, legacy_source.id
     $query$ loop
       event_ready := public.ensure_release_event(
         legacy_row.event_id::text,

@@ -97,7 +97,12 @@ describe('media security boundaries', () => {
   it('uses nonce CSP and excludes legacy external media origins', () => {
     const csp = buildContentSecurityPolicy('test-nonce', true)
     expect(csp).toContain("script-src 'self' 'nonce-test-nonce' 'strict-dynamic'")
-    expect(csp).toContain("style-src 'self' 'nonce-test-nonce'")
+    const directive = (name: string) => csp.split(';').map((part) => part.trim()).find((part) => part.startsWith(`${name} `)) || ''
+    expect(directive('style-src')).toBe("style-src 'self' 'nonce-test-nonce' https://embed.lu.ma")
+    expect(directive('img-src')).toContain('https://embed.lu.ma')
+    expect(directive('frame-src')).toContain('https://luma.com')
+    expect(directive('script-src')).not.toContain('embed.lu.ma')
+    expect(csp).not.toMatch(/https:\/\/\*\.(?:luma\.com|lu\.ma)|https:\/\/events\.luma\.com/)
     expect(csp).toContain("object-src 'none'")
     expect(csp).toContain('frame-ancestors \'none\'')
     expect(csp).toContain('upgrade-insecure-requests')

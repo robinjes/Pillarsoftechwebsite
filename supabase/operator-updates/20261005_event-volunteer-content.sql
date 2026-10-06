@@ -148,7 +148,11 @@ declare
   changed_rows integer;
 begin
   update public.events
-  set volunteer_registration_state = 'open'
+  set volunteer_registration_state = 'open',
+      resources = coalesce(resources, '{}'::jsonb) || jsonb_build_object(
+        'registrationLink', 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2',
+        'registrationNote', 'Use a non-school email.'
+      )
   where id = 'career-panel-granada'
     and status in ('upcoming', 'ongoing');
 

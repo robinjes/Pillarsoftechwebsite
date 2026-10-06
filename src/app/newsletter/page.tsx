@@ -40,7 +40,7 @@ export default function NewsletterPage() {
                 href={newsletterSignupUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
+                className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
               >
                 Open The Signup Form
                 <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
@@ -71,7 +71,7 @@ export default function NewsletterPage() {
               href={newsletterSignupUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
             >
               Use The Form Directly
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
@@ -94,7 +94,7 @@ export default function NewsletterPage() {
               href={newsletterWebsiteUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--cobalt)] px-5 py-3 text-[var(--cobalt)] transition hover:bg-[var(--sky)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--cobalt)] px-5 py-3 text-[var(--cobalt)] transition hover:bg-[var(--sky)] hover:text-[var(--midnight)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
             >
               Visit The Newsletter Homepage
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
@@ -103,7 +103,7 @@ export default function NewsletterPage() {
               href={newsletterSignupUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--cobalt)] px-5 py-3 text-[var(--cobalt)] transition hover:bg-[var(--sky)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--cobalt)] px-5 py-3 text-[var(--cobalt)] transition hover:bg-[var(--sky)] hover:text-[var(--midnight)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
             >
               Open Signup In A New Tab
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />

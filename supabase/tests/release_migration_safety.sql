@@ -4,7 +4,7 @@
 -- attendance tables. It never targets a hosted project and rolls all rows
 -- back before the test exits.
 begin;
-select plan(31);
+select plan(40);
 
 select has_table(
   'public',
@@ -231,6 +231,11 @@ select is(
   'registration hours are preserved'
 );
 select is(
+  (select checked_in_at from public.volunteer_registrations where id = '82000000-0000-0000-0000-000000000001'),
+  '2026-08-01 10:00+00'::timestamptz,
+  'present legacy check-in timestamps are preserved'
+);
+select is(
   (select count(*) from public.attendance_sessions where id in (
     '83000000-0000-0000-0000-000000000001',
     '83000000-0000-0000-0000-000000000002',
@@ -296,13 +301,118 @@ select has_table('public', 'event_volunteers', 'legacy registration table is ret
 select has_table('public', 'check_in_sessions', 'legacy session table is retained');
 select has_table('public', 'attendance_logs', 'legacy attendance table is retained');
 
+-- Production may lack this optional column. Missing values stay NULL; the
+-- migration must never substitute created_at or the current time.
+alter table public.event_volunteers drop column checked_in_at;
+insert into public.events (id, slug, title, status, publication_state, branch)
+values (
+  'release-optional-time-event',
+  'release-optional-time-event',
+  'Owner-reviewed optional timestamp event',
+  'completed',
+  'unpublished',
+  'ca'
+);
+insert into public.event_volunteers (
+  id, user_id, event_id, event_title, status, hours, created_at
+) values (
+  '82000000-0000-0000-0000-000000000005',
+  '81000000-0000-0000-0000-000000000003',
+  'release-optional-time-event',
+  'Legacy row without an optional timestamp',
+  'registered',
+  1.75,
+  '2026-08-05 09:30+00'
+);
+
+select lives_ok(
+  'select public.run_release_legacy_backfill()',
+  'backfill accepts the production event_volunteers shape without checked_in_at'
+);
+select is(
+  (
+    select jsonb_build_object(
+      'id', id::text,
+      'user_id', user_id::text,
+      'status', status::text,
+      'hours', hours,
+      'created_at', created_at
+    )
+    from public.volunteer_registrations
+    where id = '82000000-0000-0000-0000-000000000005'
+  ),
+  jsonb_build_object(
+    'id', '82000000-0000-0000-0000-000000000005',
+    'user_id', '81000000-0000-0000-0000-000000000003',
+    'status', 'registered',
+    'hours', 1.75::numeric,
+    'created_at', '2026-08-05 09:30+00'::timestamptz
+  ),
+  'missing-column registration preserves its id, user, status, hours, and creation time'
+);
+select is(
+  (select checked_in_at from public.volunteer_registrations where id = '82000000-0000-0000-0000-000000000005'),
+  null::timestamptz,
+  'missing legacy checked_in_at remains NULL'
+);
+select is(
+  (
+    select jsonb_build_object(
+      'id', id::text,
+      'user_id', user_id::text,
+      'event_id', event_id,
+      'event_title', event_title,
+      'status', status::text,
+      'hours', hours,
+      'created_at', created_at
+    )
+    from public.event_volunteers
+    where id = '82000000-0000-0000-0000-000000000005'
+  ),
+  jsonb_build_object(
+    'id', '82000000-0000-0000-0000-000000000005',
+    'user_id', '81000000-0000-0000-0000-000000000003',
+    'event_id', 'release-optional-time-event',
+    'event_title', 'Legacy row without an optional timestamp',
+    'status', 'registered',
+    'hours', 1.75::numeric,
+    'created_at', '2026-08-05 09:30+00'::timestamptz
+  ),
+  'source row values remain unchanged'
+);
+select ok(
+  not exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'event_volunteers'
+      and column_name = 'checked_in_at'
+  ),
+  'backfill leaves the source table without the optional timestamp column'
+);
+select lives_ok(
+  'select public.run_release_legacy_backfill()',
+  'backfill can be rerun with the optional timestamp column absent'
+);
+select is(
+  (select count(*) from public.volunteer_registrations where id = '82000000-0000-0000-0000-000000000005'),
+  1::bigint,
+  'rerun does not duplicate the missing-column registration'
+);
+select ok(
+  not has_function_privilege('anon', 'public.run_release_legacy_backfill()', 'EXECUTE')
+    and not has_function_privilege('authenticated', 'public.run_release_legacy_backfill()', 'EXECUTE')
+    and not has_function_privilege('service_role', 'public.run_release_legacy_backfill()', 'EXECUTE'),
+  'running and rerunning the backfill does not create an API execution grant'
+);
+
 -- A rerun must not duplicate rows or replace configured content.
 insert into public.events (id, slug, title, status, publication_state, branch)
 values ('release-unmapped-event', 'release-unmapped-event', 'Mapped after review', 'completed', 'unpublished', 'ca');
 select public.run_release_legacy_backfill();
 select is(
   (select count(*) from public.volunteer_registrations),
-  3::bigint,
+  4::bigint,
   'backfill imports a newly owner-mapped registration without duplicates'
 );
 select is(

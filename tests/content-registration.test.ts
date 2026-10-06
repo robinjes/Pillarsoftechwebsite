@@ -206,7 +206,13 @@ describe('Task 03 content contracts', () => {
     expect(legacyEventToRecord({ id: 'legacy-invalid', title: 'Legacy invalid', volunteerRegistrationState: 'maybe' })).toBeNull()
 
     const events = getPublicEventSnapshot()
-    expect(events.find((event) => event.id === 'career-panel-granada')?.volunteerRegistrationState).toBe('open')
+    const careerPanel = events.find((event) => event.id === 'career-panel-granada')
+    expect(careerPanel).toMatchObject({
+      volunteerRegistrationState: 'open',
+      participantRegistrationState: 'closed',
+      registrationLink: 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2',
+      registrationNote: 'Use a non-school email.',
+    })
     expect(events.filter((event) => event.status === 'completed').every((event) => event.volunteerRegistrationState === 'closed')).toBe(true)
     expect(events.every((event) => event.participantRegistrationState === 'closed')).toBe(true)
 

@@ -137,7 +137,7 @@ export default function AdminAnalytics() {
           <select
             value={selectedEventId}
             onChange={(e) => setSelectedEventId(e.target.value)}
-            className={`${spaceGrotesk.className} w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-400`}
+            className={`${spaceGrotesk.className} w-full bg-slate-900/80 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-hidden focus:ring-2 focus:ring-blue-400`}
           >
             {events.map(event => (
               <option key={event.id} value={event.id}>
