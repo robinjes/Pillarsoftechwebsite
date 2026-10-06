@@ -16,6 +16,7 @@ const approvedResourceHosts = new Set([
   'hcb.hackclub.com',
   'forms.gle',
   'docs.google.com',
+  'luma.com',
   'sites.google.com',
   'youtube.com',
   'www.youtube.com',
@@ -34,6 +35,9 @@ const safeFieldIdPattern = /^[a-z][a-z0-9_-]{0,31}$/
  */
 export const branchCodeSchema = z.enum(['ca', 'ga'])
 export type BranchCode = z.infer<typeof branchCodeSchema>
+
+export const eventRegistrationStateSchema = z.enum(['closed', 'open', 'full'])
+export type EventRegistrationState = z.infer<typeof eventRegistrationStateSchema>
 
 export const branchDocumentKeySchema = z.enum(['branch:ca', 'branch:ga'])
 export type BranchDocumentKey = z.infer<typeof branchDocumentKeySchema>
@@ -271,8 +275,8 @@ const eventShape = {
   status: z.enum(['draft', 'upcoming', 'ongoing', 'completed', 'cancelled']),
   media: mediaSchema,
   resources: resourcesSchema,
-  participantRegistrationState: z.enum(['closed', 'open', 'full']),
-  volunteerRegistrationState: z.enum(['closed', 'open', 'full']),
+  participantRegistrationState: eventRegistrationStateSchema,
+  volunteerRegistrationState: eventRegistrationStateSchema,
   participantCapacity: z.number().int().positive().nullable(),
   volunteerCapacity: z.number().int().positive().nullable(),
   outcomes: outcomesSchema,

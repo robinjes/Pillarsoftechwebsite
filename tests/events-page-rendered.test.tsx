@@ -148,6 +148,46 @@ describe('EventsPage rendered filtering behavior', () => {
     expect(screen.getByRole('link', { name: /Volunteer/ })).toHaveAttribute('href', '/volunteer?eventId=open-program')
   })
 
+  it('uses the external registration link for current events without adding a photo to an unpictured event', async () => {
+    fetchMock.mockResolvedValue({
+      ok: true,
+      json: async () => [
+        makeEvent({
+          id: 'stem-into-the-night-2026',
+          slug: 'stem-into-the-night-2026',
+          title: 'STEM Into the Night',
+          summary: 'A free evening of STEM exploration.',
+          date: 'November 4, 2026',
+          time: '4:00 PM - 5:30 PM',
+          media: {},
+          registrationLink: 'https://luma.com/tnnv1nlg',
+          registrationNote: 'Register on Luma',
+          participantRegistrationState: 'closed',
+          volunteerRegistrationState: 'open',
+        }),
+        makeEvent({
+          id: 'past-event-with-old-link',
+          slug: 'past-event-with-old-link',
+          title: 'Past event with an old link',
+          status: 'completed',
+          registrationLink: 'https://luma.com/old-event',
+          registrationNote: 'Register on Luma',
+          volunteerRegistrationState: 'open',
+        }),
+      ],
+    })
+
+    render(<EventsPage />)
+    await waitFor(() => expect(screen.getByRole('heading', { name: 'Upcoming & ongoing' })).toBeInTheDocument())
+
+    const stemCard = document.querySelector('[data-event-card="stem-into-the-night-2026"]')
+    const pastCard = document.querySelector('[data-event-card="past-event-with-old-link"]')
+    expect(stemCard?.querySelector('img')).toBeNull()
+    expect(screen.getAllByRole('link', { name: 'Register on Luma' })).toHaveLength(1)
+    expect(screen.getByRole('link', { name: 'Register on Luma' })).toHaveAttribute('href', 'https://luma.com/tnnv1nlg')
+    expect(pastCard?.querySelector('a[href="https://luma.com/old-event"]')).toBeNull()
+  })
+
   it('keeps consistent spacing between every section heading and its content', async () => {
     fetchMock.mockResolvedValue({
       ok: true,

@@ -31,6 +31,7 @@ const teamJoinUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSdsNmpS2wpikV77wl1
 
 const volunteerDescriptions: Record<string, string> = {
   'career-panel-granada': 'Help with check-in, directions, and the small details that keep a panel moving.',
+  'stem-into-the-night-2026': 'Volunteer support details are being confirmed for this event.',
 }
 
 const getVolunteerDescription = (event: Event) => volunteerDescriptions[event.id] ?? `Help with setup, greeting attendees, activity support, and the practical work around ${event.title}.`

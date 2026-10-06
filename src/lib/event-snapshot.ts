@@ -4,6 +4,7 @@ import {
   type EventRecord,
   publicEventSchema,
   type PublicEvent,
+  eventRegistrationStateSchema,
   normalizeLegacyDateTime,
 } from '@/lib/content-contracts'
 
@@ -13,9 +14,15 @@ type LegacyEvent = {
   title?: unknown
   date?: unknown
   time?: unknown
+  startsAt?: unknown
+  endsAt?: unknown
+  timezone?: unknown
+  startLabel?: unknown
+  endLabel?: unknown
   location?: unknown
   description?: unknown
   status?: unknown
+  volunteerRegistrationState?: unknown
   image?: unknown
   imageAlt?: unknown
   heroImage?: unknown
@@ -63,6 +70,11 @@ export function legacyEventToRecord(input: LegacyEvent): EventRecord | null {
   if (!id || !title || !/^[a-z0-9][a-z0-9_-]{0,63}$/.test(id)) return null
 
   const dateTime = normalizeLegacyDateTime(input.date, input.time)
+  const startsAt = input.startsAt === undefined ? dateTime.startsAt : input.startsAt
+  const endsAt = input.endsAt === undefined ? null : input.endsAt
+  const timezone = input.timezone === undefined ? 'America/New_York' : input.timezone
+  const startLabel = input.startLabel === undefined ? dateTime.startLabel : input.startLabel
+  const endLabel = input.endLabel === undefined ? dateTime.endLabel : input.endLabel
   const image = text(input.image) || undefined
   const imageAlt = text(input.imageAlt) || undefined
   const heroImage = text(input.heroImage) || image
@@ -72,6 +84,11 @@ export function legacyEventToRecord(input: LegacyEvent): EventRecord | null {
   const galleryAlts = textList(input.galleryAlts)
   const youtubeVideos = stringList(input.youtubeVideos)
   const description = text(input.description)
+  const volunteerRegistrationState = eventRegistrationStateSchema.safeParse(
+    input.volunteerRegistrationState === undefined ? 'closed' : input.volunteerRegistrationState,
+  )
+  if (!volunteerRegistrationState.success) return null
+
   const parsed = eventRecordSchema.safeParse({
     id,
     slug: id,
@@ -79,11 +96,11 @@ export function legacyEventToRecord(input: LegacyEvent): EventRecord | null {
     title,
     summary: description.split(/\n\n/)[0]?.slice(0, 1_000) || '',
     description,
-    startsAt: dateTime.startsAt,
-    endsAt: null,
-    timezone: 'America/New_York',
-    startLabel: dateTime.startLabel,
-    endLabel: dateTime.endLabel,
+    startsAt,
+    endsAt,
+    timezone,
+    startLabel,
+    endLabel,
     location: text(input.location),
     programCategory: 'general',
     status: status(input.status),
@@ -94,7 +111,7 @@ export function legacyEventToRecord(input: LegacyEvent): EventRecord | null {
       registrationNote: text(input.registrationNote) || undefined,
     },
     participantRegistrationState: 'closed',
-    volunteerRegistrationState: 'closed',
+    volunteerRegistrationState: volunteerRegistrationState.data,
     participantCapacity: null,
     volunteerCapacity: null,
     // Legacy outcome stats are intentionally not imported.

@@ -184,6 +184,15 @@ empty snapshot produces a generic 503 rather than silently rendering an empty
 event experience. This keeps an outage fallback useful without replacing
 configured publication state with guessed content.
 
+The one-off `supabase/operator-updates/20261005_event-volunteer-content.sql`
+file is a separate content operation, not a migration or automatic importer.
+It refuses a missing/incompatible event schema or volunteer registration RPC,
+leaves the new STEM event unpublished for a separate owner-approved publish,
+and preserves existing capacities, participant state, outcomes, media, and
+audit actor fields on conflict. Use it after the reviewed staging content import and
+only after the staging and backup gates in Sections 1, 4, 6, and 7; the same fresh
+schema/data backup gate applies before any production content update.
+
 Run these staging smoke checks and record exact responses:
 
 1. Anonymous GET /api/events, GET /api/forms?eventId=<PUBLISHED_EVENT_ID>, and GET /api/impact expose only safe published/approved projections.
