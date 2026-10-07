@@ -1,81 +1,109 @@
 # Admin and volunteer deployment recovery
 
-## Current observed state (2026-10-06)
+## Verified database recovery checkpoint (2026-10-06, US Eastern)
 
-The latest production check found only the legacy tables `attendance_logs`,
-`check_in_sessions`, `event_volunteers`, `hour_adjustments`, `profiles`, and
-`volunteer_hour_adjustments`. The public `events` REST resource returned
-`PGRST205` (table not found), and `staff_members` was absent. This is an
-incomplete deployment: Google sign-in may complete, but the site cannot verify
-staff access or serve the new event-backed volunteer flow. No production fix
-is claimed here.
+Production now contains `events`, `staff_members`, and the versioned volunteer
+and attendance tables. All 16 migrations have been applied through the
+authorized operator workflow. The legacy backfill restored existing staff
+memberships only for verified Auth UUIDs and copied the existing volunteer
+registration. There are no unresolved migration issues. All six legacy public-data projections remain unchanged. The private staff
+approval rows retain their identity, approval, active-status, and claim fields;
+one `updated_at` value differs between the pre- and post-migration snapshots.
+All seven projections match between the two post-migration checkpoints. No new production staff identity was granted.
 
-The protected admin layout verifies the signed-in user with Supabase Auth and
-checks that user's Auth UUID in `staff_members`. If the membership lookup is
-unavailable, it keeps staff tools closed and tells the user that an owner must
-finish or repair workspace access. A missing Supabase server configuration is
-reported separately. Do not treat a successful Google sign-in as staff
-authorization.
+A real production Career Panel volunteer signup persisted after a page reload,
+and the temporary signup was cancelled successfully.
 
-The Google provider is enabled, and the observed apex callback forwards to the
-canonical `www` origin with a `307` before code exchange. Keep the existing
-OAuth bridge; the observed blocker is the database deployment.
+The live Google-authenticated ordinary account now receives the expected
+`not-staff` response from `/admin`, instead of an unavailable-membership error.
+The requested staff account's existing UUID membership is restored, but its
+owner must still exercise that account's actual production session; another
+person's login is not a substitute for that check.
 
-The existing separate **Pillars of Tech Staging** project has been resumed.
-Provider-supported CLI schema/data exports for staging and production have
-passed isolated PostgreSQL 17 restore checks, including source row-count
-reconciliation. Private exports, identities, credentials, and restore-marker
-paths are held out of band; they are not release artifacts in this repository.
+At this pre-deployment checkpoint, production's existing nine-event archive
+is serving successfully. The new STEM
+publication, Career Panel Luma resource, and approved Stockmen's gallery must
+be released together with the updated frontend: the older deployed content
+validator rejects the newly approved Luma hostname. The new event remains
+unpublished until that compatible frontend is live.
+[PR #29](https://github.com/robinjes/Pillarsoftechwebsite/pull/29) records the
+subsequent frontend deployment and content-publication result.
 
-A dedicated staging website is deployed at
-`https://pillarsoftech-staging.vercel.app`. It uses staging Supabase credentials,
-a server-only service role and chat pepper, and the matching canonical site URL.
-The Supabase staging Site URL and exact application callback allowlist entry
-have been saved. The production website and production database have not been
-promoted or migrated by this recovery.
+Production `/api/chat/availability` still returns 503. The public event read and
+Google authentication work, so this is a separate server API problem. Missing
+or mismatched `SUPABASE_SERVICE_ROLE_KEY` is one possible cause; without Vercel
+settings or logs, it is not established as the exact cause. The available
+Vercel account cannot access `pillarsoftechs-projects / pillarsoftechwebsite`,
+and the requester confirmed they lack that access. A project owner must inspect
+the production server configuration and logs, verify its Supabase service-role
+key and `CHAT_TOKEN_PEPPER`, and redeploy if settings change. Keep all values in
+the platform's secret storage. Admin writes, CSV, media, contact, and chat
+production acceptance remain unverified until the server APIs are healthy.
 
-Staging Google sign-in currently fails with `redirect_uri_mismatch`. The existing
-Google provider is enabled, but its Google OAuth client must allow
-`https://axofzbojdudjlfuehccd.supabase.co/auth/v1/callback`. The available Google
-Cloud account does not own that client. This provider callback is distinct from
-the application's `/auth/callback` URL. Complete a real sign-in/sign-out and
-staff/unlisted-account smoke check after the client owner adds the URI.
+## Backup and staging evidence
 
-The migration recovery qualifies the existing `extensions.gen_random_bytes`
-function so it works under the hosted operator's restricted search path. It
-recognizes the existing nonzero-hours constraint by its table, name, and type,
-preserving its definition and validation state on an upgrade. It
-also accepts the real legacy `event_volunteers` shape without `checked_in_at`,
-preserving a supplied timestamp and using NULL when the source has none. Neither
-fix removes legacy data or fabricates a check-in time.
+Provider-supported CLI exports were restored into isolated PostgreSQL 17
+containers before hosted migration. The immediate pre-migration production
+backup reconciled 40 exported relations and 88 rows. The final checkpoint after
+the first 15 migrations reconciled 59 exported relations and 131 rows, including
+application migration history. Both restores matched all seven legacy source
+projections. Official exports exclude the provider's internal `auth.schema_migrations`
+and `storage.migrations` metadata; that exclusion is recorded in the private
+manifests. Private exports, identities, credentials, and restore-marker paths
+stay out of this repository. Manual verified restore evidence is used; paid
+PITR is not asserted.
 
-All 15 migrations have been applied to the separate hosted staging database.
-The frozen source passes 384 pgTAP assertions on a fresh PostgreSQL 17 install,
-a clone of the staging backup, and a clone containing the actual migrated
-production data. Test fixtures roll back; the original source tables, role
-constraint, and seven legacy data projections are unchanged afterward. The
-hosted CLI's restricted login role requires the existing authorized operator
-role for pgTAP; do not grant it extra privileges or alter global search paths.
-The unchanged suite also passes on hosted staging using that operator role and
-verified TLS. Private operator tooling and its credential captures stay out of
-this repository.
+The dedicated staging site is `https://pillarsoftech-staging.vercel.app`, backed
+by the separate approved staging Supabase project. Its Google OAuth client and
+canonical callback are configured. Real Google sign-in and sign-out passed,
+as did the unlisted-account denial and the temporarily approved staff dashboard
+check. Temporary staff access was removed afterward and the same authenticated
+account was denied staff APIs again.
 
-The three requested events are published on the staging preview for review.
-Hosted HTTP checks confirmed participant and contact persistence, participant
-capacity enforcement, anonymous denial for admin/CSV/volunteer/media endpoints,
-private saved records, and cross-origin sign-out rejection. Disposable HTTP
-fixtures were removed after their saved data was verified. Real Google staff
-sign-in/sign-out, staff CSV/media flows, and an unlisted Google-account denial
-remain pending the OAuth client owner; they are not established by the SQL
-fixtures or anonymous sign-out check.
+Staging HTTP and browser checks verified saved volunteer registrations after
+reload, cancellation, private participant/contact persistence, capacity
+limits, staff CSV quoting and formula-prefix neutralization, public image
+finalization, private PDF delivery, and anonymous/nonstaff denials. Temporary
+staff, disposable events, participant fixtures, media records, and storage
+objects were removed; no active test volunteer registrations remain. These
+staging results do not establish production server API health.
 
-The nine development dependency audit findings have been cleared by upgrading
-to Tailwind 4 and replacing the vulnerable Next ESLint glob dependency with a
-scoped, behavior-tested implementation. `npm audit --audit-level=low` reports
-zero findings. Tailwind 4 requires Safari 16.4+, Chrome 111+, or Firefox 128+.
-The current lockfile also pins Sharp 0.35.5, addressing the image-library advisory
-added to the public audit database on October 6. See the maintainer's
-[advisory](https://github.com/advisories/GHSA-wq5f-xc86-pv6w).
+The first 15 migrations and 384 pgTAP assertions passed on a fresh local
+PostgreSQL 17 install, staging and production-data backup clones, and hosted
+staging. Hosted production exposed inherited explicit function execution
+grants that older migrations had revoked only from `PUBLIC`. The narrowly
+scoped forward migration `202610070001_function_execute_hardening.sql` removes
+those direct API-role grants and restores the intended role for each of ten
+application functions. It preserves unrelated functions and default ACLs;
+the Auth profile trigger has no direct API-role execution grant. The additional
+21 assertions cover the final role matrix and an unrelated-function sentinel.
+The final migration has been applied to hosted staging and production. The
+full 14-file suite passes 405 assertions on the restored staging copy, hosted
+staging, and hosted production with verified TLS. A separate rollback regression recreated the broad grants, verified all
+21 new assertions, and restored the original ACL snapshot; a rollback insertion
+as `supabase_auth_admin` still created its profile. Four public-form test reads
+are scoped to all three of their fixture IDs, retaining the unpublished/draft
+denial checks while allowing existing hosted content.
+
+## Frontend and dependency validation
+
+The update adds STEM Into the Night on November 4, 2026, 4–5:30 PM Pacific at
+Junction Avenue K-8, and opens its volunteer registration along with Career
+Panel. Career Panel uses the owner's exact Luma checkout event ID and URL.
+Four approved Stockmen's Park 2026 photos are attached to the separate 2026
+archive; the 2025 record is preserved.
+
+In-app browser checks covered desktop and a real 390×844 iframe viewport,
+including event details, Luma ticket selection, outer-dialog keyboard dismissal
+and focus restoration, and the four-image gallery. No Luma registration was
+submitted. Luma controls keyboard behavior inside its cross-origin iframe.
+
+The nine development dependency audit findings were resolved by the Tailwind 4
+upgrade and a scoped, behavior-tested replacement for the vulnerable Next
+ESLint glob dependency. Sharp is pinned to 0.35.5. Lint, typecheck, 299 application
+tests, production build, workflow validation, and `npm audit --audit-level=low`
+passed; the audit reports zero findings. Tailwind 4 requires Safari 16.4+,
+Chrome 111+, or Firefox 128+.
 
 ## Owner recovery order
 

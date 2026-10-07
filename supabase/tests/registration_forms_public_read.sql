@@ -23,22 +23,26 @@ set local role anon;
 select set_config('request.jwt.claim.role', 'anon', true);
 
 select is(
-  (select count(*) from public.events),
+  (select count(*) from public.events
+   where id in ('forms-public-published', 'forms-public-unpublished', 'forms-public-draft')),
   1::bigint,
   'anonymous event reads include only the published event'
 );
 select is(
-  (select count(*) from public.registration_forms),
+  (select count(*) from public.registration_forms
+   where event_id in ('forms-public-published', 'forms-public-unpublished', 'forms-public-draft')),
   1::bigint,
   'anonymous form reads include only an active form for a published event'
 );
 select is(
-  (select event_id from public.registration_forms),
+  (select event_id from public.registration_forms
+   where event_id in ('forms-public-published', 'forms-public-unpublished', 'forms-public-draft')),
   'forms-public-published',
   'anonymous form read is tied to the published event'
 );
 select is(
-  (select is_active from public.registration_forms),
+  (select is_active from public.registration_forms
+   where event_id in ('forms-public-published', 'forms-public-unpublished', 'forms-public-draft')),
   true,
   'the exposed form is active'
 );
