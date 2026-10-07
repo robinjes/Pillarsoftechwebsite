@@ -114,7 +114,7 @@ export default function AdminContactPage() {
           type="button"
           onClick={() => { setCursorHistory([]); setMessage(''); void load() }}
           disabled={loading}
-          className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-midnight px-4 py-2 text-sm font-bold text-midnight transition hover:bg-sky disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt"
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-midnight px-4 py-2 text-sm font-bold text-midnight transition hover:bg-sky disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-cobalt"
         >
           <RefreshCw className={loading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} aria-hidden="true" />
           Refresh
@@ -142,7 +142,7 @@ export default function AdminContactPage() {
                   value={submission.status}
                   onChange={(event) => void updateStatus(submission, event.target.value as ContactStatus)}
                   disabled={savingId === submission.id}
-                  className="min-h-11 rounded-full border-2 border-midnight/25 bg-paper px-3 py-2 text-sm font-bold text-midnight outline-none focus-visible:border-cobalt focus-visible:ring-2 focus-visible:ring-sky"
+                  className="min-h-11 rounded-full border-2 border-midnight/25 bg-paper px-3 py-2 text-sm font-bold text-midnight outline-hidden focus-visible:border-cobalt focus-visible:ring-2 focus-visible:ring-sky"
                 >
                   {statuses.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
                 </select>
@@ -156,9 +156,9 @@ export default function AdminContactPage() {
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-midnight/15 pt-5">
-        <button type="button" onClick={goPrevious} disabled={loading || cursorHistory.length === 0} className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-midnight px-4 py-2 text-sm font-bold text-midnight transition hover:bg-sky disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt"><ChevronLeft className="h-4 w-4" aria-hidden="true" />Previous</button>
+        <button type="button" onClick={goPrevious} disabled={loading || cursorHistory.length === 0} className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-midnight px-4 py-2 text-sm font-bold text-midnight transition hover:bg-sky disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-cobalt"><ChevronLeft className="h-4 w-4" aria-hidden="true" />Previous</button>
         <span className="text-xs font-semibold text-ink/60">Showing up to 25 messages</span>
-        <button type="button" onClick={goNext} disabled={loading || !nextCursor} className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-midnight px-4 py-2 text-sm font-bold text-midnight transition hover:bg-sky disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cobalt">Next<ChevronRight className="h-4 w-4" aria-hidden="true" /></button>
+        <button type="button" onClick={goNext} disabled={loading || !nextCursor} className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-midnight px-4 py-2 text-sm font-bold text-midnight transition hover:bg-sky disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-cobalt">Next<ChevronRight className="h-4 w-4" aria-hidden="true" /></button>
       </div>
     </section>
   )

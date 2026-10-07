@@ -1,5 +1,6 @@
 -- Task 04A chat storage, schedule, and privilege contract tests.
 begin;
+set local search_path = public, extensions;
 select plan(78);
 
 select has_table('public', 'chat_conversations', 'chat conversations table exists');

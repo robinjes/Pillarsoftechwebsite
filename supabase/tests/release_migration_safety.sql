@@ -1,10 +1,33 @@
 -- Forward release-migration tests.
 --
--- This file creates a transaction-scoped copy of the original volunteer and
--- attendance tables. It never targets a hosted project and rolls all rows
--- back before the test exits.
+-- This file creates rollback-only fixtures for release-migration behavior.
+-- It supports isolated local copies and the approved Supabase test gate; all
+-- temporary catalog and data changes roll back before it exits.
 begin;
-select plan(31);
+set local search_path = public, extensions;
+select plan(42);
+
+-- A local actual-data restore may already contain these original legacy source
+-- tables. Move them into a private, transaction-scoped schema before making
+-- synthetic public replacements; the final ROLLBACK restores their names,
+-- definitions, privileges, and rows without deleting source data.
+create schema release_migration_safety_fixture;
+do $$
+declare
+  table_name text;
+begin
+  foreach table_name in array array[
+    'event_volunteers', 'check_in_sessions', 'attendance_logs'
+  ] loop
+    if to_regclass(format('public.%I', table_name)) is not null then
+      execute format(
+        'alter table public.%I set schema release_migration_safety_fixture',
+        table_name
+      );
+    end if;
+  end loop;
+end;
+$$;
 
 select has_table(
   'public',
@@ -34,10 +57,28 @@ select ok(
     and not has_function_privilege('service_role', 'public.run_release_legacy_backfill()', 'EXECUTE'),
   'legacy backfill has no API execution grant'
 );
+select ok(
+  exists (
+    select 1
+    from pg_constraint
+    where conrelid = 'public.volunteer_hour_adjustments'::regclass
+      and conname = 'volunteer_hour_adjustments_hours_delta_nonzero'
+      and contype = 'c'
+      and not convalidated
+      and pg_get_constraintdef(oid) = 'CHECK ((hours_delta <> (0)::numeric)) NOT VALID'
+  ),
+  'existing casted-zero adjustment check keeps its definition and NOT VALID state'
+);
 
 -- Simulate the legacy profiles table after the additive foundation migration.
-alter table public.profiles add column role text;
+alter table public.profiles add column if not exists role text;
 select has_column('public', 'profiles', 'role', 'legacy role data remains available for backfill/audit');
+
+-- Some restored legacy schemas constrain role to volunteer/staff even though
+-- the backfill must also recognize historical admin values. Relax only this
+-- fixture constraint inside the test transaction; ROLLBACK restores it.
+alter table public.profiles
+  drop constraint if exists profiles_role_check;
 
 insert into auth.users (
   id, instance_id, aud, role, email, encrypted_password,
@@ -62,6 +103,21 @@ insert into auth.users (
     now(), '{}'::jsonb, '{}'::jsonb, now(), now()
   )
 on conflict (id) do nothing;
+
+-- The migration's fresh-table definition also has an inline CHECK. Remove that
+-- duplicate only inside this test transaction so the insert exercises the
+-- preserved named NOT VALID constraint specifically; the final rollback puts
+-- both constraints back.
+alter table public.volunteer_hour_adjustments
+  drop constraint if exists volunteer_hour_adjustments_hours_delta_check;
+
+select throws_ok(
+  $$insert into public.volunteer_hour_adjustments (user_id, hours_delta, reason)
+    values ('81000000-0000-0000-0000-000000000003', 0, 'zero-delta regression fixture')$$,
+  '23514',
+  'new row for relation "volunteer_hour_adjustments" violates check constraint "volunteer_hour_adjustments_hours_delta_nonzero"',
+  'existing NOT VALID adjustment check still rejects new zero-hour rows'
+);
 
 update public.profiles
 set role = case id
@@ -231,6 +287,11 @@ select is(
   'registration hours are preserved'
 );
 select is(
+  (select checked_in_at from public.volunteer_registrations where id = '82000000-0000-0000-0000-000000000001'),
+  '2026-08-01 10:00+00'::timestamptz,
+  'present legacy check-in timestamps are preserved'
+);
+select is(
   (select count(*) from public.attendance_sessions where id in (
     '83000000-0000-0000-0000-000000000001',
     '83000000-0000-0000-0000-000000000002',
@@ -296,14 +357,124 @@ select has_table('public', 'event_volunteers', 'legacy registration table is ret
 select has_table('public', 'check_in_sessions', 'legacy session table is retained');
 select has_table('public', 'attendance_logs', 'legacy attendance table is retained');
 
+-- Production may lack this optional column. Missing values stay NULL; the
+-- migration must never substitute created_at or the current time.
+alter table public.event_volunteers drop column checked_in_at;
+insert into public.events (id, slug, title, status, publication_state, branch)
+values (
+  'release-optional-time-event',
+  'release-optional-time-event',
+  'Owner-reviewed optional timestamp event',
+  'completed',
+  'unpublished',
+  'ca'
+);
+insert into public.event_volunteers (
+  id, user_id, event_id, event_title, status, hours, created_at
+) values (
+  '82000000-0000-0000-0000-000000000005',
+  '81000000-0000-0000-0000-000000000003',
+  'release-optional-time-event',
+  'Legacy row without an optional timestamp',
+  'registered',
+  1.75,
+  '2026-08-05 09:30+00'
+);
+
+select lives_ok(
+  'select public.run_release_legacy_backfill()',
+  'backfill accepts the production event_volunteers shape without checked_in_at'
+);
+select is(
+  (
+    select jsonb_build_object(
+      'id', id::text,
+      'user_id', user_id::text,
+      'status', status::text,
+      'hours', hours,
+      'created_at', created_at
+    )
+    from public.volunteer_registrations
+    where id = '82000000-0000-0000-0000-000000000005'
+  ),
+  jsonb_build_object(
+    'id', '82000000-0000-0000-0000-000000000005',
+    'user_id', '81000000-0000-0000-0000-000000000003',
+    'status', 'registered',
+    'hours', 1.75::numeric,
+    'created_at', '2026-08-05 09:30+00'::timestamptz
+  ),
+  'missing-column registration preserves its id, user, status, hours, and creation time'
+);
+select is(
+  (select checked_in_at from public.volunteer_registrations where id = '82000000-0000-0000-0000-000000000005'),
+  null::timestamptz,
+  'missing legacy checked_in_at remains NULL'
+);
+select is(
+  (
+    select jsonb_build_object(
+      'id', id::text,
+      'user_id', user_id::text,
+      'event_id', event_id,
+      'event_title', event_title,
+      'status', status::text,
+      'hours', hours,
+      'created_at', created_at
+    )
+    from public.event_volunteers
+    where id = '82000000-0000-0000-0000-000000000005'
+  ),
+  jsonb_build_object(
+    'id', '82000000-0000-0000-0000-000000000005',
+    'user_id', '81000000-0000-0000-0000-000000000003',
+    'event_id', 'release-optional-time-event',
+    'event_title', 'Legacy row without an optional timestamp',
+    'status', 'registered',
+    'hours', 1.75::numeric,
+    'created_at', '2026-08-05 09:30+00'::timestamptz
+  ),
+  'source row values remain unchanged'
+);
+select ok(
+  not exists (
+    select 1
+    from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'event_volunteers'
+      and column_name = 'checked_in_at'
+  ),
+  'backfill leaves the source table without the optional timestamp column'
+);
+select lives_ok(
+  'select public.run_release_legacy_backfill()',
+  'backfill can be rerun with the optional timestamp column absent'
+);
+select is(
+  (select count(*) from public.volunteer_registrations where id = '82000000-0000-0000-0000-000000000005'),
+  1::bigint,
+  'rerun does not duplicate the missing-column registration'
+);
+select ok(
+  not has_function_privilege('anon', 'public.run_release_legacy_backfill()', 'EXECUTE')
+    and not has_function_privilege('authenticated', 'public.run_release_legacy_backfill()', 'EXECUTE')
+    and not has_function_privilege('service_role', 'public.run_release_legacy_backfill()', 'EXECUTE'),
+  'running and rerunning the backfill does not create an API execution grant'
+);
+
 -- A rerun must not duplicate rows or replace configured content.
 insert into public.events (id, slug, title, status, publication_state, branch)
 values ('release-unmapped-event', 'release-unmapped-event', 'Mapped after review', 'completed', 'unpublished', 'ca');
 select public.run_release_legacy_backfill();
 select is(
-  (select count(*) from public.volunteer_registrations),
-  3::bigint,
-  'backfill imports a newly owner-mapped registration without duplicates'
+  (select count(*) from public.volunteer_registrations where id in (
+    '82000000-0000-0000-0000-000000000001',
+    '82000000-0000-0000-0000-000000000002',
+    '82000000-0000-0000-0000-000000000004',
+    '82000000-0000-0000-0000-000000000005'
+  )),
+  4::bigint,
+  'backfill imports the four synthetic owner-mapped registrations without duplicates'
 );
 select is(
   (select count(*) from public.attendance_sessions),

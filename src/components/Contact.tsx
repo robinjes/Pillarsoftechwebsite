@@ -160,7 +160,7 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
               </p>
               <a
                 href={`mailto:${CONTACT_EMAIL}`}
-                className="mt-5 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
+                className="mt-5 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
               >
                 {CONTACT_EMAIL}
                 <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
@@ -201,8 +201,8 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
               <h3 className="mt-4 font-display text-2xl leading-tight text-[var(--midnight)]">Send the details when you are ready.</h3>
               <p className="mt-3 flex-1 font-body text-sm leading-6 text-[var(--ink)]/70">Use the protected form below, or email us directly if that is easier. We keep your message private and use your email only to follow up.</p>
               <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <a href={`mailto:${CONTACT_EMAIL}`} className="font-body text-sm font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]">{CONTACT_EMAIL}</a>
-                <button type="button" onClick={focusMessageForm} aria-controls="contact-form" className="inline-flex min-h-11 items-center justify-center rounded-full border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-2 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]">Open Email Form</button>
+                <a href={`mailto:${CONTACT_EMAIL}`} className="font-body text-sm font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)]">{CONTACT_EMAIL}</a>
+                <button type="button" onClick={focusMessageForm} aria-controls="contact-form" className="inline-flex min-h-11 items-center justify-center rounded-full border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-2 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]">Open Email Form</button>
               </div>
             </article>
           </div>
@@ -228,7 +228,7 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
             </p>
             <p className="mt-5 border-l border-[var(--coral)] pl-4 font-body text-sm leading-6 text-[var(--ink)]/65">
               Please keep passwords, home addresses, school schedules, medical information, and emergency requests out of messages. See our{' '}
-              <Link href="/privacy" className="font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]">privacy note</Link>{' '}
+              <Link href="/privacy" className="font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)]">privacy note</Link>{' '}
               for the boundaries of contact and chat.
             </p>
           </div>
@@ -279,7 +279,7 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
                     onChange={handleChange}
                     placeholder="Your name"
                     autoComplete="name"
-                    className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                    className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-hidden transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
                     required
                     disabled={isSending}
                   />
@@ -294,7 +294,7 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
                     onChange={handleChange}
                     placeholder="you@example.com"
                     autoComplete="email"
-                    className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                    className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-hidden transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
                     required
                     disabled={isSending}
                   />
@@ -308,7 +308,7 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
                   name="subject"
                   value={formData.subject}
                   onChange={handleSubjectChange}
-                  className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                  className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] outline-hidden transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
                   required
                   disabled={isSending}
                 >
@@ -330,7 +330,7 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
                       onChange={handleChange}
                       autoComplete="organization"
                       placeholder="School, club, or organization"
-                      className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                      className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-hidden transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
                       required={isWorkshop}
                       disabled={isSending}
                     />
@@ -347,7 +347,7 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
                       min="1"
                       step="1"
                       placeholder="Approximate number"
-                      className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                      className="min-h-11 w-full rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-hidden transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
                       required={isWorkshop}
                       disabled={isSending}
                     />
@@ -364,7 +364,7 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
                   onChange={handleChange}
                   placeholder="Tell us about your idea, question, or event."
                   rows={7}
-                  className="min-h-11 w-full resize-y rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-none transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
+                  className="min-h-11 w-full resize-y rounded-md border-2 border-[var(--ink)]/25 bg-[var(--paper)] px-4 py-3 font-body text-[var(--ink)] placeholder:text-[var(--ink)]/45 outline-hidden transition focus-visible:border-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)]"
                   required
                   disabled={isSending}
                 />
@@ -373,7 +373,7 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
               <button
                 type="submit"
                 disabled={isSending}
-                className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] px-6 py-3 font-body font-bold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)] ${buttonClass}`}
+                className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] px-6 py-3 font-body font-bold transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)] ${buttonClass}`}
               >
                 {status === 'success' ? <CheckCircle2 aria-hidden="true" className="h-4 w-4" /> : <Mail aria-hidden="true" className="h-4 w-4" />}
                 {buttonLabel}
@@ -382,7 +382,7 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
 
             <p className="mt-5 font-body text-sm leading-6 text-[var(--ink)]/65">
               Looking for equipment? Visit the{' '}
-              <Link href="/wishlist" className="font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]">wishlist</Link>.
+              <Link href="/wishlist" className="font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)]">wishlist</Link>.
             </p>
           </section>
         </div>

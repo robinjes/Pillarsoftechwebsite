@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { createSupabaseServiceRoleClientMock } = vi.hoisted(() => ({
   createSupabaseServiceRoleClientMock: vi.fn(),
@@ -54,6 +54,13 @@ function builder(data: unknown, error: unknown = null) {
 beforeEach(() => {
   vi.clearAllMocks()
   vi.stubEnv('CHAT_TOKEN_PEPPER', 'test-pepper')
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-08-27T12:00:00.000Z'))
+})
+
+afterEach(() => {
+  vi.useRealTimers()
+  vi.unstubAllEnvs()
 })
 
 describe('chat repository ownership boundaries', () => {

@@ -42,7 +42,7 @@ export default function ExternalEmbedOptIn({
             href={src}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center justify-center border-2 border-[var(--midnight)] px-4 py-3 font-body text-xs font-bold text-[var(--midnight)] transition hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
+            className="inline-flex min-h-11 items-center justify-center border-2 border-[var(--midnight)] px-4 py-3 font-body text-xs font-bold text-[var(--midnight)] transition hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
           >
             {directLabel}
           </a>
@@ -52,7 +52,7 @@ export default function ExternalEmbedOptIn({
               onClick={() => setIsLoaded(true)}
               aria-controls={frameId}
               aria-expanded={false}
-              className="inline-flex min-h-11 items-center justify-center bg-[var(--midnight)] px-4 py-3 font-body text-xs font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
+              className="inline-flex min-h-11 items-center justify-center bg-[var(--midnight)] px-4 py-3 font-body text-xs font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
             >
               {loadLabel}
             </button>

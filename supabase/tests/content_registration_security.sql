@@ -1,5 +1,6 @@
 -- Content ownership and participant registration RPC contract tests.
 begin;
+set local search_path = public, extensions;
 select plan(25);
 
 select has_function(

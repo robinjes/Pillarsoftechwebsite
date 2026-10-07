@@ -18,7 +18,7 @@ export default function FundraiserPage() {
       <section className="relative isolate min-h-[30rem] overflow-hidden rounded-b-[2rem] bg-[var(--midnight)] text-[var(--cream)] sm:min-h-[36rem]">
         <Link
           href="/"
-          className="absolute left-5 top-5 z-10 inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--cream)] bg-[var(--midnight)]/75 px-4 py-2 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)] sm:left-8 lg:left-12"
+          className="absolute left-5 top-5 z-10 inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--cream)] bg-[var(--midnight)]/75 px-4 py-2 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--midnight)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--midnight)] sm:left-8 lg:left-12"
         >
           <ArrowLeft aria-hidden="true" className="h-4 w-4" />
           Home
@@ -61,7 +61,7 @@ export default function FundraiserPage() {
                 href={donationUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
               >
                 Open Secure Donation Page
                 <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
@@ -70,7 +70,7 @@ export default function FundraiserPage() {
                 href={ledgerUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full border-2 border-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
               >
                 View Transparent Finances
                 <ArrowUpRight aria-hidden="true" className="h-4 w-4" />

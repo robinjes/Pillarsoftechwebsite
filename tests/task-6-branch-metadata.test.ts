@@ -191,6 +191,35 @@ describe('Task 6 gated public metadata and discovery', () => {
     expect(calls).toContainEqual(['publication_state', 'published'])
     expect(calls).toContainEqual(['status', 'draft'])
 
+    query.order.mockResolvedValueOnce({
+      data: [{
+        id: 'career-panel-granada',
+        slug: 'career-panel-granada',
+        branch: 'ca',
+        title: 'Career Panel',
+        summary: 'Database-owned Career Panel record.',
+        description: 'Database-owned Career Panel record.',
+        starts_at: null,
+        ends_at: null,
+        timezone: 'America/Los_Angeles',
+        start_label: 'Coming Soon',
+        end_label: 'Coming Soon',
+        location: 'Granada High',
+        program_category: 'general',
+        status: 'upcoming',
+        media: {},
+        resources: {},
+        participant_registration_state: 'closed',
+        volunteer_registration_state: 'closed',
+        publication_state: 'published',
+      }],
+      error: null,
+    })
+    const configuredDatabase = await listPublicEvents()
+    expect(configuredDatabase).toHaveLength(1)
+    expect(configuredDatabase[0]).toMatchObject({ id: 'career-panel-granada', volunteerRegistrationState: 'closed' })
+    expect(configuredDatabase.some((event) => event.id === 'stem-into-the-night-2026')).toBe(false)
+
     publicClientMock.mockReturnValue(null)
     const fallback = await listPublicEvents()
     expect(fallback).toEqual(getPublicEventSnapshot())
@@ -243,6 +272,37 @@ describe('Task 6 gated public metadata and discovery', () => {
       expect(runbook).toContain(requirement)
     }
     expect(runbook).not.toMatch(/DISCORD_BOT_TOKEN\s*=\s*[^<\s]/)
+  })
+
+  it('keeps the targeted hosted event update gated and preserves protected row fields', () => {
+    const update = read('supabase/operator-updates/20261005_event-volunteer-content.sql')
+    expect(update).toContain("to_regclass('public.events')")
+    expect(update).toContain("to_regprocedure('public.register_for_event(text)')")
+    expect(update).toContain("volunteer_registration_state = 'open'")
+    expect(update).toContain("publication_state\n) values (")
+    expect(update).toContain("'unpublished'\n)")
+    expect(update).toContain("coalesce(stored.resources, '{}'::jsonb) || excluded.resources")
+
+    const conflictUpdates = update.split('on conflict (id) do update set')[1]?.split(';')[0] ?? ''
+    for (const protectedField of [
+      'media',
+      'participant_registration_state',
+      'participant_capacity',
+      'volunteer_capacity',
+      'outcomes',
+      'publication_state',
+    ]) {
+      expect(conflictUpdates).not.toMatch(new RegExp(`^\\s*${protectedField}\\s*=`, 'm'))
+    }
+
+    const careerUpdate = update.split('update public.events')[1]?.split('get diagnostics')[0] ?? ''
+    expect(careerUpdate).toContain("set volunteer_registration_state = 'open'")
+    expect(careerUpdate).toContain("resources = coalesce(resources, '{}'::jsonb) || jsonb_build_object(")
+    expect(careerUpdate).toContain("'registrationLink', 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2'")
+    expect(careerUpdate).toContain("'registrationNote', 'Use a non-school email.'")
+    for (const protectedField of ['participant_capacity', 'volunteer_capacity', 'outcomes', 'participant_registration_state']) {
+      expect(careerUpdate).not.toMatch(new RegExp(`^\\s*set\\s+${protectedField}\\s*=`, 'm'))
+    }
   })
 
   it('uses unique validated event metadata and nonce-compatible escaped JSON-LD', () => {

@@ -102,11 +102,29 @@
     "time": "Coming Soon",
     "location": "Granada High",
     "status": "upcoming",
-    "registrationNote": "Coming Soon",
+    "volunteerRegistrationState": "open",
+    "registrationLink": "https://luma.com/event/evt-Kt3fAmxzXjJdAH2",
+    "registrationNote": "Use a non-school email.",
     "description": "Explore the limitless possibilities of STEM careers at our exclusive Career Panel! We've invited distinguished scientists and professionals from local laboratories to share their journeys, insights, and advice with students interested in science and technology fields.\n\nThe event will feature a structured panel presentation followed by an open Q&A session. Complimentary drinks and food will be provided. Come get inspired and network with industry experts!",
     "guests": [
       "Distinguished Scientists from local laboratories"
     ]
+  },
+  {
+    "id": "stem-into-the-night-2026",
+    "branch": "ca",
+    "title": "STEM Into the Night",
+    "date": "November 4, 2026",
+    "time": "4:00 PM - 5:30 PM",
+    "startsAt": "2026-11-05T00:00:00.000Z",
+    "endsAt": "2026-11-05T01:30:00.000Z",
+    "timezone": "America/Los_Angeles",
+    "location": "Junction Avenue K-8 School, 298 Junction Ave, Livermore, CA 94551",
+    "status": "upcoming",
+    "volunteerRegistrationState": "open",
+    "registrationLink": "https://luma.com/tnnv1nlg",
+    "registrationNote": "Register on Luma",
+    "description": "A free evening of STEM exploration with Pillars of Tech and Junction Avenue K-8, featuring hands-on building challenges and live experiments."
   },
   {
     "id": "altamont-creek-open-house",
@@ -219,14 +237,28 @@
     "id": "science-at-stockmens-park-2026",
     "branch": "ca",
     "title": "Science at Stockmen’s Park 2026",
-    "date": "2026 — date not recorded",
+    "date": "October 3, 2026",
     "time": "Not recorded",
+    "startsAt": null,
+    "timezone": "America/Los_Angeles",
     "location": "Stockmen’s Park",
     "status": "completed",
-    "image": "/potofficiallogo.png",
-    "heroImage": "/potofficiallogo.png",
-    "imageAlt": "Pillars of Tech logo",
-    "heroImageAlt": "Pillars of Tech logo",
+    "image": "/images/events/science-at-stockmens-park-2026/drive-01.webp",
+    "heroImage": "/images/events/science-at-stockmens-park-2026/drive-01.webp",
+    "gallery": [
+      "/images/events/science-at-stockmens-park-2026/drive-01.webp",
+      "/images/events/science-at-stockmens-park-2026/drive-02.webp",
+      "/images/events/science-at-stockmens-park-2026/drive-03.webp",
+      "/images/events/science-at-stockmens-park-2026/drive-04.webp"
+    ],
+    "imageAlt": "Children and adults gather around the Pillars of Tech activity table at Stockmen’s Park.",
+    "heroImageAlt": "Children and adults gather around the Pillars of Tech activity table at Stockmen’s Park.",
+    "galleryAlts": [
+      "Children and adults gather around the Pillars of Tech activity table at Stockmen’s Park.",
+      "A student lowers a coin toward a foil boat in a clear water tub.",
+      "Two students examine a foil boat in a water tub as an adult points toward it.",
+      "Participants gather around water tubs and coins at the outdoor activity table."
+    ],
     "description": "Pillars of Tech completed Science at Stockmen’s Park in 2026."
   },
   {

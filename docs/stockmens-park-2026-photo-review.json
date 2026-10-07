@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "previewOnly": false,
+  "approvalSource": "User confirmation in this task",
+  "approvalDate": "2026-10-05",
+  "reviewNote": "Approved for public website use, including parental permissions. Approver identity, direct Drive locators, capture timestamps, and embedded GPS values are omitted.",
+  "records": [
+    {
+      "eventId": "science-at-stockmens-park-2026",
+      "sourceFilename": "IMG_2651.DNG",
+      "sourceSha256": "8b9197ded02aebd0373ed58d68596022cc3d74d353744da7dffb3c0fecbb239d",
+      "outputPath": "/images/events/science-at-stockmens-park-2026/drive-01.webp",
+      "outputSha256": "60e3e86f849fcf43b789172dca8e2e52b72fe9eb24bc07ceb4f8ca2b3bad1f9c",
+      "mappingBasis": "selected triage frame 2026-10-03:1; capture date matched the supplied event photo set; first selected wide frame",
+      "location": "Stockmen’s Park",
+      "locationSource": "event record; no embedded GPS used",
+      "permissionStatus": "approved-for-public-use",
+      "metadataStripped": true,
+      "captureDate": "2026-10-03"
+    },
+    {
+      "eventId": "science-at-stockmens-park-2026",
+      "sourceFilename": "IMG_2679.DNG",
+      "sourceSha256": "92e55cdcfee559b37783abf84304568ca74ca7c6578654d035093a3366c69b3d",
+      "outputPath": "/images/events/science-at-stockmens-park-2026/drive-02.webp",
+      "outputSha256": "7a835694a1bcbfe6e6421a730d23343ee1f5a1145837a1d7bf4821cdc6debea4",
+      "mappingBasis": "selected triage frame 2026-10-03:5; capture date matched the supplied event photo set",
+      "location": "Stockmen’s Park",
+      "locationSource": "event record; no embedded GPS used",
+      "permissionStatus": "approved-for-public-use",
+      "metadataStripped": true,
+      "captureDate": "2026-10-03"
+    },
+    {
+      "eventId": "science-at-stockmens-park-2026",
+      "sourceFilename": "IMG_2687.DNG",
+      "sourceSha256": "264859585014ca47b70fa4f63b147f5c55c90e3f1174c69fc816e051157298dd",
+      "outputPath": "/images/events/science-at-stockmens-park-2026/drive-03.webp",
+      "outputSha256": "e4c563ebef053d6a40664d0129ff3690191f907c67d93a70574839bb2eb78bbc",
+      "mappingBasis": "selected triage frame 2026-10-03:13; capture date matched the supplied event photo set",
+      "location": "Stockmen’s Park",
+      "locationSource": "event record; no embedded GPS used",
+      "permissionStatus": "approved-for-public-use",
+      "metadataStripped": true,
+      "captureDate": "2026-10-03"
+    },
+    {
+      "eventId": "science-at-stockmens-park-2026",
+      "sourceFilename": "IMG_2711.DNG",
+      "sourceSha256": "fc53319cd838fe27851f6bce4d60d1056766e828b447f420f2ea6af23c1e7b9e",
+      "outputPath": "/images/events/science-at-stockmens-park-2026/drive-04.webp",
+      "outputSha256": "acf61082d27ca24989c14a0094564b51c806c9a285036f242793b40cd297a3e6",
+      "mappingBasis": "selected triage frame 2026-10-03:22; capture date matched the supplied event photo set",
+      "location": "Stockmen’s Park",
+      "locationSource": "event record; no embedded GPS used",
+      "permissionStatus": "approved-for-public-use",
+      "metadataStripped": true,
+      "captureDate": "2026-10-03"
+    }
+  ]
+}

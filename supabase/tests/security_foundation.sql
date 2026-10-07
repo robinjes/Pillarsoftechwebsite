@@ -5,7 +5,8 @@
 -- The repository validation workflow runs these against a fresh local stack.
 
 begin;
-select plan(66);
+set local search_path = public, extensions;
+select plan(68);
 
 select has_table('public', 'profiles', 'profiles exists');
 select has_table('public', 'staff_members', 'staff membership exists');
@@ -52,11 +53,23 @@ select ok(
   ),
   'volunteers read only completed history'
 );
-select hasnt_column('public', 'profiles', 'role', 'profiles has no authoritative role column');
+select ok(
+  position(
+    'public.staff_members'
+    in pg_catalog.pg_get_functiondef('public.is_staff()'::regprocedure)
+  ) > 0
+  and position(
+    'public.profiles'
+    in pg_catalog.pg_get_functiondef('public.is_staff()'::regprocedure)
+  ) = 0,
+  'staff authorization reads membership and ignores retained profile fields'
+);
 
 -- Synthetic identities are transaction-scoped test fixtures, not deployable
 -- staff identities. The auth trigger creates both ordinary profiles.
 do $$
+declare
+  updated_profile_count integer;
 begin
   insert into auth.users (
     id, instance_id, aud, role, email, encrypted_password,
@@ -82,6 +95,24 @@ begin
   set total_hours = 2
   where id = '10000000-0000-0000-0000-000000000001';
 
+  -- A legacy database may retain profiles.role for audit/backfill. Give only
+  -- this disposable fixture a staff role so the runtime denial below proves
+  -- that the column is not an authorization source. Fresh installs skip it.
+  if exists (
+    select 1
+    from pg_catalog.pg_attribute
+    where attrelid = 'public.profiles'::regclass
+      and attname = 'role'
+      and not attisdropped
+  ) then
+    execute 'update public.profiles set role = ''staff'' where id = $1'
+      using '10000000-0000-0000-0000-000000000001'::uuid;
+    get diagnostics updated_profile_count = row_count;
+    if updated_profile_count <> 1 then
+      raise exception 'expected one synthetic profile to receive the legacy staff role';
+    end if;
+  end if;
+
   insert into public.staff_members (user_id)
   values ('20000000-0000-0000-0000-000000000002')
   on conflict (user_id) do nothing;
@@ -97,11 +128,22 @@ begin
 end;
 $$;
 
+select ok(
+  exists (
+    select 1
+    from public.profiles
+    where id = '10000000-0000-0000-0000-000000000001'
+      and member_code ~ '^POT-(?:[0-9]{6}|[A-F0-9]{16})$'
+  ),
+  'auth profile trigger generates a member code in the established POT format'
+);
+
 -- The email contains "staff", but membership is still the only authority.
 set local role authenticated;
 select set_config('request.jwt.claim.role', 'authenticated', true);
 select set_config('request.jwt.claim.sub', '10000000-0000-0000-0000-000000000001', true);
 select is(public.is_staff(), false, 'email text does not confer staff status');
+select is(public.is_staff(), false, 'retained legacy profile role does not confer staff status');
 select is(
   (select count(*) from public.profiles),
   1::bigint,

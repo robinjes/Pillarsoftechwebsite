@@ -2,6 +2,7 @@
 -- Run with `supabase db reset` followed by `supabase test db`.
 
 begin;
+set local search_path = public, extensions;
 select plan(29);
 
 select has_table('public', 'contact_submissions', 'contact submissions remain available');
@@ -42,9 +43,7 @@ select ok(
    from pg_proc
    where pronamespace = 'public'::regnamespace
      and proname = 'consume_chat_rate_limit'
-     and proargtypes::oid[] = array[
-       'text'::regtype, 'integer'::regtype, 'integer'::regtype, 'timestamptz'::regtype
-     ]),
+     and oid = 'public.consume_chat_rate_limit(text,integer,integer,timestamptz)'::regprocedure),
   'timestamped rate-limit RPC has no defaulted argument that could make calls ambiguous'
 );
 select ok((select relforcerowsecurity from pg_class where oid = 'public.contact_submissions'::regclass), 'contact submissions force RLS');
@@ -53,7 +52,14 @@ select ok(not has_table_privilege('anon', 'public.chat_rate_limit_buckets', 'SEL
 select ok(not has_table_privilege('authenticated', 'public.chat_rate_limit_buckets', 'SELECT'), 'authenticated cannot read rate-limit buckets');
 select ok(not has_column_privilege('anon', 'public.contact_submissions', 'message', 'SELECT'), 'anon cannot read contact messages');
 select ok(has_table_privilege('service_role', 'public.contact_submissions', 'INSERT'), 'service role can insert contact submissions');
-select ok(has_table_privilege('service_role', 'public.contact_submissions', 'SELECT'), 'service role can read protected contact submissions');
+select ok(
+  not exists (
+    select 1
+    from unnest(array['id', 'name', 'email', 'message', 'subject', 'school_name', 'student_count', 'status', 'created_at', 'updated_at']) as required(column_name)
+    where not has_column_privilege('service_role', 'public.contact_submissions', required.column_name, 'SELECT')
+  ),
+  'service role can read every column in the protected contact projection'
+);
 select ok(has_column_privilege('service_role', 'public.contact_submissions', 'status', 'UPDATE'), 'service role can update only contact status');
 select ok(not has_column_privilege('authenticated', 'public.contact_submissions', 'status', 'UPDATE'), 'authenticated clients cannot directly update contact status');
 select ok(has_function_privilege('service_role', 'public.consume_chat_rate_limit(text,integer,integer,timestamptz)', 'EXECUTE'), 'service role can consume rate-limit buckets');

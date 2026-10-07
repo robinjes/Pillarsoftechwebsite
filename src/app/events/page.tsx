@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, CalendarDays, MapPin, Search, UsersRound } from 'lucide-react'
+import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
 import { publicEventSchema, type BranchCode, type PublicEvent } from '@/lib/content-contracts'
 import { resolveEventImageAlt } from '@/lib/event-media'
 
@@ -90,8 +91,8 @@ function eventImage(event: PublicEvent | null | undefined): string | null {
 
 function EventCard({ event }: { event: PublicEvent }) {
   const sourceImage = eventImage(event)
-  const image = sourceImage || archiveImageFallback
-  const imageAlt = sourceImage ? resolveEventImageAlt(event, 'image', image) : archiveImageFallbackAlt
+  const image = sourceImage || (event.status === 'completed' ? archiveImageFallback : null)
+  const imageAlt = sourceImage ? resolveEventImageAlt(event, 'image', sourceImage) : archiveImageFallbackAlt
   const eventPath = `/events/${event.slug || event.id}`
   const participantOpen = isCurrentEvent(event) && event.participantRegistrationState === 'open'
   const participantFull = isCurrentEvent(event) && event.participantRegistrationState === 'full'
@@ -169,6 +170,18 @@ function EventCard({ event }: { event: PublicEvent }) {
           <span className="inline-flex min-h-11 items-center justify-center rounded-full border-2 border-[var(--ink)] px-4 py-2 text-center text-sm font-semibold text-[var(--ink)]/70">
             Participant List Is Full
           </span>
+        ) : null}
+        {event.id === 'career-panel-granada' ? (
+          <CareerPanelLumaCheckout event={event} />
+        ) : isCurrentEvent(event) && event.registrationLink ? (
+          <a
+            href={event.registrationLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--cobalt)] px-4 py-2 text-sm font-bold text-[var(--cobalt)] transition-colors hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
+          >
+            {event.registrationNote || 'External registration'}
+          </a>
         ) : null}
         {volunteerOpen ? (
           <Link

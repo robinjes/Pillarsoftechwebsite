@@ -1,6 +1,6 @@
 # Security release runbook
 
-This runbook is a staging-first handoff for the validated content, registration, volunteer, and media security migrations. Commands that target a hosted project are operator instructions only; this branch does not log in, link, push, apply migrations, seed staff identities, or mutate hosted Supabase. Replace every angle-bracket placeholder with an owner-approved value and never commit the replacement values.
+This runbook is a staging-first handoff for the validated content, registration, volunteer, and media security migrations. Commands that target a hosted project are operator instructions only; the application never runs them automatically. See `admin-volunteer-recovery.md` for the latest authorized recovery evidence. Replace every angle-bracket placeholder with an owner-approved value and never commit the replacement values.
 
 ## 0. Read-only deployment context
 
@@ -12,7 +12,7 @@ The provided organization inventory on 2026-08-18 showed:
 - No separate staging project was visible.
 - Supabase Advisor reported no current security or performance findings. That dashboard result does not validate this application's authorization paths, migration contents, photo permissions, or release approval.
 
-Treat egpkdqvgivnvzzfgpfix as a production candidate, not as staging. Before any hosted migration, the owner must create and approve a separate staging project and ref, for example <STAGING_PROJECT_REF>. The candidate ref is recorded here for release review only; this branch has not verified deployment state or changed it. Free-plan backup/PITR capabilities also require owner confirmation; no backup claim is made by this repository.
+Treat egpkdqvgivnvzzfgpfix as a production candidate, not as staging. Before any hosted migration, the owner must create and approve a separate staging project and ref, for example <STAGING_PROJECT_REF>. This inventory is historical; use `admin-volunteer-recovery.md` for later observations. Provider-supported manual CLI schema/data exports are acceptable backup evidence when an isolated restore verifies their contents; paid PITR is not required for that procedure.
 
 ## 1. Release inputs and backup gate
 
@@ -53,7 +53,7 @@ Keep the application origin and provider callback roles distinct:
 4. In the Google OAuth client, register those Supabase provider callback URIs exactly. The application /auth/callback URLs belong in Supabase Auth's redirect allowlist; do not substitute one class of URI for the other.
 5. Complete one staging sign-in and sign-out smoke test with an owner-approved Google identity. Confirm an unlisted identity cannot access staff routes and that no shared password is offered.
 
-This repository contains no Google credentials, client secrets, staff identities, or claim that any hosted setting is enabled.
+Keep Google credentials, client secrets, and staff identities out of this repository. Record verified hosted outcomes without exposing their values.
 
 ## 3. Local migration and pgTAP validation
 
@@ -184,6 +184,15 @@ empty snapshot produces a generic 503 rather than silently rendering an empty
 event experience. This keeps an outage fallback useful without replacing
 configured publication state with guessed content.
 
+The one-off `supabase/operator-updates/20261005_event-volunteer-content.sql`
+file is a separate content operation, not a migration or automatic importer.
+It refuses a missing/incompatible event schema or volunteer registration RPC,
+leaves the new STEM event unpublished for a separate owner-approved publish,
+and preserves existing capacities, participant state, outcomes, media, and
+audit actor fields on conflict. Use it after the reviewed staging content import and
+only after the staging and backup gates in Sections 1, 4, 6, and 7; the same fresh
+schema/data backup gate applies before any production content update.
+
 Run these staging smoke checks and record exact responses:
 
 1. Anonymous GET /api/events, GET /api/forms?eventId=<PUBLISHED_EVENT_ID>, and GET /api/impact expose only safe published/approved projections.
@@ -202,7 +211,7 @@ Use this order; do not skip directly from local checks to the candidate project:
 2. Create a preview deployment using the staging environment and run the staging smoke checks.
 3. Keep content unpublished; review event stories, registration forms, approved metrics, media URLs, and staff boundaries.
 4. Obtain owner approval naming the exact preview, staging ref, migration list, staff UUIDs, OAuth origins, and rollback marker.
-5. Immediately before a candidate migration, create and verify the candidate schema/data backup and PITR marker.
+5. Immediately before a candidate migration, create and verify the candidate schema/data backup restore marker or PITR marker.
 6. Preview the candidate migration:
 
 ```sh
@@ -218,7 +227,7 @@ npx --yes supabase@2.114.0 test db --project-ref egpkdqvgivnvzzfgpfix
 
 8. Re-run the anonymous/staff/media/OAuth smoke checks against the candidate. Publish events and enable registration forms only as separate, reviewed actions after smoke checks pass.
 
-These hosted commands are documented for the release operator only. This branch has not run them and does not claim the candidate project, backup, OAuth configuration, owner approval, or hosted policy tests are complete.
+These hosted commands are documented for the release operator only. Record each actual result in `admin-volunteer-recovery.md`; a command example alone is not evidence that it ran.
 
 ## 8. Rollback
 

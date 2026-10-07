@@ -31,6 +31,7 @@ const teamJoinUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSdsNmpS2wpikV77wl1
 
 const volunteerDescriptions: Record<string, string> = {
   'career-panel-granada': 'Help with check-in, directions, and the small details that keep a panel moving.',
+  'stem-into-the-night-2026': 'Volunteer support details are being confirmed for this event.',
 }
 
 const getVolunteerDescription = (event: Event) => volunteerDescriptions[event.id] ?? `Help with setup, greeting attendees, activity support, and the practical work around ${event.title}.`
@@ -45,7 +46,7 @@ function getScrollBehavior(): ScrollBehavior {
 function EventDetails({ event }: { event: Event }) {
   return (
     <details className="group border-t border-[var(--ink)]/20 pt-4">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 font-body text-sm font-bold text-[var(--cobalt)] outline-none transition hover:text-[var(--midnight)] focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-4 font-body text-sm font-bold text-[var(--cobalt)] outline-hidden transition hover:text-[var(--midnight)] focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden">
         <span>View event details</span>
         <ArrowRight aria-hidden="true" className="h-4 w-4 transition-transform group-open:translate-x-1" />
       </summary>
@@ -298,7 +299,7 @@ export default function VolunteerPortalPage() {
             <button
               type="button"
               onClick={handleSignOut}
-              className="inline-flex min-h-11 items-center justify-center gap-2 self-start border-2 border-[var(--ink)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)] lg:self-auto"
+              className="inline-flex min-h-11 items-center justify-center gap-2 self-start border-2 border-[var(--ink)] px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--paper)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)] lg:self-auto"
             >
               <LogOut aria-hidden="true" className="h-4 w-4" />
               Sign out
@@ -345,7 +346,7 @@ export default function VolunteerPortalPage() {
                 {user.role === 'staff' && (
                   <Link
                     href="/volunteer/checkin"
-                    className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
+                    className="mt-6 inline-flex min-h-11 w-full items-center justify-center gap-2 bg-[var(--midnight)] px-5 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
                   >
                     <Camera aria-hidden="true" className="h-4 w-4" />
                     Open staff check-in
@@ -410,7 +411,7 @@ export default function VolunteerPortalPage() {
                         ref={(node) => { eventRefs.current[event.id] = node }}
                         tabIndex={isDeepLinked ? -1 : undefined}
                         aria-labelledby={`volunteer-event-${event.id}`}
-                        className={`py-7 outline-none focus-visible:ring-2 focus-visible:ring-[var(--cobalt)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)] ${isDeepLinked ? 'border-l-2 border-[var(--cobalt)] bg-[var(--sky)]/20 pl-4 sm:pl-6' : ''}`}
+                        className={`py-7 outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--cobalt)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)] ${isDeepLinked ? 'border-l-2 border-[var(--cobalt)] bg-[var(--sky)]/20 pl-4 sm:pl-6' : ''}`}
                       >
                         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                           <div>
@@ -425,9 +426,9 @@ export default function VolunteerPortalPage() {
                             {attended ? (
                               <button type="button" disabled className="inline-flex min-h-11 items-center justify-center gap-2 border-2 border-[var(--cobalt)] bg-[var(--sky)]/45 px-4 py-3 font-body text-sm font-bold text-[var(--midnight)]"><CheckCircle2 aria-hidden="true" className="h-4 w-4" /> Attended</button>
                             ) : registered ? (
-                              <button type="button" onClick={() => handleCancelForEvent(event.id)} disabled={cancellingEventId === event.id} className="inline-flex min-h-11 items-center justify-center gap-2 border-2 border-[var(--cobalt)] px-4 py-3 font-body text-sm font-bold text-[var(--cobalt)] transition hover:bg-[var(--sky)]/35 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]"><CheckCircle2 aria-hidden="true" className="h-4 w-4" /> {cancellingEventId === event.id ? 'Cancelling…' : 'Cancel registration'}</button>
+                              <button type="button" onClick={() => handleCancelForEvent(event.id)} disabled={cancellingEventId === event.id} className="inline-flex min-h-11 items-center justify-center gap-2 border-2 border-[var(--cobalt)] px-4 py-3 font-body text-sm font-bold text-[var(--cobalt)] transition hover:bg-[var(--sky)]/35 disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)]"><CheckCircle2 aria-hidden="true" className="h-4 w-4" /> {cancellingEventId === event.id ? 'Cancelling…' : 'Cancel registration'}</button>
                             ) : (
-                              <button type="button" onClick={() => handleRegisterForEvent(event)} disabled={!open || signingUpEventId === event.id} className="inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--midnight)] px-4 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] disabled:cursor-not-allowed disabled:bg-[var(--ink)]/20 disabled:text-[var(--ink)]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]">
+                              <button type="button" onClick={() => handleRegisterForEvent(event)} disabled={!open || signingUpEventId === event.id} className="inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--midnight)] px-4 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] disabled:cursor-not-allowed disabled:bg-[var(--ink)]/20 disabled:text-[var(--ink)]/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]">
                                 {signingUpEventId === event.id ? <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin motion-reduce:animate-none" /> : open ? 'Sign up to volunteer' : event.volunteerRegistrationState === 'full' ? 'Roster full' : 'Registration closed'}
                               </button>
                             )}
@@ -538,7 +539,7 @@ export default function VolunteerPortalPage() {
                     ref={(node) => { eventRefs.current[event.id] = node }}
                     tabIndex={isDeepLinked ? -1 : undefined}
                     aria-labelledby={`volunteer-event-${event.id}`}
-                    className={`py-7 outline-none focus-visible:ring-2 focus-visible:ring-[var(--cobalt)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)] ${isDeepLinked ? 'border-l-2 border-[var(--cobalt)] bg-[var(--sky)]/20 pl-4 sm:pl-6' : ''}`}
+                    className={`py-7 outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--cobalt)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)] ${isDeepLinked ? 'border-l-2 border-[var(--cobalt)] bg-[var(--sky)]/20 pl-4 sm:pl-6' : ''}`}
                   >
                     <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
                       <div>
@@ -553,7 +554,7 @@ export default function VolunteerPortalPage() {
                         type="button"
                         onClick={scrollToSignup}
                         disabled={!open}
-                        className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 bg-[var(--midnight)] px-4 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] disabled:cursor-not-allowed disabled:bg-[var(--ink)]/15 disabled:text-[var(--ink)]/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
+                        className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 bg-[var(--midnight)] px-4 py-3 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] disabled:cursor-not-allowed disabled:bg-[var(--ink)]/15 disabled:text-[var(--ink)]/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
                       >
                         {open ? <>Sign in to volunteer <ArrowRight aria-hidden="true" className="h-4 w-4" /></> : event.volunteerRegistrationState === 'full' ? 'Roster full' : 'Registration closed'}
                       </button>
@@ -580,7 +581,7 @@ export default function VolunteerPortalPage() {
           <button
             type="button"
             onClick={openAuthModal}
-            className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--midnight)] px-6 py-3 font-body font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
+            className="mt-7 inline-flex min-h-11 items-center justify-center gap-2 bg-[var(--midnight)] px-6 py-3 font-body font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--paper)]"
           >
             Create a volunteer account
             <ArrowRight aria-hidden="true" className="h-4 w-4" />
@@ -597,14 +598,14 @@ export default function VolunteerPortalPage() {
                 <p className="font-body text-xs font-bold uppercase tracking-[0.24em] text-[var(--cobalt)]">Secure sign-in</p>
                 <h2 id="volunteer-auth-title" className="mt-3 font-display text-3xl leading-tight text-[var(--midnight)]">Join the volunteer roster.</h2>
               </div>
-              <button ref={authCloseRef} type="button" onClick={() => setIsAuthModalOpen(false)} aria-label="Close authentication modal" className="inline-flex min-h-11 min-w-11 items-center justify-center border-2 border-[var(--ink)] font-body text-xl text-[var(--midnight)] transition hover:bg-[var(--paper)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)]">×</button>
+              <button ref={authCloseRef} type="button" onClick={() => setIsAuthModalOpen(false)} aria-label="Close authentication modal" className="inline-flex min-h-11 min-w-11 items-center justify-center border-2 border-[var(--ink)] font-body text-xl text-[var(--midnight)] transition hover:bg-[var(--paper)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)]">×</button>
             </div>
             <p className="mt-5 font-body text-sm leading-6 text-[var(--ink)]/70">Use Google sign-in to create or access your volunteer profile. No alternate sign-in method is offered here.</p>
             <button
               type="button"
               onClick={handleGoogleSSO}
               disabled={authLoading}
-              className="mt-7 inline-flex min-h-11 w-full items-center justify-center gap-3 border-2 border-[var(--ink)] bg-[var(--paper)] px-5 py-3 font-body font-bold text-[var(--midnight)] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
+              className="mt-7 inline-flex min-h-11 w-full items-center justify-center gap-3 border-2 border-[var(--ink)] bg-[var(--paper)] px-5 py-3 font-body font-bold text-[var(--midnight)] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]"
             >
               {authLoading ? <Loader2 aria-hidden="true" className="h-5 w-5 animate-spin motion-reduce:animate-none" /> : <span aria-hidden="true" className="font-bold text-[var(--cobalt)]">G</span>}
               {authLoading ? 'Connecting to Google…' : 'Continue with Google'}

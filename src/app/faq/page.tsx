@@ -143,7 +143,7 @@ export default function FAQPage() {
             </p>
             <Link
               href="/contact"
-              className="mt-6 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
+              className="mt-6 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
             >
               Ask a question
               <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
@@ -175,7 +175,7 @@ export default function FAQPage() {
                 <div className="divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20">
                   {section.questions.map((faq) => (
                     <details key={faq.question} className="group">
-                      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-6 py-5 font-body text-base font-bold text-[var(--midnight)] outline-none transition-colors hover:text-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 [&::-webkit-details-marker]:hidden">
+                      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-6 py-5 font-body text-base font-bold text-[var(--midnight)] outline-hidden transition-colors hover:text-[var(--cobalt)] focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 [&::-webkit-details-marker]:hidden">
                         <span>{faq.question}</span>
                         <ChevronDown aria-hidden="true" className="h-5 w-5 flex-none text-[var(--cobalt)] transition-transform group-open:rotate-180" />
                       </summary>
@@ -197,7 +197,7 @@ export default function FAQPage() {
           </div>
           <Link
             href="/contact"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] bg-transparent px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] bg-transparent px-5 py-3 font-body text-sm font-bold text-[var(--midnight)] transition hover:bg-[var(--cream)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--sky)]"
           >
             Contact The Team
             <ArrowUpRight aria-hidden="true" className="h-4 w-4" />

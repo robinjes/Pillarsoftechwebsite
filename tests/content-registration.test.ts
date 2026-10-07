@@ -62,6 +62,8 @@ describe('Task 03 content contracts', () => {
     expect(isApprovedResourceUrl('http://localhost:3000/file')).toBe(false)
     expect(isApprovedResourceUrl('/uploads/reviewed.png')).toBe(true)
     expect(isApprovedResourceUrl('https://docs.google.com/forms/d/e/example/viewform')).toBe(true)
+    expect(isApprovedResourceUrl('https://luma.com/tnnv1nlg')).toBe(true)
+    expect(isApprovedResourceUrl('https://events.luma.com/tnnv1nlg')).toBe(false)
   })
 
   it('bounds and trims optional media descriptions without requiring legacy data to change', () => {
@@ -196,6 +198,42 @@ describe('Task 03 content contracts', () => {
       heroImageAlt: 'Hero image description',
       galleryAlts: ['First gallery description', 'Second gallery description'],
     })
+  })
+
+  it('validates optional legacy volunteer state and keeps omitted and historic events closed', () => {
+    expect(legacyEventToRecord({ id: 'legacy-default', title: 'Legacy default' })?.volunteerRegistrationState).toBe('closed')
+    expect(legacyEventToRecord({ id: 'legacy-open', title: 'Legacy open', volunteerRegistrationState: 'open' })?.volunteerRegistrationState).toBe('open')
+    expect(legacyEventToRecord({ id: 'legacy-invalid', title: 'Legacy invalid', volunteerRegistrationState: 'maybe' })).toBeNull()
+
+    const events = getPublicEventSnapshot()
+    const careerPanel = events.find((event) => event.id === 'career-panel-granada')
+    expect(careerPanel).toMatchObject({
+      volunteerRegistrationState: 'open',
+      participantRegistrationState: 'closed',
+      registrationLink: 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2',
+      registrationNote: 'Use a non-school email.',
+    })
+    expect(events.filter((event) => event.status === 'completed').every((event) => event.volunteerRegistrationState === 'closed')).toBe(true)
+    expect(events.every((event) => event.participantRegistrationState === 'closed')).toBe(true)
+
+    const stemNight = events.find((event) => event.id === 'stem-into-the-night-2026')
+    expect(stemNight).toMatchObject({
+      branch: 'ca',
+      title: 'STEM Into the Night',
+      date: 'November 4, 2026',
+      time: '4:00 PM - 5:30 PM',
+      startsAt: '2026-11-05T00:00:00.000Z',
+      endsAt: '2026-11-05T01:30:00.000Z',
+      timezone: 'America/Los_Angeles',
+      location: 'Junction Avenue K-8 School, 298 Junction Ave, Livermore, CA 94551',
+      registrationLink: 'https://luma.com/tnnv1nlg',
+      participantRegistrationState: 'closed',
+      volunteerRegistrationState: 'open',
+    })
+    expect(stemNight?.media.image).toBeUndefined()
+    expect(stemNight?.media.heroImage).toBeUndefined()
+    expect(stemNight?.media.gallery).toBeUndefined()
+    expect(stemNight?.description).toContain('hands-on building challenges and live experiments')
   })
 
   it('keeps production content mutation off local JSON and public-disk writers', () => {

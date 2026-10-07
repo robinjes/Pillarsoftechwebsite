@@ -45,7 +45,7 @@ describe('public event experience', () => {
     expect(toYouTubeEmbedUrl('https://www.youtube.com/watch?v=event-test')).toBe('https://www.youtube-nocookie.com/embed/event-test')
     expect(eventDetailPage).toContain('href="/wildcat-tank"')
     expect(eventDetailPage).toContain('href="/photos/wildcat-tank"')
-    expect(eventsPage).toContain("resolveEventImageAlt(event, 'image', image)")
+    expect(eventsPage).toContain("resolveEventImageAlt(event, 'image', sourceImage)")
     expect(eventDetailPage).toContain("resolveEventImageAlt(event, 'hero', heroImage)")
     expect(eventDetailPage).toContain("resolveEventImageAlt(event, 'gallery', image, index)")
     expect(eventDetailPage).toContain("resolveEventImageAlt(event, 'gallery', galleryActiveImage, activeGalleryIndex)")

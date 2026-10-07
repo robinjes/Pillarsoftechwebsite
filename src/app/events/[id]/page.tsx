@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Clock3, ExternalLink, FileText, MapPin, Play, X } from 'lucide-react'
+import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
 import type { PublicEvent } from '@/lib/content-contracts'
 import { resolveEventImageAlt } from '@/lib/event-media'
 import { toYouTubeEmbedUrl } from '@/lib/event-utils'
@@ -129,7 +130,7 @@ export default function EventPage() {
   }, [event])
   const localPdf = localAsset(event?.pdfUrl)
   const localHeroVideo = localAsset(event?.heroVideo)
-  const heroImageToShow = heroImage || archiveHeroFallback
+  const heroImageToShow = heroImage || (event?.status === 'completed' ? archiveHeroFallback : null)
   const activeGalleryIndex = galleryActiveImage ? galleryImages.indexOf(galleryActiveImage) : -1
   const galleryOpen = galleryActiveImage !== null
   const pdfOpen = pdfFullscreen
@@ -313,7 +314,9 @@ export default function EventPage() {
             ) : heroImageToShow ? (
               <Image src={heroImageToShow} alt={heroImage ? resolveEventImageAlt(event, 'hero', heroImage) : archiveHeroFallbackAlt} fill sizes="(max-width: 1024px) 100vw, 58vw" className="object-cover" priority />
             ) : (
-              <div className="flex h-full min-h-[20rem] items-end p-6 text-sm font-semibold text-[var(--midnight)]">Event documentation</div>
+              <div className="flex h-full min-h-[20rem] items-end p-6 text-sm font-semibold text-[var(--midnight)]">
+                {isCurrent ? 'Event details and media will be shared when available.' : 'Event documentation'}
+              </div>
             )}
             {heroImages.length > 1 && !localHeroVideo ? (
               <div className="absolute inset-x-0 bottom-0 flex items-center justify-between border-t border-[var(--ink)] bg-[var(--midnight)]/90 p-3 text-[var(--cream)]">
@@ -330,13 +333,13 @@ export default function EventPage() {
           <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><CalendarDays className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Date</p><p className="mt-1 font-semibold">{dateLabel(event)}</p></div>
           <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><Clock3 className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Time</p><p className="mt-1 font-semibold">{timeLabel(event)}</p></div>
           <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><MapPin className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Location</p><p className="mt-1 font-semibold">{event.location || 'Location to be announced'}</p></div>
-          <div className="p-5"><p className="text-sm font-semibold text-[var(--cobalt)]">Registration</p><p className={`mt-3 inline-flex border px-3 py-2 text-sm font-bold ${participant.tone}`}>{participant.label}</p></div>
+          <div className="p-5"><p className="text-sm font-semibold text-[var(--cobalt)]">Registration</p><p className={`mt-3 inline-flex border px-3 py-2 text-sm font-bold ${participant.tone}`}>{isCurrent && event.registrationLink ? 'External event registration' : participant.label}</p></div>
         </section>
 
         <div className="grid gap-12 border-b border-[var(--ink)]/35 py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
           <article className="max-w-3xl">
-            <p className="text-sm font-semibold text-[var(--cobalt)]">What participants practiced</p>
-            <h2 className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">What happened here</h2>
+            <p className="text-sm font-semibold text-[var(--cobalt)]">{isCurrent ? 'Event overview' : 'What participants practiced'}</p>
+            <h2 className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">{isCurrent ? 'About this event' : 'What happened here'}</h2>
             <div className="mt-7 space-y-6 text-base leading-8 text-[var(--ink)]/85">
               {eventParagraphs.map((paragraph, index) => <p key={`${paragraph.slice(0, 24)}-${index}`} className={index === 0 ? 'text-lg leading-8 text-[var(--midnight)]' : undefined}>{paragraph}</p>)}
             </div>
@@ -345,9 +348,13 @@ export default function EventPage() {
           <aside className="h-fit border-t border-[var(--ink)] pt-5 lg:border-l lg:border-t-0 lg:pl-6">
             <p className="text-sm font-semibold text-[var(--cobalt)]">Make a plan</p>
             <div className="mt-5 space-y-3">
-              {participant.canRegister ? <a href={registrationHref} className="flex min-h-11 items-center justify-between gap-3 bg-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register as a participant <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{participant.label}</p>}
+              {participant.canRegister ? <a href={registrationHref} className="flex min-h-11 items-center justify-between gap-3 bg-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register as a participant <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{isCurrent && event.registrationLink ? 'Register using the event link below.' : participant.label}</p>}
               {volunteer.canRegister ? <a href={volunteerHref} className="flex min-h-11 items-center justify-between gap-3 border border-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cobalt)] hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Volunteer at this event <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{volunteer.label}</p>}
-              {isCurrent && event.registrationLink ? <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">External event link <ExternalLink className="h-4 w-4" aria-hidden="true" /></a> : null}
+              {event.id === 'career-panel-granada' ? (
+                <CareerPanelLumaCheckout event={event} />
+              ) : isCurrent && event.registrationLink ? (
+                <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">{event.registrationNote || 'External event link'} <ExternalLink className="h-4 w-4" aria-hidden="true" /></a>
+              ) : null}
               {event.id === 'wildcat-tank-altamont' ? <><a href="/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Results &amp; presentation record <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a><a href="/photos/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Open photo archive <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a></> : null}
             </div>
           </aside>
@@ -422,7 +429,7 @@ export default function EventPage() {
       </div>
 
       {galleryActiveImage ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--midnight)]/95 p-4" role="dialog" aria-modal="true" aria-labelledby="event-image-viewer-title" onClick={() => setGalleryActiveImage(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-midnight/95 p-4" role="dialog" aria-modal="true" aria-labelledby="event-image-viewer-title" onClick={() => setGalleryActiveImage(null)}>
           <div ref={galleryDialogRef} className="relative w-full max-w-5xl border-2 border-[var(--cream)] bg-[var(--midnight)] p-3 rounded-[10px]" onClick={(clickEvent) => clickEvent.stopPropagation()}>
             <h2 id="event-image-viewer-title" className="sr-only">Event image viewer</h2>
             <button ref={galleryCloseButtonRef} type="button" onClick={() => setGalleryActiveImage(null)} className="absolute right-4 top-4 z-10 inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--cream)] bg-[var(--midnight)] text-[var(--cream)] rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Close image viewer"><X className="h-5 w-5" aria-hidden="true" /></button>
@@ -433,7 +440,7 @@ export default function EventPage() {
       ) : null}
 
       {pdfFullscreen && localPdf ? (
-        <div className="fixed inset-0 z-50 bg-[var(--midnight)]/95 p-4 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="event-document-viewer-title" onClick={() => setPdfFullscreen(false)}>
+        <div className="fixed inset-0 z-50 bg-midnight/95 p-4 sm:p-6" role="dialog" aria-modal="true" aria-labelledby="event-document-viewer-title" onClick={() => setPdfFullscreen(false)}>
           <div ref={pdfDialogRef} className="flex h-full flex-col border-2 border-[var(--cream)] bg-[var(--paper)] rounded-[10px]" onClick={(clickEvent) => clickEvent.stopPropagation()}><div className="flex min-h-14 items-center justify-between border-b border-[var(--ink)] px-4"><h2 id="event-document-viewer-title" className="font-bold text-[var(--midnight)]">{event.title} document</h2><button ref={pdfCloseButtonRef} type="button" onClick={() => setPdfFullscreen(false)} className="inline-flex min-h-11 items-center gap-2 border border-[var(--ink)] px-3 py-2 text-xs font-bold rounded-[10px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Close <X className="h-4 w-4" aria-hidden="true" /></button></div><iframe src={event.pdfUrl} sandbox="" loading="lazy" className="min-h-0 flex-1 w-full" title={event.title + ' document full screen'} /></div>
         </div>
       ) : null}

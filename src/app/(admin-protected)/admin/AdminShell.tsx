@@ -58,7 +58,7 @@ function SignOutControl({ onSignOut, signingOut, signoutError, mobile = false }:
         onClick={onSignOut}
         disabled={signingOut}
         aria-busy={signingOut}
-        className={`inline-flex min-h-11 items-center justify-center gap-2 border border-sky/60 px-4 text-sm font-bold transition-colors hover:bg-sky hover:text-midnight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky focus-visible:ring-offset-2 focus-visible:ring-offset-midnight disabled:cursor-not-allowed disabled:opacity-60 ${mobile ? 'w-full' : 'text-sky'}`}
+        className={`inline-flex min-h-11 items-center justify-center gap-2 border border-sky/60 px-4 text-sm font-bold transition-colors hover:bg-sky hover:text-midnight focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sky focus-visible:ring-offset-2 focus-visible:ring-offset-midnight disabled:cursor-not-allowed disabled:opacity-60 ${mobile ? 'w-full' : 'text-sky'}`}
       >
         <LogOut className="h-4 w-4" aria-hidden="true" />
         {signingOut ? 'Signing out…' : 'Sign out'}
@@ -90,7 +90,7 @@ function NavigationLinks({ pathname, onNavigate, mobile = false }: NavigationLin
             href={item.href}
             onClick={onNavigate}
             aria-current={isActive ? 'page' : undefined}
-            className={`inline-flex min-h-11 items-center gap-2 border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky focus-visible:ring-offset-2 focus-visible:ring-offset-midnight ${mobile ? 'w-full border-transparent py-2' : 'border-transparent'} ${isActive ? 'border-sky/40 bg-sky text-midnight' : 'text-warm/75 hover:border-white/20 hover:bg-white/10 hover:text-warm'}`}
+            className={`inline-flex min-h-11 items-center gap-2 border px-3 text-sm font-semibold transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sky focus-visible:ring-offset-2 focus-visible:ring-offset-midnight ${mobile ? 'w-full border-transparent py-2' : 'border-transparent'} ${isActive ? 'border-sky/40 bg-sky text-midnight' : 'text-warm/75 hover:border-white/20 hover:bg-white/10 hover:text-warm'}`}
           >
             <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
             {item.name}
@@ -105,7 +105,7 @@ function AdminBrand() {
   return (
     <Link
       href="/admin"
-      className="inline-flex min-h-11 items-center gap-3 text-warm transition-colors hover:text-sky focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky focus-visible:ring-offset-2 focus-visible:ring-offset-midnight"
+      className="inline-flex min-h-11 items-center gap-3 text-warm transition-colors hover:text-sky focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sky focus-visible:ring-offset-2 focus-visible:ring-offset-midnight"
     >
       <span className="inline-flex h-9 w-9 items-center justify-center border border-sky bg-sky text-midnight" aria-hidden="true">
         <ShieldCheck className="h-5 w-5" />
@@ -149,7 +149,7 @@ function MobileDrawer({ pathname, dialogRef, closeButtonRef, onClose, onSignOut,
             type="button"
             onClick={onClose}
             aria-label="Close admin navigation"
-            className="inline-flex min-h-11 min-w-11 items-center justify-center border border-white/40 text-warm transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center border border-white/40 text-warm transition-colors hover:bg-white/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sky"
           >
             <X className="h-5 w-5" aria-hidden="true" />
           </button>
@@ -248,7 +248,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
               aria-label="Open admin navigation"
               aria-expanded={sidebarOpen}
               aria-controls="admin-mobile-drawer"
-              className="inline-flex min-h-11 min-w-11 items-center justify-center border border-white/40 text-warm transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky lg:hidden"
+              className="inline-flex min-h-11 min-w-11 items-center justify-center border border-white/40 text-warm transition-colors hover:bg-white/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sky lg:hidden"
             >
               <Menu className="h-5 w-5" aria-hidden="true" />
             </button>

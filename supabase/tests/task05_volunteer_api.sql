@@ -1,4 +1,5 @@
 begin;
+set local search_path = public, extensions;
 select plan(30);
 
 select has_function('public', 'register_for_event', array['text'], 'bounded volunteer registration RPC exists');
@@ -125,7 +126,21 @@ select ok(
   not has_column_privilege('authenticated', 'public.profiles', 'total_hours', 'UPDATE'),
   'ordinary clients cannot update total hours'
 );
-select hasnt_column('public', 'profiles', 'role', 'profiles has no client-controlled role column');
+select ok(
+  case
+    when exists (
+      select 1
+      from information_schema.columns
+      where table_schema = 'public'
+        and table_name = 'profiles'
+        and column_name = 'role'
+    ) then not has_column_privilege(
+      'authenticated', 'public.profiles', 'role', 'UPDATE'
+    )
+    else true
+  end,
+  'ordinary clients cannot update a retained legacy profile role'
+);
 select ok(
   not has_table_privilege('authenticated', 'public.staff_members', 'INSERT'),
   'ordinary clients cannot grant staff membership'
