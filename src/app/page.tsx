@@ -1,5 +1,6 @@
 import type { PublicEvent, PublicImpactMetric } from '@/lib/content-contracts'
 import { listPublicEvents, listPublicImpact } from '@/lib/content-repository'
+import { selectNextEvent } from '@/lib/next-event'
 import TimelapseHero from '@/components/site/TimelapseHero'
 import TrustStrip from '@/components/site/TrustStrip'
 import FamiliesIntro from '@/components/site/FamiliesIntro'
@@ -11,9 +12,9 @@ import BranchesSection from '@/components/site/BranchesSection'
 import FinanceSection from '@/components/site/FinanceSection'
 import ContactCta from '@/components/site/ContactCta'
 
-function selectNextEvent(events: PublicEvent[]): PublicEvent | null {
-  return events.find((event) => event.status === 'upcoming' || event.status === 'ongoing') ?? null
-}
+// Evaluate the schedule on each request rather than freezing it at build time.
+export const dynamic = 'force-dynamic'
+
 export default async function Home() {
   // The repository owns its safe checked-in fallback when Supabase is missing
   // or unavailable. Catching here keeps the family homepage useful even when

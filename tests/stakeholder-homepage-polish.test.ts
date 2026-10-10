@@ -15,12 +15,13 @@ describe('stakeholder homepage polish', () => {
     expect(page.indexOf('<ContactCta />')).toBeLessThan(page.indexOf('<FinanceSection />'))
   })
 
-  it('uses the exact family audience copy without visible photo captions', () => {
+  it('uses event-owned imagery without invented audience guidance or visible photo captions', () => {
     const nextEvent = read('src/components/site/NextEventSection.tsx')
     const eventProof = read('src/components/site/EventProof.tsx')
     const photoSections = `${nextEvent}\n${eventProof}`
 
-    expect(nextEvent).toContain('8th-12th graders and their families')
+    expect(nextEvent).not.toContain('8th-12th graders and their families')
+    expect(nextEvent).toContain('resolveEventImageAlt')
     expect(photoSections).not.toContain('photo-note')
     expect(photoSections).not.toContain('figcaption')
     expect(photoSections).not.toContain('caption:')

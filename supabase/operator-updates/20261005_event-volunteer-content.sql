@@ -9,7 +9,8 @@
 --
 -- Career Panel must already be an upcoming/ongoing row. STEM Into the
 -- Night is inserted unpublished for separate review and publication through
--- the approved staff workflow. Existing media, participant state, capacities,
+-- the approved staff workflow. Participant registration is school-only and
+-- public participant registration stays closed. Existing media, capacities,
 -- outcomes, audit actor fields, and publication state are preserved on conflict.
 -- The existing updated_at trigger still records a content change normally.
 
@@ -116,8 +117,7 @@ insert into public.events as stored (
   'upcoming',
   '{}'::jsonb,
   jsonb_build_object(
-    'registrationLink', 'https://luma.com/tnnv1nlg',
-    'registrationNote', 'Register on Luma'
+    'registrationNote', 'Registration is for Junction students only. The registration link will be shared through the school.'
   ),
   'closed',
   'open',
@@ -140,7 +140,8 @@ on conflict (id) do update set
   location = excluded.location,
   program_category = excluded.program_category,
   status = excluded.status,
-  resources = coalesce(stored.resources, '{}'::jsonb) || excluded.resources,
+  resources = (coalesce(stored.resources, '{}'::jsonb) - 'registrationLink') || excluded.resources,
+  participant_registration_state = 'closed',
   volunteer_registration_state = 'open';
 
 do $$

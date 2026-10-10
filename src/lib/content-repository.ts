@@ -436,7 +436,7 @@ function eventDbPayload(event: EventWrite, userId: string, includeCreatedBy: boo
 
 export async function listAdminEvents(): Promise<EventRecord[]> {
   const client = serviceClient()
-  const { data, error } = await client.from('events').select('*').order('starts_at', { ascending: false, nullsFirst: false })
+  const { data, error } = await client.from('events').select('*').is('deleted_at', null).order('starts_at', { ascending: false, nullsFirst: false })
   if (error) rowError(error)
   return asRows(data).map(eventFromRow)
 }
@@ -458,7 +458,7 @@ export async function updateAdminEvent(id: string, input: EventWrite, userId: st
   const client = serviceClient()
   const payload = eventDbPayload({ ...input, id }, userId, false)
   delete payload.created_by
-  const { data, error } = await client.from('events').update(payload).eq('id', id).select('*').maybeSingle()
+  const { data, error } = await client.from('events').update(payload).eq('id', id).is('deleted_at', null).select('*').maybeSingle()
   if (error) rowError(error)
   if (!data) throw new ContentRepositoryError('Event not found.', 404)
   return eventFromRow(data as Record<string, unknown>)
@@ -466,7 +466,7 @@ export async function updateAdminEvent(id: string, input: EventWrite, userId: st
 
 export async function setAdminEventState(id: string, action: 'publish' | 'unpublish' | 'archive', userId: string): Promise<EventRecord> {
   const client = serviceClient()
-  const { data: current, error: currentError } = await client.from('events').select('status').eq('id', id).maybeSingle()
+  const { data: current, error: currentError } = await client.from('events').select('status').eq('id', id).is('deleted_at', null).maybeSingle()
   if (currentError) rowError(currentError)
   if (!current) throw new ContentRepositoryError('Event not found.', 404)
   const update = action === 'publish'
@@ -474,15 +474,23 @@ export async function setAdminEventState(id: string, action: 'publish' | 'unpubl
     : action === 'unpublish'
     ? { publication_state: 'unpublished', updated_by: userId }
     : { publication_state: 'unpublished', status: 'cancelled', updated_by: userId }
-  const { data, error } = await client.from('events').update(update).eq('id', id).select('*').maybeSingle()
+  const { data, error } = await client.from('events').update(update).eq('id', id).is('deleted_at', null).select('*').maybeSingle()
   if (error) rowError(error)
   if (!data) throw new ContentRepositoryError('Event not found.', 404)
   return eventFromRow(data as Record<string, unknown>)
 }
 
-export async function deleteAdminEvent(id: string): Promise<void> {
+export async function deleteAdminEvent(id: string, userId: string): Promise<void> {
   const client = serviceClient()
-  const { data, error } = await client.from('events').delete().eq('id', id).select('id').maybeSingle()
+  // Keep event references intact for earned hours and attendance history.
+  const { data, error } = await client.from('events').update({
+    deleted_at: new Date().toISOString(),
+    publication_state: 'unpublished',
+    participant_registration_state: 'closed',
+    volunteer_registration_state: 'closed',
+    status: 'cancelled',
+    updated_by: userId,
+  }).eq('id', id).is('deleted_at', null).select('id').maybeSingle()
   if (error) rowError(error)
   if (!data) throw new ContentRepositoryError('Event not found.', 404)
 }

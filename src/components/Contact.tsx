@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { ArrowUpRight, CheckCircle2, Mail, MessageCircle, Send } from 'lucide-react'
+import { ArrowUpRight, CheckCircle2, Mail, Send } from 'lucide-react'
 
 const CONTACT_EMAIL = 'pillarsoftech@gmail.com'
 
@@ -184,18 +184,12 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
         <div className="mx-auto max-w-7xl px-5 pt-12 sm:px-8 lg:px-12 lg:pt-16">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Choose your path</p>
-              <h2 id="contact-options" className="mt-2 font-display text-3xl leading-tight text-[var(--midnight)] sm:text-4xl">Live chat or email — both are welcome.</h2>
+              <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Get in touch</p>
+              <h2 id="contact-options" className="mt-2 font-display text-3xl leading-tight text-[var(--midnight)] sm:text-4xl">Email us directly or use the form.</h2>
             </div>
-            <p className="max-w-sm font-body text-sm leading-6 text-[var(--ink)]/65">Use the route that feels easiest. Email stays available when live chat is offline or when you would rather write a longer note.</p>
+            <p className="max-w-sm font-body text-sm leading-6 text-[var(--ink)]/65">Send us your questions, ideas, or requests using the email address or form below.</p>
           </div>
-          <div className="mt-7 grid gap-5 sm:grid-cols-2" aria-labelledby="contact-options">
-            <article className="flex min-h-[15rem] flex-col rounded-[2rem] border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-6 sm:p-8">
-              <div className="flex items-center gap-3 font-body text-sm font-bold text-[var(--cobalt)]"><MessageCircle aria-hidden="true" className="h-5 w-5" />Live chat with us</div>
-              <h3 className="mt-4 font-display text-2xl leading-tight text-[var(--midnight)]">A planned, real-time path for quick questions.</h3>
-              <p className="mt-3 flex-1 font-body text-sm leading-6 text-[var(--ink)]/70">Live chat is planned for Monday–Friday, 4:00–10:00 PM Pacific (America/Los_Angeles) when the staff queue is open. The chat window is not connected yet; email is the reliable path today.</p>
-              <p className="mt-5 rounded-full bg-[var(--sky)]/45 px-4 py-2 text-center font-body text-xs font-bold text-[var(--midnight)]">Planned · office-hours status will appear here</p>
-            </article>
+          <div className="mt-7" aria-labelledby="contact-options">
             <article className="flex min-h-[15rem] flex-col rounded-[2rem] border-2 border-[var(--cobalt)] bg-[var(--cream)] p-6 shadow-[6px_6px_0_var(--sky)] sm:p-8">
               <div className="flex items-center gap-3 font-body text-sm font-bold text-[var(--cobalt)]"><Mail aria-hidden="true" className="h-5 w-5" />Email us</div>
               <h3 className="mt-4 font-display text-2xl leading-tight text-[var(--midnight)]">Send the details when you are ready.</h3>

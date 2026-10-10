@@ -57,7 +57,7 @@ describe('Task 2 public route migration and support surfaces', () => {
     for (const name of ['Robin Jeshua Deepak', 'Yashas Jeedi', 'Rahul Eapen', 'Jaden Jirasevijinda', 'Rohan Munagapati', 'Michael Nolan McClung', 'Nikhil Madineni', 'Arya Rajavelu']) {
       expect(team).toContain(name)
     }
-    for (const portrait of ['/robin.jpg', '/yashas.jpg', '/rahul.jpg', '/jaden.jpg', '/rohan.jpg', '/nolan.jpg', '/nikhil.jpg', '/arya.jpg']) {
+    for (const portrait of ['/robin.jpg', '/yashas.jpg', '/rahul.jpg', '/images/team/jaden.jpg', '/rohan.jpg', '/nolan.jpg', '/nikhil.jpg', '/arya.jpg']) {
       expect(team).toContain(portrait)
     }
     expect(team).toContain('https://forms.gle/XqeKkMF4cj5W62yL9')
@@ -76,9 +76,9 @@ describe('Task 2 public route migration and support surfaces', () => {
     expect(events).not.toContain('EventWithBranch')
     expect(events).not.toContain("event as EventWithBranch")
     expect(events).toContain("fetch('/api/events')")
-    expect(detail).toContain('Age guidance')
-    expect(detail).toContain('Accessibility and help')
-    expect(detail).toContain('Materials')
+    expect(detail).toContain('What to expect')
+    expect(detail).toContain('Contact our team')
+    expect(detail).not.toContain('No materials list is published')
     expect(detail).toContain('Schedule')
     expect(detail).toContain('Cancellation')
     expect(detail).toContain('Register as a participant')

@@ -85,7 +85,7 @@ export async function DELETE(request: Request) {
   const id = eventIdFromRequest(request)
   if (!id) return NextResponse.json({ error: 'A valid event id is required.' }, { status: 400 })
   try {
-    await deleteAdminEvent(id)
+    await deleteAdminEvent(id, auth.user.id)
     return NextResponse.json({ ok: true })
   } catch (error) {
     return contentErrorResponse(error, 'Event could not be deleted.')

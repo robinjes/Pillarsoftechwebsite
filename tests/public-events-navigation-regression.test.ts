@@ -18,15 +18,14 @@ describe('public events and navigation regressions', () => {
     repositoryMocks.createPublicClient.mockReset()
   })
 
-  it('keeps the desktop navigation limited to five primary choices', () => {
+  it('includes grouped access to important support and information pages', () => {
     const navbar = readFileSync(join(process.cwd(), 'src/components/Navbar.tsx'), 'utf8')
 
-    for (const label of ['For Families', 'Events', 'Our Work', 'Volunteer', 'Contact']) {
+    for (const label of ['For Families', 'Events', 'Our Work', 'Volunteer', 'Support', 'Contact', 'Fundraiser', 'Wishlist', 'Newsletter', 'FAQ', 'About', 'Team', 'Donate', 'Transparent Finances']) {
       expect(navbar).toContain(label)
     }
-    for (const label of ['Branches', 'Support', 'Fundraiser', 'Wishlist', 'Newsletter', 'FAQ']) {
-      expect(navbar).not.toContain(label)
-    }
+    expect(navbar).not.toContain("href: '/privacy'")
+    expect(navbar).not.toContain("href: '/accessibility'")
   })
 
   it('uses the safe checked-in event snapshot when the public Supabase read fails', async () => {

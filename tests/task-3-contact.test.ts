@@ -226,12 +226,12 @@ describe('contact surfaces', () => {
     expect(nameInput).toHaveFocus()
   })
 
-  it('contains both equal contact choices and the protected-form fallback', () => {
+  it('contains direct email and the protected form without live chat', () => {
     const source = readFileSync(path.resolve(process.cwd(), 'src/components/Contact.tsx'), 'utf8')
     const adminSource = readFileSync(path.resolve(process.cwd(), 'src/app/(admin-protected)/admin/contact/page.tsx'), 'utf8')
-    expect(source).toContain('Live chat with us')
+    expect(source).not.toMatch(/live chat/i)
     expect(source).toContain('Email us')
-    expect(source).toContain('Monday–Friday, 4:00–10:00 PM Pacific')
+    expect(source).toContain('Email us directly or use the form.')
     expect(source).toContain('pillarsoftech@gmail.com')
     expect(source).toContain('focusMessageForm')
     expect(adminSource).toContain("/api/admin/contact")

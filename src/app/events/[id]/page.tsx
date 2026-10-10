@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Clock3, ExternalLink, FileText, MapPin, Play, X } from 'lucide-react'
 import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
 import type { PublicEvent } from '@/lib/content-contracts'
-import { resolveEventImageAlt } from '@/lib/event-media'
+import { eventMediaSource, resolveEventImageAlt } from '@/lib/event-media'
 import { toYouTubeEmbedUrl } from '@/lib/event-utils'
 
 function localAsset(value?: string | null): string | null {
@@ -113,11 +114,11 @@ export default function EventPage() {
 
   const heroImages = useMemo(() => {
     if (!event) return []
-    return Array.from(new Set([event.heroImage, event.image, ...(event.gallery || [])].map(localAsset).filter((value): value is string => Boolean(value))))
+    return Array.from(new Set([event.heroImage, event.image, ...(event.gallery || [])].map((image) => eventMediaSource(image)).filter((value): value is string => Boolean(value))))
   }, [event])
   const galleryImages = useMemo(() => {
     if (!event) return []
-    return Array.from(new Set([event.image, ...(event.gallery || [])].map(localAsset).filter((value): value is string => Boolean(value))))
+    return Array.from(new Set([event.image, ...(event.gallery || [])].map((image) => eventMediaSource(image)).filter((value): value is string => Boolean(value))))
   }, [event])
   const heroImage = heroImages[heroSlideIndex] || heroImages[0]
   const participant = event ? participantState(event) : null
@@ -129,7 +130,7 @@ export default function EventPage() {
       .filter((video): video is { original: string; embed: string } => Boolean(video.embed))
   }, [event])
   const localPdf = localAsset(event?.pdfUrl)
-  const localHeroVideo = localAsset(event?.heroVideo)
+  const localHeroVideo = eventMediaSource(event?.heroVideo, 'video')
   const heroImageToShow = heroImage || (event?.status === 'completed' ? archiveHeroFallback : null)
   const activeGalleryIndex = galleryActiveImage ? galleryImages.indexOf(galleryActiveImage) : -1
   const galleryOpen = galleryActiveImage !== null
@@ -244,14 +245,14 @@ export default function EventPage() {
   }, [pdfOpen])
 
   if (loading) {
-    return <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-12 text-[var(--ink)] sm:pt-16"><p className="mx-auto max-w-5xl font-display text-3xl" role="status">Loading event story…</p></main>
+    return <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-12 text-[var(--ink)] sm:pt-16"><p className="mx-auto max-w-5xl font-display text-3xl" role="status">Loading event details…</p></main>
   }
 
   if (loadError) {
     return (
       <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-12 text-[var(--ink)] sm:pt-16">
         <div className="mx-auto max-w-5xl border-y-2 border-[var(--ink)] py-14" role="alert">
-          <h1 className="font-display text-4xl text-[var(--midnight)]">The event story is temporarily unavailable.</h1>
+          <h1 className="font-display text-4xl text-[var(--midnight)]">Event details are temporarily unavailable.</h1>
           <button type="button" onClick={() => router.push('/events')} className="mt-7 inline-flex min-h-11 items-center gap-2 bg-[var(--cobalt)] px-5 py-2 text-sm font-bold text-[var(--cream)] rounded-[10px]">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
           </button>
@@ -264,8 +265,8 @@ export default function EventPage() {
     return (
       <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-12 text-[var(--ink)] sm:pt-16">
         <div className="mx-auto max-w-5xl border-y-2 border-[var(--ink)] py-14">
-          <p className="text-sm font-semibold text-[var(--cobalt)]">404 / story not found</p>
-          <h1 className="mt-4 font-display text-5xl text-[var(--midnight)]">That event is not in the public archive.</h1>
+          <p className="text-sm font-semibold text-[var(--cobalt)]">404 / event not found</p>
+          <h1 className="mt-4 font-display text-5xl text-[var(--midnight)]">That event could not be found.</h1>
           <button type="button" onClick={() => router.push('/events')} className="mt-7 inline-flex min-h-11 items-center gap-2 bg-[var(--cobalt)] px-5 py-2 text-sm font-bold text-[var(--cream)] rounded-[10px]">
             <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
           </button>
@@ -276,19 +277,20 @@ export default function EventPage() {
 
   const eventParagraphs = paragraphs(event.description)
   const isCurrent = event.status === 'upcoming' || event.status === 'ongoing'
+  const hasHeroMedia = Boolean(heroImageToShow || (localHeroVideo && heroVideoOk))
   const registrationHref = `/register/${event.slug || event.id}`
   const volunteerHref = `/volunteer?eventId=${encodeURIComponent(event.slug || event.id)}`
 
   return (
     <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-6 text-[var(--ink)] sm:px-6 sm:pt-8 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <header className="grid gap-0 overflow-hidden rounded-[2rem] border-y border-[var(--ink)] bg-[var(--midnight)] text-[var(--cream)] lg:grid-cols-[0.86fr_1.14fr]">
+        <header className={`grid gap-0 overflow-hidden rounded-[2rem] border-y border-[var(--ink)] bg-[var(--midnight)] text-[var(--cream)] ${hasHeroMedia ? 'lg:grid-cols-[0.86fr_1.14fr]' : ''}`}>
           <div className="order-2 flex flex-col justify-between px-6 py-9 sm:px-10 sm:py-12 lg:order-1 lg:py-14">
             <div>
               <button type="button" onClick={() => router.push('/events')} className="inline-flex min-h-11 items-center gap-2 text-sm font-bold text-[var(--sky)] underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]">
                 <ArrowLeft className="h-4 w-4" aria-hidden="true" /> Back to events
               </button>
-              <p className="mt-8 text-sm font-semibold text-[var(--sky)]">{programCategoryLabel(event.programCategory)} · {isCurrent ? 'Now & Next' : 'Archive'}</p>
+              <p className="mt-8 text-sm font-semibold text-[var(--sky)]">{event.programCategory !== 'general' ? `${programCategoryLabel(event.programCategory)} · ` : ''}{event.status === 'upcoming' ? 'Upcoming event' : event.status === 'ongoing' ? 'Happening now' : event.status === 'completed' ? 'Past event' : 'Cancelled event'}</p>
               <h1 className="mt-4 max-w-3xl font-display text-4xl leading-[0.98] tracking-[-0.04em] sm:text-5xl">{event.title}</h1>
               <p className="mt-6 max-w-2xl text-base leading-7 text-[var(--cream)]/80 sm:text-lg sm:leading-8">{event.summary || eventParagraphs[0]}</p>
             </div>
@@ -298,7 +300,7 @@ export default function EventPage() {
             </div>
           </div>
 
-          <figure className="relative order-1 min-h-[20rem] overflow-hidden border-b border-[var(--sky)] bg-[var(--paper)] lg:order-2 lg:min-h-[34rem] lg:border-b-0 lg:border-l">
+          {hasHeroMedia ? <figure className="relative order-1 min-h-[20rem] overflow-hidden border-b border-[var(--sky)] bg-[var(--paper)] lg:order-2 lg:min-h-[34rem] lg:border-b-0 lg:border-l">
             {localHeroVideo && heroVideoOk ? (
               <video
                 className="absolute inset-0 h-full w-full object-cover"
@@ -312,12 +314,8 @@ export default function EventPage() {
                 <source src={localHeroVideo} />
               </video>
             ) : heroImageToShow ? (
-              <Image src={heroImageToShow} alt={heroImage ? resolveEventImageAlt(event, 'hero', heroImage) : archiveHeroFallbackAlt} fill sizes="(max-width: 1024px) 100vw, 58vw" className="object-cover" priority />
-            ) : (
-              <div className="flex h-full min-h-[20rem] items-end p-6 text-sm font-semibold text-[var(--midnight)]">
-                {isCurrent ? 'Event details and media will be shared when available.' : 'Event documentation'}
-              </div>
-            )}
+              <Image src={heroImageToShow} alt={heroImage ? resolveEventImageAlt(event, 'hero', heroImage) : archiveHeroFallbackAlt} fill sizes="(max-width: 1024px) 100vw, 58vw" className={isCurrent ? 'object-contain' : 'object-cover'} priority />
+            ) : null}
             {heroImages.length > 1 && !localHeroVideo ? (
               <div className="absolute inset-x-0 bottom-0 flex items-center justify-between border-t border-[var(--ink)] bg-[var(--midnight)]/90 p-3 text-[var(--cream)]">
                 <button type="button" onClick={() => setHeroSlideIndex((current) => (current - 1 + heroImages.length) % heroImages.length)} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--cream)] text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Previous event image"><ChevronLeft className="h-5 w-5" aria-hidden="true" /></button>
@@ -325,7 +323,7 @@ export default function EventPage() {
                 <button type="button" onClick={() => setHeroSlideIndex((current) => (current + 1) % heroImages.length)} className="inline-flex min-h-11 min-w-11 items-center justify-center border border-[var(--cream)] text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--sky)]" aria-label="Next event image"><ChevronRight className="h-5 w-5" aria-hidden="true" /></button>
               </div>
             ) : null}
-          </figure>
+          </figure> : null}
         </header>
 
         <section className="grid border-b border-[var(--ink)]/35 lg:grid-cols-4" aria-labelledby="event-schedule-heading">
@@ -339,14 +337,14 @@ export default function EventPage() {
         <div className="grid gap-12 border-b border-[var(--ink)]/35 py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
           <article className="max-w-3xl">
             <p className="text-sm font-semibold text-[var(--cobalt)]">{isCurrent ? 'Event overview' : 'What participants practiced'}</p>
-            <h2 className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">{isCurrent ? 'About this event' : 'What happened here'}</h2>
+            <h2 className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">{event.status === 'upcoming' ? 'What to expect' : isCurrent ? 'About this event' : 'What happened here'}</h2>
             <div className="mt-7 space-y-6 text-base leading-8 text-[var(--ink)]/85">
               {eventParagraphs.map((paragraph, index) => <p key={`${paragraph.slice(0, 24)}-${index}`} className={index === 0 ? 'text-lg leading-8 text-[var(--midnight)]' : undefined}>{paragraph}</p>)}
             </div>
           </article>
 
           <aside className="h-fit border-t border-[var(--ink)] pt-5 lg:border-l lg:border-t-0 lg:pl-6">
-            <p className="text-sm font-semibold text-[var(--cobalt)]">Make a plan</p>
+            <p className="text-sm font-semibold text-[var(--cobalt)]">{isCurrent ? 'Join this event' : 'Event links'}</p>
             <div className="mt-5 space-y-3">
               {participant.canRegister ? <a href={registrationHref} className="flex min-h-11 items-center justify-between gap-3 bg-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register as a participant <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{isCurrent && event.registrationLink ? 'Register using the event link below.' : participant.label}</p>}
               {volunteer.canRegister ? <a href={volunteerHref} className="flex min-h-11 items-center justify-between gap-3 border border-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cobalt)] hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Volunteer at this event <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{volunteer.label}</p>}
@@ -360,29 +358,14 @@ export default function EventPage() {
           </aside>
         </div>
 
-        <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="event-planning-heading">
-          <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:gap-16">
-            <div>
-              <p className="text-sm font-semibold text-[var(--cobalt)]">Plan your visit</p>
-              <h2 id="event-planning-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">Details to make the day easier.</h2>
-              <p className="mt-4 max-w-md text-base leading-7 text-[var(--ink)]/75">We publish what is confirmed in the event record. When a detail is not listed, contact us and we will help you plan without guessing.</p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <article className="family-card rounded-[2rem] bg-[var(--sky)] p-5">
-                <h3 className="font-display text-2xl text-[var(--midnight)]">Age guidance</h3>
-                <p className="mt-3 text-sm leading-6 text-[var(--ink)]/80">This event record does not list an age range. Contact us if you would like help deciding whether it fits your student.</p>
-              </article>
-              <article className="family-card rounded-[2rem] bg-[var(--coral)] p-5">
-                <h3 className="font-display text-2xl text-[var(--midnight)]">Materials</h3>
-                <p className="mt-3 text-sm leading-6 text-[var(--ink)]/80">No materials list is published for this event. Ask the team what to bring; we will share only confirmed guidance.</p>
-              </article>
-              <article className="family-card rounded-[2rem] bg-[var(--green)] p-5">
-                <h3 className="font-display text-2xl text-[var(--midnight)]">Accessibility and help</h3>
-                <p className="mt-3 text-sm leading-6 text-[var(--ink)]/80">Accessibility details are not listed here yet. Contact us before registering so we can talk through questions and support options.</p>
-              </article>
-            </div>
-          </div>
-        </section>
+        {isCurrent ? (
+          <section className="border-b border-[var(--ink)]/35 py-8" aria-labelledby="event-questions-heading">
+            <h2 id="event-questions-heading" className="font-display text-2xl text-[var(--midnight)]">Questions about {event.title}?</h2>
+            <Link href="/contact" className="mt-3 inline-flex min-h-11 items-center gap-2 font-semibold text-[var(--cobalt)] underline underline-offset-4">
+              Contact our team <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </section>
+        ) : null}
 
         {event.status === 'cancelled' ? (
           <section className="border-b border-[var(--ink)]/35 bg-[var(--coral)] px-5 py-8 sm:px-8" role="status" aria-label="Event cancellation">
@@ -394,13 +377,13 @@ export default function EventPage() {
         {galleryImages.length > 0 ? (
           <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="gallery-heading">
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <div><p className="text-sm font-semibold text-[var(--cobalt)]">Field images</p><h2 id="gallery-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">From the day</h2></div>
+              <div><p className="text-sm font-semibold text-[var(--cobalt)]">{isCurrent ? 'Event images' : 'Field images'}</p><h2 id="gallery-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">{isCurrent ? 'Event preview' : 'From the day'}</h2></div>
               <p className="text-sm text-[var(--ink)]/65">Select an image to enlarge it.</p>
             </div>
             <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {galleryImages.map((image, index) => (
                 <button key={image} type="button" onClick={(clickEvent) => { galleryTriggerRef.current = clickEvent.currentTarget; setGalleryActiveImage(image) }} className="group relative aspect-square overflow-hidden border border-[var(--ink)] bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]" aria-label={'Open event image ' + (index + 1)}>
-                  <Image src={image} alt={resolveEventImageAlt(event, 'gallery', image, index)} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100" />
+                  <Image src={image} alt={resolveEventImageAlt(event, 'gallery', image, index)} fill sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw" className={isCurrent ? 'object-contain' : 'object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100'} />
                 </button>
               ))}
             </div>
@@ -409,7 +392,7 @@ export default function EventPage() {
 
         {(event.pdfUrl || embedVideos.length > 0) ? (
           <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="resources-heading">
-            <div><p className="text-sm font-semibold text-[var(--cobalt)]">Approved resources</p><h2 id="resources-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">Keep exploring</h2></div>
+            <div><p className="text-sm font-semibold text-[var(--cobalt)]">{isCurrent ? 'Event resources' : 'Approved resources'}</p><h2 id="resources-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">{isCurrent ? 'Before the event' : 'Keep exploring'}</h2></div>
             <div className="mt-7 grid gap-8 lg:grid-cols-2">
               {event.pdfUrl ? (
                 <article className="border border-[var(--ink)] bg-[var(--paper)]">
@@ -420,7 +403,7 @@ export default function EventPage() {
               {embedVideos.length > 0 ? (
                 <article className="border border-[var(--ink)] bg-[var(--paper)]">
                   <div className="border-b border-[var(--ink)] p-4"><div className="flex items-center gap-2 font-bold text-[var(--midnight)]"><Play className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /> Event video</div></div>
-                  <div className="space-y-7 p-4">{embedVideos.map((video, index) => <div key={video.original}><p className="mb-3 text-sm font-semibold text-[var(--cobalt)]">{embedVideos.length > 1 ? `Video ${index + 1}` : 'Presentation recording'}</p><div className="aspect-video overflow-hidden border border-[var(--ink)]"><iframe src={video.embed} loading="lazy" className="h-full w-full" title={`${event.title} video ${index + 1}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div></div>)}</div>
+                  <div className="space-y-7 p-4">{embedVideos.map((video, index) => <div key={video.original}><p className="mb-3 text-sm font-semibold text-[var(--cobalt)]">{embedVideos.length > 1 ? `Video ${index + 1}` : isCurrent ? 'Event video' : 'Presentation recording'}</p><div className="aspect-video overflow-hidden border border-[var(--ink)]"><iframe src={video.embed} loading="lazy" className="h-full w-full" title={`${event.title} video ${index + 1}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div></div>)}</div>
                 </article>
               ) : null}
             </div>

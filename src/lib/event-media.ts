@@ -7,6 +7,25 @@ type EventMediaAltInput = Pick<PublicEvent, 'title' | 'media'> & Partial<Pick<
 
 export type EventImageKind = 'hero' | 'image' | 'gallery'
 
+/** Match the approved image hosts in next.config.js and the site's media CSP. */
+export function eventMediaSource(value?: string | null, kind: 'image' | 'video' = 'image'): string | null {
+  if (!value || value.includes('..') || value.includes('\\') || /[\u0000-\u001f\u007f]/.test(value)) return null
+  if (value.startsWith('/') && !value.startsWith('//')) return value
+  try {
+    const url = new URL(value)
+    if (url.username || url.password) return null
+    const localHttp = url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname)
+    if (url.protocol !== 'https:' && !localHttp) return null
+    const storageUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+    if (storageUrl && url.origin === new URL(storageUrl).origin && url.pathname.startsWith('/storage/v1/object/public/')) return value
+    const cloud = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME?.trim()
+    if (kind === 'image' && cloud && url.origin === 'https://res.cloudinary.com' && url.pathname.startsWith(`/${cloud}/image/upload/`)) return value
+  } catch {
+    return null
+  }
+  return null
+}
+
 function trimmed(value: string | undefined): string | undefined {
   const result = value?.trim()
   return result || undefined

@@ -200,6 +200,29 @@ describe('Task 03 content contracts', () => {
     })
   })
 
+  it('keeps private uploaded documents out of public event links without changing the staff record', () => {
+    const record = legacyEventToRecord({ id: 'private-document', title: 'Private document event', pdfUrl: '/api/admin/media/123' })!
+    const event = toPublicEvent(record)!
+    expect(event.pdfUrl).toBeUndefined()
+    expect(event.resources.pdfUrl).toBeUndefined()
+    expect(record.resources.pdfUrl).toBe('/api/admin/media/123')
+  })
+
+  it('removes stale Junction participant links from every public representation', () => {
+    const record = legacyEventToRecord({
+      id: 'stem-into-the-night-2026', title: 'STEM Into the Night', status: 'upcoming',
+      registrationLink: 'https://luma.com/old-school-link', registrationNote: 'Register on Luma', volunteerRegistrationState: 'open',
+    })!
+    record.participantRegistrationState = 'open'
+    const event = toPublicEvent(record)!
+    expect(event.registrationLink).toBeUndefined()
+    expect(event.resources.registrationLink).toBeUndefined()
+    expect(event.registrationNote).toContain('Junction students only')
+    expect(event.participantRegistrationState).toBe('closed')
+    expect(event.volunteerRegistrationState).toBe('open')
+    expect(record.resources.registrationLink).toBe('https://luma.com/old-school-link')
+  })
+
   it('validates optional legacy volunteer state and keeps omitted and historic events closed', () => {
     expect(legacyEventToRecord({ id: 'legacy-default', title: 'Legacy default' })?.volunteerRegistrationState).toBe('closed')
     expect(legacyEventToRecord({ id: 'legacy-open', title: 'Legacy open', volunteerRegistrationState: 'open' })?.volunteerRegistrationState).toBe('open')
@@ -226,10 +249,12 @@ describe('Task 03 content contracts', () => {
       endsAt: '2026-11-05T01:30:00.000Z',
       timezone: 'America/Los_Angeles',
       location: 'Junction Avenue K-8 School, 298 Junction Ave, Livermore, CA 94551',
-      registrationLink: 'https://luma.com/tnnv1nlg',
+      registrationNote: 'Registration is for Junction students only. The registration link will be shared through the school.',
       participantRegistrationState: 'closed',
       volunteerRegistrationState: 'open',
     })
+    expect(stemNight?.registrationLink).toBeUndefined()
+    expect(stemNight?.resources.registrationLink).toBeUndefined()
     expect(stemNight?.media.image).toBeUndefined()
     expect(stemNight?.media.heroImage).toBeUndefined()
     expect(stemNight?.media.gallery).toBeUndefined()

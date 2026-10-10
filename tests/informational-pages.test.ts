@@ -58,7 +58,7 @@ describe('informational and action pages', () => {
   })
 
   it('keeps the real team portraits and join actions', () => {
-    for (const image of ['/robin.jpg', '/yashas.jpg', '/rahul.jpg', '/jaden.jpg', '/rohan.jpg', '/nolan.jpg', '/nikhil.jpg', '/arya.jpg']) {
+    for (const image of ['/robin.jpg', '/yashas.jpg', '/rahul.jpg', '/images/team/jaden.jpg', '/rohan.jpg', '/nolan.jpg', '/nikhil.jpg', '/arya.jpg']) {
       expect(pageSources.team).toContain(`image: '${image}'`)
     }
     expect(pageSources.team).toContain('https://forms.gle/XqeKkMF4cj5W62yL9')

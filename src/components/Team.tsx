@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import Link from 'next/link'
+import HolographicEventCard from '@/components/HolographicEventCard'
 import { ArrowUpRight, Users } from 'lucide-react'
 import { ButtonLink } from '@/components/site/FamilyPrimitives'
 
@@ -7,29 +8,20 @@ type TeamMember = {
   name: string
   position: string
   image: string
+  portraitClassName?: string
+  portraitPosition?: string
 }
 
 const teamMembers: TeamMember[] = [
-  { name: 'Robin Jeshua Deepak', position: 'Founder & President', image: '/robin.jpg' },
+  { name: 'Robin Jeshua Deepak', position: 'Founder & President', image: '/robin.jpg', portraitClassName: 'scale-[2] origin-[left_65%]' },
   { name: 'Yashas Jeedi', position: 'Vice President', image: '/yashas.jpg' },
   { name: 'Rahul Eapen', position: 'Vice President', image: '/rahul.jpg' },
-  { name: 'Jaden Jirasevijinda', position: 'Vice President', image: '/jaden.jpg' },
-  { name: 'Rohan Munagapati', position: 'Vice President', image: '/rohan.jpg' },
+  { name: 'Jaden Jirasevijinda', position: 'Vice President', image: '/images/team/jaden.jpg', portraitPosition: 'center 50%' },
+  { name: 'Rohan Munagapati', position: 'Vice President', image: '/rohan.jpg', portraitClassName: 'scale-[1.6] origin-[center_75%]' },
   { name: 'Michael Nolan McClung', position: 'Graphics Design Lead', image: '/nolan.jpg' },
   { name: 'Nikhil Madineni', position: 'Member', image: '/nikhil.jpg' },
   { name: 'Arya Rajavelu', position: 'Member', image: '/arya.jpg' },
 ]
-
-const portraitLayouts = [
-  'col-span-7 aspect-[4/5] sm:col-span-5 lg:col-span-5',
-  'col-span-5 mt-10 aspect-square sm:col-span-4 sm:mt-14 lg:col-span-3 lg:mt-16',
-  'col-span-6 -mt-6 aspect-[5/6] sm:col-span-4 sm:-mt-10 lg:col-span-4 lg:-mt-16',
-  'col-span-6 mt-8 aspect-[4/5] sm:col-span-4 sm:mt-12 lg:col-span-3 lg:mt-8',
-  'col-span-5 -mt-10 aspect-[3/4] sm:col-span-3 sm:-mt-16 lg:col-span-3 lg:-mt-12',
-  'col-span-7 aspect-[4/5] sm:col-span-5 lg:col-span-4',
-  'col-span-6 mt-8 aspect-square sm:col-span-4 sm:mt-12 lg:col-span-3 lg:mt-20',
-  'col-span-6 -mt-4 aspect-[5/6] sm:col-span-4 sm:-mt-8 lg:col-span-4 lg:-mt-10',
-] as const
 
 const teamJoinUrl = 'https://forms.gle/XqeKkMF4cj5W62yL9'
 
@@ -77,32 +69,34 @@ export default function Team() {
       </header>
 
       <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[0.7fr_1.3fr] lg:gap-16 lg:px-12 lg:py-24">
-          <div className="max-w-sm">
+        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:px-12 lg:py-24">
+          <div className="mb-10 max-w-2xl sm:mb-12">
             <p className="font-body text-sm font-semibold text-[var(--cobalt)]">The current team</p>
-            <h2 className="mt-4 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">Names, roles, and faces.</h2>
+            <h2 className="mt-4 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)] sm:text-5xl">Meet our team.</h2>
             <p className="mt-5 font-body text-base leading-7 text-[var(--ink)]/65">
-              A living directory for the people who shape the organization today.
+              The people who make our programs possible.
             </p>
           </div>
 
-          <ul className="grid grid-cols-12 items-start gap-x-3 gap-y-6 sm:gap-x-4 sm:gap-y-8" aria-label="Pillars of Tech team">
-            {teamMembers.map((member, index) => (
-              <li key={member.name} className={`group ${portraitLayouts[index]}`}>
-                <figure className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] border border-[var(--ink)]/25 bg-[var(--cream)]">
-                  <Image
-                    src={member.image}
-                    alt={`Portrait of ${member.name}, ${member.position} at Pillars of Tech`}
-                    fill
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 18vw"
-                    className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
-                    priority={index < 3}
-                  />
-                  <figcaption className="absolute inset-x-0 bottom-0 border-t border-[var(--cream)]/35 bg-[var(--midnight)]/90 px-3 py-3 text-[var(--cream)]">
-                    <span className="block font-display text-lg leading-tight">{member.name}</span>
-                    <span className="mt-1 block font-body text-xs font-semibold text-[var(--sky)]">{member.position}</span>
-                  </figcaption>
-                </figure>
+          <ul className="grid grid-cols-2 gap-x-4 gap-y-8 sm:gap-x-6 sm:gap-y-10 lg:grid-cols-4" aria-label="Pillars of Tech team">
+            {teamMembers.map((member) => (
+              <li key={member.name} className="min-w-0">
+                <HolographicEventCard id={member.name} kind="team">
+                  <div className="relative aspect-[4/5] w-full overflow-hidden bg-[var(--cream)]">
+                    <Image
+                      src={member.image}
+                      alt={`Portrait of ${member.name}, ${member.position} at Pillars of Tech`}
+                      fill
+                      sizes={member.portraitClassName ? '(max-width: 1024px) 100vw, 50vw' : '(max-width: 1024px) 50vw, 25vw'}
+                      className={`object-cover ${member.portraitClassName || ''}`}
+                      style={{ objectPosition: member.portraitPosition || 'center 25%' }}
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col px-3 py-4 sm:px-4 sm:py-5">
+                    <h3 className="min-h-12 break-words font-display text-base leading-6 text-[var(--midnight)] sm:text-lg">{member.name}</h3>
+                    <p className="mt-1 font-body text-xs font-semibold leading-5 text-[var(--cobalt)] sm:text-sm">{member.position}</p>
+                  </div>
+                </HolographicEventCard>
               </li>
             ))}
           </ul>

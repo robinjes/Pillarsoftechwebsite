@@ -131,6 +131,16 @@ export function getEventSnapshotRecords(): EventRecord[] {
 
 export function toPublicEvent(event: EventRecord): PublicEvent | null {
   if (event.publicationState !== 'published' || event.status === 'draft') return null
+  // Junction distributes participant registration privately through the school.
+  // Strip an older stored link from both public resource representations.
+  const schoolRegistration = event.id === 'stem-into-the-night-2026'
+  const resources = { ...event.resources }
+  // Private staff documents are not public event resources.
+  if (resources.pdfUrl?.startsWith('/api/admin/')) delete resources.pdfUrl
+  if (schoolRegistration) {
+    delete resources.registrationLink
+    resources.registrationNote = 'Registration is for Junction students only. The registration link will be shared through the school.'
+  }
   const publicEvent = {
     id: event.id,
     slug: event.slug,
@@ -147,8 +157,8 @@ export function toPublicEvent(event: EventRecord): PublicEvent | null {
     programCategory: event.programCategory,
     status: event.status,
     media: event.media,
-    resources: event.resources,
-    participantRegistrationState: event.participantRegistrationState,
+    resources,
+    participantRegistrationState: schoolRegistration ? 'closed' : event.participantRegistrationState,
     volunteerRegistrationState: event.volunteerRegistrationState,
     date: event.startLabel,
     time: event.endLabel,
@@ -159,10 +169,10 @@ export function toPublicEvent(event: EventRecord): PublicEvent | null {
     heroVideo: event.media.heroVideo,
     gallery: event.media.gallery,
     galleryAlts: event.media.galleryAlts,
-    pdfUrl: event.resources.pdfUrl,
+    pdfUrl: resources.pdfUrl,
     youtubeVideos: event.media.youtubeVideos,
-    registrationLink: event.resources.registrationLink,
-    registrationNote: event.resources.registrationNote,
+    registrationLink: resources.registrationLink,
+    registrationNote: resources.registrationNote,
   }
   const parsed = publicEventSchema.safeParse(publicEvent)
   return parsed.success ? parsed.data : null

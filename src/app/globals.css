@@ -351,6 +351,72 @@
     transform: translateY(0);
   }
 
+  .holographic-event-card {
+    position: relative;
+    isolation: isolate;
+    --holo-x: 50%;
+    --holo-y: 50%;
+    --holo-rx: 0deg;
+    --holo-ry: 0deg;
+    --holo-angle: 115deg;
+  }
+
+  .holographic-event-card__foil,
+  .holographic-event-card__glare {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .holographic-event-card__foil {
+    background-image:
+      repeating-linear-gradient(var(--holo-angle),
+        var(--sky) 0%, var(--cobalt) 8%, var(--coral) 16%,
+        var(--sun) 24%, var(--green) 32%, var(--sky) 40%),
+      repeating-linear-gradient(45deg, transparent 0 2px, var(--paper) 2px 3px, transparent 3px 6px);
+    background-size: 260% 260%, 7px 7px;
+    background-position: var(--holo-x) var(--holo-y), center;
+    background-blend-mode: soft-light;
+    mix-blend-mode: soft-light;
+    mask-image: linear-gradient(to bottom, black 0%, black 24%, rgba(0, 0, 0, 0.25) 45%, rgba(0, 0, 0, 0.08) 100%);
+  }
+
+  .holographic-event-card__glare {
+    background: radial-gradient(ellipse at var(--holo-x) var(--holo-y),
+      rgba(247, 243, 235, 0.7) 0%, rgba(247, 243, 235, 0.15) 25%, transparent 60%);
+    mix-blend-mode: screen;
+  }
+
+  @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    .holographic-event-card {
+      transform: perspective(1100px) rotateX(var(--holo-rx)) rotateY(var(--holo-ry));
+      transition: transform 350ms ease, box-shadow 350ms ease, border-color 350ms ease;
+    }
+
+    .holographic-event-card__foil,
+    .holographic-event-card__glare {
+      transition: opacity 250ms ease;
+    }
+
+    .holographic-event-card[data-hologram-active] {
+      z-index: 1;
+      border-color: var(--cobalt);
+      box-shadow: 0 14px 32px rgba(13, 43, 74, 0.18);
+      transition: transform 80ms linear, box-shadow 250ms ease, border-color 250ms ease;
+    }
+
+    .holographic-event-card[data-hologram-active] .holographic-event-card__foil {
+      opacity: 0.8;
+    }
+
+    .holographic-event-card[data-hologram-active] .holographic-event-card__glare {
+      opacity: 0.25;
+    }
+  }
+
   .site-header {
     position: sticky;
     z-index: 50;
@@ -388,13 +454,50 @@
   }
 
   .site-nav__link {
-    min-height: 40px;
+    min-height: 44px;
     display: inline-flex;
     align-items: center;
     padding-inline: 0.8125rem;
     border: 1px solid rgba(247, 243, 235, 0.68);
     border-radius: 999px;
     text-decoration: none;
+    gap: 0.375rem;
+    white-space: nowrap;
+    color: inherit;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .site-nav__group {
+    position: relative;
+  }
+
+  .site-nav__dropdown {
+    position: absolute;
+    top: calc(100% + 0.75rem);
+    right: 0;
+    min-width: 15rem;
+    padding: 0.5rem;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    border-radius: 1rem;
+    box-shadow: 0 12px 24px rgba(13, 43, 74, 0.2);
+  }
+
+  .site-nav__dropdown-link {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+  }
+
+  .site-nav__dropdown-link:hover {
+    color: var(--midnight);
+    background: var(--sky);
   }
 
   .site-nav > a:not(.nav-cta):hover,
@@ -1180,7 +1283,7 @@
   }
 }
 
-/* The five family-facing links no longer fit comfortably beside the enlarged
+/* The grouped navigation needs room beside the enlarged
    wordmark on a small laptop. Switch to the labelled Menu control before
    anything is clipped or sent off-screen. */
 @media (max-width: 1120px) {

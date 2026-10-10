@@ -3,12 +3,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowUpRight, CalendarDays, MapPin, Search, UsersRound } from 'lucide-react'
+import { ArrowUpRight, CalendarDays, MapPin, Search, SlidersHorizontal, UsersRound } from 'lucide-react'
 import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
+import HolographicEventCard from '@/components/HolographicEventCard'
 import { publicEventSchema, type BranchCode, type PublicEvent } from '@/lib/content-contracts'
-import { resolveEventImageAlt } from '@/lib/event-media'
+import { eventMediaSource, resolveEventImageAlt } from '@/lib/event-media'
 
-type EventFilter = 'all' | 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
+type EventFilter = 'current' | 'all' | 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
 type BranchFilter = 'all' | BranchCode
 
 const archiveImageFallback = '/images/events/family-science-night/IMG_8332.JPG'
@@ -57,12 +58,6 @@ function compareUpcoming(a: PublicEvent, b: PublicEvent): number {
   return aDate - bDate
 }
 
-function localImage(value?: string): string | null {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) return null
-  if (value.includes('..') || value.includes('\\') || /[\u0000-\u001f\u007f]/.test(value)) return null
-  return value
-}
-
 function eventStory(event: PublicEvent): string {
   return event.summary || event.description.split('\n\n')[0] || 'A hands-on STEM experience from Pillars of Tech.'
 }
@@ -86,7 +81,7 @@ function dateLabel(event: PublicEvent): string {
 }
 
 function eventImage(event: PublicEvent | null | undefined): string | null {
-  return localImage(event?.image || event?.heroImage)
+  return eventMediaSource(event?.image) || eventMediaSource(event?.heroImage)
 }
 
 function EventCard({ event }: { event: PublicEvent }) {
@@ -99,31 +94,27 @@ function EventCard({ event }: { event: PublicEvent }) {
   const volunteerOpen = isCurrentEvent(event) && event.volunteerRegistrationState === 'open'
 
   return (
-    <article data-event-card={event.id} className="flex h-full flex-col overflow-hidden rounded-[2rem] border-2 border-[var(--ink)]/35 bg-[var(--paper)]">
-      <Link href={eventPath} className="group block">
-        <div className="relative aspect-video overflow-hidden bg-[var(--sky)]">
-          {image ? (
+    <HolographicEventCard id={event.id}>
+      {image ? (
+        <Link href={eventPath} className="group block">
+          <div className={`relative overflow-hidden bg-[var(--paper)] ${isCurrentEvent(event) ? 'aspect-square' : 'aspect-video'}`}>
             <Image
               src={image}
               alt={imageAlt}
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 33vw"
-              className="object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+              className={isCurrentEvent(event) ? 'object-contain' : 'object-cover transition-transform duration-500 motion-safe:group-hover:scale-[1.03] motion-reduce:transition-none motion-reduce:group-hover:scale-100'}
             />
-          ) : (
-            <div className="flex h-full items-end p-4 text-sm font-semibold text-[var(--midnight)]">
-              STEM program
-            </div>
-          )}
-        </div>
-      </Link>
+          </div>
+        </Link>
+      ) : null}
 
       <div className="flex flex-1 flex-col p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-2 text-sm font-semibold">
           <span className="rounded-full border-2 border-[var(--cobalt)] bg-[var(--sky)] px-3 py-1 text-[var(--midnight)]">
             {statusLabel(event)}
           </span>
-          <span className="text-[var(--cobalt)]">{programCategoryLabel(event.programCategory)}</span>
+          {event.programCategory !== 'general' ? <span className="text-[var(--cobalt)]">{programCategoryLabel(event.programCategory)}</span> : null}
           <span className="rounded-full border-2 border-[var(--ink)]/20 px-3 py-1 text-xs font-semibold text-[var(--ink)]/75">{branchLabel(event.branch)}</span>
         </div>
         <h3 className="mt-3 font-display text-xl leading-tight text-[var(--midnight)] sm:text-2xl">
@@ -157,7 +148,7 @@ function EventCard({ event }: { event: PublicEvent }) {
           href={eventPath}
           className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] px-4 py-2 text-sm font-bold text-[var(--midnight)] transition-colors hover:bg-[var(--midnight)] hover:text-[var(--cream)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
         >
-          Read The Story <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+          {isCurrentEvent(event) ? 'Learn More' : event.status === 'completed' ? 'Read The Story' : 'View Event Details'} <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
         </Link>
         {participantOpen ? (
           <Link
@@ -182,6 +173,8 @@ function EventCard({ event }: { event: PublicEvent }) {
           >
             {event.registrationNote || 'External registration'}
           </a>
+        ) : isCurrentEvent(event) && event.registrationNote ? (
+          <p className="px-1 text-sm leading-6 text-[var(--ink)]/75">{event.registrationNote}</p>
         ) : null}
         {volunteerOpen ? (
           <Link
@@ -193,7 +186,7 @@ function EventCard({ event }: { event: PublicEvent }) {
         ) : null}
       </div>
       </div>
-    </article>
+    </HolographicEventCard>
   )
 }
 
@@ -236,6 +229,7 @@ export default function EventsPage() {
 
   useEffect(() => {
     let mounted = true
+    if (new URLSearchParams(window.location.search).get('status') === 'completed') setFilter('completed')
     fetch('/api/events')
       .then(async (response) => {
         if (!response.ok) throw new Error('Events unavailable')
@@ -264,6 +258,7 @@ export default function EventsPage() {
   const filteredEvents = useMemo(() => {
     const query = searchQuery.trim().toLowerCase()
     return events.filter((event) => {
+      if (filter === 'current' && !isCurrentEvent(event)) return false
       if (filter === 'upcoming' && event.status !== 'upcoming') return false
       if (filter === 'ongoing' && event.status !== 'ongoing') return false
       if (filter === 'completed' && event.status !== 'completed') return false
@@ -281,86 +276,68 @@ export default function EventsPage() {
 
   return (
     <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-6 text-[var(--ink)] sm:px-6 lg:px-8 lg:pt-8">
-      <header className="mx-auto max-w-7xl rounded-[2rem] border-b border-[var(--ink)]/25 bg-[var(--midnight)] px-6 py-10 text-[var(--cream)] sm:px-10 sm:py-14">
-        <div className="grid gap-8 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,0.7fr)] xl:items-end">
-          <div>
-            <p className="text-sm font-semibold text-[var(--sky)]">Pillars of Tech · Event Archive</p>
-            <h1 className="mt-4 max-w-4xl font-display text-5xl leading-[0.96] tracking-[-0.04em] sm:text-[4.35rem]">
-              Programs that make curiosity visible.
-            </h1>
-            <p className="mt-5 max-w-2xl text-base leading-7 text-[var(--cream)]/80 sm:text-lg sm:leading-8">
-              Browse hands-on STEM programs, event stories, and the next places to learn together.
-            </p>
-          </div>
-          <div className="border-l border-[var(--sky)]/60 pl-5 text-sm leading-7 text-[var(--cream)]/80">
-            <p className="font-semibold text-[var(--sky)]">How to use this archive</p>
-            <p className="mt-3">Choose a current program to register, or open a completed story for the work that came before it.</p>
-          </div>
-        </div>
+      <header className="mx-auto max-w-7xl pb-8 pt-4 sm:pb-10 sm:pt-6">
+        <h1 className="font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Events</h1>
+        <p className="mt-3 max-w-xl text-base leading-7 text-[var(--ink)]/75">Find your next STEM experience or explore what we’ve done together.</p>
       </header>
 
       <div className="mx-auto max-w-7xl">
-        <div className="flex flex-col gap-4 border-b border-[var(--ink)]/30 py-6 xl:flex-row xl:items-center xl:justify-between">
-          <label className="relative block min-w-0 xl:max-w-md xl:flex-1">
-            <span className="sr-only">Search programs and events</span>
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--cobalt)]" aria-hidden="true" />
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Search the archive"
-              className="min-h-11 w-full rounded-full border-2 border-[var(--ink)] bg-[var(--paper)] px-10 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--ink)]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
-            />
-          </label>
-          <div className="flex flex-wrap gap-2" aria-label="Filter events">
-            {(['all', 'upcoming', 'ongoing', 'completed', 'cancelled'] as EventFilter[]).map((option) => (
-              <button
-                key={option}
-                type="button"
-                aria-pressed={filter === option}
-                onClick={() => setFilter(option)}
-                className={`min-h-11 rounded-full border-2 px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] ${
-                  filter === option
-                    ? 'border-[var(--midnight)] bg-[var(--midnight)] text-[var(--cream)]'
-                    : 'border-[var(--ink)] bg-transparent text-[var(--ink)] hover:bg-[var(--sky)]'
-                }`}
-              >
-                {option === 'all' ? 'All stories' : option === 'ongoing' ? 'Ongoing' : option === 'cancelled' ? 'Cancelled' : option === 'upcoming' ? 'Upcoming' : 'Completed'}
-              </button>
-            ))}
-          </div>
-          <div className="flex flex-wrap gap-2" aria-label="Filter events by branch">
-            {(['all', 'ca', 'ga'] as BranchFilter[]).map((option) => (
-              <button
-                key={option}
-                type="button"
-                aria-pressed={branchFilter === option}
-                onClick={() => setBranchFilter(option)}
-                className={`min-h-11 rounded-full border px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)] ${
-                  branchFilter === option
-                    ? 'border-[var(--cobalt)] bg-[var(--sky)] text-[var(--midnight)]'
-                    : 'border-[var(--ink)] bg-transparent text-[var(--ink)] hover:bg-[var(--sky)]'
-                }`}
-              >
-                {option === 'all' ? 'All branches' : branchLabel(option)}
-              </button>
-            ))}
+        <div className="flex flex-col gap-5 border-b border-[var(--ink)]/25 pb-6 sm:flex-row sm:items-center sm:justify-between">
+          {filter === 'all' ? (
+            <nav className="flex flex-wrap gap-5" aria-label="Event sections">
+              <a href="#upcoming-events" className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--cobalt)] underline underline-offset-4">Upcoming events ↓</a>
+              <a href="#past-events" className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--cobalt)] underline underline-offset-4">Past events ↓</a>
+            </nav>
+          ) : <p className="text-sm font-semibold text-[var(--ink)]/65">Showing filtered events</p>}
+          <div className="flex min-w-0 gap-3 sm:w-full sm:max-w-md">
+            <label className="relative block min-w-0 flex-1">
+              <span className="sr-only">Search programs and events</span>
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-[var(--cobalt)]" aria-hidden="true" />
+              <input type="search" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search events"
+                className="min-h-11 w-full rounded-full border-2 border-[var(--ink)]/30 bg-[var(--paper)] px-10 py-2 text-sm text-[var(--ink)] placeholder:text-[var(--ink)]/55 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]" />
+            </label>
+            <details className="relative shrink-0" onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.currentTarget.open = false
+                event.currentTarget.querySelector('summary')?.focus()
+              }
+            }}>
+              <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2 rounded-full border border-[var(--ink)]/30 bg-[var(--paper)] px-4 py-2 text-sm font-semibold marker:content-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">
+                <SlidersHorizontal className="h-4 w-4" aria-hidden="true" /> Filters
+                {branchFilter !== 'all' || filter !== 'all' ? <span className="h-2 w-2 rounded-full bg-[var(--cobalt)]" aria-label="Filters active" /> : null}
+              </summary>
+              <div className="absolute right-0 top-full z-20 mt-3 w-64 space-y-4 rounded-2xl border border-[var(--ink)]/25 bg-[var(--paper)] p-5 shadow-lg">
+                <div>
+                  <label htmlFor="event-branch" className="block text-sm font-semibold">Branch</label>
+                  <select id="event-branch" value={branchFilter} onChange={(event) => setBranchFilter(event.target.value as BranchFilter)} className="mt-2 min-h-11 w-full rounded-lg border border-[var(--ink)]/30 bg-[var(--cream)] px-3 text-sm">
+                    <option value="all">All branches</option><option value="ca">California</option><option value="ga">Georgia</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="event-status" className="block text-sm font-semibold">Event status</label>
+                  <select id="event-status" value={filter} onChange={(event) => setFilter(event.target.value as EventFilter)} className="mt-2 min-h-11 w-full rounded-lg border border-[var(--ink)]/30 bg-[var(--cream)] px-3 text-sm">
+                    <option value="current">Upcoming &amp; ongoing</option><option value="completed">Completed</option><option value="upcoming">Upcoming only</option><option value="ongoing">Ongoing only</option><option value="cancelled">Cancelled</option><option value="all">All events</option>
+                  </select>
+                </div>
+                <button type="button" onClick={() => { setBranchFilter('all'); setFilter('all') }} className="min-h-11 text-sm font-semibold text-[var(--cobalt)] underline underline-offset-4">Reset filters</button>
+              </div>
+            </details>
           </div>
         </div>
 
         {loading ? (
           <div className="border-b border-[var(--ink)]/30 py-16" role="status">
-            <p className="font-display text-3xl text-[var(--midnight)]">Loading the program archive…</p>
+            <p className="font-display text-3xl text-[var(--midnight)]">Loading events…</p>
           </div>
         ) : loadError ? (
           <div className="border-b border-[var(--ink)]/30 py-16" role="alert">
-            <p className="font-display text-3xl text-[var(--midnight)]">The archive is temporarily unavailable.</p>
+            <p className="font-display text-3xl text-[var(--midnight)]">Events are temporarily unavailable.</p>
             <p className="mt-3 max-w-xl text-sm leading-7 text-[var(--ink)]/75">Please try again shortly. No event details were loaded.</p>
           </div>
         ) : (
           <div>
             {filter !== 'completed' && filter !== 'cancelled' && (
-              <section aria-labelledby="upcoming-heading" className="pt-12">
+              <section id="upcoming-events" aria-labelledby="upcoming-heading" className="scroll-mt-28 pt-10">
                 <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
                   <div>
                     <p className="text-sm font-semibold text-[var(--cobalt)]">{filter === 'ongoing' ? 'Now' : 'Now / next'}</p>
@@ -378,12 +355,12 @@ export default function EventsPage() {
               </section>
             )}
 
-            {filter !== 'upcoming' && filter !== 'ongoing' && filter !== 'cancelled' && (
-              <section aria-labelledby="completed-heading" className="pt-14">
+            {filter !== 'current' && filter !== 'upcoming' && filter !== 'ongoing' && filter !== 'cancelled' && (
+              <section id="past-events" aria-labelledby="completed-heading" className="mt-16 scroll-mt-28 border-t-2 border-[var(--ink)]/25 pt-10 sm:mt-20 sm:pt-12">
                 <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
                   <div>
-                    <p className="text-sm font-semibold text-[var(--cobalt)]">Archive / stories</p>
-                    <h2 id="completed-heading" className="mt-2 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">Completed programs</h2>
+                    <p className="text-sm font-semibold text-[var(--cobalt)]">Looking back</p>
+                    <h2 id="completed-heading" className="mt-2 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">Past events</h2>
                   </div>
                   <span className="hidden text-sm font-semibold text-[var(--ink)]/60 sm:block">{sections.completed.length} listed</span>
                 </div>
@@ -395,7 +372,7 @@ export default function EventsPage() {
               </section>
             )}
 
-            {filter !== 'upcoming' && filter !== 'ongoing' && filter !== 'completed' && (filter === 'cancelled' || sections.cancelled.length > 0) && (
+            {filter !== 'current' && filter !== 'upcoming' && filter !== 'ongoing' && filter !== 'completed' && (filter === 'cancelled' || sections.cancelled.length > 0) && (
               <section aria-labelledby="cancelled-heading" className="pt-14">
                 <div className="mb-6 flex items-end justify-between gap-4 sm:mb-8">
                   <div>

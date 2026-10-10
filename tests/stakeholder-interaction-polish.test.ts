@@ -7,6 +7,7 @@ const sourceRoot = path.resolve(process.cwd(), 'src')
 const readSource = (relativePath: string) => readFileSync(path.join(sourceRoot, relativePath), 'utf8')
 
 const eventsPage = readSource('app/events/page.tsx')
+const holographicCard = readSource('components/HolographicEventCard.tsx')
 const eventDetailPage = readSource('app/events/[id]/page.tsx')
 const volunteerPage = readSource('app/volunteer/page.tsx')
 const familiesIntro = readSource('components/site/FamiliesIntro.tsx')
@@ -19,8 +20,9 @@ const contact = readSource('components/Contact.tsx')
 describe('stakeholder interaction polish', () => {
   it('turns the public event archive into caption-free responsive cards', () => {
     expect(eventsPage).toContain('function EventCard({ event }: { event: PublicEvent })')
-    expect(eventsPage).toContain('data-event-card={event.id}')
-    expect(eventsPage).toContain('rounded-[2rem] border-2')
+    expect(eventsPage).toContain('<HolographicEventCard id={event.id}>')
+    expect(holographicCard).toContain("data-event-card={kind === 'event' ? id : undefined}")
+    expect(holographicCard).toContain('rounded-[2rem] border-2')
     expect(eventsPage).toContain('grid gap-6 md:grid-cols-2 xl:grid-cols-3')
     expect(eventsPage).toContain('rounded-full border-2')
     expect(eventsPage).toContain('min-h-11 w-full rounded-full border-2')
@@ -31,12 +33,13 @@ describe('stakeholder interaction polish', () => {
   })
 
   it('keeps the revised public pages clear, compact, and easy to navigate', () => {
-    expect(eventsPage).toContain("Pillars of Tech · Event Archive")
+    expect(eventsPage).toContain('Find your next STEM experience')
+    expect(eventsPage).not.toContain('Programs that make curiosity visible.')
     expect(eventsPage).toContain('function programCategoryLabel')
     expect(eventsPage).toContain('aspect-video')
     expect(eventsPage).toContain('line-clamp-3')
     expect(eventDetailPage).toContain('function statusLabel')
-    expect(eventDetailPage).toContain("'Now & Next'")
+    expect(eventDetailPage).toContain("'Upcoming event'")
     expect(eventDetailPage).toContain('pt-6 text-[var(--ink)] sm:px-6 sm:pt-8')
     expect(volunteerPage).toContain('mt-8 divide-y-2')
     expect(familiesIntro).toContain("href: '/events'")
@@ -91,14 +94,14 @@ describe('stakeholder interaction polish', () => {
     expect(volunteerPage).not.toContain('Family Science Night · volunteer guidance')
   })
 
-  it('tightens the contact header without changing form or chat boundaries', () => {
+  it('keeps the contact header compact and preserves email and form access', () => {
     expect(contactRoute).not.toContain('pt-16')
     expect(contact).not.toContain('Start a conversation')
     expect(contact).toContain('underline-offset-2')
     expect(contact).not.toContain('Bring the idea, question, or next practical step.')
     expect(contact).toContain("fetch('/api/contact'")
     expect(contact).toContain('id="contact-form"')
-    expect(contact).toContain('The chat window is not connected yet; email is the reliable path today.')
+    expect(contact).not.toMatch(/live chat/i)
     expect(contact).toContain('pillarsoftech@gmail.com')
     expect(contact).toContain('Open Email Form')
     expect(contact).toContain('Send Message')

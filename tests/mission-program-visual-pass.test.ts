@@ -23,16 +23,19 @@ describe('mission and program visual pass', () => {
     expect(about).not.toMatch(/uppercase tracking/)
   })
 
-  it('uses a portrait mosaic and factual group/work evidence on Team', () => {
+  it('uses consistent portraits and factual group/work evidence on Team', () => {
     const team = read('src/components/Team.tsx')
 
-    for (const portrait of ['/robin.jpg', '/yashas.jpg', '/rahul.jpg', '/jaden.jpg', '/rohan.jpg', '/nolan.jpg', '/nikhil.jpg', '/arya.jpg']) {
+    for (const portrait of ['/robin.jpg', '/yashas.jpg', '/rahul.jpg', '/images/team/jaden.jpg', '/rohan.jpg', '/nolan.jpg', '/nikhil.jpg', '/arya.jpg']) {
       expect(team).toContain(`image: '${portrait}'`)
     }
     expect(team).toContain('/images/events/family-science-night/IMG_0551.jpg')
     expect(team).toContain('Pillars volunteers and adult partners smiling together outside Family Science Night.')
     expect(team).not.toContain('Family Science Night · team moment')
-    expect(team).toContain('portraitLayouts')
+    expect(team).not.toContain('portraitLayouts')
+    expect(team).toContain('lg:grid-cols-4')
+    expect(team).toContain('kind="team"')
+    expect(team).not.toContain('<figcaption')
     expect(team).not.toContain('border-l-4')
     expect(team).not.toMatch(/uppercase tracking/)
   })
@@ -47,7 +50,7 @@ describe('mission and program visual pass', () => {
     expect(events).toContain('Search programs and events')
     expect(events).toContain("filter === 'completed'")
     expect(events).toContain("filter === 'cancelled'")
-    expect(events).toContain('Completed programs')
+    expect(events).toContain('Past events')
     expect(events).toContain("/images/events/family-science-night/IMG_8332.JPG")
     expect(events).toContain('A Pillars of Tech volunteer and participant operate a VEX robot during Family Science Night.')
     expect(events).not.toContain('pt-24')

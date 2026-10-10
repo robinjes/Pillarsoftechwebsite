@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-sync-scripts */
 import type { AnchorHTMLAttributes, ImgHTMLAttributes, ReactNode } from 'react'
 
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('next/link', () => ({
@@ -72,6 +72,74 @@ describe('EventsPage rendered filtering behavior', () => {
     document.getElementById('organization-jsonld')?.remove()
     vi.unstubAllGlobals()
     fetchMock.mockReset()
+    window.history.replaceState({}, '', '/')
+  })
+
+  it('orders upcoming cards by event start from nearest to furthest, with undated events last', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => [
+      makeEvent({ id: 'later', slug: 'later', title: 'Later event', startsAt: '2026-11-05T00:00:00Z', date: 'November 4, 2026' }),
+      makeEvent({ id: 'undated', slug: 'undated', title: 'Date coming soon', startsAt: null, endsAt: null, date: 'Coming Soon', startLabel: 'Coming Soon' }),
+      makeEvent({ id: 'nearest', slug: 'nearest', title: 'Nearest event', startsAt: '2026-10-29T00:30:00Z', date: 'October 28, 2026' }),
+      makeEvent({ id: 'middle', slug: 'middle', title: 'Middle event', startsAt: '2026-11-01T17:00:00Z', date: 'November 1, 2026' }),
+    ] })
+    const { container } = render(<EventsPage />)
+    await screen.findByRole('heading', { name: 'Nearest event' })
+    expect(Array.from(container.querySelectorAll('#upcoming-events [data-event-card]'), (card) => card.getAttribute('data-event-card')))
+      .toEqual(['nearest', 'middle', 'later', 'undated'])
+  })
+
+  it('uses event previews for current events and stories only for completed events', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => [
+      makeEvent({ programCategory: 'general' }),
+      makeEvent({ id: 'ongoing', slug: 'ongoing', title: 'Current workshop', status: 'ongoing', image: '/images/poster.png' }),
+      makeEvent({ id: 'past', slug: 'past', title: 'Past workshop', status: 'completed' }),
+      makeEvent({ id: 'cancelled', slug: 'cancelled', title: 'Cancelled workshop', status: 'cancelled' }),
+    ] })
+    const { container } = render(<EventsPage />)
+    await screen.findByRole('heading', { name: 'Upcoming build' })
+    const upcoming = within(container.querySelector('[data-event-card="program-one"]') as HTMLElement)
+    expect(upcoming.getByRole('link', { name: 'Learn More' })).toHaveAttribute('href', '/events/program-one')
+    expect(upcoming.queryByRole('img')).not.toBeInTheDocument()
+    expect(upcoming.queryByText('STEM program')).not.toBeInTheDocument()
+    expect(upcoming.queryByText('General')).not.toBeInTheDocument()
+    const ongoing = within(container.querySelector('[data-event-card="ongoing"]') as HTMLElement)
+    expect(ongoing.getByRole('link', { name: 'Learn More' })).toHaveAttribute('href', '/events/ongoing')
+    expect(ongoing.getByRole('img')).toHaveClass('object-contain')
+    expect(ongoing.getByRole('img').parentElement).toHaveClass('aspect-square')
+    fireEvent.change(screen.getByLabelText('Event status'), { target: { value: 'all' } })
+    expect(screen.getByRole('link', { name: 'Read The Story' })).toHaveAttribute('href', '/events/past')
+    expect(screen.getByRole('link', { name: 'View Event Details' })).toHaveAttribute('href', '/events/cancelled')
+  })
+
+  it('shows current and past events together with section links and a clear divider', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => [makeEvent(), makeEvent({ id: 'past', slug: 'past', title: 'Past workshop', status: 'completed' })] })
+    const { container } = render(<EventsPage />)
+    await screen.findByRole('heading', { name: 'Upcoming build' })
+    expect(screen.getByRole('heading', { name: 'Past workshop' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Upcoming events ↓' })).toHaveAttribute('href', '#upcoming-events')
+    expect(screen.getByRole('link', { name: 'Past events ↓' })).toHaveAttribute('href', '#past-events')
+    expect(container.querySelector('#past-events')).toHaveClass('border-t-2', 'mt-16')
+    expect(container.querySelector('details')).not.toHaveAttribute('open')
+    fireEvent.change(screen.getByLabelText('Branch'), { target: { value: 'ca' } })
+    expect(screen.queryByText('Past workshop')).not.toBeInTheDocument()
+    fireEvent.click(screen.getByText('Filters', { exact: true }))
+    fireEvent.change(screen.getByLabelText('Event status'), { target: { value: 'completed' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Reset filters' }))
+    expect(screen.getByLabelText('Branch')).toHaveValue('all')
+    expect(screen.getByLabelText('Event status')).toHaveValue('all')
+    expect(screen.getByRole('heading', { name: 'Upcoming build' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Past workshop' })).toBeInTheDocument()
+    fireEvent.keyDown(container.querySelector('details')!, { key: 'Escape' })
+    expect(container.querySelector('details')).not.toHaveAttribute('open')
+  })
+
+  it('opens the completed programs filter from the homepage past-events link', async () => {
+    window.history.replaceState({}, '', '/events?status=completed')
+    fetchMock.mockResolvedValue({ ok: true, json: async () => [makeEvent(), makeEvent({ id: 'past', slug: 'past', title: 'Past workshop', status: 'completed' })] })
+    render(<EventsPage />)
+    expect(await screen.findByRole('heading', { name: 'Past workshop' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Event status')).toHaveValue('completed')
+    expect(screen.queryByText('Upcoming build')).not.toBeInTheDocument()
   })
 
   it('filters upcoming and ongoing records and exposes authoritative branch labels', async () => {
@@ -95,23 +163,21 @@ describe('EventsPage rendered filtering behavior', () => {
     expect(screen.getAllByText('Georgia').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Robotics').length).toBeGreaterThan(0)
     expect(screen.queryByText('robotics')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'California' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Branch')).toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Upcoming' }))
-    fireEvent.click(screen.getByRole('button', { name: 'California' }))
+    fireEvent.change(screen.getByLabelText('Event status'), { target: { value: 'upcoming' } })
+    fireEvent.change(screen.getByLabelText('Branch'), { target: { value: 'ca' } })
     expect(screen.getByText('No upcoming events match this search.')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: 'All branches' }))
+    fireEvent.change(screen.getByLabelText('Branch'), { target: { value: 'all' } })
 
-    const upcomingButton = screen.getByRole('button', { name: 'Upcoming' })
-    fireEvent.click(upcomingButton)
-    expect(upcomingButton).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.change(screen.getByLabelText('Event status'), { target: { value: 'upcoming' } })
+    expect(screen.getByLabelText('Event status')).toHaveValue('upcoming')
     expect(screen.getByRole('heading', { name: 'Upcoming programs' })).toBeInTheDocument()
     expect(screen.getAllByText('Upcoming build').length).toBeGreaterThan(0)
     expect(screen.queryByText('Ongoing build')).not.toBeInTheDocument()
 
-    const ongoingButton = screen.getByRole('button', { name: 'Ongoing' })
-    fireEvent.click(ongoingButton)
-    expect(ongoingButton).toHaveAttribute('aria-pressed', 'true')
+    fireEvent.change(screen.getByLabelText('Event status'), { target: { value: 'ongoing' } })
+    expect(screen.getByLabelText('Event status')).toHaveValue('ongoing')
     expect(screen.getByRole('heading', { name: 'Ongoing programs' })).toBeInTheDocument()
     expect(screen.getAllByText('Ongoing build').length).toBeGreaterThan(0)
     expect(screen.queryByText('Upcoming build')).not.toBeInTheDocument()
@@ -126,7 +192,7 @@ describe('EventsPage rendered filtering behavior', () => {
     render(<EventsPage />)
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Upcoming & ongoing' })).toBeInTheDocument())
 
-    fireEvent.click(screen.getByRole('button', { name: 'Ongoing' }))
+    fireEvent.change(screen.getByLabelText('Event status'), { target: { value: 'ongoing' } })
 
     expect(screen.getByRole('heading', { name: 'Ongoing programs' })).toBeInTheDocument()
     expect(screen.getByText('No ongoing events match this search.')).toBeInTheDocument()
@@ -152,10 +218,10 @@ describe('EventsPage rendered filtering behavior', () => {
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Upcoming & ongoing' })).toBeInTheDocument())
 
     expect(document.querySelectorAll('[data-event-card]')).toHaveLength(2)
-    fireEvent.click(screen.getByRole('button', { name: 'Georgia' }))
+    fireEvent.change(screen.getByLabelText('Branch'), { target: { value: 'ga' } })
     expect(document.querySelectorAll('[data-event-card]')).toHaveLength(1)
     expect(document.querySelector('[data-event-card="open-program"]')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /Read The Story/ })).toHaveAttribute('href', '/events/open-program')
+    expect(screen.getByRole('link', { name: /Learn More/ })).toHaveAttribute('href', '/events/open-program')
     expect(screen.getByRole('link', { name: /Participant Registration/ })).toHaveAttribute('href', '/register/open-program')
     expect(screen.getByRole('link', { name: /Volunteer/ })).toHaveAttribute('href', '/volunteer?eventId=open-program')
   })
@@ -165,14 +231,14 @@ describe('EventsPage rendered filtering behavior', () => {
       ok: true,
       json: async () => [
         makeEvent({
-          id: 'stem-into-the-night-2026',
-          slug: 'stem-into-the-night-2026',
-          title: 'STEM Into the Night',
+          id: 'external-event',
+          slug: 'external-event',
+          title: 'External Event',
           summary: 'A free evening of STEM exploration.',
           date: 'November 4, 2026',
           time: '4:00 PM - 5:30 PM',
           media: {},
-          registrationLink: 'https://luma.com/tnnv1nlg',
+          registrationLink: 'https://luma.com/public-event',
           registrationNote: 'Register on Luma',
           participantRegistrationState: 'closed',
           volunteerRegistrationState: 'open',
@@ -192,12 +258,26 @@ describe('EventsPage rendered filtering behavior', () => {
     render(<EventsPage />)
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Upcoming & ongoing' })).toBeInTheDocument())
 
-    const stemCard = document.querySelector('[data-event-card="stem-into-the-night-2026"]')
-    const pastCard = document.querySelector('[data-event-card="past-event-with-old-link"]')
+    const stemCard = document.querySelector('[data-event-card="external-event"]')
     expect(stemCard?.querySelector('img')).toBeNull()
     expect(screen.getAllByRole('link', { name: 'Register on Luma' })).toHaveLength(1)
-    expect(screen.getByRole('link', { name: 'Register on Luma' })).toHaveAttribute('href', 'https://luma.com/tnnv1nlg')
+    expect(screen.getByRole('link', { name: 'Register on Luma' })).toHaveAttribute('href', 'https://luma.com/public-event')
+    fireEvent.change(screen.getByLabelText('Event status'), { target: { value: 'completed' } })
+    const pastCard = document.querySelector('[data-event-card="past-event-with-old-link"]')
+    expect(pastCard).not.toBeNull()
     expect(pastCard?.querySelector('a[href="https://luma.com/old-event"]')).toBeNull()
+  })
+
+  it('shows Junction school-only registration as text while keeping volunteer signup available', async () => {
+    const registrationNote = 'Registration is for Junction students only. The registration link will be shared through the school.'
+    fetchMock.mockResolvedValue({ ok: true, json: async () => [makeEvent({
+      id: 'stem-into-the-night-2026', slug: 'stem-into-the-night-2026', title: 'STEM Into the Night',
+      registrationNote, participantRegistrationState: 'closed', volunteerRegistrationState: 'open',
+    })] })
+    render(<EventsPage />)
+    expect(await screen.findByText(registrationNote)).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Participant Registration|Register on Luma/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Volunteer' })).toHaveAttribute('href', '/volunteer?eventId=stem-into-the-night-2026')
   })
 
   it('renders the Career Panel Luma checkout anchor and nonce-bearing vendor script', async () => {
@@ -247,7 +327,8 @@ describe('EventsPage rendered filtering behavior', () => {
     render(<EventsPage />)
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Upcoming & ongoing' })).toBeInTheDocument())
 
-    for (const name of ['Upcoming & ongoing', 'Completed programs', 'Cancelled programs']) {
+    fireEvent.change(screen.getByLabelText('Event status'), { target: { value: 'all' } })
+    for (const name of ['Upcoming & ongoing', 'Past events', 'Cancelled programs']) {
       const heading = screen.getByRole('heading', { name })
       const headingWrapper = heading.parentElement?.parentElement
       expect(headingWrapper).not.toBeNull()
@@ -264,14 +345,15 @@ describe('EventsPage rendered filtering behavior', () => {
     render(<EventsPage />)
     await waitFor(() => expect(screen.getByRole('heading', { name: 'Upcoming & ongoing' })).toBeInTheDocument())
 
-    for (const name of ['Upcoming & ongoing', 'Completed programs']) {
+    fireEvent.change(screen.getByLabelText('Event status'), { target: { value: 'all' } })
+    for (const name of ['Upcoming & ongoing', 'Past events']) {
       const heading = screen.getByRole('heading', { name })
       const headingWrapper = heading.parentElement?.parentElement
       expect(headingWrapper).not.toBeNull()
       expect(headingWrapper).toHaveClass('mb-6', 'sm:mb-8')
     }
 
-    fireEvent.click(screen.getByRole('button', { name: 'Cancelled' }))
+    fireEvent.change(screen.getByLabelText('Event status'), { target: { value: 'cancelled' } })
     const cancelledHeading = screen.getByRole('heading', { name: 'Cancelled programs' })
     const cancelledHeadingWrapper = cancelledHeading.parentElement?.parentElement
     expect(cancelledHeadingWrapper).not.toBeNull()

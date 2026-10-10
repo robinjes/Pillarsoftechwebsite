@@ -7,12 +7,12 @@ const root = process.cwd()
 const read = (relativePath: string) => readFileSync(path.join(root, relativePath), 'utf8')
 
 describe('stakeholder global chrome contract', () => {
-  it('keeps the approved five-entry primary navigation labels', () => {
+  it('keeps six primary navigation choices with grouped secondary links', () => {
     const navbar = read('src/components/Navbar.tsx')
     const primaryLinks = navbar.match(/const primaryLinks = \[([\s\S]*?)\n\]/)?.[1] ?? ''
     const labels = [...primaryLinks.matchAll(/label: '([^']+)'/g)].map((match) => match[1])
 
-    expect(labels).toEqual(['For Families', 'Events', 'Our Work', 'Volunteer', 'Contact'])
+    expect(labels).toEqual(['For Families', 'Events', 'Our Work', 'Volunteer', 'Support', 'Contact'])
   })
 
   it('uses the larger compact desktop logo width', () => {

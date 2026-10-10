@@ -281,12 +281,12 @@ describe('Task 6 gated public metadata and discovery', () => {
     expect(update).toContain("volunteer_registration_state = 'open'")
     expect(update).toContain("publication_state\n) values (")
     expect(update).toContain("'unpublished'\n)")
-    expect(update).toContain("coalesce(stored.resources, '{}'::jsonb) || excluded.resources")
+    expect(update).toContain("(coalesce(stored.resources, '{}'::jsonb) - 'registrationLink') || excluded.resources")
+    expect(update).toContain("participant_registration_state = 'closed'")
 
     const conflictUpdates = update.split('on conflict (id) do update set')[1]?.split(';')[0] ?? ''
     for (const protectedField of [
       'media',
-      'participant_registration_state',
       'participant_capacity',
       'volunteer_capacity',
       'outcomes',
