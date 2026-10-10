@@ -78,6 +78,27 @@ export class ContentRepositoryError extends Error {
   }
 }
 
+export class EventDeletionMigrationError extends ContentRepositoryError {
+  constructor() {
+    super('Content storage is temporarily unavailable.', 503)
+    this.name = 'EventDeletionMigrationError'
+  }
+}
+
+function missingEventDeletionColumn(error: { code?: string; message?: string } | null): boolean {
+  return error?.code === '42703' && /\bdeleted_at\b/.test(error.message ?? '')
+}
+
+async function activeEventQuery<T>(query: (filterDeleted: boolean) => PromiseLike<{
+  data: T | null; error: { code?: string; message?: string } | null
+}>) {
+  const result = await query(true)
+  // A genuinely absent column means this schema predates soft deletion. No
+  // deleted rows can exist yet; editing is safe without that filter. Other
+  // database errors must still fail rather than bypass the filter.
+  return missingEventDeletionColumn(result.error) ? await query(false) : result
+}
+
 function rowError(_error: unknown, fallback = 'Content storage is temporarily unavailable.'): never {
   throw new ContentRepositoryError(fallback, 503)
 }
@@ -436,7 +457,11 @@ function eventDbPayload(event: EventWrite, userId: string, includeCreatedBy: boo
 
 export async function listAdminEvents(): Promise<EventRecord[]> {
   const client = serviceClient()
-  const { data, error } = await client.from('events').select('*').is('deleted_at', null).order('starts_at', { ascending: false, nullsFirst: false })
+  const { data, error } = await activeEventQuery((filterDeleted) => {
+    let query = client.from('events').select('*')
+    if (filterDeleted) query = query.is('deleted_at', null)
+    return query.order('starts_at', { ascending: false, nullsFirst: false })
+  })
   if (error) rowError(error)
   return asRows(data).map(eventFromRow)
 }
@@ -458,7 +483,11 @@ export async function updateAdminEvent(id: string, input: EventWrite, userId: st
   const client = serviceClient()
   const payload = eventDbPayload({ ...input, id }, userId, false)
   delete payload.created_by
-  const { data, error } = await client.from('events').update(payload).eq('id', id).is('deleted_at', null).select('*').maybeSingle()
+  const { data, error } = await activeEventQuery((filterDeleted) => {
+    let query = client.from('events').update(payload).eq('id', id)
+    if (filterDeleted) query = query.is('deleted_at', null)
+    return query.select('*').maybeSingle()
+  })
   if (error) rowError(error)
   if (!data) throw new ContentRepositoryError('Event not found.', 404)
   return eventFromRow(data as Record<string, unknown>)
@@ -466,7 +495,11 @@ export async function updateAdminEvent(id: string, input: EventWrite, userId: st
 
 export async function setAdminEventState(id: string, action: 'publish' | 'unpublish' | 'archive', userId: string): Promise<EventRecord> {
   const client = serviceClient()
-  const { data: current, error: currentError } = await client.from('events').select('status').eq('id', id).is('deleted_at', null).maybeSingle()
+  const { data: current, error: currentError } = await activeEventQuery<{ status: string }>((filterDeleted) => {
+    let query = client.from('events').select('status').eq('id', id)
+    if (filterDeleted) query = query.is('deleted_at', null)
+    return query.maybeSingle()
+  })
   if (currentError) rowError(currentError)
   if (!current) throw new ContentRepositoryError('Event not found.', 404)
   const update = action === 'publish'
@@ -474,7 +507,11 @@ export async function setAdminEventState(id: string, action: 'publish' | 'unpubl
     : action === 'unpublish'
     ? { publication_state: 'unpublished', updated_by: userId }
     : { publication_state: 'unpublished', status: 'cancelled', updated_by: userId }
-  const { data, error } = await client.from('events').update(update).eq('id', id).is('deleted_at', null).select('*').maybeSingle()
+  const { data, error } = await activeEventQuery((filterDeleted) => {
+    let query = client.from('events').update(update).eq('id', id)
+    if (filterDeleted) query = query.is('deleted_at', null)
+    return query.select('*').maybeSingle()
+  })
   if (error) rowError(error)
   if (!data) throw new ContentRepositoryError('Event not found.', 404)
   return eventFromRow(data as Record<string, unknown>)
@@ -491,6 +528,9 @@ export async function deleteAdminEvent(id: string, userId: string): Promise<void
     status: 'cancelled',
     updated_by: userId,
   }).eq('id', id).is('deleted_at', null).select('id').maybeSingle()
+  if (missingEventDeletionColumn(error) || (error?.code === 'PGRST204' && /\bdeleted_at\b/.test(error.message))) {
+    throw new EventDeletionMigrationError()
+  }
   if (error) rowError(error)
   if (!data) throw new ContentRepositoryError('Event not found.', 404)
 }

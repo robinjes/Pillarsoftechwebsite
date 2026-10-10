@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server'
 import { contentErrorResponse, readJson } from '@/lib/admin-api'
 import {
   createAdminEvent,
+  EventDeletionMigrationError,
   deleteAdminEvent,
   listAdminEvents,
   setAdminEventState,
@@ -88,6 +89,9 @@ export async function DELETE(request: Request) {
     await deleteAdminEvent(id, auth.user.id)
     return NextResponse.json({ ok: true })
   } catch (error) {
+    if (error instanceof EventDeletionMigrationError) {
+      return NextResponse.json({ error: 'Event deletion requires the event-deletion database migration (202610100001_event_deletion.sql). Editing is still available.' }, { status: 503 })
+    }
     return contentErrorResponse(error, 'Event could not be deleted.')
   }
 }
