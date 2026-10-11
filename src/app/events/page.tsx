@@ -8,6 +8,8 @@ import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
 import HolographicEventCard from '@/components/HolographicEventCard'
 import { publicEventSchema, type BranchCode, type PublicEvent } from '@/lib/content-contracts'
 import { eventMediaSource, resolveEventImageAlt } from '@/lib/event-media'
+import { publicEventPath } from '@/lib/event-path'
+import { publicEventLocation } from '@/lib/career-panel-details'
 
 type EventFilter = 'current' | 'all' | 'upcoming' | 'ongoing' | 'completed' | 'cancelled'
 type BranchFilter = 'all' | BranchCode
@@ -88,7 +90,7 @@ function EventCard({ event }: { event: PublicEvent }) {
   const sourceImage = eventImage(event)
   const image = sourceImage || (event.status === 'completed' ? archiveImageFallback : null)
   const imageAlt = sourceImage ? resolveEventImageAlt(event, 'image', sourceImage) : archiveImageFallbackAlt
-  const eventPath = `/events/${event.slug || event.id}`
+  const eventPath = publicEventPath(event)
   const participantOpen = isCurrentEvent(event) && event.participantRegistrationState === 'open'
   const participantFull = isCurrentEvent(event) && event.participantRegistrationState === 'full'
   const volunteerOpen = isCurrentEvent(event) && event.volunteerRegistrationState === 'open'
@@ -114,6 +116,7 @@ function EventCard({ event }: { event: PublicEvent }) {
           <span className="rounded-full border-2 border-[var(--cobalt)] bg-[var(--sky)] px-3 py-1 text-[var(--midnight)]">
             {statusLabel(event)}
           </span>
+          {event.id === 'career-panel-granada' ? <span className="rounded-full bg-[var(--midnight)] px-3 py-1 font-bold text-[var(--cream)]">FREE admission</span> : null}
           {event.programCategory !== 'general' ? <span className="text-[var(--cobalt)]">{programCategoryLabel(event.programCategory)}</span> : null}
           <span className="rounded-full border-2 border-[var(--ink)]/20 px-3 py-1 text-xs font-semibold text-[var(--ink)]/75">{branchLabel(event.branch)}</span>
         </div>
@@ -135,7 +138,7 @@ function EventCard({ event }: { event: PublicEvent }) {
             <dt className="flex items-center gap-2 text-sm font-semibold text-[var(--cobalt)]">
               <MapPin className="h-4 w-4" aria-hidden="true" /> Location
             </dt>
-            <dd className="mt-1 font-semibold">{event.location || 'Location to be announced'}</dd>
+            <dd className="mt-1 font-semibold">{publicEventLocation(event)}</dd>
           </div>
           <div>
             <dt className="text-sm font-semibold text-[var(--cobalt)]">Time</dt>
@@ -153,7 +156,7 @@ function EventCard({ event }: { event: PublicEvent }) {
         {participantOpen ? (
           <Link
             href={`/register/${event.slug || event.id}`}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--cobalt)] bg-[var(--cobalt)] px-4 py-2 text-sm font-bold text-[var(--cream)] transition-colors hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
+            className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] transition-colors hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
           >
             Participant Registration
           </Link>
@@ -169,9 +172,9 @@ function EventCard({ event }: { event: PublicEvent }) {
             href={event.registrationLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border-2 border-[var(--cobalt)] px-4 py-2 text-sm font-bold text-[var(--cobalt)] transition-colors hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
+            className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] transition-colors hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]"
           >
-            {event.registrationNote || 'External registration'}
+            Register for Event
           </a>
         ) : isCurrentEvent(event) && event.registrationNote ? (
           <p className="px-1 text-sm leading-6 text-[var(--ink)]/75">{event.registrationNote}</p>

@@ -1,4 +1,6 @@
 import type { PublicEvent } from '@/lib/content-contracts'
+import { publicEventPath } from '@/lib/event-path'
+import { publicEventLocation } from '@/lib/career-panel-details'
 
 export type EventJsonLdStatus =
   | 'https://schema.org/EventCancelled'
@@ -15,10 +17,6 @@ export function eventStatusForJsonLd(status: PublicEvent['status']): EventJsonLd
   return undefined
 }
 
-function eventUrl(slug: string): string {
-  return `https://pillarsoftech.org/events/${encodeURIComponent(slug)}`
-}
-
 export function eventJsonLd(event: PublicEvent) {
   const description = event.summary || event.description
   const images = [event.heroImage, event.image, ...(event.gallery ?? [])]
@@ -31,11 +29,11 @@ export function eventJsonLd(event: PublicEvent) {
     '@type': 'Event',
     name: event.title,
     ...(description ? { description } : {}),
-    url: eventUrl(event.slug),
+    url: `https://pillarsoftech.org${publicEventPath(event)}`,
     ...(event.startsAt ? { startDate: event.startsAt } : {}),
     ...(event.endsAt ? { endDate: event.endsAt } : {}),
     ...(images.length > 0 ? { image: Array.from(new Set(images)) } : {}),
-    ...(event.location ? { location: { '@type': 'Place', name: event.location } } : {}),
+    ...(event.location ? { location: { '@type': 'Place', name: publicEventLocation(event) } } : {}),
     ...(eventStatus ? { eventStatus } : {}),
     organizer: {
       '@type': 'Organization',

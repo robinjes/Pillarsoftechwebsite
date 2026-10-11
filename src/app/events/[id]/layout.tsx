@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 
 import { getPublicEvent } from '@/lib/content-repository'
 import { eventJsonLd } from '@/lib/event-jsonld'
+import { publicEventPath } from '@/lib/event-path'
 
 type EventDetailParams = { params: Promise<{ id: string }> }
 
@@ -14,7 +15,7 @@ export async function generateMetadata({ params }: EventDetailParams): Promise<M
   return {
     title: event.title,
     description: event.summary || event.description || 'See the confirmed schedule, location, help guidance, and approved media for a Pillars of Tech event.',
-    alternates: { canonical: `/events/${encodeURIComponent(event.slug)}` },
+    alternates: { canonical: publicEventPath(event) },
   }
 }
 

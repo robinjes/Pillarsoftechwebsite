@@ -1,6 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 import { getPublicBranchDocument, listPublicEvents } from '@/lib/content-repository'
+import { publicEventPath } from '@/lib/event-path'
 
 export const dynamic = 'force-dynamic'
 
@@ -44,7 +45,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const routes = georgia ? [...publicStaticRoutes, '/ga'] : publicStaticRoutes
   const staticEntries = routes.map((path) => ({ url: new URL(path, origin).toString() }))
   const eventEntries = events.map((event) => ({
-    url: new URL(`/events/${encodeURIComponent(event.slug)}`, origin).toString(),
+    url: new URL(publicEventPath(event), origin).toString(),
     lastModified: event.endsAt || event.startsAt || undefined,
   }))
   return [...staticEntries, ...eventEntries]

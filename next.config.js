@@ -21,6 +21,12 @@ if (supabaseUrl) {
 const nextConfig = {
   poweredByHeader: false,
   transpilePackages: ['playcaptcha'],
+  async redirects() {
+    return [{ source: '/events/career-panel-granada', destination: '/careerpanel', permanent: true }]
+  },
+  async rewrites() {
+    return [{ source: '/careerpanel', destination: '/events/career-panel-granada' }]
+  },
   images: {
     remotePatterns: [
       ...(cloudinaryCloudName ? [{

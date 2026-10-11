@@ -10,6 +10,7 @@ import AltamontEventStory from '@/components/AltamontEventStory'
 import type { PublicEvent } from '@/lib/content-contracts'
 import { eventMediaSource, resolveEventImageAlt } from '@/lib/event-media'
 import { toYouTubeEmbedUrl } from '@/lib/event-utils'
+import { careerPanelAgenda, publicEventLocation } from '@/lib/career-panel-details'
 
 function localAsset(value?: string | null): string | null {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return null
@@ -293,11 +294,12 @@ export default function EventPage() {
               </button>
               <p className="mt-8 text-sm font-semibold text-[var(--sky)]">{event.programCategory !== 'general' ? `${programCategoryLabel(event.programCategory)} · ` : ''}{event.status === 'upcoming' ? 'Upcoming event' : event.status === 'ongoing' ? 'Happening now' : event.status === 'completed' ? 'Past event' : 'Cancelled event'}</p>
               <h1 className="mt-4 max-w-3xl font-display text-4xl leading-[0.98] tracking-[-0.04em] sm:text-5xl">{event.title}</h1>
+              {event.id === 'career-panel-granada' ? <p className="mt-5 text-xl font-bold text-[var(--sky)]">FREE admission</p> : null}
               <p className="mt-6 max-w-2xl text-base leading-7 text-[var(--cream)]/80 sm:text-lg sm:leading-8">{event.summary || eventParagraphs[0]}</p>
             </div>
             <div className="mt-9 flex flex-wrap gap-2 text-sm font-semibold">
               <span className="border border-[var(--sky)] px-3 py-2">{statusLabel(event)}</span>
-              {isCurrent && event.registrationNote ? <span className="border border-[var(--cream)]/60 px-3 py-2">{event.registrationNote}</span> : null}
+              {isCurrent && !event.registrationLink && event.registrationNote ? <span className="border border-[var(--cream)]/60 px-3 py-2">{event.registrationNote}</span> : null}
             </div>
           </div>
 
@@ -331,9 +333,30 @@ export default function EventPage() {
           <h2 id="event-schedule-heading" className="sr-only">Schedule and registration</h2>
           <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><CalendarDays className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Date</p><p className="mt-1 font-semibold">{dateLabel(event)}</p></div>
           <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><Clock3 className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Time</p><p className="mt-1 font-semibold">{timeLabel(event)}</p></div>
-          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><MapPin className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Location</p><p className="mt-1 font-semibold">{event.location || 'Location to be announced'}</p></div>
-          <div className="p-5"><p className="text-sm font-semibold text-[var(--cobalt)]">Registration</p><p className={`mt-3 inline-flex border px-3 py-2 text-sm font-bold ${participant.tone}`}>{isCurrent && event.registrationLink ? 'External event registration' : participant.label}</p></div>
+          <div className="border-b border-[var(--ink)]/30 p-5 lg:border-b-0 lg:border-r"><MapPin className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /><p className="mt-3 text-sm font-semibold text-[var(--cobalt)]">Location</p><p className="mt-1 font-semibold">{publicEventLocation(event)}</p></div>
+          <div className="p-5">
+            <p className="text-sm font-semibold text-[var(--cobalt)]">{event.id === 'career-panel-granada' ? 'FREE registration' : 'Registration'}</p>
+            <div className="mt-3">
+              {isCurrent && event.id === 'career-panel-granada' && event.registrationLink ? (
+                <CareerPanelLumaCheckout event={event} />
+              ) : isCurrent && event.registrationLink ? (
+                <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-14 items-center justify-center rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register for Event</a>
+              ) : participant.canRegister ? (
+                <Link href={registrationHref} className="flex min-h-14 items-center justify-center rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register for Event</Link>
+              ) : (
+                <p className={`inline-flex border px-3 py-2 text-sm font-bold ${participant.tone}`}>{participant.label}</p>
+              )}
+            </div>
+          </div>
         </section>
+
+        {event.id === 'career-panel-granada' && isCurrent ? (
+          <section className="mt-8 rounded-2xl border border-[var(--cobalt)]/30 bg-[var(--sky)] p-6 sm:p-8" aria-labelledby="panelists-announcement-heading">
+            <p className="text-sm font-semibold text-[var(--cobalt)]">Stay tuned!</p>
+            <h2 id="panelists-announcement-heading" className="mt-2 font-display text-2xl text-[var(--midnight)] sm:text-3xl">We’ll be revealing our panelists soon!</h2>
+            <p className="mt-3 max-w-3xl text-base leading-7 text-[var(--ink)]">Our panelists represent every STEM field, including professionals from NASA, Sandia National Laboratories, and Lawrence Livermore National Laboratory (LLNL). Stay tuned to meet the people joining our Career Panel!</p>
+          </section>
+        ) : null}
 
         <div className="grid gap-12 border-b border-[var(--ink)]/35 py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
           <article className="max-w-3xl">
@@ -342,18 +365,40 @@ export default function EventPage() {
             {event.id === 'family-science-night-altamont' ? <AltamontEventStory description={event.description} /> : <div className="mt-7 space-y-6 text-base leading-8 text-[var(--ink)]/85">
               {eventParagraphs.map((paragraph, index) => <p key={`${paragraph.slice(0, 24)}-${index}`} className={index === 0 ? 'text-lg leading-8 text-[var(--midnight)]' : undefined}>{paragraph}</p>)}
             </div>}
+            {event.id === 'career-panel-granada' && isCurrent ? (
+              <div className="mt-8 space-y-10">
+                <section className="rounded-2xl border border-[var(--ink)]/20 bg-[var(--paper)] p-6" aria-labelledby="career-panel-audience-heading">
+                  <h3 id="career-panel-audience-heading" className="font-display text-2xl text-[var(--midnight)]">Who it’s for</h3>
+                  <p className="mt-3 text-base leading-7">High school students curious about STEM careers, and 8th graders who want to get a head start. Hear from professionals, explore different career paths, and bring your questions!</p>
+                </section>
+                <section aria-labelledby="career-panel-agenda-heading">
+                  <h3 id="career-panel-agenda-heading" className="font-display text-3xl text-[var(--midnight)]">Agenda</h3>
+                  <ol className="mt-5 divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20">
+                    {careerPanelAgenda.map((item) => (
+                      <li key={item.title} className="grid gap-2 py-5 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-5">
+                        <p className="font-bold text-[var(--cobalt)]">{item.time}</p>
+                        <div>
+                          <h4 className="text-lg font-bold text-[var(--midnight)]">{item.title}</h4>
+                          <p className="mt-1 text-base leading-7 text-[var(--ink)]/85">{item.description}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </section>
+              </div>
+            ) : null}
           </article>
 
           <aside className="h-fit border-t border-[var(--ink)] pt-5 lg:border-l lg:border-t-0 lg:pl-6">
             <p className="text-sm font-semibold text-[var(--cobalt)]">{isCurrent ? 'Join this event' : 'Event links'}</p>
             <div className="mt-5 space-y-3">
-              {participant.canRegister ? <a href={registrationHref} className="flex min-h-11 items-center justify-between gap-3 bg-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--midnight)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register as a participant <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{isCurrent && event.registrationLink ? 'Register using the event link below.' : participant.label}</p>}
-              {volunteer.canRegister ? <a href={volunteerHref} className="flex min-h-11 items-center justify-between gap-3 border border-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cobalt)] hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Volunteer at this event <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{volunteer.label}</p>}
+              {participant.canRegister ? <a href={registrationHref} className="flex min-h-14 items-center justify-center gap-3 rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register for Event</a> : !(isCurrent && event.registrationLink) ? <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{participant.label}</p> : null}
               {event.id === 'career-panel-granada' ? (
                 <CareerPanelLumaCheckout event={event} />
               ) : isCurrent && event.registrationLink ? (
-                <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">{event.registrationNote || 'External event link'} <ExternalLink className="h-4 w-4" aria-hidden="true" /></a>
+                <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-14 items-center justify-center gap-3 rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register for Event</a>
               ) : null}
+              {volunteer.canRegister ? <a href={volunteerHref} className="flex min-h-11 items-center justify-between gap-3 border border-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cobalt)] hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Volunteer at this event <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{volunteer.label}</p>}
               {event.id === 'wildcat-tank-altamont' ? <><a href="/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Results &amp; presentation record <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a><a href="/photos/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Open photo archive <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a></> : null}
             </div>
           </aside>

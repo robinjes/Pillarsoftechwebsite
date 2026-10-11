@@ -67,4 +67,23 @@ describe('homepage next event', () => {
     expect(container.querySelector('.event-panel')).toBeNull()
     expect(container.querySelector('img')).toBeNull()
   })
+
+  it('promotes Career Panel with its checkout and short details URL', () => {
+    render(<NextEventSection event={makeEvent({
+      id: 'career-panel-granada', slug: 'career-panel-granada', title: 'Career Panel',
+      registrationLink: 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2',
+    })} />)
+    expect(screen.getByRole('link', { name: 'Register for FREE' })).toHaveAttribute('data-luma-event-id', 'evt-Kt3fAmxzXjJdAH2')
+    expect(screen.getByRole('link', { name: 'See event details' })).toHaveAttribute('href', '/careerpanel')
+  })
+
+  it('uses the next featured event’s own registration destination', () => {
+    const { rerender } = render(<NextEventSection event={makeEvent({ participantRegistrationState: 'open' })} />)
+    expect(screen.getByRole('link', { name: 'Register for Event' })).toHaveAttribute('href', '/register/workshop')
+    rerender(<NextEventSection event={makeEvent({ registrationLink: 'https://luma.com/another-event' })} />)
+    expect(screen.getByRole('link', { name: 'Register for Event' })).toHaveAttribute('href', 'https://luma.com/another-event')
+    rerender(<NextEventSection event={makeEvent({ registrationNote: 'Registration is for school students only.' })} />)
+    expect(screen.queryByRole('link', { name: 'Register for Event' })).not.toBeInTheDocument()
+    expect(screen.getByText('Registration is for school students only.')).toBeInTheDocument()
+  })
 })

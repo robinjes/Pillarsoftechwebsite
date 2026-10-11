@@ -5,6 +5,9 @@ import { ArrowRight } from 'lucide-react'
 import type { PublicEvent } from '@/lib/content-contracts'
 import { eventMediaSource, resolveEventImageAlt } from '@/lib/event-media'
 import { PageShell } from '@/components/site/FamilyPrimitives'
+import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
+import { publicEventPath } from '@/lib/event-path'
+import { publicEventLocation } from '@/lib/career-panel-details'
 
 function detail(value: string | undefined): string {
   return value?.trim() || 'Details coming soon'
@@ -25,7 +28,8 @@ export default function NextEventSection({ event }: { event: PublicEvent | null 
   const date = event.date || event.startLabel || ''
   const time = event.time || event.endLabel || ''
   const when = date && time ? `${date} · ${time}` : date || time || 'Details coming soon'
-  const location = event.location || 'Details coming soon'
+  const location = event.id === 'career-panel-granada' ? publicEventLocation(event) : event.location || 'Details coming soon'
+  const isCurrent = event.status === 'upcoming' || event.status === 'ongoing'
 
   return (
     <section className="event-section section" id="events" aria-labelledby="next-event-heading">
@@ -44,6 +48,7 @@ export default function NextEventSection({ event }: { event: PublicEvent | null 
             <p className="eyebrow">What&apos;s happening next</p>
             <h2 id="next-event-heading" className="family-heading">Our next event</h2>
             <h3 className="event-title family-heading">{event.title}</h3>
+            {event.id === 'career-panel-granada' ? <p className="mb-4 text-lg font-bold text-[var(--midnight)]">FREE admission · Register today!</p> : null}
             <p className="event-intro">
               {event.summary || 'We’ll share the activity, age guidance, schedule, location, and registration details as soon as they’re confirmed.'}
             </p>
@@ -57,8 +62,19 @@ export default function NextEventSection({ event }: { event: PublicEvent | null 
                 <dd>{location}</dd>
               </div>
             </dl>
+            <div className="mb-5">
+              {event.id === 'career-panel-granada' ? (
+                <CareerPanelLumaCheckout event={event} />
+              ) : isCurrent && event.participantRegistrationState === 'open' ? (
+                <Link href={`/register/${event.slug || event.id}`} className="inline-flex min-h-14 w-full items-center justify-center rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-ring">Register for Event</Link>
+              ) : isCurrent && event.registrationLink ? (
+                <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-14 w-full items-center justify-center rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-ring">Register for Event</a>
+              ) : isCurrent && event.registrationNote ? (
+                <p className="text-sm leading-6">{event.registrationNote}</p>
+              ) : null}
+            </div>
             <div className="flex flex-wrap gap-4">
-              <Link className="text-link focus-ring" href={`/events/${event.slug}`}>
+              <Link className="text-link focus-ring" href={publicEventPath(event)}>
                 See event details <ArrowRight aria-hidden="true" />
               </Link>
               <Link className="text-link focus-ring" href="/contact">

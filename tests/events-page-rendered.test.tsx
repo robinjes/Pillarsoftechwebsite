@@ -260,8 +260,8 @@ describe('EventsPage rendered filtering behavior', () => {
 
     const stemCard = document.querySelector('[data-event-card="external-event"]')
     expect(stemCard?.querySelector('img')).toBeNull()
-    expect(screen.getAllByRole('link', { name: 'Register on Luma' })).toHaveLength(1)
-    expect(screen.getByRole('link', { name: 'Register on Luma' })).toHaveAttribute('href', 'https://luma.com/public-event')
+    expect(screen.getAllByRole('link', { name: 'Register for Event' })).toHaveLength(1)
+    expect(screen.getByRole('link', { name: 'Register for Event' })).toHaveAttribute('href', 'https://luma.com/public-event')
     fireEvent.change(screen.getByLabelText('Event status'), { target: { value: 'completed' } })
     const pastCard = document.querySelector('[data-event-card="past-event-with-old-link"]')
     expect(pastCard).not.toBeNull()
@@ -298,10 +298,10 @@ describe('EventsPage rendered filtering behavior', () => {
     })
 
     render(<EventsPage />)
-    const checkout = await screen.findByRole('link', { name: 'Register for Event' })
+    const checkout = await screen.findByRole('link', { name: 'Register for FREE' })
 
     expect(checkout).toHaveAttribute('href', 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2')
-    expect(checkout).toHaveClass('luma-checkout--button')
+    expect(checkout).toHaveClass('w-full', 'min-h-14', 'text-lg')
     expect(checkout).toHaveAttribute('data-luma-action', 'checkout')
     expect(checkout).toHaveAttribute('data-luma-event-id', 'evt-Kt3fAmxzXjJdAH2')
     expect(checkout).toHaveAttribute('target', '_blank')

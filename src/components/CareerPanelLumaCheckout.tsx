@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import { useEffect, useId, useRef, useState, type MouseEvent } from 'react'
 import Script from 'next/script'
 import type { PublicEvent } from '@/lib/content-contracts'
 
@@ -8,7 +8,7 @@ const CAREER_PANEL_EVENT_ID = 'career-panel-granada'
 const CAREER_PANEL_LUMA_URL = 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2'
 const CAREER_PANEL_LUMA_EVENT_ID = 'evt-Kt3fAmxzXjJdAH2'
 const CAREER_PANEL_LUMA_SCRIPT = 'https://embed.lu.ma/checkout-button.js'
-const CHECKOUT_BUTTON_CLASSES = 'inline-flex min-h-11 items-center justify-center rounded-full px-4 py-2 text-sm font-bold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]'
+const CHECKOUT_BUTTON_CLASSES = 'inline-flex w-full min-h-14 items-center justify-center rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] transition-colors hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]'
 
 type SavedAttribute = {
   element: HTMLElement
@@ -58,6 +58,7 @@ function overlayFocusableElements(overlay: HTMLElement): HTMLElement[] {
 }
 
 export default function CareerPanelLumaCheckout({ event, className }: CareerPanelLumaCheckoutProps) {
+  const noteId = useId()
   const [nonce, setNonce] = useState<string | null>(null)
   const triggerRef = useRef<HTMLAnchorElement | null>(null)
   const pendingOpenFrameRef = useRef<number | null>(null)
@@ -176,20 +177,20 @@ export default function CareerPanelLumaCheckout({ event, className }: CareerPane
   if (!isEligible) return null
 
   return (
-    <div className="flex flex-col items-start gap-2">
+    <div className="flex w-full flex-col items-start gap-2">
       <a
         href={CAREER_PANEL_LUMA_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className={`luma-checkout--button ${className || CHECKOUT_BUTTON_CLASSES}`}
+        className={className || CHECKOUT_BUTTON_CLASSES}
         data-luma-action="checkout"
         data-luma-event-id={CAREER_PANEL_LUMA_EVENT_ID}
-        aria-describedby="career-panel-luma-note"
+        aria-describedby={noteId}
         onClickCapture={handleCheckoutClickCapture}
       >
-        Register for Event
+        Register for FREE
       </a>
-      <p id="career-panel-luma-note" className="text-xs leading-5 text-[var(--ink)]/75">Use a non-school email.</p>
+      <p id={noteId} className="text-xs leading-5 text-[var(--ink)]/75">Use a non-school email.</p>
       {nonce ? (
         <Script
           id="luma-checkout"

@@ -72,14 +72,14 @@ describe('Career Panel Luma checkout', () => {
     addNonceSource()
     render(<CareerPanelLumaCheckout event={currentCareerEvent} className="custom-checkout-style" />)
 
-    const checkout = screen.getByRole('link', { name: 'Register for Event' })
+    const checkout = screen.getByRole('link', { name: 'Register for FREE' })
     expect(checkout).toHaveAttribute('href', 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2')
-    expect(checkout).toHaveClass('luma-checkout--button', 'custom-checkout-style')
+    expect(checkout).toHaveClass('custom-checkout-style')
     expect(checkout).toHaveAttribute('data-luma-action', 'checkout')
     expect(checkout).toHaveAttribute('data-luma-event-id', 'evt-Kt3fAmxzXjJdAH2')
     expect(checkout).toHaveAttribute('target', '_blank')
     expect(checkout).toHaveAttribute('rel', 'noopener noreferrer')
-    expect(screen.getByText('Use a non-school email.')).toHaveAttribute('id', 'career-panel-luma-note')
+    expect(screen.getByText('Use a non-school email.')).toHaveAttribute('id', checkout.getAttribute('aria-describedby'))
 
     await waitFor(() => expect(document.getElementById('luma-checkout')).toBeInTheDocument())
     expect(document.getElementById('luma-checkout')).toHaveAttribute('src', 'https://embed.lu.ma/checkout-button.js')
@@ -91,14 +91,14 @@ describe('Career Panel Luma checkout', () => {
     addNonceSource()
     render(<CareerPanelLumaCheckout event={{ ...currentCareerEvent, status }} />)
 
-    expect(screen.queryByRole('link', { name: 'Register for Event' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Register for FREE' })).not.toBeInTheDocument()
     expect(document.getElementById('luma-checkout')).toBeNull()
   })
 
   it('keeps the direct Luma link usable when no CSP nonce source is available', async () => {
     render(<CareerPanelLumaCheckout event={currentCareerEvent} />)
 
-    expect(screen.getByRole('link', { name: 'Register for Event' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Register for FREE' })).toHaveAttribute(
       'href',
       'https://luma.com/event/evt-Kt3fAmxzXjJdAH2',
     )
@@ -108,7 +108,7 @@ describe('Career Panel Luma checkout', () => {
   it('labels and focuses the vendor overlay, closes with Escape, and restores trigger focus', async () => {
     addNonceSource()
     render(<CareerPanelLumaCheckout event={currentCareerEvent} />)
-    const checkout = screen.getByRole('link', { name: 'Register for Event' }) as HTMLAnchorElement
+    const checkout = screen.getByRole('link', { name: 'Register for FREE' }) as HTMLAnchorElement
     const { overlay, closeButton, checkoutFrame, poweredByLink } = createMockVendorOverlay(checkout)
 
     checkout.focus()
@@ -136,7 +136,7 @@ describe('Career Panel Luma checkout', () => {
   it('restores focus when the vendor close button is used', async () => {
     addNonceSource()
     render(<CareerPanelLumaCheckout event={currentCareerEvent} />)
-    const checkout = screen.getByRole('link', { name: 'Register for Event' }) as HTMLAnchorElement
+    const checkout = screen.getByRole('link', { name: 'Register for FREE' }) as HTMLAnchorElement
     const { overlay, closeButton } = createMockVendorOverlay(checkout)
 
     checkout.focus()
@@ -151,7 +151,7 @@ describe('Career Panel Luma checkout', () => {
   it('closes the vendor overlay and removes its listener when the component unmounts', async () => {
     addNonceSource()
     const { unmount } = render(<CareerPanelLumaCheckout event={currentCareerEvent} />)
-    const checkout = screen.getByRole('link', { name: 'Register for Event' }) as HTMLAnchorElement
+    const checkout = screen.getByRole('link', { name: 'Register for FREE' }) as HTMLAnchorElement
     const { overlay, closeButton } = createMockVendorOverlay(checkout)
     const closeSpy = vi.spyOn(closeButton, 'click')
 
@@ -168,7 +168,7 @@ describe('Career Panel Luma checkout', () => {
   it('leaves the direct href unblocked when the vendor does not create an overlay', async () => {
     addNonceSource()
     render(<CareerPanelLumaCheckout event={currentCareerEvent} />)
-    const checkout = screen.getByRole('link', { name: 'Register for Event' })
+    const checkout = screen.getByRole('link', { name: 'Register for FREE' })
     const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true })
 
     checkout.dispatchEvent(clickEvent)
@@ -186,7 +186,7 @@ describe('Career Panel Luma checkout', () => {
     }
     render(<CareerPanelLumaCheckout event={event} />)
 
-    expect(screen.queryByRole('link', { name: 'Register for Event' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Register for FREE' })).not.toBeInTheDocument()
     expect(document.getElementById('luma-checkout')).toBeNull()
   })
 })
