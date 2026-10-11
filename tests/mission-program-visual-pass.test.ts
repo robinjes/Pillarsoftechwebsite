@@ -66,7 +66,7 @@ describe('mission and program visual pass', () => {
     expect(detail).not.toContain('<figcaption')
     expect(detail).toContain('galleryTriggerRef')
     expect(detail).toContain('pdfTriggerRef')
-    expect(detail).toContain('Register as a participant')
+    expect(detail).toContain('Register for Event')
     expect(detail).toContain('Volunteer at this event')
     expect(detail).toContain('toYouTubeEmbedUrl(original)')
     expect(detail).toContain('What participants practiced')

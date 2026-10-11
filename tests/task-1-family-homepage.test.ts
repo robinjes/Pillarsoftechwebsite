@@ -17,7 +17,7 @@ describe('Task 1 family homepage foundation', () => {
       expect(tailwind).toContain(token)
     }
     expect(fonts).toContain('Fredoka')
-    expect(fonts).toContain('Atkinson_Hyperlegible')
+    expect(fonts).toContain('AtkinsonHyperlegible')
     expect(fonts).not.toContain('Familjen_Grotesk')
     expect(fonts).not.toContain('IBM_Plex_Sans')
     for (const className of ['.button', '.friendly-card', '.shell', '.section-heading', '.focus-ring', '.form-control', '.status-pill', '.long-form-copy']) {

@@ -2,12 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Fredoka, Space_Grotesk } from 'next/font/google'
+import { displayFont as fredoka, adminBodyFont as spaceGrotesk } from '@/lib/fonts'
 import { Users, Search, RefreshCw, Loader2, Copy, Check } from 'lucide-react'
 import { volunteerService, VolunteerProfile } from '@/lib/volunteerService'
-
-const fredoka = Fredoka({ subsets: ['latin'] })
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 
 export default function AdminVolunteers() {
   const [volunteers, setVolunteers] = useState<VolunteerProfile[]>([])

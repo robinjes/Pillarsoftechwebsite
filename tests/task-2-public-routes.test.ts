@@ -81,7 +81,7 @@ describe('Task 2 public route migration and support surfaces', () => {
     expect(detail).not.toContain('No materials list is published')
     expect(detail).toContain('Schedule')
     expect(detail).toContain('Cancellation')
-    expect(detail).toContain('Register as a participant')
+    expect(detail).toContain('Register for Event')
     expect(detail).toContain('Volunteer at this event')
     expect(detail).toContain('resolveEventImageAlt')
     expect(registration).toContain("fetch(`/api/forms?eventId=${encodeURIComponent(eventId)}`)")

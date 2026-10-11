@@ -1,16 +1,24 @@
-import { Atkinson_Hyperlegible, Fredoka } from 'next/font/google'
+import localFont from 'next/font/local'
 
-export const displayFont = Fredoka({
-  subsets: ['latin'],
+export const displayFont = localFont({
+  src: '../assets/fonts/fredoka/Fredoka[wdth,wght].ttf',
   display: 'swap',
   variable: '--font-display',
-  weight: ['500', '600', '700'],
+  weight: '300 700',
 })
 
-export const bodyFont = Atkinson_Hyperlegible({
-  subsets: ['latin'],
+export const bodyFont = localFont({
+  src: [
+    { path: '../assets/fonts/atkinsonhyperlegible/AtkinsonHyperlegible-Regular.ttf', weight: '400', style: 'normal' },
+    { path: '../assets/fonts/atkinsonhyperlegible/AtkinsonHyperlegible-Bold.ttf', weight: '700', style: 'normal' },
+  ],
   display: 'swap',
   preload: false,
   variable: '--font-body',
-  weight: ['400', '700'],
+})
+
+export const adminBodyFont = localFont({
+  src: '../assets/fonts/spacegrotesk/SpaceGrotesk[wght].ttf',
+  display: 'swap',
+  weight: '300 700',
 })

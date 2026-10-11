@@ -2,15 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Fredoka, Space_Grotesk } from 'next/font/google'
+import { displayFont as fredoka, adminBodyFont as spaceGrotesk } from '@/lib/fonts'
 import { 
   BarChart3, Download, Users, Clock, Filter, RefreshCw
 } from 'lucide-react'
 import { Event } from '@/data/events'
 import { volunteerService } from '@/lib/volunteerService'
-
-const fredoka = Fredoka({ subsets: ['latin'] })
-const spaceGrotesk = Space_Grotesk({ subsets: ['latin'] })
 
 interface EventStats {
   event: Event
