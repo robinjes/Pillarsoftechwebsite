@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, render, screen } from '@testing-library/react'
 import { createElement, type AnchorHTMLAttributes, type ImgHTMLAttributes, type ReactNode } from 'react'
 
 const {
@@ -237,21 +237,22 @@ describe('protected contact inbox API', () => {
 })
 
 describe('contact surfaces', () => {
-  it('opens and focuses the protected email form from the Email us card', () => {
+  it('shows the form before supporting details and offers direct email beside it', () => {
     render(createElement(Contact))
     const nameInput = screen.getByLabelText('Name')
-    fireEvent.click(screen.getByRole('button', { name: 'Open Email Form' }))
-    expect(nameInput).toHaveFocus()
+    const emailLink = screen.getByRole('link', { name: 'pillarsoftech@gmail.com' })
+    expect(emailLink).toHaveAttribute('href', 'mailto:pillarsoftech@gmail.com')
+    expect(nameInput.closest('#contact-form')).toContainElement(emailLink)
+    expect(screen.queryByRole('button', { name: 'Open Email Form' })).not.toBeInTheDocument()
+    expect(nameInput.compareDocumentPosition(screen.getByText('Conversation starters')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   })
 
   it('contains direct email and the protected form without live chat', () => {
     const source = readFileSync(path.resolve(process.cwd(), 'src/components/Contact.tsx'), 'utf8')
     const adminSource = readFileSync(path.resolve(process.cwd(), 'src/app/(admin-protected)/admin/contact/page.tsx'), 'utf8')
     expect(source).not.toMatch(/live chat/i)
-    expect(source).toContain('Email us')
-    expect(source).toContain('Email us directly or use the form.')
+    expect(source).toContain('Prefer email?')
     expect(source).toContain('pillarsoftech@gmail.com')
-    expect(source).toContain('focusMessageForm')
     expect(adminSource).toContain("/api/admin/contact")
     for (const status of ['new', 'in_progress', 'resolved', 'spam']) expect(adminSource).toContain(`value: '${status}'`)
   })

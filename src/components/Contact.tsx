@@ -1,10 +1,9 @@
 'use client'
 
 import ContactCaptcha from '@/components/ContactCaptcha'
-import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
-import { ArrowUpRight, CheckCircle2, Mail, Send } from 'lucide-react'
+import { ArrowUpRight, CheckCircle2, Mail } from 'lucide-react'
 
 const CONTACT_EMAIL = 'pillarsoftech@gmail.com'
 
@@ -44,7 +43,6 @@ export default function Contact({ initialReason, nonce }: { initialReason?: stri
   const [gameVerified, setGameVerified] = useState(true)
   const [captchaReset, setCaptchaReset] = useState(0)
   const resetTimer = useRef<number | null>(null)
-  const firstInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const subject = initialSubject(initialReason)
@@ -142,12 +140,6 @@ export default function Contact({ initialReason, nonce }: { initialReason?: stri
     }))
   }
 
-  const focusMessageForm = () => {
-    const formSection = document.getElementById('contact-form')
-    formSection?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
-    firstInputRef.current?.focus()
-  }
-
   const isWorkshop = formData.subject === 'workshop'
   const isSending = status === 'sending'
   const buttonLabel = status === 'sending' ? 'Sending Message…' : status === 'success' ? 'Message Received' : status === 'error' ? 'Try Again' : 'Send Message'
@@ -162,93 +154,27 @@ export default function Contact({ initialReason, nonce }: { initialReason?: stri
   return (
     <div className="bg-[var(--cream)] text-[var(--ink)]">
       <header className="border-b border-[var(--ink)]/20">
-        <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
-          <div className="flex flex-col gap-7 border-y border-[var(--ink)]/25 py-8 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 className="max-w-3xl font-display text-5xl leading-[0.98] text-[var(--midnight)] sm:text-[4.35rem]">
-                Let&apos;s make the next step clear.
-              </h1>
-            </div>
-            <div className="max-w-sm sm:text-right">
-              <p className="font-body text-base leading-7 text-[var(--ink)]/70">
-                Tell us what you are working on, what you want to ask, or where you would like to help.
-              </p>
-              <a
-                href={`mailto:${CONTACT_EMAIL}`}
-                className="mt-5 inline-flex min-h-11 items-center gap-2 border-b-2 border-[var(--cobalt)] pb-1 font-body font-bold text-[var(--cobalt)] transition hover:border-[var(--midnight)] hover:text-[var(--midnight)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-4 focus-visible:ring-offset-[var(--cream)]"
-              >
-                {CONTACT_EMAIL}
-                <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
-              </a>
-            </div>
-          </div>
-          <figure className="relative mt-8 aspect-[16/6] overflow-hidden rounded-[2rem] border border-[var(--ink)]/25 bg-[var(--midnight)] sm:mt-10">
-            <Image
-              src="/images/events/pedrozzi-connect-egg-drop/drive-04.webp"
-              alt="Seven student volunteers pose outdoors; one holds a small drone and controller."
-              fill
-              priority
-              sizes="(min-width: 1024px) 90vw, 100vw"
-              className="object-cover object-center"
-            />
-        </figure>
+        <div className="mx-auto max-w-7xl px-5 py-5 sm:px-8 sm:py-6 lg:px-12">
+          <h1 className="font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Contact us.</h1>
+          <p className="mt-2 font-body text-sm leading-6 text-[var(--ink)]/70 sm:text-base">
+            Send a question, share an idea, or plan something together.
+          </p>
         </div>
       </header>
 
       <section className="border-b border-[var(--ink)]/20 bg-[var(--paper)]">
-        <div className="mx-auto max-w-7xl px-5 pt-12 sm:px-8 lg:px-12 lg:pt-16">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Get in touch</p>
-              <h2 id="contact-options" className="mt-2 font-display text-3xl leading-tight text-[var(--midnight)] sm:text-4xl">Email us directly or use the form.</h2>
-            </div>
-            <p className="max-w-sm font-body text-sm leading-6 text-[var(--ink)]/65">Send us your questions, ideas, or requests using the email address or form below.</p>
-          </div>
-          <div className="mt-7" aria-labelledby="contact-options">
-            <article className="flex min-h-[15rem] flex-col rounded-[2rem] border-2 border-[var(--cobalt)] bg-[var(--cream)] p-6 shadow-[6px_6px_0_var(--sky)] sm:p-8">
-              <div className="flex items-center gap-3 font-body text-sm font-bold text-[var(--cobalt)]"><Mail aria-hidden="true" className="h-5 w-5" />Email us</div>
-              <h3 className="mt-4 font-display text-2xl leading-tight text-[var(--midnight)]">Send the details when you are ready.</h3>
-              <p className="mt-3 flex-1 font-body text-sm leading-6 text-[var(--ink)]/70">Use the protected form below, or email us directly if that is easier. We keep your message private and use your email only to follow up.</p>
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <a href={`mailto:${CONTACT_EMAIL}`} className="font-body text-sm font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-2 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)]">{CONTACT_EMAIL}</a>
-                <button type="button" onClick={focusMessageForm} aria-controls="contact-form" className="inline-flex min-h-11 items-center justify-center rounded-full border-2 border-[var(--midnight)] bg-[var(--midnight)] px-5 py-2 font-body text-sm font-bold text-[var(--cream)] transition hover:bg-[var(--cobalt)] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)]">Open Email Form</button>
-              </div>
-            </article>
-          </div>
-        </div>
-
-        <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[0.72fr_1.28fr] lg:px-12 lg:py-24">
-          <div>
-            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Conversation starters</p>
-            <h2 className="mt-4 max-w-sm font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Bring the useful details.</h2>
-            <p className="mt-5 max-w-sm font-body text-base leading-7 text-[var(--ink)]/65">
-              Choose a subject and include the context that will help us understand what you need.
-            </p>
-            <ul className="mt-8 divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20 font-body text-sm font-semibold text-[var(--midnight)]">
-              {inquiryHighlights.map((item) => (
-                <li key={item} className="flex items-start gap-3 py-4">
-                  <CheckCircle2 aria-hidden="true" className="mt-0.5 h-4 w-4 flex-none text-[var(--cobalt)]" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-8 border-l border-[var(--sky)] pl-4 font-body text-sm leading-6 text-[var(--ink)]/65">
-              For an event request, include the date, location, and any relevant constraints.
-            </p>
-            <p className="mt-5 border-l border-[var(--coral)] pl-4 font-body text-sm leading-6 text-[var(--ink)]/65">
-              Please keep passwords, home addresses, school schedules, medical information, and emergency requests out of messages. See our{' '}
-              <Link href="/privacy" className="font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)]">privacy note</Link>{' '}
-              for the boundaries of contact and chat.
-            </p>
-          </div>
-
-          <section id="contact-form" className="min-w-0 rounded-[2rem] border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-5 sm:p-8">
-            <div className="flex flex-col gap-5 border-b-2 border-[var(--ink)] pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mx-auto grid max-w-7xl items-start gap-8 px-5 py-5 sm:px-8 sm:py-6 lg:grid-cols-[1.28fr_0.72fr] lg:gap-12 lg:px-12">
+          <section id="contact-form" aria-labelledby="contact-form-heading" className="min-w-0 lg:col-start-1 lg:row-start-1 rounded-[2rem] border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-5 sm:p-8">
+            <div className="flex items-start justify-between gap-4 border-b-2 border-[var(--ink)] pb-4">
               <div>
-                <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Message form</p>
-                <h2 className="mt-3 font-display text-3xl leading-tight text-[var(--midnight)] sm:text-4xl">Send a note.</h2>
+                <h2 id="contact-form-heading" className="font-display text-2xl leading-tight text-[var(--midnight)] sm:text-3xl">Send a note.</h2>
+                <p className="mt-2 font-body text-sm leading-6 text-[var(--ink)]/70">
+                  Prefer email?{' '}
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="inline-flex min-h-11 items-center gap-1 font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)]">
+                    {CONTACT_EMAIL}<ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+                  </a>
+                </p>
               </div>
-              <Send aria-hidden="true" className="h-7 w-7 text-[var(--cobalt)]" strokeWidth={1.7} />
             </div>
 
             {errorMessage && (
@@ -263,7 +189,7 @@ export default function Contact({ initialReason, nonce }: { initialReason?: stri
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="mt-7 space-y-5" aria-describedby={errorMessage ? 'contact-error' : undefined}>
+            <form onSubmit={handleSubmit} className="mt-5 space-y-5" aria-describedby={errorMessage ? 'contact-error' : undefined}>
               <div className="absolute left-[-10000px] h-px w-px overflow-hidden" aria-hidden="true">
                 <label htmlFor="contact-website">Website</label>
                 <input
@@ -283,7 +209,6 @@ export default function Contact({ initialReason, nonce }: { initialReason?: stri
                     type="text"
                     id="name"
                     name="name"
-                    ref={firstInputRef}
                     value={formData.name}
                     onChange={handleChange}
                     placeholder="Your name"
@@ -396,6 +321,31 @@ export default function Contact({ initialReason, nonce }: { initialReason?: stri
               <Link href="/wishlist" className="font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)]">wishlist</Link>.
             </p>
           </section>
+
+          <aside className="lg:col-start-2 lg:row-start-1">
+            <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Conversation starters</p>
+            <h2 className="mt-4 max-w-sm font-display text-4xl leading-tight text-[var(--midnight)] sm:text-5xl">Bring the useful details.</h2>
+            <p className="mt-5 max-w-sm font-body text-base leading-7 text-[var(--ink)]/65">
+              Choose a subject and include the context that will help us understand what you need.
+            </p>
+            <ul className="mt-8 divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20 font-body text-sm font-semibold text-[var(--midnight)]">
+              {inquiryHighlights.map((item) => (
+                <li key={item} className="flex items-start gap-3 py-4">
+                  <CheckCircle2 aria-hidden="true" className="mt-0.5 h-4 w-4 flex-none text-[var(--cobalt)]" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-8 border-l border-[var(--sky)] pl-4 font-body text-sm leading-6 text-[var(--ink)]/65">
+              For an event request, include the date, location, and any relevant constraints.
+            </p>
+            <p className="mt-5 border-l border-[var(--coral)] pl-4 font-body text-sm leading-6 text-[var(--ink)]/65">
+              Please keep passwords, home addresses, school schedules, medical information, and emergency requests out of messages. See our{' '}
+              <Link href="/privacy" className="font-bold text-[var(--cobalt)] underline decoration-2 underline-offset-4 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)]">privacy note</Link>{' '}
+              for the boundaries of contact and chat.
+            </p>
+          </aside>
+
         </div>
       </section>
     </div>
