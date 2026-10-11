@@ -13,19 +13,21 @@ const privacy = read('src/app/privacy/page.tsx')
 const accessibility = read('src/app/accessibility/page.tsx')
 
 describe('stakeholder support and policy polish', () => {
-  it('keeps fundraiser support direct, secure, and opt-in', () => {
+  it('shows HCB donation checkout immediately with payment details explained', () => {
     expect(fundraiser).not.toContain('Support Pillars of Tech')
     expect(fundraiser).not.toContain('A direct route to the work')
     expect(fundraiser).toContain('https://hcb.hackclub.com/donations/start/pillars-of-tech')
     expect(fundraiser).toContain('https://hcb.hackclub.com/pillars-of-tech/transactions')
-    expect(fundraiser).toContain('<ExternalEmbedOptIn')
-    expect(fundraiser).toContain('absolute left-5 top-5 z-10')
+    expect(fundraiser).toContain('<iframe')
+    expect(fundraiser).toContain('loading="eager"')
+    expect(fundraiser).toContain('allow="payment"')
     expect(fundraiser).toContain('min-h-11')
     expect(fundraiser).toContain('rounded-full')
-    expect(fundraiser).toContain('border-2 border-[var(--cream)]')
     expect(fundraiser).toContain('Open Secure Donation Page')
     expect(fundraiser).toContain('View Transparent Finances')
-    expect(fundraiser).toContain('Load Secure Checkout')
+    expect(fundraiser).not.toContain('Load Secure Checkout')
+    expect(fundraiser).toContain('Pillars of Tech does not receive your card details.')
+    expect(fundraiser).toContain('href="/fundraiser/learn-more"')
   })
 
   it('keeps wishlist routes and item dividers without decorative captions', () => {

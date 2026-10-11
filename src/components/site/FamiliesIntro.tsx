@@ -8,7 +8,7 @@ const steps = [
     className: 'friendly-card--paper',
     href: '/events',
     title: 'Choose an event',
-    text: 'See the activity, age guidance, location, and timing in plain language.',
+    text: 'Find something your child would love to try. Each event page has the details you need.',
     icon: <path d="M14 22h36v28H14zM22 14h20v8H22zM23 31h18M23 40h12" />,
   },
   {
@@ -24,7 +24,7 @@ const steps = [
     className: 'friendly-card--paper',
     href: '/volunteer',
     title: 'Build together',
-    text: 'Kids try, make, and learn while volunteers help families along the way.',
+    text: 'Try an idea, make a discovery, and celebrate the little wins together.',
     icon: <path d="M22 19h20v15H22zM17 49h30M22 34l-5 15M42 34l5 15M28 27h8M32 19v-7" />,
   },
 ]
@@ -37,7 +37,7 @@ export default function FamiliesIntro() {
           className="section-heading--center"
           eyebrow="For parents, caregivers, and curious kids"
           title="New to tech? You&apos;re in the right place."
-          description="You do not need to know how to code, build a robot, or use special equipment. We make every step clear and stay nearby to help."
+          description="Never coded or built a robot? That’s okay. Our volunteers will help you get started."
           id="families-heading"
         />
 
@@ -48,7 +48,7 @@ export default function FamiliesIntro() {
               <svg className="card-icon" viewBox="0 0 64 64" aria-hidden="true">
                 {step.icon}
               </svg>
-              <h3 className="family-heading text-3xl text-[var(--navy-950)]">{step.title}</h3>
+              <h3 className="family-heading text-[var(--navy-950)]">{step.title}</h3>
               <p>{step.text}</p>
             </Link>
           ))}

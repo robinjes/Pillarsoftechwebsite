@@ -14,7 +14,7 @@ const exploreLinks = [
 ]
 
 const supportLinks = [
-  { label: 'Fundraiser', href: '/fundraiser' },
+  { label: 'Donate', href: '/fundraiser' },
   { label: 'Wishlist', href: '/wishlist' },
   { label: 'Newsletter', href: '/newsletter' },
   { label: 'FAQ', href: '/faq' },

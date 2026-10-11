@@ -9,11 +9,11 @@ export default function ContactCta() {
         <div>
           <p className="eyebrow">Questions are always welcome</p>
           <h2 id="contact-heading" className="family-heading">
-            <span className="contact-heading__line">Not sure where to start?</span>
-            <span className="contact-heading__line">Talk with a real person.</span>
+            <span className="contact-heading__line">Have a question?</span>
+            <span className="contact-heading__line">We’d love to hear from you.</span>
           </h2>
           <p>
-            Parents, students, educators, and volunteers can reach out. We&apos;ll help you understand the next step in plain language.
+            Ask us about an event, volunteering, or bringing an activity to your school. We’re happy to help you find a place to start.
           </p>
         </div>
         <Link href="/contact" className="button button--navy focus-ring">Contact Pillars of Tech</Link>

@@ -27,9 +27,9 @@ export default function EventProof() {
     <section className="event-proof-section section" aria-labelledby="event-proof-heading">
       <PageShell>
         <div className="event-proof-heading section-heading">
-          <p className="eyebrow">Real events, real curiosity</p>
-          <h2 id="event-proof-heading" className="family-heading">Learning lives in the room.</h2>
-          <p>A few frames from the hands-on work already underway.</p>
+          <p className="eyebrow">From our events</p>
+          <h2 id="event-proof-heading" className="family-heading">Look what we’ve been making.</h2>
+          <p>A few moments with the kids, families, and volunteers who make these events possible.</p>
         </div>
 
         <div className="event-proof-grid" data-event-proof>

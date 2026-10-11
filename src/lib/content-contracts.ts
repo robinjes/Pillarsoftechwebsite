@@ -455,6 +455,7 @@ export const participantSubmissionSchema = z.object({
 export type ParticipantSubmission = z.infer<typeof participantSubmissionSchema>
 
 export const contactSubmissionSchema = z.object({
+  captchaToken: nonEmptyText(2048),
   name: nonEmptyText(160),
   email: z.email().max(320),
   subject: optionalText(240),

@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 import type { AnchorHTMLAttributes, ImgHTMLAttributes, ReactNode } from 'react'
 
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const navigationState = vi.hoisted(() => ({ pathname: '/' }))
@@ -68,6 +68,7 @@ describe('TimelapseHero rendered behavior', () => {
 
   afterEach(() => {
     cleanup()
+    vi.useRealTimers()
     vi.clearAllMocks()
     Object.defineProperty(window, 'matchMedia', { configurable: true, value: originalMatchMedia })
     setDocumentHidden(false)
@@ -99,7 +100,7 @@ describe('TimelapseHero rendered behavior', () => {
     expect(pause).toHaveBeenCalled()
   })
 
-  it('advances to the Carnival film when the Tank film ends', async () => {
+  it('advances to an event photo when the Tank film ends', async () => {
     const { container } = render(<TimelapseHero />)
     await waitFor(() => expect(play).toHaveBeenCalled())
 
@@ -107,8 +108,34 @@ describe('TimelapseHero rendered behavior', () => {
     expect(videos[0]).toHaveClass('is-active')
     fireEvent.ended(videos[0])
 
-    await waitFor(() => expect(videos[1]).toHaveClass('is-active'))
-    expect(load).toHaveBeenCalled()
+    await waitFor(() => expect(container.querySelector('.hero-media')).toHaveAttribute('data-hero-slide', 'wildcat-carnival-photo'))
+    expect(videos[0]).not.toHaveClass('is-active')
+    expect(videos[1]).not.toHaveClass('is-active')
+    expect(pause).toHaveBeenCalled()
+  })
+
+  it('rotates all event photos and both films every six seconds, pausing while hidden', async () => {
+    vi.useFakeTimers()
+    const { container } = render(<TimelapseHero />)
+    await act(async () => { await Promise.resolve() })
+    const media = container.querySelector('.hero-media')
+    expect(media).toHaveAttribute('data-hero-slide', 'wildcat-tank')
+    await act(async () => { await vi.advanceTimersByTimeAsync(5999) })
+    expect(media).toHaveAttribute('data-hero-slide', 'wildcat-tank')
+    await act(async () => { await vi.advanceTimersByTimeAsync(1) })
+    expect(media).toHaveAttribute('data-hero-slide', 'wildcat-carnival-photo')
+    setDocumentHidden(true)
+    fireEvent(document, new Event('visibilitychange'))
+    await act(async () => { await vi.advanceTimersByTimeAsync(12000) })
+    expect(media).toHaveAttribute('data-hero-slide', 'wildcat-carnival-photo')
+    setDocumentHidden(false)
+    fireEvent(document, new Event('visibilitychange'))
+    for (const id of ['altamont-open-house', 'marshmallow-challenge', 'wildcat-carnival', 'wildcat-tank-photo', 'wildcat-tank']) {
+      await act(async () => { await vi.advanceTimersByTimeAsync(6000) })
+      expect(media).toHaveAttribute('data-hero-slide', id)
+      expect(container.querySelectorAll('.hero-media__poster.is-active')).toHaveLength(1)
+    }
+    expect(load).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -199,7 +226,8 @@ describe('Navbar rendered behavior', () => {
     fireEvent.click(support)
     expect(support).toHaveAttribute('aria-expanded', 'true')
     expect(within(primaryNavigation).getByRole('link', { name: 'Wishlist' })).toHaveAttribute('href', '/wishlist')
-    expect(within(primaryNavigation).getByRole('link', { name: /Donate/ })).toHaveAttribute('target', '_blank')
+    expect(within(primaryNavigation).getByRole('link', { name: 'Donate' })).toHaveAttribute('href', '/fundraiser')
+    expect(within(primaryNavigation).queryByRole('link', { name: 'Fundraiser' })).not.toBeInTheDocument()
     fireEvent.click(within(primaryNavigation).getByRole('button', { name: 'Our Work' }))
     expect(support).toHaveAttribute('aria-expanded', 'false')
     expect(within(primaryNavigation).getByRole('link', { name: 'About' })).toHaveAttribute('href', '/about')
@@ -243,7 +271,8 @@ describe('Navbar rendered behavior', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Open navigation menu' }))
     const dialog = screen.getByRole('dialog', { name: 'Mobile navigation' })
     for (const label of ['For Families', 'Our Work', 'Support']) expect(within(dialog).getByRole('heading', { name: label })).toBeInTheDocument()
-    for (const label of ['FAQ', 'Newsletter', 'About', 'Team', 'Fundraiser', 'Wishlist', 'Donate', 'Transparent Finances']) expect(within(dialog).getByRole('link', { name: new RegExp(label) })).toBeInTheDocument()
+    for (const label of ['FAQ', 'Newsletter', 'About', 'Team', 'Wishlist', 'Donate', 'Transparent Finances']) expect(within(dialog).getByRole('link', { name: new RegExp(label) })).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: 'Donate' })).toHaveAttribute('href', '/fundraiser')
     expect(within(dialog).queryByRole('link', { name: 'Privacy' })).not.toBeInTheDocument()
     const wishlist = within(dialog).getByRole('link', { name: 'Wishlist' })
     wishlist.addEventListener('click', (event) => event.preventDefault(), { once: true })

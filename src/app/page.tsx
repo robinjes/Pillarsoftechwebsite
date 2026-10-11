@@ -26,7 +26,7 @@ export default async function Home() {
   const nextEvent = selectNextEvent(events)
 
   return (
-    <main>
+    <main className="home-page">
       <TimelapseHero />
       <TrustStrip />
       <FamiliesIntro />

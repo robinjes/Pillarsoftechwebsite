@@ -6,12 +6,14 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { createElement, type AnchorHTMLAttributes, type ImgHTMLAttributes, type ReactNode } from 'react'
 
 const {
+  verifyContactCaptchaMock,
   allowContactAttemptDurablyMock,
   insertContactSubmissionMock,
   requireVerifiedStaffMock,
   listAdminContactMock,
   updateAdminContactStatusMock,
 } = vi.hoisted(() => ({
+  verifyContactCaptchaMock: vi.fn(),
   allowContactAttemptDurablyMock: vi.fn(),
   insertContactSubmissionMock: vi.fn(),
   requireVerifiedStaffMock: vi.fn(),
@@ -19,6 +21,7 @@ const {
   updateAdminContactStatusMock: vi.fn(),
 }))
 
+vi.mock('@/lib/contact-captcha', () => ({ verifyContactCaptcha: verifyContactCaptchaMock }))
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/contact-rate-limit', () => ({ allowContactAttemptDurably: allowContactAttemptDurablyMock }))
 vi.mock('@/lib/content-repository', () => ({
@@ -59,6 +62,7 @@ const submission = {
 
 beforeEach(() => {
   vi.clearAllMocks()
+  verifyContactCaptchaMock.mockResolvedValue(true)
   vi.stubEnv('CHAT_TOKEN_PEPPER', 'test-pepper')
   vi.stubEnv('VERCEL', '')
   requireVerifiedStaffMock.mockResolvedValue(staff)
@@ -79,7 +83,7 @@ describe('Task 3 contact contracts and privacy boundaries', () => {
       schoolName: '',
       studentCount: '',
       message: 'A question.',
-      honeypot: '',
+      honeypot: '', captchaToken: 'test-contact-token',
     }
     expect(contactSubmissionSchema.safeParse(valid).success).toBe(true)
     expect(contactSubmissionSchema.safeParse({ ...valid, email: '' }).success).toBe(false)
@@ -157,12 +161,24 @@ describe('contact API boundaries', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name: 'Ada Lovelace', email: 'ada@example.com', subject: 'General inquiry',
-        schoolName: '', studentCount: '', message: 'A question.', honeypot: '',
+        schoolName: '', studentCount: '', message: 'A question.', honeypot: '', captchaToken: 'test-contact-token',
       }),
     }))
 
     expect(response.status).toBe(503)
     await expect(response.json()).resolves.toEqual({ error: 'Contact submissions are temporarily unavailable.' })
+    expect(insertContactSubmissionMock).not.toHaveBeenCalled()
+  })
+
+  it.each([false, new Error('secret provider detail')])('rejects failed CAPTCHA verification without storing a message (%s)', async (result) => {
+    if (result instanceof Error) verifyContactCaptchaMock.mockRejectedValueOnce(result)
+    else verifyContactCaptchaMock.mockResolvedValueOnce(result)
+    const response = await postContact(new Request('https://pillarsoftech.org/api/contact', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'Ada', email: 'ada@example.com', subject: 'General', message: 'Hello', captchaToken: 'test-contact-token' }),
+    }))
+    expect(response.status).toBe(result instanceof Error ? 503 : 400)
+    expect(await response.text()).not.toContain('secret provider detail')
     expect(insertContactSubmissionMock).not.toHaveBeenCalled()
   })
 
@@ -177,11 +193,13 @@ describe('contact API boundaries', () => {
       },
       body: JSON.stringify({
         name: 'Ada Lovelace', email: 'ada@example.com', subject: 'General inquiry',
-        schoolName: '', studentCount: '', message: 'A question.', honeypot: '',
+        schoolName: '', studentCount: '', message: 'A question.', honeypot: '', captchaToken: 'test-contact-token',
       }),
     }))
 
     expect(response.status).toBe(202)
+    expect(verifyContactCaptchaMock).toHaveBeenCalledWith('test-contact-token')
+    expect(insertContactSubmissionMock.mock.calls[0][0]).not.toHaveProperty('captchaToken')
     expect(allowContactAttemptDurablyMock).toHaveBeenCalledWith('203.0.113.10')
     expect(insertContactSubmissionMock).toHaveBeenCalledWith(expect.objectContaining({ email: 'ada@example.com' }))
   })

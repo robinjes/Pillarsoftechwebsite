@@ -32,7 +32,7 @@ describe('family homepage visual content', () => {
 
     for (const point of ['Family-friendly', 'Hands-on learning', 'No tech experience needed']) expect(trust).toContain(point)
     for (const step of ['Choose an event', 'Show up curious', 'Build together']) expect(families).toContain(step)
-    for (const copy of ['Hands-on events', 'Supportive mentorship', 'Community access']) expect(mission).toContain(copy)
+    for (const copy of ['Hands-on events', 'Someone to help', 'Learning in our community']) expect(mission).toContain(copy)
     expect(families).toContain('New to tech?')
     expect(page).toContain('<EventProof />')
     expect(page).toContain('<MissionSection />')

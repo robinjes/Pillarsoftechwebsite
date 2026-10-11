@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 const read = (relativePath: string) => readFileSync(path.resolve(process.cwd(), relativePath), 'utf8')
 
 describe('silent timelapse hero behavior', () => {
-  it('starts with Wildcat Tank, lazily loads Carnival, and alternates by end or interval', () => {
+  it('starts with Wildcat Tank and rotates timelapses and event photos every six seconds', () => {
     const hero = read('src/components/site/TimelapseHero.tsx')
 
     expect(hero).toContain("const TANK_VIDEO = '/videos/home/wildcat-tank-timelapse-720p.mp4'")
@@ -18,12 +18,16 @@ describe('silent timelapse hero behavior', () => {
     expect(hero).toContain('preload="none"')
     expect(hero).toContain('video.preload = \'metadata\'')
     expect(hero).toContain('video.load()')
-    expect(hero).toContain('window.setTimeout(advanceVideo, PLAYBACK_INTERVAL_MS)')
-    expect(hero).toContain('onEnded={advanceVideo}')
+    expect(hero).toContain('const PLAYBACK_INTERVAL_MS = 6_000')
+    expect(hero).toContain('window.setTimeout(advanceMedia, PLAYBACK_INTERVAL_MS)')
+    expect(hero).toContain('onEnded={activeIndex === 0 ? advanceMedia : undefined}')
+    for (const photo of ['wildcat-carnival/drive-01.webp', 'altamont-creek-open-house/hero.png', 'science-odyssey/drive-01.webp', 'wildcat-tank-altamont/drive-01.webp']) {
+      expect(hero).toContain(photo)
+    }
     expect(hero).not.toContain('controls')
   })
 
-  it('falls back to a static poster for reduced motion or autoplay failure and pauses on hidden pages', () => {
+  it('uses posters when autoplay fails, freezes for reduced motion, and pauses on hidden pages', () => {
     const hero = read('src/components/site/TimelapseHero.tsx')
     expect(hero).toContain("window.matchMedia('(prefers-reduced-motion: reduce)')")
     expect(hero).toContain('setAutoplayFailed(true)')

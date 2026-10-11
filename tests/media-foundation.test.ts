@@ -94,6 +94,15 @@ describe('media security boundaries', () => {
     }
   })
 
+  it('delegates payment access to HCB only on the donate document', async () => {
+    const donate = await middleware(new NextRequest('https://pillarsoftech.org/fundraiser', { headers: { accept: 'text/html' } }))
+    expect(donate.headers.get('permissions-policy')).toContain('payment=(self "https://hcb.hackclub.com")')
+    for (const path of ['/fundraiser/learn-more', '/', '/api/events']) {
+      const response = await middleware(new NextRequest(`https://pillarsoftech.org${path}`))
+      expect(response.headers.get('permissions-policy')).toContain('payment=()')
+    }
+  })
+
   it('uses nonce CSP and excludes legacy external media origins', () => {
     const csp = buildContentSecurityPolicy('test-nonce', true)
     expect(csp).toContain("script-src 'self' 'nonce-test-nonce' 'strict-dynamic'")

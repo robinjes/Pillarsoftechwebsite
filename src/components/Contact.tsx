@@ -1,5 +1,6 @@
 'use client'
 
+import ContactCaptcha from '@/components/ContactCaptcha'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
@@ -27,7 +28,7 @@ const inquiryHighlights = [
   'General questions and feedback',
 ]
 
-export default function Contact({ initialReason }: { initialReason?: string }) {
+export default function Contact({ initialReason, nonce }: { initialReason?: string; nonce?: string }) {
   const [formData, setFormData] = useState(() => ({
     name: '',
     email: '',
@@ -39,6 +40,9 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle')
   const [errorMessage, setErrorMessage] = useState('')
   const [honeypot, setHoneypot] = useState('')
+  const [captchaToken, setCaptchaToken] = useState('')
+  const [gameVerified, setGameVerified] = useState(true)
+  const [captchaReset, setCaptchaReset] = useState(0)
   const resetTimer = useRef<number | null>(null)
   const firstInputRef = useRef<HTMLInputElement>(null)
 
@@ -76,6 +80,11 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (!captchaToken || !gameVerified) {
+      setStatus('error')
+      setErrorMessage('Please complete your chosen CAPTCHA before sending.')
+      return
+    }
     setStatus('sending')
     setErrorMessage('')
     clearStatusTimer()
@@ -94,6 +103,7 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
           studentCount: formData.subject === 'workshop' ? formData.studentCount : '',
           message: formData.message,
           honeypot,
+          captchaToken,
         }),
       })
       const result = await response.json().catch(() => ({}))
@@ -109,6 +119,11 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
       setStatus('error')
       setErrorMessage(error instanceof Error ? error.message : 'We could not send that message. Please email us directly instead.')
       scheduleReset()
+    } finally {
+      // A submitted token is single-use, even when saving the message fails.
+      setCaptchaToken('')
+      setGameVerified(true)
+      setCaptchaReset((value) => value + 1)
     }
   }
 
@@ -227,7 +242,7 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
             </p>
           </div>
 
-          <section id="contact-form" className="rounded-[2rem] border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-5 sm:p-8">
+          <section id="contact-form" className="min-w-0 rounded-[2rem] border-2 border-[var(--ink)]/25 bg-[var(--cream)] p-5 sm:p-8">
             <div className="flex flex-col gap-5 border-b-2 border-[var(--ink)] pb-6 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="font-body text-sm font-semibold text-[var(--cobalt)]">Message form</p>
@@ -364,10 +379,12 @@ export default function Contact({ initialReason }: { initialReason?: string }) {
                 />
               </div>
 
+              <ContactCaptcha key={captchaReset} nonce={nonce} onToken={setCaptchaToken} onGameVerified={setGameVerified} disabled={isSending} />
+
               <button
                 type="submit"
-                disabled={isSending}
-                className={`inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] px-6 py-3 font-body font-bold transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)] ${buttonClass}`}
+                disabled={isSending || !captchaToken || !gameVerified}
+                className={`disabled:cursor-not-allowed disabled:opacity-50 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full border-2 border-[var(--midnight)] px-6 py-3 font-body font-bold transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[var(--sky)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cream)] ${buttonClass}`}
               >
                 {status === 'success' ? <CheckCircle2 aria-hidden="true" className="h-4 w-4" /> : <Mail aria-hidden="true" className="h-4 w-4" />}
                 {buttonLabel}

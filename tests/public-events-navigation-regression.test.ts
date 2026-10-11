@@ -21,7 +21,7 @@ describe('public events and navigation regressions', () => {
   it('includes grouped access to important support and information pages', () => {
     const navbar = readFileSync(join(process.cwd(), 'src/components/Navbar.tsx'), 'utf8')
 
-    for (const label of ['For Families', 'Events', 'Our Work', 'Volunteer', 'Support', 'Contact', 'Fundraiser', 'Wishlist', 'Newsletter', 'FAQ', 'About', 'Team', 'Donate', 'Transparent Finances']) {
+    for (const label of ['For Families', 'Events', 'Our Work', 'Volunteer', 'Support', 'Contact', 'Wishlist', 'Newsletter', 'FAQ', 'About', 'Team', 'Donate', 'Transparent Finances']) {
       expect(navbar).toContain(label)
     }
     expect(navbar).not.toContain("href: '/privacy'")

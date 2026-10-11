@@ -45,8 +45,8 @@ export function buildContentSecurityPolicy(
     "style-src-attr 'unsafe-inline'",
     `img-src 'self' data: blob:${cloudinarySource}${supabaseSource} https://embed.lu.ma`,
     `media-src 'self' blob:${supabaseSource}`,
-    `connect-src 'self' blob:${supabaseSource}`,
-    `frame-src 'self' https://hcb.hackclub.com https://docs.google.com https://forms.gle https://www.youtube-nocookie.com https://youtube-nocookie.com https://luma.com${supabaseSource}`,
+    `connect-src 'self' https://challenges.cloudflare.com blob:${supabaseSource}`,
+    `frame-src 'self' https://challenges.cloudflare.com https://hcb.hackclub.com https://docs.google.com https://forms.gle https://www.youtube-nocookie.com https://youtube-nocookie.com https://luma.com${supabaseSource}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -54,11 +54,12 @@ export function buildContentSecurityPolicy(
   ].join('; ') + productionOnly
 }
 
-export function applySecurityHeaders(response: NextResponse, csp?: string): NextResponse {
+export function applySecurityHeaders(response: NextResponse, csp?: string, allowHcbPayments = false): NextResponse {
   response.headers.set('X-Content-Type-Options', 'nosniff')
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  response.headers.set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(), usb=(), payment=(), browsing-topics=()')
+  const paymentPolicy = allowHcbPayments ? 'payment=(self "https://hcb.hackclub.com")' : 'payment=()'
+  response.headers.set('Permissions-Policy', `camera=(self), microphone=(), geolocation=(), usb=(), ${paymentPolicy}, browsing-topics=()`)
   if (csp) response.headers.set('Content-Security-Policy', csp)
   if (process.env.NODE_ENV === 'production') {
     response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
@@ -104,7 +105,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  applySecurityHeaders(response, csp)
+  applySecurityHeaders(response, csp, documentRequest && request.nextUrl.pathname === '/fundraiser')
   const privateNoStorePrefixes = [
     '/admin',
     '/auth',

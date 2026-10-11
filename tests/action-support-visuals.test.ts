@@ -139,7 +139,7 @@ describe('action and support route visual contracts', () => {
     expect(volunteer).toContain('eventId=')
     expect(volunteer).toContain('deepLinkedEventId')
 
-    expect(fundraiser).toContain('ExternalEmbedOptIn')
+    expect(fundraiser).toContain('<iframe')
     expect(fundraiser).toContain('hcb.hackclub.com/donations/start/pillars-of-tech')
     expect(fundraiser).toContain('hcb.hackclub.com/pillars-of-tech/transactions')
     expect(fundraiser).toContain('does not receive your card details')

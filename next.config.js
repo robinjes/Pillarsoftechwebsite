@@ -20,6 +20,7 @@ if (supabaseUrl) {
 
 const nextConfig = {
   poweredByHeader: false,
+  transpilePackages: ['playcaptcha'],
   images: {
     remotePatterns: [
       ...(cloudinaryCloudName ? [{

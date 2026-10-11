@@ -10,12 +10,12 @@ export default function FinanceSection() {
     <section className="finance-section section" aria-labelledby="finance-heading">
       <PageShell className="finance-layout">
         <div>
-          <p className="eyebrow">Financial home</p>
-          <h2 id="finance-heading" className="family-heading">Clear enough to follow.</h2>
+          <p className="eyebrow">Supporting our events</p>
+          <h2 id="finance-heading" className="family-heading">See how your support helps.</h2>
         </div>
         <div className="finance-copy long-form-copy">
           <p>
-            <strong>Fiscally sponsored through Hack Club</strong>, Pillars of Tech shares its HCB transaction record for financial transparency.
+            Pillars of Tech is <strong>fiscally sponsored through Hack Club</strong>. We share our HCB transaction record so you can see how funds come in and how they’re used.
           </p>
           <div className="flex flex-wrap gap-5">
             <a

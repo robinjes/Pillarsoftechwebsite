@@ -56,7 +56,8 @@ export default function PrivacyPage() {
           <div className="grid gap-5 lg:grid-cols-2">
             <article className="family-card rounded-[2rem] bg-[var(--white)] p-7">
               <h2 className="family-heading text-2xl text-[var(--navy-950)]">Contact form boundary</h2>
-              <p className="mt-4 text-base leading-7">Contact inputs use strict validation, same-origin checks, honeypots, bounded plain text, server-owned destinations, and durable rate limits. Messages render only as text, and the protected form does not expose private records to visitors.</p>
+              <p className="mt-4 text-base leading-7">Contact inputs use strict validation, same-origin checks, honeypots, bounded plain text, server-owned destinations, durable rate limits, and server-verified CAPTCHA checks. Messages render only as text, and the protected form does not expose private records to visitors.</p>
+              <p className="mt-4 text-base leading-7">Both the regular CAPTCHA and optional claw game use Cloudflare Turnstile for spam protection. Cloudflare processes browser and network signals to verify visitors. We send only the verification token to its verification service, not your contact message. <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">Read Cloudflare’s privacy policy</a>.</p>
               <p className="mt-4 text-base leading-7">If a future visitor chat is approved, its design would use a random opaque token in an HttpOnly, SameSite=Lax, path-scoped cookie that is Secure in production, with only an HMAC or keyed hash stored server-side.</p>
             </article>
             <article className="family-card rounded-[2rem] bg-[var(--white)] p-7">
@@ -65,6 +66,14 @@ export default function PrivacyPage() {
               <p className="mt-4 text-base leading-7">No chat-retention job that deletes messages after 30 days is running because public chat is not enabled. If a future service is approved, its retention, privacy, and security controls would be documented before launch. We do not log message bodies, emails, tokens, webhook URLs, Discord secrets, or service-role credentials.</p>
             </article>
           </div>
+        </PageShell>
+      </section>
+
+      <section className="policy-section section bg-[var(--paper)]" aria-labelledby="privacy-donations-heading">
+        <PageShell>
+          <h2 id="privacy-donations-heading" className="family-heading text-2xl text-[var(--midnight)]">Donation checkout</h2>
+          <p className="mt-4 text-base leading-7">Our donate page automatically loads an embedded checkout hosted by HCB. All donation transactions go through HCB and its payment providers. Pillars of Tech does not receive your card number, security code, or payment credentials.</p>
+          <Link href="/fundraiser/learn-more" className="mt-4 inline-flex min-h-11 items-center font-semibold text-[var(--cobalt)] underline underline-offset-4">Learn how donations work</Link>
         </PageShell>
       </section>
 

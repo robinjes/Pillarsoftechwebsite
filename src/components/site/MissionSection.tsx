@@ -6,17 +6,17 @@ const workAreas = [
   {
     number: '01',
     title: 'Hands-on events',
-    text: 'Activities made for trying, testing, and asking questions.',
+    text: 'Build, test, and see what happens. Your questions are welcome here.',
   },
   {
     number: '02',
-    title: 'Supportive mentorship',
-    text: 'Friendly volunteers who explain things without the jargon.',
+    title: 'Someone to help',
+    text: 'Our volunteers are right beside you when you want a hand.',
   },
   {
     number: '03',
-    title: 'Community access',
-    text: 'More ways for students and families to discover what is possible.',
+    title: 'Learning in our community',
+    text: 'A chance for kids and families to try something new together.',
   },
 ]
 
@@ -46,9 +46,9 @@ export default function MissionSection() {
 
         <div className="work-copy">
           <p className="eyebrow">What we do</p>
-          <h2 id="our-work-heading" className="family-heading text-5xl text-[var(--navy-950)]">Learning feels different when you get to make something.</h2>
+          <h2 id="our-work-heading" className="family-heading text-[var(--navy-950)]">Big ideas start with a little curiosity.</h2>
           <p>
-            Pillars of Tech creates welcoming places where young people can explore STEM by doing—not by already knowing all the answers.
+            At Pillars of Tech, we try new things, solve problems, and learn together. Every activity gives young people a chance to see what they can do.
           </p>
           <ul className="work-list">
             {workAreas.map((area) => (

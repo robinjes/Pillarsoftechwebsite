@@ -24,6 +24,7 @@ const publicStaticRoutes = [
   '/events',
   '/volunteer',
   '/fundraiser',
+  '/fundraiser/learn-more',
   '/wishlist',
   '/newsletter',
   '/faq',

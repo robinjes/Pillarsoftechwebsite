@@ -15,9 +15,9 @@ export default function ImpactSection({ metrics }: { metrics: PublicImpactMetric
       <PageShell>
         <SectionHeading
           className="impact-heading"
-          eyebrow="How we keep track"
-          title="We keep our impact notes close to the source."
-          description="Published figures include a date, source, and methodology note so families can see what each number means. When a source is unavailable, we do not fill the gap with an estimate."
+          eyebrow="Our community in numbers"
+          title="What we’ve done together."
+          description="Behind every number are people who showed up to learn and help. Each figure includes a date, source, and explanation of how we counted it."
           id="impact-heading"
         />
 

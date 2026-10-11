@@ -18,7 +18,7 @@ describe('contact submission protection', () => {
       schoolName: '',
       studentCount: '',
       message: 'A question about an event.',
-      honeypot: '',
+      honeypot: '', captchaToken: 'test-contact-token',
     }
     expect(contactSubmissionSchema.safeParse(valid).success).toBe(true)
     expect(contactSubmissionSchema.safeParse({ ...valid, webhookUrl: 'https://evil.example' }).success).toBe(false)

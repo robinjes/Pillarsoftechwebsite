@@ -1,3 +1,4 @@
+import { verifyContactCaptcha } from '@/lib/contact-captcha'
 import { readJson } from '@/lib/admin-api'
 import { contactSubmissionSchema } from '@/lib/content-contracts'
 import { allowContactAttemptDurably } from '@/lib/contact-rate-limit'
@@ -20,6 +21,14 @@ export async function POST(request: Request) {
     // Missing CHAT_TOKEN_PEPPER and every limiter/database failure deliberately
     // look the same to callers. Contact must never bypass durable protection.
     return jsonNoStore({ error: 'Contact submissions are temporarily unavailable.' }, 503)
+  }
+
+  try {
+    if (!await verifyContactCaptcha(parsed.data.captchaToken)) {
+      return jsonNoStore({ error: 'Please complete the CAPTCHA again before sending.' }, 400)
+    }
+  } catch {
+    return jsonNoStore({ error: 'CAPTCHA verification is temporarily unavailable. Please try again or email us directly.' }, 503)
   }
 
   try {

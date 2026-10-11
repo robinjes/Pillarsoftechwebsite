@@ -23,9 +23,8 @@ const workLinks: NavigationLink[] = [
 ]
 
 const supportLinks: NavigationLink[] = [
-  { label: 'Fundraiser', href: '/fundraiser' },
+  { label: 'Donate', href: '/fundraiser' },
   { label: 'Wishlist', href: '/wishlist' },
-  { label: 'Donate', href: 'https://hcb.hackclub.com/donations/start/pillars-of-tech', external: true },
   { label: 'Transparent Finances', href: 'https://hcb.hackclub.com/pillars-of-tech/transactions', external: true },
 ]
 
