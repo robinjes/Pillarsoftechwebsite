@@ -10,7 +10,8 @@ import AltamontEventStory from '@/components/AltamontEventStory'
 import type { PublicEvent } from '@/lib/content-contracts'
 import { eventMediaSource, resolveEventImageAlt } from '@/lib/event-media'
 import { toYouTubeEmbedUrl } from '@/lib/event-utils'
-import { careerPanelAgenda, publicEventLocation } from '@/lib/career-panel-details'
+import { publicEventLocation } from '@/lib/career-panel-details'
+import CareerPanelPage from '@/components/CareerPanelPage'
 
 function localAsset(value?: string | null): string | null {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return null
@@ -283,6 +284,10 @@ export default function EventPage() {
   const registrationHref = `/register/${event.slug || event.id}`
   const volunteerHref = `/volunteer?eventId=${encodeURIComponent(event.slug || event.id)}`
 
+  if (event.id === 'career-panel-granada' && isCurrent) {
+    return <CareerPanelPage event={event} />
+  }
+
   return (
     <main className="min-h-screen bg-[var(--cream)] px-4 pb-20 pt-6 text-[var(--ink)] sm:px-6 sm:pt-8 lg:px-8">
       <div className="mx-auto max-w-7xl">
@@ -350,14 +355,6 @@ export default function EventPage() {
           </div>
         </section>
 
-        {event.id === 'career-panel-granada' && isCurrent ? (
-          <section className="mt-8 rounded-2xl border border-[var(--cobalt)]/30 bg-[var(--sky)] p-6 sm:p-8" aria-labelledby="panelists-announcement-heading">
-            <p className="text-sm font-semibold text-[var(--cobalt)]">Stay tuned!</p>
-            <h2 id="panelists-announcement-heading" className="mt-2 font-display text-2xl text-[var(--midnight)] sm:text-3xl">We’ll be revealing our panelists soon!</h2>
-            <p className="mt-3 max-w-3xl text-base leading-7 text-[var(--ink)]">Our panelists represent every STEM field, including professionals from NASA, Sandia National Laboratories, and Lawrence Livermore National Laboratory (LLNL). Stay tuned to meet the people joining our Career Panel!</p>
-          </section>
-        ) : null}
-
         <div className="grid gap-12 border-b border-[var(--ink)]/35 py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:gap-16">
           <article className="max-w-3xl">
             <p className="text-sm font-semibold text-[var(--cobalt)]">{isCurrent ? 'Event overview' : 'What participants practiced'}</p>
@@ -365,28 +362,6 @@ export default function EventPage() {
             {event.id === 'family-science-night-altamont' ? <AltamontEventStory description={event.description} /> : <div className="mt-7 space-y-6 text-base leading-8 text-[var(--ink)]/85">
               {eventParagraphs.map((paragraph, index) => <p key={`${paragraph.slice(0, 24)}-${index}`} className={index === 0 ? 'text-lg leading-8 text-[var(--midnight)]' : undefined}>{paragraph}</p>)}
             </div>}
-            {event.id === 'career-panel-granada' && isCurrent ? (
-              <div className="mt-8 space-y-10">
-                <section className="rounded-2xl border border-[var(--ink)]/20 bg-[var(--paper)] p-6" aria-labelledby="career-panel-audience-heading">
-                  <h3 id="career-panel-audience-heading" className="font-display text-2xl text-[var(--midnight)]">Who it’s for</h3>
-                  <p className="mt-3 text-base leading-7">High school students curious about STEM careers, and 8th graders who want to get a head start. Hear from professionals, explore different career paths, and bring your questions!</p>
-                </section>
-                <section aria-labelledby="career-panel-agenda-heading">
-                  <h3 id="career-panel-agenda-heading" className="font-display text-3xl text-[var(--midnight)]">Agenda</h3>
-                  <ol className="mt-5 divide-y divide-[var(--ink)]/20 border-y border-[var(--ink)]/20">
-                    {careerPanelAgenda.map((item) => (
-                      <li key={item.title} className="grid gap-2 py-5 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-5">
-                        <p className="font-bold text-[var(--cobalt)]">{item.time}</p>
-                        <div>
-                          <h4 className="text-lg font-bold text-[var(--midnight)]">{item.title}</h4>
-                          <p className="mt-1 text-base leading-7 text-[var(--ink)]/85">{item.description}</p>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
-                </section>
-              </div>
-            ) : null}
           </article>
 
           <aside className="h-fit border-t border-[var(--ink)] pt-5 lg:border-l lg:border-t-0 lg:pl-6">
