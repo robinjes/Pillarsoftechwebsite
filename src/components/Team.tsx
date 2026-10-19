@@ -18,9 +18,9 @@ const teamMembers: TeamMember[] = [
   { name: 'Rahul Eapen', position: 'Vice President', image: '/rahul.jpg' },
   { name: 'Jaden Jirasevijinda', position: 'Vice President', image: '/images/team/jaden.jpg', portraitPosition: 'center 50%' },
   { name: 'Rohan Munagapati', position: 'Vice President', image: '/rohan.jpg', portraitClassName: 'scale-[1.6] origin-[center_75%]' },
+  { name: 'Arya Rajavelu', position: 'Director of Regional Operations', image: '/arya.jpg' },
   { name: 'Michael Nolan McClung', position: 'Graphics Design Lead', image: '/nolan.jpg' },
   { name: 'Nikhil Madineni', position: 'Member', image: '/nikhil.jpg' },
-  { name: 'Arya Rajavelu', position: 'Member', image: '/arya.jpg' },
 ]
 
 const teamJoinUrl = 'https://forms.gle/XqeKkMF4cj5W62yL9'

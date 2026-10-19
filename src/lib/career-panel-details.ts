@@ -59,6 +59,22 @@ export const careerPanelists: CareerPanelist[] = [
     bio: 'Mark Dedon is a conservation pilot, a retired principal planner and wildlife biologist for Pacific Gas and Electric, and a volunteer pilot for LightHawk. Over his career, he has flown small aircraft to support environmental and wildlife efforts—such as transporting an endangered California condor for emergency medical treatment—as well as conducting aerial surveys and wildlife tracking.',
   },
   {
+    id: 'roger-aines',
+    photo: '/images/events/career-panel-granada/panelists/roger-aines.avif',
+    name: 'Roger Aines',
+    initials: 'RA',
+    role: 'Energy Program Chief Scientist, Lawrence Livermore National Laboratory',
+    bio: 'Dr. Roger Aines is the Energy Program Chief Scientist at Lawrence Livermore National Laboratory, where he founded the lab’s Carbon Initiative to develop technologies that remove carbon dioxide from the atmosphere. He earned his PhD in Geochemistry from Caltech and has worked at LLNL since 1984, from nuclear waste disposal to carbon capture. He recently served as the Department of Energy’s Senior Advisor for Carbon Dioxide Removal, helping lead the national Carbon Negative Earthshot. With Amy Aines, he co-wrote Championing Science, a book that helps scientists communicate their work to decision makers.',
+  },
+  {
+    id: 'joel-bowers',
+    photo: '/images/events/career-panel-granada/panelists/joel-bowers.png',
+    name: 'Joel Bowers',
+    initials: 'JB',
+    role: 'Retired Engineering Leader & Systems Expert',
+    bio: 'Joel Bowers is a retired engineering leader whose career included work with the Livermore National Laboratory, where he led large engineering teams and operations. His expertise spans systems design, manufacturing, and safety—skills that turn big ideas into real, working technology. Over his career, he has helped teams bring complex engineering projects from design all the way through to operation. Today, Joel volunteers with Quest Science Center, where he supports students as they explore STEM pathways and plan their futures.',
+  },
+  {
     id: 'randy-simpson',
     photo: '/images/events/career-panel-granada/panelists/randy-simpson.avif',
     name: 'Randy Simpson',

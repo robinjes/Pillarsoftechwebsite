@@ -50,14 +50,19 @@ describe('Career Panel page', () => {
     expect(screen.getByRole('link', { name: 'Volunteer at this event' })).toHaveAttribute('href', '/volunteer?eventId=career-panel-granada')
   })
 
-  it('shows all seven profiles while letting readers expand and collapse individual bios', async () => {
+  it('shows all nine profiles while letting readers expand and collapse individual bios', async () => {
     await renderPage()
     const panelists = screen.getByRole('region', { name: 'Meet the panelists' })
     const profiles = within(panelists).getAllByRole('listitem')
-    expect(profiles).toHaveLength(7)
+    expect(profiles).toHaveLength(9)
     for (const [index, profile] of profiles.entries()) {
       expect(within(profile).getByText(careerPanelists[index].name)).toBeVisible()
-      expect(profile.querySelector('img')).toHaveAttribute('src', careerPanelists[index].photo)
+      if (careerPanelists[index].photo) {
+        expect(profile.querySelector('img')).toHaveAttribute('src', careerPanelists[index].photo)
+      } else {
+        expect(profile.querySelector('img')).toBeNull()
+        expect(within(profile).getByText(careerPanelists[index].initials)).toBeVisible()
+      }
       expect(within(profile).getByText(careerPanelists[index].bio)).not.toBeVisible()
     }
     const firstProfile = profiles[0]
