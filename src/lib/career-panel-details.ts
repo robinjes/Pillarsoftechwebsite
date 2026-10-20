@@ -91,10 +91,18 @@ export function publicEventLocation(event: Pick<PublicEvent, 'id' | 'location'>)
 }
 
 export const careerPanelAgenda = [
-  { time: '5:30–5:40 PM', title: 'Welcome & Introduction', description: 'Kick off the evening with an overview of the event and meet the panelists.' },
-  { time: '5:40–6:25 PM', title: 'Panel 1', description: 'Panelists share their career paths, lessons learned, and advice, followed by audience Q&A.' },
-  { time: '6:25–6:45 PM', title: 'Interactive Activity', description: 'A hands-on group activity to get everyone moving and connecting.' },
-  { time: '6:45–7:30 PM', title: 'Panel 2', description: 'Our second group of panelists shares their journeys, followed by audience Q&A.' },
-  { time: '7:30–7:40 PM', title: 'Final Thoughts', description: 'Closing remarks and key takeaways from the evening.' },
-  { time: '7:40–8:30 PM', title: 'Networking & Social', description: 'Stay to meet the panelists, ask your questions one-on-one, and connect with other attendees.' },
+  { time: '5:30–5:45 PM', title: 'Welcome & Opening Remarks', description: 'Kick off the evening with an overview of the event and meet the panelists.' },
+  {
+    time: '5:45–6:45 PM',
+    title: 'Panel 1: Discovering Your Path & The Scientific Horizon',
+    panelists: 'Matthew Johnson, Anna Winter, Mark Dedon, Randy Simpson, Joel Bowers',
+    description: 'This session focuses on the real-world reality of scientific research, field work, and technical discovery. Panelists will share their individual academic pathways, the "spark" that drew them to their fields, and what a day in the life of a scientist or researcher actually looks like beyond textbooks. We will discuss how to handle experimental setbacks, the importance of curiosity, and emerging frontiers in earth science, atmospheric research, conservation, climate technology, and national security.',
+  },
+  {
+    time: '6:45–7:45 PM',
+    title: 'Panel 2: Building Your Future: Career Strategy, Innovation & Impact',
+    panelists: 'Amy Aines, Yolanda Fintschenko, Roger Aines, Russ Walsh',
+    description: 'This session focuses on translating technical passion into real-world influence and career success. Panelists will share insights on scientific communication, taking discoveries from the lab to market, entrepreneurship, and leadership. We will dive into essential soft skills—such as public speaking, storytelling, and adaptability—that make young applicants stand out, as well as strategies for finding mentors and navigating long-term career choices in STEM.',
+  },
+  { time: '7:45–8:30 PM', title: 'Open Q&A & Informal Connections', description: 'Ask your questions and connect with the panelists and other attendees.' },
 ]

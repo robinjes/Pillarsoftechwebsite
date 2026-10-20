@@ -100,7 +100,6 @@ describe('stakeholder support and policy polish', () => {
       'A student presents a project to seated judges at Wildcat Tank.',
       'Students and volunteers gather outdoors for the Pedrozzi CONNECT egg-drop activity.',
       'A student volunteer guides two younger students with a robot controller.',
-      'Seven student volunteers pose outdoors; one holds a small drone and controller.',
       'A young participant holds a controller beside a VEX robot.',
       'A student volunteer prepares an outdoor activity table in late-afternoon light.',
     ]) {

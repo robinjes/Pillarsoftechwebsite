@@ -79,7 +79,7 @@ describe('stakeholder interaction polish', () => {
       ['Rohan Munagapati', 'Vice President', '/rohan.jpg'],
       ['Michael Nolan McClung', 'Graphics Design Lead', '/nolan.jpg'],
       ['Nikhil Madineni', 'Member', '/nikhil.jpg'],
-      ['Arya Rajavelu', 'Member', '/arya.jpg'],
+      ['Arya Rajavelu', 'Director of Regional Operations', '/arya.jpg'],
     ]) {
       expect(team).toContain(member[0])
       expect(team).toContain(member[1])
@@ -97,13 +97,14 @@ describe('stakeholder interaction polish', () => {
   it('keeps the contact header compact and preserves email and form access', () => {
     expect(contactRoute).not.toContain('pt-16')
     expect(contact).not.toContain('Start a conversation')
-    expect(contact).toContain('underline-offset-2')
+    expect(contact).toContain('underline-offset-4')
     expect(contact).not.toContain('Bring the idea, question, or next practical step.')
     expect(contact).toContain("fetch('/api/contact'")
     expect(contact).toContain('id="contact-form"')
     expect(contact).not.toMatch(/live chat/i)
     expect(contact).toContain('pillarsoftech@gmail.com')
-    expect(contact).toContain('Open Email Form')
+    expect(contact).toContain('Prefer email?')
+    expect(contact).not.toContain('Open Email Form')
     expect(contact).toContain('Send Message')
   })
 })

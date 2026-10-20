@@ -29,13 +29,15 @@ describe('action and support route visual contracts', () => {
     expect(routes.faq).toContain('/images/events/family-science-night/IMG_6049.jpg')
     expect(routes.faq).toContain('/images/events/foil-boat-stockmens/drive-03.webp')
     expect(routes.faq).toContain('/images/events/wildcat-tank-altamont/drive-03.webp')
-    expect(routes.contact).toContain('/images/events/pedrozzi-connect-egg-drop/drive-04.webp')
-    expect(routes.contact).toContain('Seven student volunteers pose outdoors')
+    expect(routes.contact).toContain('id="contact-form"')
+    expect(routes.contact).not.toContain('<Image')
 
     for (const source of Object.values(routes)) {
       expect(source).not.toContain('text-[6.8rem]')
       expect(source).not.toContain('border-l-4')
-      expect(source).toContain('next/image')
+    }
+    for (const [route, source] of Object.entries(routes)) {
+      if (route !== 'contact') expect(source).toContain('next/image')
     }
 
     for (const route of ['fundraiser', 'wishlist', 'newsletter'] as const) {
@@ -47,7 +49,7 @@ describe('action and support route visual contracts', () => {
     expect(routes.newsletter).toContain('Open The Signup Form')
   })
 
-  it('keeps designated route photography unique and preserves the Contact photo contract', () => {
+  it('keeps designated route photography unique and the Contact form before supporting details', () => {
     const about = readSource('components/About.tsx')
     const team = readSource('components/Team.tsx')
     const volunteer = readSource('app/volunteer/page.tsx')
@@ -75,8 +77,10 @@ describe('action and support route visual contracts', () => {
     const designatedSources = [about, team, volunteer, fundraiser, wishlist, newsletter, faq].join('\n')
     for (const photo of designatedPhotos) expect(designatedSources).toContain(photo)
 
-    expect(contact).toContain('/images/events/pedrozzi-connect-egg-drop/drive-04.webp')
-    expect(contact).toContain('Seven student volunteers pose outdoors; one holds a small drone and controller.')
+    expect(contact).not.toContain('<Image')
+    expect(contact).toContain('id="contact-form"')
+    expect(contact.indexOf('id="contact-form"')).toBeLessThan(contact.indexOf('Conversation starters'))
+    expect(contact).toContain('Prefer email?')
     expect(contact).not.toContain('Bring the idea, question, or next practical step.')
   })
 
