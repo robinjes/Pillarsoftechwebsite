@@ -13,6 +13,7 @@ import {
   MapPinned,
   Mail,
   Menu,
+  MessageCircleQuestion,
   Settings,
   ShieldCheck,
   Users,
@@ -35,6 +36,7 @@ const navItems: NavItem[] = [
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Forms', href: '/admin/forms', icon: FileText },
   { name: 'Contact', href: '/admin/contact', icon: Mail },
+  { name: 'Q&A', href: '/admin/qna', icon: MessageCircleQuestion },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
