@@ -30,7 +30,7 @@ const currentYear = new Date().getFullYear()
 export default function Footer() {
   const pathname = usePathname()
 
-  if (pathname.startsWith('/admin') || pathname.startsWith('/volunteer/checkin')) {
+  if (pathname.startsWith('/admin') || pathname.startsWith('/volunteer/checkin') || pathname === '/qna') {
     return null
   }
 
