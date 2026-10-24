@@ -14,6 +14,7 @@ import {
   Plus,
   Radio,
   RotateCcw,
+  Square,
   Star,
   ThumbsUp,
   Unlock,
@@ -23,11 +24,13 @@ import {
   QNA_TITLE_MAX,
   sortQnaQuestions,
   type QnaAdminQuestion,
+  type QnaAdminSession,
   type QnaAdminSnapshot,
   type QnaQuestionStatus,
   type QnaSort,
 } from '@/lib/qna-contracts'
 
+import QnaPastSessions from './QnaPastSessions'
 import QnaPresenter from './QnaPresenter'
 import { timeAgo, usePolling } from './qna-client'
 
@@ -40,7 +43,7 @@ const buttonClass =
 const primaryButton = `${buttonClass} border-midnight bg-midnight text-warm hover:bg-cobalt`
 const secondaryButton = `${buttonClass} border-midnight/40 bg-warm text-midnight hover:border-midnight`
 
-async function send(url: string, method: 'POST' | 'PATCH', body: unknown) {
+async function send(url: string, method: 'POST' | 'PATCH' | 'DELETE', body: unknown) {
   const response = await fetch(url, {
     method,
     cache: 'no-store',
@@ -54,7 +57,6 @@ async function send(url: string, method: 'POST' | 'PATCH', body: unknown) {
 
 export default function QnaHost() {
   const [snapshot, setSnapshot] = useState<QnaAdminSnapshot | null>(null)
-  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [filter, setFilter] = useState<Filter>('live')
@@ -69,24 +71,17 @@ export default function QnaHost() {
   const load = useCallback(async () => {
     setNow(Date.now())
     try {
-      const query = selectedId ? `?sessionId=${encodeURIComponent(selectedId)}` : ''
-      const response = await fetch(`/api/admin/qna${query}`, { cache: 'no-store' })
+      const response = await fetch('/api/admin/qna', { cache: 'no-store' })
       const result = (await response.json().catch(() => ({}))) as QnaAdminSnapshot & { error?: string; message?: string }
       if (!response.ok) throw new Error(result.message || result.error || 'Q&A could not be loaded.')
       setSnapshot(result)
       setError('')
-      if (!selectedId && result.selectedSessionId) setSelectedId(result.selectedSessionId)
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Q&A could not be loaded.')
     }
-  }, [selectedId])
+  }, [])
 
   usePolling(load, POLL_MS)
-
-  // Switching sessions should not wait for the next poll.
-  useEffect(() => {
-    if (selectedId) void load()
-  }, [selectedId, load])
 
   useEffect(() => {
     const url = `${window.location.origin}/qna`
@@ -96,8 +91,9 @@ export default function QnaHost() {
       .catch(() => setQrDataUrl(''))
   }, [])
 
-  const session = snapshot?.sessions.find((item) => item.id === snapshot.selectedSessionId) ?? null
-  const questions = snapshot && session && snapshot.selectedSessionId === session.id ? snapshot.questions : []
+  const session = snapshot?.sessions.find((item) => item.id === snapshot.currentSessionId) ?? null
+  const pastSessions = snapshot?.sessions.filter((item) => item.id !== snapshot.currentSessionId) ?? []
+  const questions = session && snapshot ? snapshot.questions : []
   const counts = {
     live: questions.filter((question) => question.status === 'live').length,
     answered: questions.filter((question) => question.status === 'answered').length,
@@ -126,14 +122,33 @@ export default function QnaHost() {
   const setStatus = (question: QnaAdminQuestion, status: QnaQuestionStatus) =>
     run(() => send('/api/admin/qna/questions', 'PATCH', { questionId: question.id, status }))
 
+  function endSession() {
+    if (!session) return
+    if (!window.confirm(`End "${session.title}"?\n\nQuestions close, /qna goes back to "not started", and this session moves to Past sessions. You can make it live again later.`)) return
+    setPresenting(false)
+    void updateSession({ acceptingQuestions: false, highlightedQuestionId: null, isCurrent: false })
+  }
+
+  function makeLive(past: QnaAdminSession) {
+    const replacing = session ? `\n\n"${session.title}" is live now and will move to Past sessions.` : ''
+    if (!window.confirm(`Make "${past.title}" live on /qna again and reopen questions?${replacing}`)) return
+    void run(() => send('/api/admin/qna', 'PATCH', { sessionId: past.id, isCurrent: true, acceptingQuestions: true }))
+  }
+
+  function deleteSession(past: QnaAdminSession) {
+    const count = `${past.questionCount} ${past.questionCount === 1 ? 'question' : 'questions'}`
+    if (!window.confirm(`Permanently delete "${past.title}" and its ${count}?\n\nThis cannot be undone.`)) return
+    void run(() => send('/api/admin/qna', 'DELETE', { sessionId: past.id }))
+  }
+
   function createSession(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const title = newTitle.trim()
     if (!title) return
+    if (session && !window.confirm(`Start "${title}"?\n\n"${session.title}" is live now and will move to Past sessions.`)) return
     void run(async () => {
-      const result = await send('/api/admin/qna', 'POST', { title, makeCurrent: true })
+      await send('/api/admin/qna', 'POST', { title, makeCurrent: true })
       setNewTitle('')
-      if (result.id) setSelectedId(result.id)
     })
   }
 
@@ -166,55 +181,45 @@ export default function QnaHost() {
 
       <div className="grid gap-6 lg:grid-cols-[1fr_18rem]">
         <section className="border border-midnight/25 bg-warm p-5" aria-labelledby="qna-session-heading">
-          <h2 id="qna-session-heading" className="font-display text-lg font-semibold text-midnight">Session</h2>
+          <h2 id="qna-session-heading" className="font-display text-lg font-semibold text-midnight">Live session</h2>
 
-          {snapshot && snapshot.sessions.length > 0 ? (
+          {!snapshot ? <p className="mt-2 text-sm text-ink/70">Loading…</p> : null}
+
+          {snapshot && session ? (
             <div className="mt-3 flex flex-col gap-3">
-              <label className="text-sm font-semibold text-ink/80" htmlFor="qna-session-select">Showing</label>
-              <select
-                id="qna-session-select"
-                value={snapshot.selectedSessionId ?? ''}
-                onChange={(event) => setSelectedId(event.target.value)}
-                className="min-h-10 border border-midnight/30 bg-white/70 px-3 text-base"
-              >
-                {snapshot.sessions.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.title}{item.isCurrent ? ' (live on /qna)' : ''}
-                  </option>
-                ))}
-              </select>
-
-              {session ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  {session.isCurrent ? (
-                    <span className="inline-flex min-h-10 items-center gap-2 border border-green-800/40 bg-green-50 px-3 text-sm font-bold text-green-900">
-                      <Radio className="h-4 w-4" aria-hidden="true" /> Live on /qna
-                    </span>
-                  ) : (
-                    <button type="button" className={primaryButton} disabled={busy} onClick={() => updateSession({ isCurrent: true })}>
-                      <Radio className="h-4 w-4" aria-hidden="true" /> Show on /qna
-                    </button>
-                  )}
-                  {session.acceptingQuestions ? (
-                    <button type="button" className={secondaryButton} disabled={busy} onClick={() => updateSession({ acceptingQuestions: false })}>
-                      <Lock className="h-4 w-4" aria-hidden="true" /> Close questions
-                    </button>
-                  ) : (
-                    <button type="button" className={secondaryButton} disabled={busy} onClick={() => updateSession({ acceptingQuestions: true })}>
-                      <Unlock className="h-4 w-4" aria-hidden="true" /> Reopen questions
-                    </button>
-                  )}
-                  {session.isCurrent ? (
-                    <button type="button" className={secondaryButton} disabled={busy} onClick={() => updateSession({ isCurrent: false })}>
-                      Take off /qna
-                    </button>
-                  ) : null}
-                </div>
-              ) : null}
+              <div>
+                <p className="font-display text-2xl font-semibold tracking-[-0.02em] text-midnight">{session.title}</p>
+                <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+                  <span className="inline-flex items-center gap-1.5 border border-green-800/40 bg-green-50 px-2 py-0.5 font-bold text-green-900">
+                    <Radio className="h-3.5 w-3.5" aria-hidden="true" /> Live on /qna
+                  </span>
+                  <span className={`border px-2 py-0.5 font-bold ${session.acceptingQuestions ? 'border-midnight/30 text-midnight' : 'border-red-800/40 bg-red-50 text-red-900'}`}>
+                    {session.acceptingQuestions ? 'Questions open' : 'Questions closed'}
+                  </span>
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                {session.acceptingQuestions ? (
+                  <button type="button" className={secondaryButton} disabled={busy} onClick={() => updateSession({ acceptingQuestions: false })}>
+                    <Lock className="h-4 w-4" aria-hidden="true" /> Close questions
+                  </button>
+                ) : (
+                  <button type="button" className={secondaryButton} disabled={busy} onClick={() => updateSession({ acceptingQuestions: true })}>
+                    <Unlock className="h-4 w-4" aria-hidden="true" /> Reopen questions
+                  </button>
+                )}
+                <button type="button" className={`${secondaryButton} border-red-900/50 text-red-900 hover:border-red-900`} disabled={busy} onClick={endSession}>
+                  <Square className="h-4 w-4" aria-hidden="true" /> End session
+                </button>
+              </div>
             </div>
-          ) : (
-            <p className="mt-2 text-sm text-ink/70">{snapshot ? 'No sessions yet. Create one to open /qna.' : 'Loading…'}</p>
-          )}
+          ) : null}
+
+          {snapshot && !session ? (
+            <p className="mt-2 text-sm leading-6 text-ink/70">
+              Nothing is live. Anyone opening /qna sees &ldquo;not started yet&rdquo;. Start a new session below, or make a past one live again.
+            </p>
+          ) : null}
 
           <form onSubmit={createSession} className="mt-5 flex flex-col gap-2 border-t border-midnight/15 pt-4 sm:flex-row">
             <label htmlFor="qna-new-session" className="sr-only">New session title</label>
@@ -226,7 +231,7 @@ export default function QnaHost() {
               placeholder="New session title, e.g. Career Panel 2026"
               className="min-h-10 flex-1 border border-midnight/30 bg-white/70 px-3 text-base"
             />
-            <button type="submit" className={secondaryButton} disabled={busy || !newTitle.trim()}>
+            <button type="submit" className={session ? secondaryButton : primaryButton} disabled={busy || !newTitle.trim()}>
               <Plus className="h-4 w-4" aria-hidden="true" /> Create and go live
             </button>
           </form>
@@ -344,6 +349,16 @@ export default function QnaHost() {
             <p className="border border-dashed border-midnight/30 p-6 text-center text-ink/65">No {filter} questions.</p>
           ) : null}
         </section>
+      ) : null}
+
+      {snapshot ? (
+        <QnaPastSessions
+          sessions={pastSessions}
+          busy={busy}
+          buttonClass={secondaryButton}
+          onMakeLive={makeLive}
+          onDelete={deleteSession}
+        />
       ) : null}
 
       {presenting && session ? (

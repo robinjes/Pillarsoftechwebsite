@@ -10,6 +10,8 @@ const {
   getPublicQnaSnapshotMock,
   requireVerifiedStaffMock,
   updateQnaQuestionStatusMock,
+  deleteQnaSessionMock,
+  getAdminSessionQuestionsMock,
 } = vi.hoisted(() => ({
   allowQnaActionMock: vi.fn(),
   submitQnaQuestionMock: vi.fn(),
@@ -17,14 +19,20 @@ const {
   getPublicQnaSnapshotMock: vi.fn(),
   requireVerifiedStaffMock: vi.fn(),
   updateQnaQuestionStatusMock: vi.fn(),
+  deleteQnaSessionMock: vi.fn(),
+  getAdminSessionQuestionsMock: vi.fn(),
 }))
 
 vi.mock('server-only', () => ({}))
 vi.mock('@/lib/auth/server', () => ({ requireVerifiedStaff: requireVerifiedStaffMock }))
 vi.mock('@/lib/qna-server', async () => {
   class QnaNotFoundError extends Error {}
+  class QnaConflictError extends Error {}
   return {
     QnaNotFoundError,
+    QnaConflictError,
+    deleteQnaSession: deleteQnaSessionMock,
+    getAdminSessionQuestions: getAdminSessionQuestionsMock,
     allowQnaAction: allowQnaActionMock,
     submitQnaQuestion: submitQnaQuestionMock,
     setQnaUpvote: setQnaUpvoteMock,
@@ -40,7 +48,8 @@ vi.mock('@/lib/qna-server', async () => {
 import { GET as getSnapshot } from '@/app/api/qna/route'
 import { POST as postQuestion } from '@/app/api/qna/questions/route'
 import { POST as postUpvote } from '@/app/api/qna/questions/[id]/upvote/route'
-import { PATCH as patchAdminQuestion } from '@/app/api/admin/qna/questions/route'
+import { GET as getAdminQuestions, PATCH as patchAdminQuestion } from '@/app/api/admin/qna/questions/route'
+import { DELETE as deleteAdminSession } from '@/app/api/admin/qna/route'
 import { metadata as qnaMetadata } from '@/app/qna/page'
 import robots from '@/app/robots'
 import { qnaQuestionSubmissionSchema, sortQnaQuestions } from '@/lib/qna-contracts'
@@ -165,6 +174,40 @@ describe('Q&A host routes', () => {
     const response = await patchAdminQuestion(request)
     expect(response.status).toBe(401)
     expect(updateQnaQuestionStatusMock).not.toHaveBeenCalled()
+  })
+
+  it('deletes only ended sessions, and only for staff', async () => {
+    const sessionId = '00000000-0000-4000-8000-0000000000a1'
+    const request = () => new Request('https://pillarsoftech.org/api/admin/qna', {
+      method: 'DELETE',
+      headers: { 'content-type': 'application/json', origin: 'https://pillarsoftech.org' },
+      body: JSON.stringify({ sessionId }),
+    })
+
+    requireVerifiedStaffMock.mockResolvedValue({ ok: false, code: 'not_staff', status: 403, message: 'Not staff.' })
+    expect((await deleteAdminSession(request())).status).toBe(403)
+    expect(deleteQnaSessionMock).not.toHaveBeenCalled()
+
+    requireVerifiedStaffMock.mockResolvedValue({ ok: true, isStaff: true, user: { id: 'staff-1' } })
+    deleteQnaSessionMock.mockResolvedValueOnce(undefined)
+    expect((await deleteAdminSession(request())).status).toBe(200)
+    expect(deleteQnaSessionMock).toHaveBeenCalledWith(sessionId)
+
+    const { QnaConflictError } = await import('@/lib/qna-server')
+    deleteQnaSessionMock.mockRejectedValueOnce(new QnaConflictError('End the session before deleting it.'))
+    const live = await deleteAdminSession(request())
+    expect(live.status).toBe(409)
+    expect(await live.json()).toEqual({ error: 'End the session before deleting it.' })
+  })
+
+  it('loads a past session\'s questions for staff', async () => {
+    requireVerifiedStaffMock.mockResolvedValue({ ok: true, isStaff: true, user: { id: 'staff-1' } })
+    getAdminSessionQuestionsMock.mockResolvedValueOnce([])
+    const ok = await getAdminQuestions(new Request('https://pillarsoftech.org/api/admin/qna/questions?sessionId=00000000-0000-4000-8000-0000000000a1'))
+    expect(await ok.json()).toEqual({ questions: [] })
+
+    const bad = await getAdminQuestions(new Request('https://pillarsoftech.org/api/admin/qna/questions?sessionId=nope'))
+    expect(bad.status).toBe(400)
   })
 })
 
