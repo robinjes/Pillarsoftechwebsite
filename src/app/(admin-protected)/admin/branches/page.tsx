@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 
 import {
   branchDocumentSchema,
@@ -118,6 +119,7 @@ export default function AdminBranches() {
       <div>
         <h1 className="text-3xl font-bold">Branches</h1>
         <p className="mt-1 max-w-3xl text-sm text-blue-200">Edit typed branch packets. Georgia stays an empty, unpublished draft until every approved field, photo description, and owner review marker is present.</p>
+        <Link href="/admin/branches/georgia-preview" className="mt-3 inline-flex min-h-11 items-center font-semibold text-sky underline">Review Georgia page design (private draft)</Link>
       </div>
 
       {message && <p role="status" className="rounded-lg border border-emerald-400/30 bg-emerald-400/10 p-3 text-emerald-100">{message}</p>}

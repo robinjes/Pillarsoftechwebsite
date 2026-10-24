@@ -96,6 +96,10 @@ media operations. Discord live-chat integration is not part of this preview.
 The Georgia page deliberately returns the friendly not-found page until a
 complete, approved, safe-for-public Georgia content packet is published.
 
+Verified staff can review a photo-free Georgia launch design at
+`/admin/branches/georgia-preview`, also linked from the branch editor. This is
+a private design draft; viewing it does not save or publish branch content.
+
 ## Optional: configure database-backed features
 
 Only the repository owner or an authorized developer should do this. Never ask

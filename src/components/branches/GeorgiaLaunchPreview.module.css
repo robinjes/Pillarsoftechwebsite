@@ -1,0 +1,237 @@
+.page {
+  color: var(--ink);
+  background: var(--paper);
+  overflow-wrap: anywhere;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.8fr);
+  align-items: center;
+  gap: clamp(2rem, 4vw, 4rem);
+  padding: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.introduction {
+  min-width: 0;
+}
+
+.headline {
+  margin: 0;
+  font-size: clamp(2.5rem, 4.5vw, 4.75rem);
+  font-weight: 600;
+}
+
+.headline span {
+  display: block;
+}
+
+.lead {
+  max-width: 49ch;
+  margin: 1.75rem 0 0;
+  font-size: 1.125rem;
+  line-height: 1.65;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem 1.5rem;
+  margin-top: 2rem;
+}
+
+.textLink {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
+.textLink svg,
+.contactButton svg {
+  flex-shrink: 0;
+}
+
+.textLink:hover {
+  text-decoration-thickness: 3px;
+}
+
+.poster {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  min-height: 390px;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 2px solid var(--navy-950);
+  border-radius: 1rem;
+  background: var(--sky);
+  box-shadow: 8px 8px 0 var(--navy-950);
+}
+
+.posterBrand {
+  font-family: var(--font-display-stack);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.monogram {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  padding-block: 1.5rem;
+  font-family: var(--font-display-stack);
+  font-size: clamp(6rem, 13vw, 11rem);
+  font-weight: 600;
+  letter-spacing: -0.08em;
+  line-height: 1;
+}
+
+.dot {
+  width: 0.13em;
+  height: 0.13em;
+  margin-left: 0.08em;
+  border-radius: 50%;
+  background: var(--navy-950);
+}
+
+.posterCaption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--navy-950);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.status {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.3fr);
+  gap: 1rem 3rem;
+  align-items: start;
+  padding: 2rem clamp(1.5rem, 4vw, 3.5rem);
+  background: var(--sky);
+}
+
+.status h2 {
+  margin: 0;
+  font-size: 1.65rem;
+  font-weight: 600;
+}
+
+.status p {
+  margin: 0;
+  max-width: 60ch;
+}
+
+.involvement {
+  padding: clamp(2.5rem, 5vw, 4rem) clamp(1.5rem, 4vw, 3.5rem);
+  scroll-margin-top: 7rem;
+}
+
+.sectionHeading {
+  margin: 0 0 2rem;
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 600;
+}
+
+.invitations {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.invitation {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 1rem 2rem;
+  align-items: center;
+  padding-block: 1.75rem;
+  border-top: 1px solid var(--navy-950);
+}
+
+.invitation h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+.invitation p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.invitation a {
+  justify-self: end;
+  font-size: 1rem;
+}
+
+.contact {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: clamp(2rem, 4vw, 3.5rem);
+  color: var(--paper);
+  background: var(--navy-950);
+}
+
+.contact > div {
+  flex: 1 1 350px;
+}
+
+.contact h2 {
+  margin: 0;
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  font-weight: 500;
+}
+
+.contact p {
+  max-width: 52ch;
+  margin: 1rem 0 0;
+}
+
+.contactButton {
+  color: var(--navy-950);
+  background: var(--sky);
+}
+
+@media (max-width: 800px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .headline {
+    max-width: 16ch;
+    font-size: clamp(2.5rem, 7.5vw, 4rem);
+  }
+
+  .poster {
+    min-height: 0;
+  }
+
+  .monogram {
+    font-size: clamp(6rem, 23vw, 9rem);
+  }
+
+  .status,
+  .invitation {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .invitation {
+    gap: 0.5rem;
+  }
+
+  .invitation a {
+    justify-self: start;
+  }
+}
