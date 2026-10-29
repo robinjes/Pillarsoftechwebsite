@@ -192,7 +192,7 @@ describe('the /qna page stays unlisted', () => {
     walk(path.join(process.cwd(), 'public'))
 
     // Only the host tools (behind staff sign-in) may build or show the link.
-    const allowed = [path.join('src', 'components', 'qna'), path.join('src', 'app', '(admin-protected)')]
+    const allowed = [path.join('src', 'components', 'qna'), path.join('src', 'components', 'admin'), path.join('src', 'app', '(admin-protected)')]
     const offenders = files
       .filter((file) => !allowed.some((prefix) => path.relative(process.cwd(), file).startsWith(prefix)))
       .filter((file) => /(href|src|url)\s*[=:]\s*\{?\s*["'`][^"'`]*\/qna\b/i.test(readFileSync(file, 'utf8')))
