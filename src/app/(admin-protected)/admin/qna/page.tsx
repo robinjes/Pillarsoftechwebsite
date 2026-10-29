@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 
+import EventToolsTabs from '@/components/admin/EventToolsTabs'
 import QnaHost from '@/components/qna/QnaHost'
 
 export const metadata: Metadata = {
@@ -8,5 +9,10 @@ export const metadata: Metadata = {
 }
 
 export default function AdminQnaPage() {
-  return <QnaHost />
+  return (
+    <>
+      <EventToolsTabs />
+      <QnaHost />
+    </>
+  )
 }
