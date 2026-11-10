@@ -36,6 +36,25 @@ async function renderPage() {
 }
 
 describe('Career Panel page', () => {
+  it('shows the completed panel recording with a prominent subtitle and volume notice before the player', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [{
+      ...event,
+      status: 'completed',
+      volunteerRegistrationState: 'closed',
+      youtubeVideos: ['https://www.youtube.com/watch?v=y1XDEbn9zpk'],
+    }] }))
+    render(<EventPage />)
+    const recording = await screen.findByRole('region', { name: 'Watch the Career Panel' })
+    const notice = within(recording).getByRole('complementary', { name: 'Before you press play: turn on subtitles' })
+    const player = within(recording).getByTitle('Career Panel recording 1')
+    expect(notice).toHaveTextContent('Start with your volume low.')
+    expect(notice).toHaveTextContent('Subtitles may contain errors')
+    expect(notice.compareDocumentPosition(player) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(player).toHaveAttribute('src', 'https://www.youtube-nocookie.com/embed/y1XDEbn9zpk?cc_load_policy=1')
+    expect(within(recording).getByRole('link', { name: 'Watch on YouTube' })).toHaveAttribute('href', 'https://www.youtube.com/watch?v=y1XDEbn9zpk')
+    expect(screen.getAllByTitle('Career Panel recording 1')).toHaveLength(1)
+  })
+
   it('puts event essentials and a working free checkout before the panelist section', async () => {
     await renderPage()
     expect(screen.getByText('October 28, 2026')).toBeVisible()

@@ -7,6 +7,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Clock3, ExternalLink, FileText, MapPin, Play, X } from 'lucide-react'
 import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
 import AltamontEventStory from '@/components/AltamontEventStory'
+import EventMotionPhotos from '@/components/EventMotionPhotos'
 import type { PublicEvent } from '@/lib/content-contracts'
 import { eventMediaSource, resolveEventImageAlt } from '@/lib/event-media'
 import { toYouTubeEmbedUrl } from '@/lib/event-utils'
@@ -24,6 +25,18 @@ const archiveHeroFallbackAlt = 'A Pillars of Tech volunteer and participant oper
 
 function paragraphs(description: string): string[] {
   return description.split('\n\n').map((paragraph) => paragraph.trim()).filter(Boolean)
+}
+
+function linkedPartnerWebsites(text: string) {
+  const websites: Record<string, string> = {
+    'www.livermoregea.org': 'https://www.livermoregea.org/',
+    'diabetessmart.org': 'https://diabetessmart.org/',
+  }
+  return text.split(/(www\.livermoregea\.org|diabetessmart\.org)/g).map((part, index) => (
+    websites[part]
+      ? <a key={index} href={websites[part]} target="_blank" rel="noopener noreferrer" className="font-semibold text-[var(--cobalt)] underline underline-offset-4 hover:decoration-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4">{part}</a>
+      : part
+  ))
 }
 
 function participantState(event: PublicEvent): { label: string; tone: string; canRegister: boolean } {
@@ -123,6 +136,10 @@ export default function EventPage() {
     if (!event) return []
     return Array.from(new Set([event.image, ...(event.gallery || [])].map((image) => eventMediaSource(image)).filter((value): value is string => Boolean(value))))
   }, [event])
+  const motionPhotos = useMemo(() => {
+    if (!event || !['career-panel-granada', 'stem-into-the-night-2026'].includes(event.id)) return []
+    return Array.from(new Set((event.gallery ?? event.media.gallery ?? []).map((image) => eventMediaSource(image)).filter((value): value is string => Boolean(value))))
+  }, [event])
   const heroImage = heroImages[heroSlideIndex] || heroImages[0]
   const participant = event ? participantState(event) : null
   const volunteer = event ? volunteerState(event) : null
@@ -132,6 +149,8 @@ export default function EventPage() {
       .map((original) => ({ original, embed: toYouTubeEmbedUrl(original) }))
       .filter((video): video is { original: string; embed: string } => Boolean(video.embed))
   }, [event])
+  const hasCareerRecording = event?.id === 'career-panel-granada' && embedVideos.length > 0
+  const resourceVideos = hasCareerRecording ? [] : embedVideos
   const localPdf = localAsset(event?.pdfUrl)
   const localHeroVideo = eventMediaSource(event?.heroVideo, 'video')
   const heroImageToShow = heroImage || (event?.status === 'completed' ? archiveHeroFallback : null)
@@ -360,7 +379,7 @@ export default function EventPage() {
             <p className="text-sm font-semibold text-[var(--cobalt)]">{isCurrent ? 'Event overview' : 'What participants practiced'}</p>
             <h2 className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">{event.status === 'upcoming' ? 'What to expect' : isCurrent ? 'About this event' : 'What happened here'}</h2>
             {event.id === 'family-science-night-altamont' ? <AltamontEventStory description={event.description} /> : <div className="mt-7 space-y-6 text-base leading-8 text-[var(--ink)]/85">
-              {eventParagraphs.map((paragraph, index) => <p key={`${paragraph.slice(0, 24)}-${index}`} className={index === 0 ? 'text-lg leading-8 text-[var(--midnight)]' : undefined}>{paragraph}</p>)}
+              {eventParagraphs.map((paragraph, index) => <p key={`${paragraph.slice(0, 24)}-${index}`} className={index === 0 ? 'text-lg leading-8 text-[var(--midnight)]' : undefined}>{linkedPartnerWebsites(paragraph)}</p>)}
             </div>}
           </article>
 
@@ -395,12 +414,34 @@ export default function EventPage() {
           </section>
         ) : null}
 
+        {hasCareerRecording ? (
+          <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="career-recording-heading">
+            <h2 id="career-recording-heading" className="font-display text-4xl leading-tight text-[var(--midnight)]">Watch the Career Panel</h2>
+            <aside className="mt-6 rounded-2xl border-2 border-[var(--cobalt)] bg-[var(--midnight)] p-6 text-[var(--cream)] sm:p-8" aria-labelledby="recording-notice-heading">
+              <h3 id="recording-notice-heading" className="text-xl font-bold text-[var(--sky)] sm:text-2xl">Before you press play: turn on subtitles</h3>
+              <p className="mt-3 text-lg leading-8"><strong>Start with your volume low.</strong> Audio levels may vary throughout the recording, so adjust the volume carefully as you listen.</p>
+              <p className="mt-3 text-base leading-7">Use the <strong>CC / subtitles</strong> button in the player to help follow the discussion. Subtitles may contain errors, especially with names and technical terms.</p>
+            </aside>
+            <div className="mt-7 space-y-8">
+              {embedVideos.map((video, index) => (
+                <div key={video.original}>
+                  <div className="aspect-video overflow-hidden rounded-xl border border-[var(--ink)] bg-[var(--midnight)]">
+                    <iframe src={`${video.embed}${video.embed.includes('?') ? '&' : '?'}cc_load_policy=1`} loading="lazy" className="h-full w-full" title={`Career Panel recording ${index + 1}`} aria-describedby="recording-notice-heading" allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                  </div>
+                  <a href={video.original} target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-11 items-center gap-2 font-semibold text-[var(--cobalt)] underline underline-offset-4">Watch on YouTube <ExternalLink className="h-4 w-4" aria-hidden="true" /></a>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         {galleryImages.length > 0 ? (
           <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="gallery-heading">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div><p className="text-sm font-semibold text-[var(--cobalt)]">{isCurrent ? 'Event images' : 'Field images'}</p><h2 id="gallery-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">{isCurrent ? 'Event preview' : 'From the day'}</h2></div>
               <p className="text-sm text-[var(--ink)]/65">Select an image to enlarge it.</p>
             </div>
+            {motionPhotos.length > 0 ? <EventMotionPhotos images={motionPhotos} title={event.title} /> : null}
             <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {galleryImages.map((image, index) => (
                 <button key={image} type="button" onClick={(clickEvent) => { galleryTriggerRef.current = clickEvent.currentTarget; setGalleryActiveImage(image) }} className="group relative aspect-square overflow-hidden border border-[var(--ink)] bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]" aria-label={'Open event image ' + (index + 1)}>
@@ -411,7 +452,7 @@ export default function EventPage() {
           </section>
         ) : null}
 
-        {(event.pdfUrl || embedVideos.length > 0) ? (
+        {(event.pdfUrl || resourceVideos.length > 0) ? (
           <section className="border-b border-[var(--ink)]/35 py-12" aria-labelledby="resources-heading">
             <div><p className="text-sm font-semibold text-[var(--cobalt)]">{isCurrent ? 'Event resources' : 'Approved resources'}</p><h2 id="resources-heading" className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">{isCurrent ? 'Before the event' : 'Keep exploring'}</h2></div>
             <div className="mt-7 grid gap-8 lg:grid-cols-2">
@@ -421,10 +462,10 @@ export default function EventPage() {
                   {localPdf ? <iframe src={event.pdfUrl} sandbox="" loading="lazy" className="h-[26rem] w-full" title={`${event.title} event document`} /> : <p className="p-5 text-sm leading-7 text-[var(--ink)]/75">This approved document opens directly in a new tab.</p>}
                 </article>
               ) : null}
-              {embedVideos.length > 0 ? (
+              {resourceVideos.length > 0 ? (
                 <article className="border border-[var(--ink)] bg-[var(--paper)]">
                   <div className="border-b border-[var(--ink)] p-4"><div className="flex items-center gap-2 font-bold text-[var(--midnight)]"><Play className="h-5 w-5 text-[var(--cobalt)]" aria-hidden="true" /> Event video</div></div>
-                  <div className="space-y-7 p-4">{embedVideos.map((video, index) => <div key={video.original}><p className="mb-3 text-sm font-semibold text-[var(--cobalt)]">{embedVideos.length > 1 ? `Video ${index + 1}` : isCurrent ? 'Event video' : 'Presentation recording'}</p><div className="aspect-video overflow-hidden border border-[var(--ink)]"><iframe src={video.embed} loading="lazy" className="h-full w-full" title={`${event.title} video ${index + 1}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div></div>)}</div>
+                  <div className="space-y-7 p-4">{resourceVideos.map((video, index) => <div key={video.original}><p className="mb-3 text-sm font-semibold text-[var(--cobalt)]">{resourceVideos.length > 1 ? `Video ${index + 1}` : isCurrent ? 'Event video' : 'Presentation recording'}</p><div className="aspect-video overflow-hidden border border-[var(--ink)]"><iframe src={video.embed} loading="lazy" className="h-full w-full" title={`${event.title} video ${index + 1}`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen /></div></div>)}</div>
                 </article>
               ) : null}
             </div>

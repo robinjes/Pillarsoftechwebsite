@@ -3,6 +3,14 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useScrambleText } from '@/components/site/useScrambleText'
+
+const HERO_HEADLINES = [
+  'STEM belongs in every student’s hands.',
+  'Breaking barriers. Building innovators.',
+  'Big ideas start with curious minds.',
+  'Explore science. Build your future.',
+] as const
 
 const TANK_VIDEO = '/videos/home/wildcat-tank-timelapse-720p.mp4'
 const CARNIVAL_VIDEO = '/videos/home/wildcat-carnival-timelapse-720p.mp4'
@@ -24,6 +32,8 @@ export default function TimelapseHero() {
   const [motionPreferenceReady, setMotionPreferenceReady] = useState(false)
   const [autoplayFailed, setAutoplayFailed] = useState(false)
   const [pageVisible, setPageVisible] = useState(true)
+  const [headlinePaused, setHeadlinePaused] = useState(false)
+  const headline = useScrambleText(HERO_HEADLINES, motionPreferenceReady && !reducedMotion && pageVisible && !headlinePaused)
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([])
   const timerRef = useRef<number | null>(null)
 
@@ -148,7 +158,13 @@ export default function TimelapseHero() {
 
       <div className="hero-content shell">
         <p className="eyebrow eyebrow--light">A place to build, explore, and belong</p>
-        <h1 id="hero-title">STEM belongs in every student’s hands.</h1>
+        <h1 id="hero-title">
+          <span className="sr-only">STEM belongs in every student’s hands.</span>
+          <span className="relative grid" aria-hidden="true">
+            {HERO_HEADLINES.map((phrase) => <span key={phrase} className="invisible col-start-1 row-start-1 select-none">{phrase}</span>)}
+            <span className="absolute inset-0">{headline}</span>
+          </span>
+        </h1>
         <div className="hero-copy">
           <p>Bring your curiosity. Try an experiment, build something new, and learn alongside friendly volunteers.</p>
           <p>For kids and families. No tech experience needed.</p>
@@ -156,6 +172,9 @@ export default function TimelapseHero() {
         <div className="hero-actions" aria-label="Homepage actions">
           <Link className="button button--sun focus-ring" href="#events">Find A Family Event</Link>
           <Link className="button button--glass focus-ring" href="#families">What To Expect</Link>
+          {motionPreferenceReady && !reducedMotion ? <button type="button" onClick={() => setHeadlinePaused((paused) => !paused)} aria-pressed={headlinePaused} className="focus-ring inline-flex min-h-11 items-center px-2 text-sm font-semibold text-[var(--cream)] underline underline-offset-4">
+            {headlinePaused ? 'Resume headline' : 'Pause headline'}
+          </button> : null}
         </div>
       </div>
     </section>
