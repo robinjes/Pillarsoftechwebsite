@@ -13,6 +13,7 @@ import { eventMediaSource, resolveEventImageAlt } from '@/lib/event-media'
 import { toYouTubeEmbedUrl } from '@/lib/event-utils'
 import { publicEventLocation } from '@/lib/career-panel-details'
 import CareerPanelPage from '@/components/CareerPanelPage'
+import CareerPanelists from '@/components/CareerPanelists'
 
 function localAsset(value?: string | null): string | null {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return null
@@ -397,6 +398,12 @@ export default function EventPage() {
             </div>
           </aside>
         </div>
+
+        {event.id === 'career-panel-granada' ? (
+          <div className="border-b border-[var(--ink)]/35 py-12">
+            <CareerPanelists />
+          </div>
+        ) : null}
 
         {isCurrent ? (
           <section className="border-b border-[var(--ink)]/35 py-8" aria-labelledby="event-questions-heading">

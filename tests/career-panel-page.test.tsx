@@ -36,6 +36,30 @@ async function renderPage() {
 }
 
 describe('Career Panel page', () => {
+  it('keeps all nine panelist photos and expandable bios on the completed recap page', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [{
+      ...event, status: 'completed', volunteerRegistrationState: 'closed',
+    }] }))
+    render(<EventPage />)
+    const panelists = await screen.findByRole('region', { name: 'Meet the panelists' })
+    const profiles = within(panelists).getAllByRole('listitem')
+    expect(profiles).toHaveLength(9)
+    for (const [index, profile] of profiles.entries()) {
+      const panelist = careerPanelists[index]
+      expect(within(profile).getByText(panelist.name)).toBeVisible()
+      expect(within(profile).getByText(panelist.role)).toBeVisible()
+      if (panelist.photo) expect(profile.querySelector('img')).toHaveAttribute('src', panelist.photo)
+      const bio = within(profile).getByText(panelist.bio)
+      expect(bio).not.toBeVisible()
+      fireEvent.click(profile.querySelector('summary')!)
+      expect(bio).toBeVisible()
+      fireEvent.click(profile.querySelector('summary')!)
+      expect(bio).not.toBeVisible()
+    }
+    expect(screen.getByRole('heading', { name: 'What happened here' })).toBeVisible()
+    expect(screen.queryByRole('link', { name: 'Register for FREE' })).not.toBeInTheDocument()
+  })
+
   it('shows the completed panel recording with a prominent subtitle and volume notice before the player', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [{
       ...event,
