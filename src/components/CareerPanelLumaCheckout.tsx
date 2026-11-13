@@ -4,9 +4,10 @@ import { useEffect, useId, useRef, useState, type MouseEvent } from 'react'
 import Script from 'next/script'
 import type { PublicEvent } from '@/lib/content-contracts'
 
-const CAREER_PANEL_EVENT_ID = 'career-panel-granada'
-const CAREER_PANEL_LUMA_URL = 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2'
-const CAREER_PANEL_LUMA_EVENT_ID = 'evt-Kt3fAmxzXjJdAH2'
+const CHECKOUT_EVENTS = {
+  'career-panel-granada': { id: 'evt-Kt3fAmxzXjJdAH2', title: 'Career Panel', label: 'Register for FREE', note: 'Use a non-school email.' },
+  'wildcat-tank-pt-2': { id: 'evt-GHROQ1bDfnCbsx0', title: 'Wildcat Tank Pt 2', label: 'Register for Event', note: 'Free for all LVJUSD elementary and middle school families. After you register, we’ll send you another form 1–2 weeks before the event to collect final details.' },
+} as const
 const CAREER_PANEL_LUMA_SCRIPT = 'https://embed.lu.ma/checkout-button.js'
 const CHECKOUT_BUTTON_CLASSES = 'inline-flex w-full min-h-14 items-center justify-center rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] transition-colors hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]'
 
@@ -57,16 +58,18 @@ function overlayFocusableElements(overlay: HTMLElement): HTMLElement[] {
   )).filter((element) => !element.hasAttribute('hidden') && element.getAttribute('aria-hidden') !== 'true')
 }
 
-export default function CareerPanelLumaCheckout({ event, className }: CareerPanelLumaCheckoutProps) {
+export function EventLumaCheckout({ event, className }: CareerPanelLumaCheckoutProps) {
   const noteId = useId()
   const [nonce, setNonce] = useState<string | null>(null)
   const triggerRef = useRef<HTMLAnchorElement | null>(null)
   const pendingOpenFrameRef = useRef<number | null>(null)
   const activeOverlayRef = useRef<HTMLElement | null>(null)
   const releaseOverlayRef = useRef<((restoreFocus: boolean) => void) | null>(null)
-  const isEligible = event.id === CAREER_PANEL_EVENT_ID
+  const checkout = CHECKOUT_EVENTS[event.id as keyof typeof CHECKOUT_EVENTS]
+  const checkoutUrl = checkout ? `https://luma.com/event/${checkout.id}` : ''
+  const isEligible = Boolean(checkout)
     && (event.status === 'upcoming' || event.status === 'ongoing')
-    && event.registrationLink === CAREER_PANEL_LUMA_URL
+    && event.registrationLink === checkoutUrl
 
   useEffect(() => {
     if (!isEligible) return
@@ -117,9 +120,9 @@ export default function CareerPanelLumaCheckout({ event, className }: CareerPane
 
       rememberAndSetAttribute(savedAttributes, overlay, 'role', 'dialog')
       rememberAndSetAttribute(savedAttributes, overlay, 'aria-modal', 'true')
-      rememberAndSetAttribute(savedAttributes, overlay, 'aria-label', 'Career Panel registration')
-      if (closeButton) rememberAndSetAttribute(savedAttributes, closeButton, 'aria-label', 'Close Career Panel registration')
-      if (checkoutFrame) rememberAndSetAttribute(savedAttributes, checkoutFrame, 'title', 'Career Panel registration')
+      rememberAndSetAttribute(savedAttributes, overlay, 'aria-label', `${checkout.title} registration`)
+      if (closeButton) rememberAndSetAttribute(savedAttributes, closeButton, 'aria-label', `Close ${checkout.title} registration`)
+      if (checkoutFrame) rememberAndSetAttribute(savedAttributes, checkoutFrame, 'title', `${checkout.title} registration`)
       if (poweredByLink && !poweredByLink.textContent?.trim()) {
         rememberAndSetAttribute(savedAttributes, poweredByLink, 'aria-label', 'Powered by Luma')
       }
@@ -179,18 +182,18 @@ export default function CareerPanelLumaCheckout({ event, className }: CareerPane
   return (
     <div className="flex w-full flex-col items-start gap-2">
       <a
-        href={CAREER_PANEL_LUMA_URL}
+        href={checkoutUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className={className || CHECKOUT_BUTTON_CLASSES}
+        className={`luma-checkout--button ${className || CHECKOUT_BUTTON_CLASSES}`}
         data-luma-action="checkout"
-        data-luma-event-id={CAREER_PANEL_LUMA_EVENT_ID}
+        data-luma-event-id={checkout.id}
         aria-describedby={noteId}
         onClickCapture={handleCheckoutClickCapture}
       >
-        Register for FREE
+        {checkout.label}
       </a>
-      <p id={noteId} className="text-xs leading-5 text-[var(--ink)]/75">Use a non-school email.</p>
+      <p id={noteId} className="text-xs leading-5 text-[var(--ink)]/75">{checkout.note}</p>
       {nonce ? (
         <Script
           id="luma-checkout"
@@ -202,4 +205,9 @@ export default function CareerPanelLumaCheckout({ event, className }: CareerPane
       ) : null}
     </div>
   )
+}
+
+export default function CareerPanelLumaCheckout(props: CareerPanelLumaCheckoutProps) {
+  if (props.event.id !== 'career-panel-granada') return null
+  return <EventLumaCheckout {...props} />
 }

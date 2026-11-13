@@ -8,7 +8,8 @@ vi.mock('next/script', () => ({
   ),
 }))
 
-import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
+import CareerPanelLumaCheckout, { EventLumaCheckout } from '@/components/CareerPanelLumaCheckout'
+import { getPublicEventSnapshotById } from '@/lib/event-snapshot'
 
 const currentCareerEvent = {
   id: 'career-panel-granada',
@@ -188,5 +189,31 @@ describe('Career Panel Luma checkout', () => {
 
     expect(screen.queryByRole('link', { name: 'Register for FREE' })).not.toBeInTheDocument()
     expect(document.getElementById('luma-checkout')).toBeNull()
+  })
+})
+
+
+describe('Wildcat Tank Pt 2 Luma checkout', () => {
+  it('publishes the free district family event and uses its exact checkout', async () => {
+    const event = getPublicEventSnapshotById('wildcat-tank-pt-2')!
+    expect(event).toMatchObject({ title: 'Wildcat Tank Pt 2', branch: 'ca', status: 'upcoming', startsAt: '2026-12-03T01:30:00.000Z', endsAt: '2026-12-03T04:00:00.000Z' })
+    expect(event.description).toContain('elementary and middle school students')
+    expect(event.description).toContain('25 in the elementary school track and 25 in the middle school track')
+    expect(event.description).toContain('LVJUSD')
+    addNonceSource()
+    render(<EventLumaCheckout event={event} />)
+    const checkout = screen.getByRole('link', { name: 'Register for Event' })
+    expect(checkout).toHaveAttribute('href', 'https://luma.com/event/evt-GHROQ1bDfnCbsx0')
+    expect(checkout).toHaveClass('luma-checkout--button')
+    expect(checkout).toHaveAttribute('data-luma-event-id', 'evt-GHROQ1bDfnCbsx0')
+    expect(checkout).toHaveAttribute('data-luma-action', 'checkout')
+    expect(screen.getByText('Free for all LVJUSD elementary and middle school families. After you register, we’ll send you another form 1–2 weeks before the event to collect final details.')).toBeInTheDocument()
+    await waitFor(() => expect(document.getElementById('luma-checkout')).toHaveAttribute('src', 'https://embed.lu.ma/checkout-button.js'))
+  })
+
+  it.each(['completed', 'cancelled'] as const)('closes checkout when the event is %s', (status) => {
+    const event = getPublicEventSnapshotById('wildcat-tank-pt-2')!
+    render(<EventLumaCheckout event={{ ...event, status }} />)
+    expect(screen.queryByRole('link', { name: 'Register for Event' })).not.toBeInTheDocument()
   })
 })

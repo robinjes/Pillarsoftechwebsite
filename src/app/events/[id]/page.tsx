@@ -5,8 +5,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { ArrowLeft, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Clock3, ExternalLink, FileText, MapPin, Play, X } from 'lucide-react'
-import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
+import { EventLumaCheckout } from '@/components/CareerPanelLumaCheckout'
 import AltamontEventStory from '@/components/AltamontEventStory'
+import WildcatWinterDetails from '@/components/WildcatWinterDetails'
 import EventMotionPhotos from '@/components/EventMotionPhotos'
 import type { PublicEvent } from '@/lib/content-contracts'
 import { eventMediaSource, resolveEventImageAlt } from '@/lib/event-media'
@@ -362,8 +363,8 @@ export default function EventPage() {
           <div className="p-5">
             <p className="text-sm font-semibold text-[var(--cobalt)]">{event.id === 'career-panel-granada' ? 'FREE registration' : 'Registration'}</p>
             <div className="mt-3">
-              {isCurrent && event.id === 'career-panel-granada' && event.registrationLink ? (
-                <CareerPanelLumaCheckout event={event} />
+              {isCurrent && ['career-panel-granada', 'wildcat-tank-pt-2'].includes(event.id) && event.registrationLink ? (
+                <EventLumaCheckout event={event} />
               ) : isCurrent && event.registrationLink ? (
                 <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-14 items-center justify-center rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register for Event</a>
               ) : participant.canRegister ? (
@@ -379,7 +380,7 @@ export default function EventPage() {
           <article className="max-w-3xl">
             <p className="text-sm font-semibold text-[var(--cobalt)]">{isCurrent ? 'Event overview' : 'What participants practiced'}</p>
             <h2 className="mt-3 font-display text-4xl leading-[1.02] tracking-[-0.03em] text-[var(--midnight)]">{event.status === 'upcoming' ? 'What to expect' : isCurrent ? 'About this event' : 'What happened here'}</h2>
-            {event.id === 'family-science-night-altamont' ? <AltamontEventStory description={event.description} /> : <div className="mt-7 space-y-6 text-base leading-8 text-[var(--ink)]/85">
+            {event.id === 'wildcat-tank-pt-2' ? <WildcatWinterDetails /> : event.id === 'family-science-night-altamont' ? <AltamontEventStory description={event.description} /> : <div className="mt-7 space-y-6 text-base leading-8 text-[var(--ink)]/85">
               {eventParagraphs.map((paragraph, index) => <p key={`${paragraph.slice(0, 24)}-${index}`} className={index === 0 ? 'text-lg leading-8 text-[var(--midnight)]' : undefined}>{linkedPartnerWebsites(paragraph)}</p>)}
             </div>}
           </article>
@@ -388,8 +389,8 @@ export default function EventPage() {
             <p className="text-sm font-semibold text-[var(--cobalt)]">{isCurrent ? 'Join this event' : 'Event links'}</p>
             <div className="mt-5 space-y-3">
               {participant.canRegister ? <a href={registrationHref} className="flex min-h-14 items-center justify-center gap-3 rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register for Event</a> : !(isCurrent && event.registrationLink) ? <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{participant.label}</p> : null}
-              {event.id === 'career-panel-granada' ? (
-                <CareerPanelLumaCheckout event={event} />
+              {['career-panel-granada', 'wildcat-tank-pt-2'].includes(event.id) ? (
+                <EventLumaCheckout event={event} />
               ) : isCurrent && event.registrationLink ? (
                 <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-14 items-center justify-center gap-3 rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register for Event</a>
               ) : null}
