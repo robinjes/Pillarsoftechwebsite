@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { FileText } from 'lucide-react'
 import { wildcatWinterDates, wildcatWinterFaq, wildcatWinterRubric, wildcatWinterSections } from '@/data/wildcat-winter'
 
 const headingClass = 'font-display text-2xl leading-tight text-[var(--midnight)] sm:text-3xl'
@@ -17,6 +18,27 @@ function DetailTable({ headings, rows }: { headings: [string, string]; rows: str
 export default function WildcatWinterDetails() {
   return (
     <div className="mt-7 space-y-10 text-base leading-8 text-[var(--ink)]/85">
+      <section aria-labelledby="winter-manual" className="rounded-xl border border-[var(--ink)]/30 bg-[var(--sky)]/20 p-5 sm:p-6">
+        <h3 id="winter-manual" className={headingClass}>Wildcat Tank Part 2 manual</h3>
+        <p className="mt-4">Keep the event manual handy as you prepare your invention and pitch.</p>
+        <a href="/Wildcat%20Tank%20Part%202%20Manual.pdf" target="_blank" rel="noopener noreferrer" className="mt-4 inline-flex min-h-11 items-center gap-2 rounded-[10px] bg-[var(--midnight)] px-5 py-3 text-sm font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">
+          <FileText aria-hidden="true" className="h-4 w-4" /> Open Part 2 manual (PDF)
+        </a>
+        <div className="mt-6 border-t border-[var(--ink)]/20 pt-6">
+          <h4 className="font-display text-xl text-[var(--midnight)]">Watch the manual in video form</h4>
+          <p className="mt-2">This playlist walks through the manual to help you prepare your invention and pitch.</p>
+          <iframe
+            src="https://www.youtube-nocookie.com/embed/videoseries?list=PLYhV0S6EDHI3vndPYNDoum82bNJtV5rT7"
+            title="Wildcat Tank Part 2 manual video playlist"
+            className="mt-4 aspect-video w-full rounded-xl border-0"
+            loading="lazy"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerPolicy="strict-origin-when-cross-origin"
+            allowFullScreen
+          />
+          <a href="https://www.youtube.com/playlist?list=PLYhV0S6EDHI3vndPYNDoum82bNJtV5rT7" target="_blank" rel="noopener noreferrer" className="mt-3 inline-flex min-h-11 items-center font-semibold text-[var(--cobalt)] underline underline-offset-4">Watch the playlist on YouTube</a>
+        </div>
+      </section>
       {wildcatWinterSections.slice(0, 2).map((section) => <section key={section.title} aria-label={section.title}>
         <h3 className={headingClass}>{section.title}</h3>
         {section.paragraphs.map((paragraph) => <p key={paragraph} className="mt-4">{paragraph}</p>)}
