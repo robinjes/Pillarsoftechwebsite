@@ -12,6 +12,7 @@ vi.mock('@/lib/supabase/public', () => ({
 }))
 
 import { listPublicEvents, listPublicImpact } from '@/lib/content-repository'
+import { getPublicEventSnapshot } from '@/lib/event-snapshot'
 
 describe('public events and navigation regressions', () => {
   beforeEach(() => {
@@ -42,8 +43,8 @@ describe('public events and navigation regressions', () => {
 
     const events = await listPublicEvents()
 
-    expect(events.some((event) => event.status === 'upcoming')).toBe(true)
-    expect(events.some((event) => event.status === 'completed')).toBe(true)
+    expect(events.length).toBeGreaterThan(0)
+    expect(events).toEqual(getPublicEventSnapshot())
   })
 
   it('publishes separate Stockmen’s Park event records with closed registration', async () => {

@@ -45,13 +45,24 @@ describe('security-release public copy', () => {
     expect(publicCopy).not.toContain('https://hcb.hackclub.com/pillars-of-tech/transparency')
   })
 
-  it('keeps event stories while removing formal partnership claims', () => {
+  it('keeps event stories and permits only the confirmed Junction partnership wording', () => {
     const events = JSON.parse(readFileSync(join(process.cwd(), 'src/data/events.json'), 'utf8')) as Array<{
+      id: string
       description?: string
     }>
     const descriptions = events.map((event) => event.description ?? '').join('\n')
 
-    expect(descriptions).not.toMatch(/\bpartner(?:ed|ship|ships)?\b/i)
+    // The event organizer confirmed this specific relationship in the recap.
+    // Other formal partnership claims remain subject to the existing guard.
+    const confirmedWording = 'in partnership with the Junction Avenue K-8 STEM class'
+    expect(events.find((event) => event.id === 'stem-into-the-night-2026')?.description).toContain(confirmedWording)
+    for (const event of events) {
+      const description = event.description ?? ''
+      const checkedCopy = event.id === 'stem-into-the-night-2026'
+        ? description.replace(confirmedWording, '')
+        : description
+      expect(checkedCopy, event.id).not.toMatch(/\bpartner(?:ed|ship|ships)?\b/i)
+    }
     expect(descriptions).toContain('Egg Drop Competition')
     expect(descriptions).toContain('student-built VEX robots')
   })

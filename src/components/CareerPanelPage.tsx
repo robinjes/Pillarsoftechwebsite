@@ -2,8 +2,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, ArrowUpRight, CalendarDays, ChevronDown, Clock3, MapPin } from 'lucide-react'
 import type { PublicEvent } from '@/lib/content-contracts'
-import { careerPanelAgenda, careerPanelists, publicEventLocation } from '@/lib/career-panel-details'
+import { careerPanelAgenda, publicEventLocation } from '@/lib/career-panel-details'
 import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
+import CareerPanelists from '@/components/CareerPanelists'
 import styles from './CareerPanelPage.module.css'
 
 export default function CareerPanelPage({ event }: { event: PublicEvent }) {
@@ -40,32 +41,7 @@ export default function CareerPanelPage({ event }: { event: PublicEvent }) {
             </figure>
           </aside>
 
-          <section className={styles.panelists} aria-labelledby="career-panelists-heading">
-            <div className={styles.sectionHeading}>
-              <h2 id="career-panelists-heading">Meet the panelists</h2>
-              <p>Select a panelist to read their story.</p>
-            </div>
-            <ul className={styles.panelistGrid}>
-              {careerPanelists.map((panelist) => (
-                <li key={panelist.id}>
-                  <details className={styles.panelist}>
-                    <summary>
-                      {panelist.photo ? (
-                        <Image src={panelist.photo} alt="" width={64} height={64} sizes="64px" className={styles.portrait} />
-                      ) : <span className={styles.initials} aria-hidden="true">{panelist.initials}</span>}
-                      <span className={styles.panelistInfo}>
-                        <span className={styles.panelistName}>{panelist.name}</span>
-                        <span className={styles.role}>{panelist.role}</span>
-                        <span className={styles.bioLabel}><span className={styles.whenClosed}>Read bio</span><span className={styles.whenOpen}>Close bio</span></span>
-                      </span>
-                      <ChevronDown size={18} className={styles.chevron} aria-hidden="true" />
-                    </summary>
-                    <p className={styles.bio}>{panelist.bio}</p>
-                  </details>
-                </li>
-              ))}
-            </ul>
-          </section>
+          <CareerPanelists />
 
           <section className={styles.detailsSection} id="career-agenda" aria-labelledby="career-expect-heading" tabIndex={-1}>
             <div className={styles.sectionHeading}>
