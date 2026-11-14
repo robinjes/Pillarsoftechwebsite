@@ -69,7 +69,6 @@ export function EventLumaCheckout({ event, className }: CareerPanelLumaCheckoutP
   const checkoutUrl = checkout ? `https://luma.com/event/${checkout.id}` : ''
   const isEligible = Boolean(checkout)
     && (event.status === 'upcoming' || event.status === 'ongoing')
-    && event.registrationLink === checkoutUrl
 
   useEffect(() => {
     if (!isEligible) return

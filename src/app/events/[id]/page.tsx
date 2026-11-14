@@ -363,7 +363,7 @@ export default function EventPage() {
           <div className="p-5">
             <p className="text-sm font-semibold text-[var(--cobalt)]">{event.id === 'career-panel-granada' ? 'FREE registration' : 'Registration'}</p>
             <div className="mt-3">
-              {isCurrent && ['career-panel-granada', 'wildcat-tank-pt-2'].includes(event.id) && event.registrationLink ? (
+              {isCurrent && ['career-panel-granada', 'wildcat-tank-pt-2'].includes(event.id) ? (
                 <EventLumaCheckout event={event} />
               ) : isCurrent && event.registrationLink ? (
                 <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-14 items-center justify-center rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register for Event</a>
@@ -388,12 +388,6 @@ export default function EventPage() {
           <aside className="h-fit border-t border-[var(--ink)] pt-5 lg:border-l lg:border-t-0 lg:pl-6">
             <p className="text-sm font-semibold text-[var(--cobalt)]">{isCurrent ? 'Join this event' : 'Event links'}</p>
             <div className="mt-5 space-y-3">
-              {participant.canRegister ? <a href={registrationHref} className="flex min-h-14 items-center justify-center gap-3 rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register for Event</a> : !(isCurrent && event.registrationLink) ? <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{participant.label}</p> : null}
-              {['career-panel-granada', 'wildcat-tank-pt-2'].includes(event.id) ? (
-                <EventLumaCheckout event={event} />
-              ) : isCurrent && event.registrationLink ? (
-                <a href={event.registrationLink} target="_blank" rel="noopener noreferrer" className="flex min-h-14 items-center justify-center gap-3 rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Register for Event</a>
-              ) : null}
               {volunteer.canRegister ? <a href={volunteerHref} className="flex min-h-11 items-center justify-between gap-3 border border-[var(--cobalt)] px-4 py-3 text-sm font-bold text-[var(--cobalt)] hover:bg-[var(--sky)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Volunteer at this event <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a> : <p className="border border-[var(--ink)] px-4 py-3 text-sm font-semibold text-[var(--ink)]/75">{volunteer.label}</p>}
               {event.id === 'wildcat-tank-altamont' ? <><a href="/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Results &amp; presentation record <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a><a href="/photos/wildcat-tank" className="flex min-h-11 items-center justify-between gap-3 border border-[var(--ink)] px-4 py-3 text-sm font-bold hover:bg-[var(--paper)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cobalt)]">Open photo archive <ArrowUpRight className="h-4 w-4" aria-hidden="true" /></a></> : null}
             </div>

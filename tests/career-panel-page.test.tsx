@@ -5,8 +5,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PublicEvent } from '@/lib/content-contracts'
 import { careerPanelists } from '@/lib/career-panel-details'
 
+const navigation = vi.hoisted(() => ({ id: 'career-panel-granada' }))
+
 vi.mock('next/navigation', () => ({
-  useParams: () => ({ id: 'career-panel-granada' }),
+  useParams: () => ({ id: navigation.id }),
   useRouter: () => ({ push: vi.fn() }),
 }))
 vi.mock('next/image', () => ({
@@ -26,7 +28,7 @@ const event: PublicEvent = {
   registrationLink: 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2',
 }
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); navigation.id = 'career-panel-granada' })
 
 async function renderPage() {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [event] }))
@@ -36,6 +38,20 @@ async function renderPage() {
 }
 
 describe('Career Panel page', () => {
+  it('shows one coded winter checkout even when admin participant signup and a different link are configured', async () => {
+    navigation.id = 'wildcat-tank-pt-2'
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [{
+      ...event, id: navigation.id, slug: navigation.id, title: 'Wildcat Tank Pt 2',
+      participantRegistrationState: 'open', registrationLink: 'https://luma.com/admin-signup',
+    }] }))
+    render(<EventPage />)
+    const checkout = await screen.findByRole('link', { name: 'Register for Event' })
+    expect(screen.getAllByRole('link', { name: 'Register for Event' })).toHaveLength(1)
+    expect(checkout).toHaveAttribute('href', 'https://luma.com/event/evt-GHROQ1bDfnCbsx0')
+    expect(checkout.closest('section')).toHaveAccessibleName('Schedule and registration')
+    expect(screen.getByRole('link', { name: 'Volunteer at this event' })).toBeInTheDocument()
+  })
+
   it('keeps all nine panelist photos and expandable bios on the completed recap page', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [{
       ...event, status: 'completed', volunteerRegistrationState: 'closed',
