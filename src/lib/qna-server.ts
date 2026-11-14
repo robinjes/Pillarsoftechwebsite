@@ -32,6 +32,13 @@ export class QnaNotFoundError extends Error {
   }
 }
 
+export class QnaConflictError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'QnaConflictError'
+  }
+}
+
 /** Store only a keyed digest of the device token, never the token itself. */
 export function hashQnaVisitorToken(token: string): string {
   const pepper = process.env.CHAT_TOKEN_PEPPER?.trim()
@@ -69,6 +76,8 @@ type SessionRow = {
   created_at: string
 }
 
+type AdminSessionRow = SessionRow & { qna_questions: Array<{ count: number }> | null }
+
 type QuestionRow = {
   id: string
   body: string
@@ -79,6 +88,7 @@ type QuestionRow = {
 }
 
 const SESSION_COLUMNS = 'id, title, is_current, accepting_questions, highlighted_question_id, created_at'
+const ADMIN_SESSION_COLUMNS = `${SESSION_COLUMNS}, qna_questions(count)`
 const QUESTION_COLUMNS = 'id, body, author_name, status, upvote_count, created_at'
 const MAX_QUESTIONS = 500
 
@@ -93,7 +103,7 @@ function toPublicQuestion(row: QuestionRow): QnaPublicQuestion {
   }
 }
 
-function toAdminSession(row: SessionRow): QnaAdminSession {
+function toAdminSession(row: AdminSessionRow): QnaAdminSession {
   return {
     id: row.id,
     title: row.title,
@@ -101,6 +111,7 @@ function toAdminSession(row: SessionRow): QnaAdminSession {
     acceptingQuestions: row.accepting_questions,
     highlightedQuestionId: row.highlighted_question_id,
     createdAt: row.created_at,
+    questionCount: row.qna_questions?.[0]?.count ?? 0,
   }
 }
 
@@ -197,33 +208,54 @@ export async function setQnaUpvote(questionId: string, visitorToken: string, upv
 // Host controls (callers must already have verified staff access)
 // ---------------------------------------------------------------------------
 
-export async function getAdminQnaSnapshot(requestedSessionId: string | null): Promise<QnaAdminSnapshot> {
-  const { data: sessionRows, error } = await client()
-    .from('qna_sessions')
-    .select(SESSION_COLUMNS)
-    .order('created_at', { ascending: false })
-    .limit(100)
-    .returns<SessionRow[]>()
-  if (error) throw new QnaUnavailableError()
-
-  const sessions = (sessionRows ?? []).map(toAdminSession)
-  const selected =
-    sessions.find((session) => session.id === requestedSessionId)
-    ?? sessions.find((session) => session.isCurrent)
-    ?? sessions[0]
-    ?? null
-  if (!selected) return { sessions, selectedSessionId: null, questions: [] }
-
-  const { data: questionRows, error: questionError } = await client()
+async function listAdminQuestions(sessionId: string): Promise<QnaAdminQuestion[]> {
+  const { data, error } = await client()
     .from('qna_questions')
     .select(QUESTION_COLUMNS)
-    .eq('session_id', selected.id)
+    .eq('session_id', sessionId)
     .order('created_at', { ascending: false })
     .limit(MAX_QUESTIONS)
     .returns<QuestionRow[]>()
-  if (questionError) throw new QnaUnavailableError()
+  if (error) throw new QnaUnavailableError()
+  return (data ?? []).map(toAdminQuestion)
+}
 
-  return { sessions, selectedSessionId: selected.id, questions: (questionRows ?? []).map(toAdminQuestion) }
+export async function getAdminQnaSnapshot(): Promise<QnaAdminSnapshot> {
+  const { data: sessionRows, error } = await client()
+    .from('qna_sessions')
+    .select(ADMIN_SESSION_COLUMNS)
+    .order('created_at', { ascending: false })
+    .limit(200)
+    .returns<AdminSessionRow[]>()
+  if (error) throw new QnaUnavailableError()
+
+  const sessions = (sessionRows ?? []).map(toAdminSession)
+  const current = sessions.find((session) => session.isCurrent) ?? null
+  return {
+    sessions,
+    currentSessionId: current?.id ?? null,
+    questions: current ? await listAdminQuestions(current.id) : [],
+  }
+}
+
+/** Questions for any session, including ended ones in the history list. */
+export async function getAdminSessionQuestions(sessionId: string): Promise<QnaAdminQuestion[]> {
+  const { data, error } = await client().from('qna_sessions').select('id').eq('id', sessionId).maybeSingle()
+  if (error) throw new QnaUnavailableError()
+  if (!data) throw new QnaNotFoundError()
+  return listAdminQuestions(sessionId)
+}
+
+/** Permanently remove an ended session; its questions and votes cascade. */
+export async function deleteQnaSession(sessionId: string): Promise<void> {
+  const supabase = client()
+  const { data, error } = await supabase.from('qna_sessions').select('is_current').eq('id', sessionId).maybeSingle<{ is_current: boolean }>()
+  if (error) throw new QnaUnavailableError()
+  if (!data) throw new QnaNotFoundError()
+  if (data.is_current) throw new QnaConflictError('End the session before deleting it.')
+
+  const { error: deleteError } = await supabase.from('qna_sessions').delete().eq('id', sessionId).eq('is_current', false)
+  if (deleteError) throw new QnaUnavailableError()
 }
 
 async function setCurrentSession(sessionId: string | null): Promise<void> {
