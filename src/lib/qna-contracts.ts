@@ -63,6 +63,10 @@ export const qnaAdminSessionUpdateSchema = z.strictObject({
   highlightedQuestionId: z.uuid().nullable().optional(),
 })
 
+export const qnaAdminSessionDeleteSchema = z.strictObject({
+  sessionId: z.uuid(),
+})
+
 export const qnaAdminQuestionUpdateSchema = z.strictObject({
   questionId: z.uuid(),
   status: qnaQuestionStatusSchema,
@@ -92,15 +96,17 @@ export interface QnaPublicSnapshot {
 export interface QnaAdminSession extends QnaPublicSession {
   isCurrent: boolean
   createdAt: string
+  questionCount: number
 }
 
 export interface QnaAdminQuestion extends Omit<QnaPublicQuestion, 'answered'> {
   status: QnaQuestionStatus
 }
 
+/** The live session's questions plus every session, for the history list. */
 export interface QnaAdminSnapshot {
   sessions: QnaAdminSession[]
-  selectedSessionId: string | null
+  currentSessionId: string | null
   questions: QnaAdminQuestion[]
 }
 

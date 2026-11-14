@@ -5,8 +5,10 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PublicEvent } from '@/lib/content-contracts'
 import { careerPanelists } from '@/lib/career-panel-details'
 
+const navigation = vi.hoisted(() => ({ id: 'career-panel-granada' }))
+
 vi.mock('next/navigation', () => ({
-  useParams: () => ({ id: 'career-panel-granada' }),
+  useParams: () => ({ id: navigation.id }),
   useRouter: () => ({ push: vi.fn() }),
 }))
 vi.mock('next/image', () => ({
@@ -26,7 +28,7 @@ const event: PublicEvent = {
   registrationLink: 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2',
 }
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); navigation.id = 'career-panel-granada' })
 
 async function renderPage() {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [event] }))
@@ -36,6 +38,63 @@ async function renderPage() {
 }
 
 describe('Career Panel page', () => {
+  it('shows one coded winter checkout even when admin participant signup and a different link are configured', async () => {
+    navigation.id = 'wildcat-tank-pt-2'
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [{
+      ...event, id: navigation.id, slug: navigation.id, title: 'Wildcat Tank Pt 2',
+      participantRegistrationState: 'open', registrationLink: 'https://luma.com/admin-signup',
+    }] }))
+    render(<EventPage />)
+    const checkout = await screen.findByRole('link', { name: 'Register for Event' })
+    expect(screen.getAllByRole('link', { name: 'Register for Event' })).toHaveLength(1)
+    expect(checkout).toHaveAttribute('href', 'https://luma.com/event/evt-GHROQ1bDfnCbsx0')
+    expect(checkout.closest('section')).toHaveAccessibleName('Schedule and registration')
+    expect(screen.getByRole('link', { name: 'Volunteer at this event' })).toBeInTheDocument()
+  })
+
+  it('keeps all nine panelist photos and expandable bios on the completed recap page', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [{
+      ...event, status: 'completed', volunteerRegistrationState: 'closed',
+    }] }))
+    render(<EventPage />)
+    const panelists = await screen.findByRole('region', { name: 'Meet the panelists' })
+    const profiles = within(panelists).getAllByRole('listitem')
+    expect(profiles).toHaveLength(9)
+    for (const [index, profile] of profiles.entries()) {
+      const panelist = careerPanelists[index]
+      expect(within(profile).getByText(panelist.name)).toBeVisible()
+      expect(within(profile).getByText(panelist.role)).toBeVisible()
+      if (panelist.photo) expect(profile.querySelector('img')).toHaveAttribute('src', panelist.photo)
+      const bio = within(profile).getByText(panelist.bio)
+      expect(bio).not.toBeVisible()
+      fireEvent.click(profile.querySelector('summary')!)
+      expect(bio).toBeVisible()
+      fireEvent.click(profile.querySelector('summary')!)
+      expect(bio).not.toBeVisible()
+    }
+    expect(screen.getByRole('heading', { name: 'What happened here' })).toBeVisible()
+    expect(screen.queryByRole('link', { name: 'Register for FREE' })).not.toBeInTheDocument()
+  })
+
+  it('shows the completed panel recording with a prominent subtitle and volume notice before the player', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => [{
+      ...event,
+      status: 'completed',
+      volunteerRegistrationState: 'closed',
+      youtubeVideos: ['https://www.youtube.com/watch?v=y1XDEbn9zpk'],
+    }] }))
+    render(<EventPage />)
+    const recording = await screen.findByRole('region', { name: 'Watch the Career Panel' })
+    const notice = within(recording).getByRole('complementary', { name: 'Before you press play: turn on subtitles' })
+    const player = within(recording).getByTitle('Career Panel recording 1')
+    expect(notice).toHaveTextContent('Start with your volume low.')
+    expect(notice).toHaveTextContent('Subtitles may contain errors')
+    expect(notice.compareDocumentPosition(player) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(player).toHaveAttribute('src', 'https://www.youtube-nocookie.com/embed/y1XDEbn9zpk?cc_load_policy=1')
+    expect(within(recording).getByRole('link', { name: 'Watch on YouTube' })).toHaveAttribute('href', 'https://www.youtube.com/watch?v=y1XDEbn9zpk')
+    expect(screen.getAllByTitle('Career Panel recording 1')).toHaveLength(1)
+  })
+
   it('puts event essentials and a working free checkout before the panelist section', async () => {
     await renderPage()
     expect(screen.getByText('October 28, 2026')).toBeVisible()

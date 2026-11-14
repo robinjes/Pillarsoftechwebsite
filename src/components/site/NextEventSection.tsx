@@ -5,7 +5,7 @@ import { ArrowRight } from 'lucide-react'
 import type { PublicEvent } from '@/lib/content-contracts'
 import { eventMediaSource, resolveEventImageAlt } from '@/lib/event-media'
 import { PageShell } from '@/components/site/FamilyPrimitives'
-import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
+import { EventLumaCheckout } from '@/components/CareerPanelLumaCheckout'
 import { publicEventPath } from '@/lib/event-path'
 import { publicEventLocation } from '@/lib/career-panel-details'
 
@@ -63,8 +63,8 @@ export default function NextEventSection({ event }: { event: PublicEvent | null 
               </div>
             </dl>
             <div className="mb-5">
-              {event.id === 'career-panel-granada' ? (
-                <CareerPanelLumaCheckout event={event} />
+              {['career-panel-granada', 'wildcat-tank-pt-2'].includes(event.id) ? (
+                <EventLumaCheckout event={event} />
               ) : isCurrent && event.participantRegistrationState === 'open' ? (
                 <Link href={`/register/${event.slug || event.id}`} className="inline-flex min-h-14 w-full items-center justify-center rounded-full bg-[var(--midnight)] px-6 py-4 text-lg font-bold text-[var(--cream)] hover:bg-[var(--cobalt)] focus-ring">Register for Event</Link>
               ) : isCurrent && event.registrationLink ? (

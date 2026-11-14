@@ -231,7 +231,8 @@ describe('Task 03 content contracts', () => {
     const events = getPublicEventSnapshot()
     const careerPanel = events.find((event) => event.id === 'career-panel-granada')
     expect(careerPanel).toMatchObject({
-      volunteerRegistrationState: 'open',
+      status: 'completed',
+      volunteerRegistrationState: 'closed',
       participantRegistrationState: 'closed',
       registrationLink: 'https://luma.com/event/evt-Kt3fAmxzXjJdAH2',
       registrationNote: 'Use a non-school email.',
@@ -249,16 +250,21 @@ describe('Task 03 content contracts', () => {
       endsAt: '2026-11-05T01:30:00.000Z',
       timezone: 'America/Los_Angeles',
       location: 'Junction Avenue K-8 School, 298 Junction Ave, Livermore, CA 94551',
+      status: 'completed',
       registrationNote: 'Registration is for Junction students only. The registration link will be shared through the school.',
       participantRegistrationState: 'closed',
-      volunteerRegistrationState: 'open',
+      volunteerRegistrationState: 'closed',
     })
     expect(stemNight?.registrationLink).toBeUndefined()
     expect(stemNight?.resources.registrationLink).toBeUndefined()
-    expect(stemNight?.media.image).toBeUndefined()
-    expect(stemNight?.media.heroImage).toBeUndefined()
-    expect(stemNight?.media.gallery).toBeUndefined()
-    expect(stemNight?.description).toContain('hands-on building challenges and live experiments')
+    expect(stemNight?.media.image).toBe('/images/events/stem-into-the-night-2026/gallery/IMG_3319.webp')
+    expect(stemNight?.media.heroImage).toBe(stemNight?.media.image)
+    expect(stemNight?.media.gallery).toHaveLength(12)
+    expect(careerPanel?.media.gallery).toHaveLength(23)
+    expect(stemNight?.description).toContain('in partnership with the Junction Avenue K-8 STEM class')
+    expect(stemNight?.description).toContain('CPR training')
+    expect(stemNight?.description).toContain('www.livermoregea.org')
+    expect(stemNight?.description).toContain('diabetessmart.org')
   })
 
   it('keeps production content mutation off local JSON and public-disk writers', () => {

@@ -22,10 +22,16 @@ const nextConfig = {
   poweredByHeader: false,
   transpilePackages: ['playcaptcha'],
   async redirects() {
-    return [{ source: '/events/career-panel-granada', destination: '/careerpanel', permanent: true }]
+    return [
+      { source: '/events/career-panel-granada', destination: '/careerpanel', permanent: true },
+      { source: '/events/wildcat-tank-pt-2', destination: '/wildcattankwinter', permanent: true },
+    ]
   },
   async rewrites() {
-    return [{ source: '/careerpanel', destination: '/events/career-panel-granada' }]
+    return [
+      { source: '/careerpanel', destination: '/events/career-panel-granada' },
+      { source: '/wildcattankwinter', destination: '/events/wildcat-tank-pt-2' },
+    ]
   },
   images: {
     remotePatterns: [

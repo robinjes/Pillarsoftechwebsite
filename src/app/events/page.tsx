@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowUpRight, CalendarDays, MapPin, Search, SlidersHorizontal, UsersRound } from 'lucide-react'
-import CareerPanelLumaCheckout from '@/components/CareerPanelLumaCheckout'
+import { EventLumaCheckout } from '@/components/CareerPanelLumaCheckout'
 import HolographicEventCard from '@/components/HolographicEventCard'
 import { publicEventSchema, type BranchCode, type PublicEvent } from '@/lib/content-contracts'
 import { eventMediaSource, resolveEventImageAlt } from '@/lib/event-media'
@@ -91,8 +91,10 @@ function EventCard({ event }: { event: PublicEvent }) {
   const image = sourceImage || (event.status === 'completed' ? archiveImageFallback : null)
   const imageAlt = sourceImage ? resolveEventImageAlt(event, 'image', sourceImage) : archiveImageFallbackAlt
   const eventPath = publicEventPath(event)
-  const participantOpen = isCurrentEvent(event) && event.participantRegistrationState === 'open'
-  const participantFull = isCurrentEvent(event) && event.participantRegistrationState === 'full'
+  // Coded Luma checkout takes precedence over admin participant registration.
+  const usesLumaCheckout = ['career-panel-granada', 'wildcat-tank-pt-2'].includes(event.id)
+  const participantOpen = !usesLumaCheckout && !event.registrationLink && isCurrentEvent(event) && event.participantRegistrationState === 'open'
+  const participantFull = !usesLumaCheckout && !event.registrationLink && isCurrentEvent(event) && event.participantRegistrationState === 'full'
   const volunteerOpen = isCurrentEvent(event) && event.volunteerRegistrationState === 'open'
 
   return (
@@ -165,8 +167,8 @@ function EventCard({ event }: { event: PublicEvent }) {
             Participant List Is Full
           </span>
         ) : null}
-        {event.id === 'career-panel-granada' ? (
-          <CareerPanelLumaCheckout event={event} />
+        {usesLumaCheckout ? (
+          <EventLumaCheckout event={event} />
         ) : isCurrentEvent(event) && event.registrationLink ? (
           <a
             href={event.registrationLink}

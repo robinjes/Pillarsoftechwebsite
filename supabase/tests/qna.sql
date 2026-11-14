@@ -1,7 +1,7 @@
 -- Live audience Q&A storage, vote, and privilege contract tests.
 begin;
 set local search_path = public, extensions;
-select plan(30);
+select plan(32);
 
 select has_table('public', 'qna_sessions', 'Q&A sessions table exists');
 select has_table('public', 'qna_questions', 'Q&A questions table exists');
@@ -46,6 +46,11 @@ select throws_ok($$ select public.qna_set_upvote('00000000-0000-4000-8000-000000
 
 select throws_ok($$ insert into public.qna_questions (session_id, body, visitor_token_digest) values ('00000000-0000-4000-8000-0000000000a2', 'no', repeat('a', 64)) $$, '23514', null, 'too-short questions are rejected');
 select throws_ok($$ insert into public.qna_questions (session_id, body, status, visitor_token_digest) values ('00000000-0000-4000-8000-0000000000a2', 'A fine question', 'pinned', repeat('a', 64)) $$, '23514', null, 'unknown statuses are rejected');
+
+-- Deleting a session from the host's Past sessions list removes everything under it.
+delete from public.qna_sessions where id = '00000000-0000-4000-8000-0000000000a2';
+select is((select count(*) from public.qna_questions where session_id = '00000000-0000-4000-8000-0000000000a2'), 0::bigint, 'deleting a session removes its questions');
+select is((select count(*) from public.qna_votes where question_id = '00000000-0000-4000-8000-0000000000b1'), 0::bigint, 'deleting a session removes its votes');
 
 select * from finish();
 rollback;
