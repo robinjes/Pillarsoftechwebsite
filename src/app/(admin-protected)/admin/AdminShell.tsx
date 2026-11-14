@@ -25,6 +25,8 @@ type NavItem = {
   name: string
   href: string
   icon: LucideIcon
+  // Other sections this item stays highlighted for (sibling pages under one tab).
+  also?: string[]
 }
 
 const navItems: NavItem[] = [
@@ -36,7 +38,7 @@ const navItems: NavItem[] = [
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Forms', href: '/admin/forms', icon: FileText },
   { name: 'Contact', href: '/admin/contact', icon: Mail },
-  { name: 'Q&A', href: '/admin/qna', icon: MessageCircleQuestion },
+  { name: 'Q&A', href: '/admin/qna', icon: MessageCircleQuestion, also: ['/admin/feedback'] },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
@@ -84,7 +86,7 @@ function NavigationLinks({ pathname, onNavigate, mobile = false }: NavigationLin
   return (
     <nav className={mobile ? 'flex flex-1 flex-col gap-1 overflow-y-auto px-5 py-6' : 'hidden items-center gap-1 xl:flex'} aria-label="Admin navigation">
       {navItems.map((item) => {
-        const isActive = isAdminNavItemActive(pathname, item.href)
+        const isActive = [item.href, ...(item.also ?? [])].some((href) => isAdminNavItemActive(pathname, href))
         const Icon = item.icon
         return (
           <Link
