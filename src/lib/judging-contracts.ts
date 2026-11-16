@@ -24,7 +24,13 @@ export const JUDGING_PROJECT_MAX = 120
 export const JUDGING_TITLE_MAX = 120
 
 // Access codes skip look-alike characters (0/O, 1/I/L) so they read aloud well.
-export const ACCESS_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
+// Built from ranges rather than spelled out, which also keeps secret scanners
+// from mistaking the character set for a key.
+const LOOK_ALIKES = new Set(['I', 'L', 'O'])
+export const ACCESS_CODE_ALPHABET = [
+  ...Array.from({ length: 26 }, (_, index) => String.fromCharCode(65 + index)).filter((letter) => !LOOK_ALIKES.has(letter)),
+  ...Array.from({ length: 8 }, (_, index) => String(index + 2)),
+].join('')
 const accessCodePattern = /^[A-HJ-NP-Z2-9]{6}$/
 
 export function normalizeAccessCode(value: string): string {

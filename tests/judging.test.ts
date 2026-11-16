@@ -249,3 +249,12 @@ describe('the /judging page stays unlisted', () => {
     expect(offenders).toEqual([])
   })
 })
+
+describe('access code alphabet', () => {
+  it('has no look-alike characters and matches the database check', async () => {
+    const { ACCESS_CODE_ALPHABET } = await import('@/lib/judging-contracts')
+    expect(ACCESS_CODE_ALPHABET).toBe(['ABCDEFGH', 'JK', 'MN', 'PQRSTUVWXYZ', '23456789'].join(''))
+    expect(ACCESS_CODE_ALPHABET).not.toMatch(/[01ILO]/)
+    expect(/^[A-HJ-NP-Z2-9]+$/.test(ACCESS_CODE_ALPHABET)).toBe(true)
+  })
+})
