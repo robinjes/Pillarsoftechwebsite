@@ -1,0 +1,12 @@
+.expired {
+  animation: stop-flash 1s steps(1, end) infinite;
+}
+
+@keyframes stop-flash {
+  0%, 100% { background: #b91c1c; }
+  50% { background: #7f1d1d; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expired { animation: none; }
+}

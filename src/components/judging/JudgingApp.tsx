@@ -14,68 +14,26 @@ import {
   type JudgeState,
   type JudgingContestant,
   type RubricKey,
-  type RubricScores,
 } from '@/lib/judging-contracts'
 
-import { usePolling } from '../qna/qna-client'
+import JudgingTimer from './JudgingTimer'
+import { useJudgeScoring, type SaveStatus } from './useJudgeScoring'
+import type { JudgeDraft as Draft } from '@/lib/judging-local'
+import { secondaryButton } from '../feedback/admin-ui'
 
-const POLL_MS = 2_500
 const COMMENT_SAVE_DELAY_MS = 800
-const RETRY_MS = 3_000
 
 type View = { kind: 'current' } | { kind: 'home' } | { kind: 'review'; contestantId: string }
-type SaveStatus = 'idle' | 'saving' | 'saved' | 'error' | 'locked'
-type Draft = RubricScores & { comment: string }
-
-const emptyDraft = (): Draft => ({ problem: null, creativity: null, stem: null, design: null, pitch: null, comment: '' })
-
 function codeFromHash(): string | null {
   const match = window.location.hash.match(/code=([A-Za-z0-9-]+)/)
   return match ? match[1] : null
 }
 
-export default function JudgingApp() {
-  const [state, setState] = useState<JudgeState | null>(null)
-  const [signedOut, setSignedOut] = useState(false)
-  const [loadError, setLoadError] = useState(false)
+export default function JudgingApp({ demo = false }: { demo?: boolean }) {
+  const { apiBase, state, signedOut, loadError, storageError, saveStatus, updateDraft, signOut, downloadBackup, hasBackup, backupOwner, pendingCount, draftFor, onSignedIn } = useJudgeScoring(demo)
   const [view, setView] = useState<View>({ kind: 'current' })
   const [toast, setToast] = useState('')
-  const [, rerender] = useState(0)
-
-  // Drafts live in a ref so autosave timers always send the latest values,
-  // even after the host moves everyone to the next student.
-  const drafts = useRef<Record<string, Draft>>({})
-  const versions = useRef<Record<string, number>>({})
-  const dirty = useRef<Record<string, number>>({})
-  const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
-  const [saveStatus, setSaveStatus] = useState<Record<string, SaveStatus>>({})
   const lastCurrent = useRef<string | null | undefined>(undefined)
-
-  const load = useCallback(async () => {
-    try {
-      const response = await fetch('/api/judging/state', { cache: 'no-store' })
-      if (response.status === 401) {
-        setState(null)
-        setSignedOut(true)
-        return
-      }
-      if (!response.ok) throw new Error('unavailable')
-      const next = (await response.json()) as JudgeState
-      // Server scores fill in anything without unsaved local edits.
-      for (const score of next.scores) {
-        if (!dirty.current[score.contestantId]) {
-          drafts.current[score.contestantId] = { ...RUBRIC_KEYS.reduce((acc, key) => ({ ...acc, [key]: score[key] }), {} as RubricScores), comment: score.comment }
-        }
-      }
-      setState(next)
-      setSignedOut(false)
-      setLoadError(false)
-    } catch {
-      setLoadError(true)
-    }
-  }, [])
-
-  usePolling(load, POLL_MS)
 
   // Follow the host: when they pick a new student, every judge jumps to it.
   useEffect(() => {
@@ -105,74 +63,17 @@ export default function JudgingApp() {
     return () => clearTimeout(timer)
   }, [toast])
 
-  // Warn before closing the tab with an unsaved score.
-  useEffect(() => {
-    const onBeforeUnload = (event: BeforeUnloadEvent) => {
-      if (Object.values(dirty.current).some(Boolean)) event.preventDefault()
-    }
-    window.addEventListener('beforeunload', onBeforeUnload)
-    return () => window.removeEventListener('beforeunload', onBeforeUnload)
-  }, [])
-
-  const save = useCallback(async (contestantId: string) => {
-    const draft = drafts.current[contestantId]
-    const version = versions.current[contestantId] ?? 0
-    if (!draft) return
-    setSaveStatus((current) => ({ ...current, [contestantId]: 'saving' }))
-    try {
-      const response = await fetch('/api/judging/scores', {
-        method: 'PUT',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ contestantId, ...draft }),
-      })
-      if (response.status === 401) {
-        setSignedOut(true)
-        return
-      }
-      const result = (await response.json().catch(() => ({}))) as { locked?: boolean }
-      if (result.locked) {
-        dirty.current[contestantId] = 0
-        setSaveStatus((current) => ({ ...current, [contestantId]: 'locked' }))
-        return
-      }
-      if (response.status === 404) {
-        dirty.current[contestantId] = 0
-        setSaveStatus((current) => ({ ...current, [contestantId]: 'error' }))
-        return
-      }
-      if (!response.ok) throw new Error('save_failed')
-      // Only clear the dirty flag if nothing changed while this save was in flight.
-      if ((versions.current[contestantId] ?? 0) === version) dirty.current[contestantId] = 0
-      setSaveStatus((current) => ({ ...current, [contestantId]: dirty.current[contestantId] ? 'saving' : 'saved' }))
-    } catch {
-      setSaveStatus((current) => ({ ...current, [contestantId]: 'error' }))
-      clearTimeout(timers.current[contestantId])
-      timers.current[contestantId] = setTimeout(() => void save(contestantId), RETRY_MS)
-    }
-  }, [])
-
-  const updateDraft = useCallback((contestantId: string, patch: Partial<Draft>, delay: number) => {
-    drafts.current[contestantId] = { ...(drafts.current[contestantId] ?? emptyDraft()), ...patch }
-    versions.current[contestantId] = (versions.current[contestantId] ?? 0) + 1
-    dirty.current[contestantId] = versions.current[contestantId]
-    setSaveStatus((current) => ({ ...current, [contestantId]: 'saving' }))
-    rerender((value) => value + 1)
-    clearTimeout(timers.current[contestantId])
-    timers.current[contestantId] = setTimeout(() => void save(contestantId), delay)
-  }, [save])
-
-  async function signOut() {
-    if (Object.values(dirty.current).some(Boolean) && !window.confirm('A score is still saving. Sign out anyway?')) return
-    await fetch('/api/judging/session', { method: 'DELETE' }).catch(() => undefined)
-    drafts.current = {}
-    dirty.current = {}
-    lastCurrent.current = undefined
-    setState(null)
-    setSignedOut(true)
-  }
+  const backupControls = hasBackup ? (
+    <aside className="mb-4 border border-midnight/25 bg-warm p-3 text-sm text-midnight" aria-label="Local score backup">
+      <p className="mb-1 font-semibold">Score backup · {backupOwner}</p>
+      {storageError ? <p role="alert" className="font-semibold text-red-900">Local backup is unavailable in this browser. Keep this page open and download a score backup before closing.</p> : <p>Scores and comments are backed up on this device.</p>}
+      {pendingCount ? <p className="mt-1 font-semibold">{pendingCount} {pendingCount === 1 ? 'rubric is' : 'rubrics are'} waiting to sync. {signedOut ? 'Sign in as the same judge to sync, or download your backup for the host.' : state?.event.scoresLocked ? 'Ask the host to unlock scores, or download your backup.' : 'Changes sync automatically when connected. If a student was removed, download the backup for the host.'}</p> : null}
+      <button type="button" className={`${secondaryButton} mt-2`} onClick={downloadBackup}>Download score backup</button>
+    </aside>
+  ) : null
 
   if (signedOut) {
-    return <SignIn onSignedIn={() => { setSignedOut(false); void load() }} />
+    return <SignIn apiBase={apiBase} backup={backupControls} onSignedIn={() => { lastCurrent.current = undefined; onSignedIn() }} />
   }
 
   if (!state) {
@@ -189,7 +90,6 @@ export default function JudgingApp() {
   const current = state.currentContestantId ? byId.get(state.currentContestantId) ?? null : null
   const openId = view.kind === 'current' ? current?.id ?? null : view.kind === 'review' ? view.contestantId : null
   const open = openId ? byId.get(openId) ?? null : null
-  const draftFor = (id: string) => drafts.current[id] ?? emptyDraft()
 
   return (
     <Shell
@@ -202,12 +102,15 @@ export default function JudgingApp() {
           <Radio className="h-5 w-5" aria-hidden="true" /> {toast}
         </p>
       ) : null}
-      {loadError ? <p role="status" className="mb-3 text-sm font-semibold text-red-900">Reconnecting…</p> : null}
+      {backupControls}
+      {loadError ? <p role="status" className="mb-3 text-sm font-semibold text-red-900">Offline / reconnecting. You can keep scoring; host updates will resume when connected.</p> : null}
       {state.event.scoresLocked ? (
         <p className="mb-4 flex items-center gap-2 border border-midnight/30 bg-white/60 p-3 text-sm font-semibold text-ink">
           <Lock className="h-4 w-4" aria-hidden="true" /> Scores are locked. You can still look at them.
         </p>
       ) : null}
+
+      <JudgingTimer timer={state.event.timer} contestantName={current?.name} />
 
       {view.kind === 'home' || !open ? (
         <HomeScreen
@@ -266,7 +169,7 @@ function Shell({ title, judgeName, onHome, children }: { title?: string; judgeNa
   )
 }
 
-function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
+function SignIn({ onSignedIn, apiBase, backup }: { onSignedIn: () => void; apiBase: string; backup?: React.ReactNode }) {
   const [code, setCode] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -276,7 +179,7 @@ function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
     setBusy(true)
     setError('')
     try {
-      const response = await fetch('/api/judging/session', {
+      const response = await fetch(`${apiBase}/session`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ code: value }),
@@ -289,7 +192,7 @@ function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
     } finally {
       setBusy(false)
     }
-  }, [onSignedIn])
+  }, [onSignedIn, apiBase])
 
   // A judge's personal QR code carries their code after "#", which never
   // reaches server logs; use it once and remove it from the address bar.
@@ -310,6 +213,7 @@ function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
 
   return (
     <Shell>
+      {backup}
       <form onSubmit={onSubmit} className="border border-midnight/25 bg-warm p-6 shadow-[6px_6px_0_#0D2B4A]">
         <h1 className="font-display text-2xl font-semibold text-midnight">Judge sign-in</h1>
         <p className="mt-1 text-ink/70">Enter the 6-character code from the event host.</p>
@@ -448,8 +352,9 @@ const statusText: Record<SaveStatus, string> = {
   idle: '',
   saving: 'Saving…',
   saved: 'Saved',
-  error: 'Not saved yet. Retrying…',
-  locked: 'Scores are locked',
+  error: 'Waiting to sync. Retrying when connected…',
+  locked: 'Not synced: scores locked. Local draft retained.',
+  removed: 'Not synced: student removed. Download your backup for the host.',
 }
 
 function Rubric({

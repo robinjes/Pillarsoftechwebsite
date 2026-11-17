@@ -15,6 +15,8 @@ import {
   type JudgingScore,
   type RubricScores,
 } from '@/lib/judging-contracts'
+import { audienceSnapshot } from '@/lib/judging-audience'
+import type { JudgingTimer, TimerAction } from '@/lib/judging-timer'
 import { getRequestIdentity } from '@/lib/request-identity'
 import { createSupabaseServiceRoleClient } from '@/lib/supabase/service'
 
@@ -94,6 +96,11 @@ export async function allowJudgeLoginAttempt(request: Request): Promise<boolean>
 // ---------------------------------------------------------------------------
 
 type EventRow = {
+  awards_message: string
+  results_released: boolean
+  timer_phase: JudgingTimer['phase']
+  timer_ends_at: string | null
+  timer_remaining_seconds: number
   id: string
   title: string
   is_current: boolean
@@ -111,7 +118,7 @@ type ContestantRow = { id: string; name: string; project: string }
 type JudgeRow = { id: string; event_id: string; name: string; access_code: string }
 type ScoreRow = RubricScores & { judge_id: string; contestant_id: string; comment: string; updated_at: string }
 
-const EVENT_COLUMNS = 'id, title, is_current, scores_locked, current_contestant_id, created_at'
+const EVENT_COLUMNS = 'id, title, is_current, scores_locked, current_contestant_id, created_at, timer_phase, timer_ends_at, timer_remaining_seconds, awards_message, results_released'
 // Events and contestants reference each other (event_id one way, current_contestant_id
 // the other), so PostgREST needs the foreign key named to know which to count.
 const ADMIN_EVENT_COLUMNS = `${EVENT_COLUMNS}, judging_contestants!judging_contestants_event_id_fkey(count), judging_judges!judging_judges_event_id_fkey(count)`
@@ -125,9 +132,16 @@ function client() {
   }
 }
 
+function eventTimer(row: EventRow): JudgingTimer {
+  return { phase: row.timer_phase ?? null, endsAt: row.timer_ends_at ?? null, remainingSeconds: row.timer_remaining_seconds ?? 0, serverNow: new Date().toISOString() }
+}
+
 function toAdminEvent(row: AdminEventRow): JudgingAdminEvent {
   return {
     id: row.id,
+    timer: eventTimer(row),
+    awardsMessage: row.awards_message,
+    resultsReleased: row.results_released,
     title: row.title,
     isCurrent: row.is_current,
     scoresLocked: row.scores_locked,
@@ -200,7 +214,7 @@ export async function getJudgeState(judgeId: string): Promise<JudgeState | null>
   if (scores.error) throw new JudgingUnavailableError()
   return {
     judge: { id: active.judge.id, name: active.judge.name },
-    event: { id: active.event.id, title: active.event.title, scoresLocked: active.event.scores_locked },
+    event: { id: active.event.id, title: active.event.title, scoresLocked: active.event.scores_locked, timer: eventTimer(active.event) },
     currentContestantId: active.event.current_contestant_id,
     contestants,
     scores: (scores.data ?? []).map(toScore),
@@ -210,9 +224,11 @@ export async function getJudgeState(judgeId: string): Promise<JudgeState | null>
 export async function saveJudgeScore(
   judgeId: string,
   input: RubricScores & { contestantId: string; comment: string },
-): Promise<JudgingScore | 'signed_out' | 'locked'> {
+  expectedEventId?: string,
+): Promise<JudgingScore | 'signed_out' | 'locked' | 'session_changed'> {
   const active = await getActiveJudge(judgeId)
   if (!active) return 'signed_out'
+  if (expectedEventId && active.event.id !== expectedEventId) return 'session_changed'
   if (active.event.scores_locked) return 'locked'
 
   const supabase = client()
@@ -385,4 +401,33 @@ export async function removeJudge(judgeId: string): Promise<void> {
   const { data, error } = await client().from('judging_judges').delete().eq('id', judgeId).select('id')
   if (error) throw new JudgingUnavailableError()
   if (!data?.length) throw new JudgingNotFoundError()
+}
+
+export async function controlJudgingTimer(input: { eventId: string; contestantId: string | null; action: TimerAction }): Promise<void> {
+  const { error } = await client().rpc('judging_control_timer', { p_event_id: input.eventId, p_contestant_id: input.contestantId, p_action: input.action })
+  if (error?.code === 'P0002') throw new JudgingNotFoundError()
+  if (error?.code === 'P0001') throw new JudgingConflictError('The current student changed or the event ended. Refresh and try again.')
+  if (error) throw new JudgingUnavailableError()
+}
+
+export async function getJudgingAudienceState(eventId: string) {
+  const supabase = client()
+  const { data: event, error } = await supabase.from('judging_events').select(ADMIN_EVENT_COLUMNS).eq('id', eventId).maybeSingle<AdminEventRow>()
+  if (error) throw new JudgingUnavailableError()
+  if (!event) throw new JudgingNotFoundError()
+  const contestants = await listContestants(eventId)
+  let scores: JudgingAdminScore[] = []
+  if (event.results_released && event.scores_locked) {
+    const result = await supabase.from('judging_scores').select(SCORE_COLUMNS).eq('event_id', eventId).returns<ScoreRow[]>()
+    if (result.error) throw new JudgingUnavailableError()
+    scores = (result.data ?? []).map((row) => ({ ...toScore(row), judgeId: row.judge_id }))
+  }
+  return audienceSnapshot({ event: toAdminEvent(event), contestants, scores })
+}
+
+export async function controlJudgingAudience(input: { eventId: string; awardsMessage?: string; resultsReleased?: boolean }): Promise<void> {
+  const { error } = await client().rpc('judging_control_audience', { p_event_id: input.eventId, p_awards_message: input.awardsMessage ?? null, p_released: input.resultsReleased ?? null })
+  if (error?.code === 'P0002') throw new JudgingNotFoundError()
+  if (error?.code === 'P0001') throw new JudgingConflictError('Lock scores before releasing results to families.')
+  if (error) throw new JudgingUnavailableError()
 }

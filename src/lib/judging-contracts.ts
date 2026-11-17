@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { normalizeQnaText } from '@/lib/qna-contracts'
+import type { JudgingTimer } from '@/lib/judging-timer'
 
 // Shared by the unlisted /judging page, the host controls, and their API
 // routes. Nothing here is server-only.
@@ -70,13 +71,16 @@ export function isScoreComplete(scores: RubricScores): boolean {
 /** Everything one signed-in judge's screen needs; polled every few seconds. */
 export interface JudgeState {
   judge: { id: string; name: string }
-  event: { id: string; title: string; scoresLocked: boolean }
+  event: { id: string; title: string; scoresLocked: boolean; timer?: JudgingTimer }
   currentContestantId: string | null
   contestants: JudgingContestant[]
   scores: JudgingScore[]
 }
 
 export interface JudgingAdminEvent {
+  awardsMessage?: string
+  resultsReleased?: boolean
+  timer?: JudgingTimer
   id: string
   title: string
   isCurrent: boolean
@@ -114,6 +118,7 @@ export const judgeLoginSchema = z.strictObject({
 })
 
 export const scoreSaveSchema = z.strictObject({
+  session: z.strictObject({ judgeId: z.uuid(), eventId: z.uuid() }).optional(),
   contestantId: z.uuid(),
   problem: score,
   creativity: score,

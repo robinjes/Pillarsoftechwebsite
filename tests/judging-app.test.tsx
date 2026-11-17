@@ -13,6 +13,7 @@ let signedIn: boolean
 let fetchMock: ReturnType<typeof vi.fn>
 
 beforeEach(() => {
+  localStorage.clear()
   signedIn = true
   serverState = {
     judge: { id: 'judge-1', name: 'Ms. Patel' },

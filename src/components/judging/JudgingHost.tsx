@@ -34,10 +34,13 @@ import {
 
 import { dangerButton, fieldClass, formatDate, primaryButton, secondaryButton, sendJson } from '../feedback/admin-ui'
 import { usePolling } from '../qna/qna-client'
+import JudgingAudienceControls from './JudgingAudienceControls'
+import JudgingTimer from './JudgingTimer'
 import JudgingScoreboard from './JudgingScoreboard'
+import JudgingObsControls from './JudgingObsControls'
 
-async function fetchDetail(eventId: string): Promise<JudgingEventDetail> {
-  const response = await fetch(`/api/admin/judging/event?eventId=${encodeURIComponent(eventId)}`, { cache: 'no-store' })
+async function fetchDetail(eventId: string, apiBase = '/api/admin/judging'): Promise<JudgingEventDetail> {
+  const response = await fetch(`${apiBase}/event?eventId=${encodeURIComponent(eventId)}`, { cache: 'no-store' })
   const result = (await response.json().catch(() => ({}))) as JudgingEventDetail & { error?: string }
   if (!response.ok) throw new Error(result.error || 'The event could not be loaded.')
   return result
@@ -93,7 +96,7 @@ function JudgeRow({ judge, link, busy, onRemove }: { judge: JudgingJudge; link: 
   )
 }
 
-function PastEvent({ event, busy, onMakeLive, onDelete }: { event: JudgingAdminEvent; busy: boolean; onMakeLive: () => void; onDelete: () => void }) {
+function PastEvent({ event, busy, onMakeLive, onDelete, demo = false }: { demo?: boolean; event: JudgingAdminEvent; busy: boolean; onMakeLive: () => void; onDelete: () => void }) {
   const [detail, setDetail] = useState<JudgingEventDetail | null>(null)
   const [open, setOpen] = useState(false)
   const [error, setError] = useState('')
@@ -102,7 +105,7 @@ function PastEvent({ event, busy, onMakeLive, onDelete }: { event: JudgingAdminE
     setOpen(!open)
     if (open || detail) return
     try {
-      setDetail(await fetchDetail(event.id))
+      setDetail(await fetchDetail(event.id, demo ? '/api/dev/judging/host' : '/api/admin/judging'))
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'The event could not be loaded.')
     }
@@ -131,14 +134,16 @@ function PastEvent({ event, busy, onMakeLive, onDelete }: { event: JudgingAdminE
         <div className="border-t border-midnight/15 bg-cream/40 p-4">
           {error ? <p role="alert" className="text-sm text-red-900">{error}</p> : null}
           {!error && !detail ? <p role="status" className="text-sm text-ink/65">Loading…</p> : null}
-          {detail ? <JudgingScoreboard detail={detail} /> : null}
+          {detail ? <div className="flex flex-col gap-4"><JudgingAudienceControls event={detail.event} demo={demo} onChange={async () => setDetail(await fetchDetail(event.id, demo ? '/api/dev/judging/host' : '/api/admin/judging'))} /><JudgingObsControls key={event.id} eventId={event.id} demo={demo} /><JudgingScoreboard detail={detail} /></div> : null}
         </div>
       ) : null}
     </li>
   )
 }
 
-export default function JudgingHost() {
+export default function JudgingHost({ demo = false }: { demo?: boolean }) {
+  const apiBase = demo ? '/api/dev/judging/host' : '/api/admin/judging'
+  const judgePath = demo ? '/judging/demo/judge' : '/judging'
   const [snapshot, setSnapshot] = useState<JudgingAdminSnapshot | null>(null)
   const [detail, setDetail] = useState<JudgingEventDetail | null>(null)
   const [error, setError] = useState('')
@@ -151,26 +156,26 @@ export default function JudgingHost() {
 
   const load = useCallback(async () => {
     try {
-      const response = await fetch('/api/admin/judging', { cache: 'no-store' })
+      const response = await fetch(apiBase, { cache: 'no-store' })
       const result = (await response.json().catch(() => ({}))) as JudgingAdminSnapshot & { error?: string; message?: string }
       if (!response.ok) throw new Error(result.message || result.error || 'Judging could not be loaded.')
       setSnapshot(result)
-      setDetail(result.currentEventId ? await fetchDetail(result.currentEventId) : null)
+      setDetail(result.currentEventId ? await fetchDetail(result.currentEventId, apiBase) : null)
       setError('')
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : 'Judging could not be loaded.')
     }
-  }, [])
+  }, [apiBase])
 
   // Live scoreboard and "who has finished" while judging is running.
   usePolling(load, 3_000)
 
   useEffect(() => {
     setOrigin(window.location.origin)
-    void QRCode.toDataURL(`${window.location.origin}/judging`, { errorCorrectionLevel: 'M', margin: 2, width: 1024, color: { dark: '#0D2B4A', light: '#FFFFFF' } })
+    void QRCode.toDataURL(`${window.location.origin}${judgePath}`, { errorCorrectionLevel: 'M', margin: 2, width: 1024, color: { dark: '#0D2B4A', light: '#FFFFFF' } })
       .then(setQr)
       .catch(() => setQr(''))
-  }, [])
+  }, [judgePath])
 
   const event = detail?.event ?? null
   const pastEvents = snapshot?.events.filter((item) => item.id !== snapshot.currentEventId) ?? []
@@ -189,7 +194,7 @@ export default function JudgingHost() {
     }
   }
 
-  const updateEvent = (patch: Record<string, unknown>) => (event ? run(() => sendJson('/api/admin/judging', 'PATCH', { eventId: event.id, ...patch })) : undefined)
+  const updateEvent = (patch: Record<string, unknown>) => (event ? run(() => sendJson(apiBase, 'PATCH', { eventId: event.id, ...patch })) : undefined)
 
   function createEvent(formEvent: FormEvent<HTMLFormElement>) {
     formEvent.preventDefault()
@@ -197,7 +202,7 @@ export default function JudgingHost() {
     if (!title) return
     if (event && !window.confirm(`Start "${title}"?\n\n"${event.title}" is open now and will move to Past events.`)) return
     void run(async () => {
-      await sendJson('/api/admin/judging', 'POST', { title })
+      await sendJson(apiBase, 'POST', { title })
       setNewTitle('')
     })
   }
@@ -214,7 +219,7 @@ export default function JudgingHost() {
     const entries = parseContestantLines(studentsText)
     if (!entries.length) return
     void run(async () => {
-      await sendJson('/api/admin/judging/contestants', 'POST', { eventId: event.id, entries })
+      await sendJson(`${apiBase}/contestants`, 'POST', { eventId: event.id, entries })
       setStudentsText('')
     })
   }
@@ -223,7 +228,7 @@ export default function JudgingHost() {
     formEvent.preventDefault()
     if (!event || !judgeName.trim()) return
     void run(async () => {
-      await sendJson('/api/admin/judging/judges', 'POST', { eventId: event.id, name: judgeName.trim() })
+      await sendJson(`${apiBase}/judges`, 'POST', { eventId: event.id, name: judgeName.trim() })
       setJudgeName('')
     })
   }
@@ -240,7 +245,7 @@ export default function JudgingHost() {
   return (
     <div className="flex flex-col gap-6">
       <header>
-        <p className="font-display text-xs font-bold uppercase tracking-[0.18em] text-cobalt">Unlisted page · /judging</p>
+        <p className="font-display text-xs font-bold uppercase tracking-[0.18em] text-cobalt">Unlisted page · {judgePath}</p>
         <h1 className="font-display text-3xl font-semibold tracking-[-0.04em] text-midnight sm:text-4xl">Pitch judging</h1>
         <p className="mt-1 max-w-2xl text-sm leading-6 text-ink/70">
           Add students and judges, give each judge their code or QR, then pick who is pitching. Every judge&rsquo;s screen switches to that student within a few seconds.
@@ -259,7 +264,7 @@ export default function JudgingHost() {
                 <p className="font-display text-2xl font-semibold tracking-[-0.02em] text-midnight">{event.title}</p>
                 <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
                   <span className="inline-flex items-center gap-1.5 border border-green-800/40 bg-green-50 px-2 py-0.5 font-bold text-green-900">
-                    <Radio className="h-3.5 w-3.5" aria-hidden="true" /> Open on /judging
+                    <Radio className="h-3.5 w-3.5" aria-hidden="true" /> Open on {judgePath}
                   </span>
                   <span className={`border px-2 py-0.5 font-bold ${event.scoresLocked ? 'border-red-800/40 bg-red-50 text-red-900' : 'border-midnight/30 text-midnight'}`}>
                     {event.scoresLocked ? 'Scores locked' : 'Judges can edit scores'}
@@ -297,9 +302,9 @@ export default function JudgingHost() {
           <h2 id="judging-link-heading" className="font-display text-lg font-semibold text-midnight">Judging link</h2>
           {qr ? (
             // eslint-disable-next-line @next/next/no-img-element -- local data URL generated in the browser
-            <img src={qr} alt={`QR code for ${origin}/judging`} className="mx-auto mt-3 h-40 w-40 border border-midnight/20 bg-white" />
+            <img src={qr} alt={`QR code for ${origin}${judgePath}`} className="mx-auto mt-3 h-40 w-40 border border-midnight/20 bg-white" />
           ) : null}
-          <p className="mt-3 break-all text-center font-mono text-sm text-ink/80">{origin}/judging</p>
+          <p className="mt-3 break-all text-center font-mono text-sm text-ink/80">{origin}{judgePath}</p>
           <p className="mt-2 text-center text-xs text-ink/60">Judges then type their code. Each judge&rsquo;s own QR (below) signs them in automatically.</p>
         </aside>
       </div>
@@ -349,6 +354,13 @@ export default function JudgingHost() {
             ) : null}
           </section>
 
+          <JudgingTimer
+            timer={event.timer}
+            contestantName={current?.name}
+            busy={busy}
+            onControl={(action) => void run(() => sendJson(`${apiBase}/timer`, 'POST', { eventId: event.id, contestantId: event.currentContestantId, action }))}
+          />
+
           <div className="grid gap-6 lg:grid-cols-2">
             <section aria-labelledby="students-heading" className="border border-midnight/25 bg-warm p-5">
               <h2 id="students-heading" className="font-display text-lg font-semibold text-midnight">Students ({contestants.length})</h2>
@@ -366,7 +378,7 @@ export default function JudgingHost() {
                         className="inline-flex min-h-9 min-w-9 items-center justify-center text-red-900 hover:bg-red-50"
                         disabled={busy}
                         aria-label={`Remove ${contestant.name}`}
-                        onClick={() => window.confirm(`Remove ${contestant.name}? Any scores for them are deleted too.`) && void run(() => sendJson('/api/admin/judging/contestants', 'DELETE', { contestantId: contestant.id }))}
+                        onClick={() => window.confirm(`Remove ${contestant.name}? Any scores for them are deleted too.`) && void run(() => sendJson(`${apiBase}/contestants`, 'DELETE', { contestantId: contestant.id }))}
                       >
                         <Trash2 className="h-4 w-4" aria-hidden="true" />
                       </button>
@@ -394,9 +406,9 @@ export default function JudgingHost() {
                     <JudgeRow
                       key={judge.id}
                       judge={judge}
-                      link={`${origin}/judging#code=${judge.accessCode}`}
+                      link={`${origin}${judgePath}#code=${judge.accessCode}`}
                       busy={busy}
-                      onRemove={() => window.confirm(`Remove ${judge.name}? Their code stops working and their scores are deleted.`) && void run(() => sendJson('/api/admin/judging/judges', 'DELETE', { judgeId: judge.id }))}
+                      onRemove={() => window.confirm(`Remove ${judge.name}? Their code stops working and their scores are deleted.`) && void run(() => sendJson(`${apiBase}/judges`, 'DELETE', { judgeId: judge.id }))}
                     />
                   ))}
                 </ul>
@@ -411,6 +423,8 @@ export default function JudgingHost() {
             </section>
           </div>
 
+          <JudgingAudienceControls key={`families-${event.id}`} event={event} demo={demo} onChange={load} />
+          <JudgingObsControls key={event.id} eventId={event.id} demo={demo} />
           <JudgingScoreboard detail={detail} />
         </>
       ) : null}
@@ -430,13 +444,14 @@ export default function JudgingHost() {
                   <PastEvent
                     key={past.id}
                     event={past}
+                    demo={demo}
                     busy={busy}
                     onMakeLive={() => {
                       const replacing = event ? `\n\n"${event.title}" is open now and will move to Past events.` : ''
-                      if (window.confirm(`Reopen "${past.title}" on /judging?${replacing}\n\nScores stay locked until you unlock them.`)) void run(() => sendJson('/api/admin/judging', 'PATCH', { eventId: past.id, isCurrent: true }))
+                      if (window.confirm(`Reopen "${past.title}" on /judging?${replacing}\n\nScores stay locked until you unlock them.`)) void run(() => sendJson(apiBase, 'PATCH', { eventId: past.id, isCurrent: true }))
                     }}
                     onDelete={() => {
-                      if (window.confirm(`Permanently delete "${past.title}" with its ${past.contestantCount} students, ${past.judgeCount} judges, and every score?\n\nDownload the CSVs first if you want to keep them. This cannot be undone.`)) void run(() => sendJson('/api/admin/judging', 'DELETE', { eventId: past.id }))
+                      if (window.confirm(`Permanently delete "${past.title}" with its ${past.contestantCount} students, ${past.judgeCount} judges, and every score?\n\nDownload the CSVs first if you want to keep them. This cannot be undone.`)) void run(() => sendJson(apiBase, 'DELETE', { eventId: past.id }))
                     }}
                   />
                 ))}

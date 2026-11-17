@@ -13,8 +13,11 @@ export async function PUT(request: Request) {
   const parsed = scoreSaveSchema.safeParse(await readJson(request))
   if (!parsed.success) return jsonNoStore({ error: 'Scores must be whole numbers from 1 to 10.' }, 400)
 
+  if (parsed.data.session && parsed.data.session.judgeId !== judgeId) return jsonNoStore({ error: 'session_changed' }, 409)
+
   try {
-    const result = await saveJudgeScore(judgeId, parsed.data)
+    const result = await saveJudgeScore(judgeId, parsed.data, parsed.data.session?.eventId)
+    if (result === 'session_changed') return jsonNoStore({ error: 'session_changed' }, 409)
     if (result === 'signed_out') return jsonNoStore({ error: 'signed_out' }, 401)
     if (result === 'locked') return jsonNoStore({ error: 'Scores are locked. Ask the host if something needs fixing.', locked: true }, 409)
     return jsonNoStore({ score: result })

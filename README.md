@@ -38,6 +38,8 @@ and update instructions, see [Run the website locally](docs/run-locally.md).
 
 ## Local verification
 
+For judging and OBS testing without Supabase, run `npm run dev` and open [http://localhost:3000/judging/demo](http://localhost:3000/judging/demo). This development-only sandbox includes sample contestants, editable judge scores, host controls, and OBS views. Changes stay in local server memory. See [the judging/OBS guide](docs/judging-obs.md).
+
 Use Node.js 24.15 or newer with npm 11 or newer. The test stack relies on web-platform APIs that are not available in Node 20. Install the locked dependency set before running checks:
 
 ```sh

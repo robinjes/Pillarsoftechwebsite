@@ -145,7 +145,7 @@ export default function Navbar() {
     }
   }, [isOpen])
 
-  if (pathname.startsWith('/admin') || pathname.startsWith('/volunteer/checkin') || pathname === '/qna' || pathname === '/feedback' || pathname === '/judging') {
+  if (pathname.startsWith('/admin') || pathname.startsWith('/volunteer/checkin') || pathname === '/qna' || pathname === '/feedback' || (pathname === '/judging' || pathname.startsWith('/judging/'))) {
     return null
   }
 

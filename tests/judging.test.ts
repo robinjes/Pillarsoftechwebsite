@@ -183,6 +183,17 @@ describe('saving scores', () => {
     expect(response.status).toBe(409)
     expect(await response.json()).toMatchObject({ locked: true })
   })
+
+  it('rejects queued scores belonging to another judge or event', async () => {
+    const cookie = await signedInCookie()
+    const save = (session: { judgeId: string; eventId: string }) => saveScore(json('https://pillarsoftech.org/api/judging/scores', { ...body, session }, { method: 'PUT', cookie }))
+    const anotherJudge = await save({ judgeId: '00000000-0000-4000-8000-0000000000d2', eventId })
+    expect(anotherJudge.status).toBe(409)
+    expect(await anotherJudge.json()).toMatchObject({ error: 'session_changed' })
+    const anotherEvent = await save({ judgeId, eventId: '00000000-0000-4000-8000-0000000000e2' })
+    expect(anotherEvent.status).toBe(409)
+    expect(await anotherEvent.json()).toMatchObject({ error: 'session_changed' })
+  })
 })
 
 describe('host routes', () => {

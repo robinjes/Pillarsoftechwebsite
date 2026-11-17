@@ -80,7 +80,8 @@ export async function middleware(request: NextRequest) {
 
   const response = NextResponse.next({ request: { headers: forwardedHeaders } })
   const config = getSupabasePublicConfig()
-  if (config) {
+  const localJudgingDemo = process.env.NODE_ENV === 'development' && (request.nextUrl.pathname.startsWith('/judging/demo') || request.nextUrl.pathname.startsWith('/api/dev/judging/'))
+  if (config && !localJudgingDemo) {
     const client = createServerClient(config.url, config.anonKey, {
       cookies: {
         getAll() {
