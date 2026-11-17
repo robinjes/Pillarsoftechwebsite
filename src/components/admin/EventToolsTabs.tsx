@@ -2,14 +2,15 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { MessageCircleQuestion, MessageSquareHeart } from 'lucide-react'
+import { Gavel, MessageCircleQuestion, MessageSquareHeart } from 'lucide-react'
 
 const tabs = [
   { href: '/admin/qna', label: 'Live Q&A', icon: MessageCircleQuestion },
   { href: '/admin/feedback', label: 'Feedback', icon: MessageSquareHeart },
+  { href: '/admin/judging', label: 'Judging', icon: Gavel },
 ]
 
-/** Switches between the two unlisted event tools that share one admin tab. */
+/** Switches between the unlisted event tools that share one admin tab. */
 export default function EventToolsTabs() {
   const pathname = usePathname() || ''
   return (

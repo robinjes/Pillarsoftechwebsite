@@ -38,7 +38,7 @@ const navItems: NavItem[] = [
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Forms', href: '/admin/forms', icon: FileText },
   { name: 'Contact', href: '/admin/contact', icon: Mail },
-  { name: 'Q&A', href: '/admin/qna', icon: MessageCircleQuestion, also: ['/admin/feedback'] },
+  { name: 'Q&A', href: '/admin/qna', icon: MessageCircleQuestion, also: ['/admin/feedback', '/admin/judging'] },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
