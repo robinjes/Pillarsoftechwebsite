@@ -1,7 +1,7 @@
 -- Live audience Q&A storage, vote, and privilege contract tests.
 begin;
 set local search_path = public, extensions;
-select plan(32);
+select plan(33);
 
 select has_table('public', 'qna_sessions', 'Q&A sessions table exists');
 select has_table('public', 'qna_questions', 'Q&A questions table exists');
@@ -51,6 +51,8 @@ select throws_ok($$ insert into public.qna_questions (session_id, body, status, 
 delete from public.qna_sessions where id = '00000000-0000-4000-8000-0000000000a2';
 select is((select count(*) from public.qna_questions where session_id = '00000000-0000-4000-8000-0000000000a2'), 0::bigint, 'deleting a session removes its questions');
 select is((select count(*) from public.qna_votes where question_id = '00000000-0000-4000-8000-0000000000b1'), 0::bigint, 'deleting a session removes its votes');
+
+select ok(exists(select 1 from pg_constraint where conname = 'qna_questions_session_id_fkey'), 'admin count embed hint names a real foreign key');
 
 select * from finish();
 rollback;

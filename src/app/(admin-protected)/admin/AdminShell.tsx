@@ -38,7 +38,7 @@ const navItems: NavItem[] = [
   { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { name: 'Forms', href: '/admin/forms', icon: FileText },
   { name: 'Contact', href: '/admin/contact', icon: Mail },
-  { name: 'Q&A', href: '/admin/qna', icon: MessageCircleQuestion, also: ['/admin/feedback', '/admin/judging'] },
+  { name: 'Event tools', href: '/admin/qna', icon: MessageCircleQuestion, also: ['/admin/feedback', '/admin/judging'] },
   { name: 'Settings', href: '/admin/settings', icon: Settings },
 ]
 
@@ -94,7 +94,7 @@ function NavigationLinks({ pathname, onNavigate, mobile = false }: NavigationLin
             href={item.href}
             onClick={onNavigate}
             aria-current={isActive ? 'page' : undefined}
-            className={`inline-flex min-h-11 items-center gap-2 whitespace-nowrap border text-sm font-semibold transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sky focus-visible:ring-offset-2 focus-visible:ring-offset-midnight ${mobile ? 'w-full border-transparent px-3 py-2' : 'border-transparent px-2'} ${isActive ? 'border-sky/40 bg-sky text-midnight' : 'text-warm/75 hover:border-white/20 hover:bg-white/10 hover:text-warm'}`}
+            className={`inline-flex min-h-11 items-center gap-2 whitespace-nowrap border text-sm font-semibold transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sky focus-visible:ring-offset-2 focus-visible:ring-offset-midnight ${mobile ? 'w-full border-transparent px-3 py-2' : 'border-transparent px-1.5'} ${isActive ? 'border-sky/40 bg-sky text-midnight' : 'text-warm/75 hover:border-white/20 hover:bg-white/10 hover:text-warm'}`}
           >
             {/* The desktop bar is capped at the site width; icons only fit in the drawer. */}
             {mobile ? <Icon className="h-4 w-4 shrink-0" aria-hidden="true" /> : null}

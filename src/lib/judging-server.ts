@@ -112,7 +112,9 @@ type JudgeRow = { id: string; event_id: string; name: string; access_code: strin
 type ScoreRow = RubricScores & { judge_id: string; contestant_id: string; comment: string; updated_at: string }
 
 const EVENT_COLUMNS = 'id, title, is_current, scores_locked, current_contestant_id, created_at'
-const ADMIN_EVENT_COLUMNS = `${EVENT_COLUMNS}, judging_contestants(count), judging_judges(count)`
+// Events and contestants reference each other (event_id one way, current_contestant_id
+// the other), so PostgREST needs the foreign key named to know which to count.
+const ADMIN_EVENT_COLUMNS = `${EVENT_COLUMNS}, judging_contestants!judging_contestants_event_id_fkey(count), judging_judges!judging_judges_event_id_fkey(count)`
 const SCORE_COLUMNS = `judge_id, contestant_id, ${RUBRIC_KEYS.join(', ')}, comment, updated_at`
 
 function client() {
