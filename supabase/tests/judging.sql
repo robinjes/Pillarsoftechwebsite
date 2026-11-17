@@ -1,7 +1,7 @@
 -- Live pitch judging storage and privilege contract tests.
 begin;
 set local search_path = public, extensions;
-select plan(24);
+select plan(26);
 
 select has_table('public', 'judging_events', 'judging events table exists');
 select has_table('public', 'judging_contestants', 'contestants table exists');
@@ -47,6 +47,9 @@ select is((select count(*) from public.judging_scores where contestant_id = '000
 
 delete from public.judging_events where id = '00000000-0000-4000-8000-0000000000e2';
 select is((select count(*) from public.judging_judges where event_id = '00000000-0000-4000-8000-0000000000e2'), 0::bigint, 'deleting an event removes its judges');
+
+select ok(exists(select 1 from pg_constraint where conname = 'judging_contestants_event_id_fkey'), 'contestant count embed hint names a real foreign key');
+select ok(exists(select 1 from pg_constraint where conname = 'judging_judges_event_id_fkey'), 'judge count embed hint names a real foreign key');
 
 select * from finish();
 rollback;

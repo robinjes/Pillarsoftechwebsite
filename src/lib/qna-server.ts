@@ -88,7 +88,9 @@ type QuestionRow = {
 }
 
 const SESSION_COLUMNS = 'id, title, is_current, accepting_questions, highlighted_question_id, created_at'
-const ADMIN_SESSION_COLUMNS = `${SESSION_COLUMNS}, qna_questions(count)`
+// Sessions and questions reference each other (session_id one way,
+// highlighted_question_id the other), so name the foreign key to count by.
+const ADMIN_SESSION_COLUMNS = `${SESSION_COLUMNS}, qna_questions!qna_questions_session_id_fkey(count)`
 const QUESTION_COLUMNS = 'id, body, author_name, status, upvote_count, created_at'
 const MAX_QUESTIONS = 500
 
